@@ -2,13 +2,14 @@ import { expect, test } from '@playwright/test'
 import { adminApiContext } from '../helpers/api.js'
 import { AdminPage } from '../pages/admin.js'
 import { ShopPage } from '../pages/shop.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('invoices', () => {
   test('paid order generates a sequential invoice, downloadable as pdf', async ({ page }) => {
     // Pay an order via mock stripe
     const shop = new ShopPage(page)
     await shop.addProductToCart('spiral-vase')
-    await page.goto('/checkout')
+    await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress('invoice-e2e@example.com')
     await page.getByTestId('payment-stripe').click()
     await page.getByTestId('submit-order').click()
@@ -18,7 +19,7 @@ test.describe('invoices', () => {
     // Invoice appears in admin with RE-<year>-<seq> number
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/invoices')
+    await gotoHydrated(page, '/admin/invoices')
     await expect(page.getByTestId('admin-invoices')).toBeVisible()
     const firstNumber = page.locator('tbody tr').first().locator('td').first()
     await expect(firstNumber).toContainText(/RE-\d{4}-\d{5}/)

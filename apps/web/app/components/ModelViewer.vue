@@ -115,29 +115,43 @@ onMounted(() => {
     applyColors()
   }
 
-  if (props.src) {
-    new GLTFLoader().load(
-      props.src,
-      (gltf) => {
-        gltf.scene.traverse((obj) => {
-          if (obj instanceof THREE.Mesh) registerZoneMesh(obj)
-        })
-        const bounds = new THREE.Box3().setFromObject(gltf.scene)
-        const size = bounds.getSize(new THREE.Vector3()).length() || 1
-        gltf.scene.scale.setScalar(3 / size)
-        scene?.add(gltf.scene)
-        finalize()
-      },
-      undefined,
-      () => {
-        buildFallbackModel(scene!)
-        finalize()
-      },
-    )
-  } else {
-    buildFallbackModel(scene)
-    finalize()
+  /** GLB assets are optional — verify existence fast before invoking the loader. */
+  const glbAvailable = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' })
+      const type = response.headers.get('content-type') ?? ''
+      return response.ok && !type.includes('text/html')
+    } catch {
+      return false
+    }
   }
+
+  const loadModel = async () => {
+    if (props.src && (await glbAvailable(props.src))) {
+      new GLTFLoader().load(
+        props.src,
+        (gltf) => {
+          gltf.scene.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) registerZoneMesh(obj)
+          })
+          const bounds = new THREE.Box3().setFromObject(gltf.scene)
+          const size = bounds.getSize(new THREE.Vector3()).length() || 1
+          gltf.scene.scale.setScalar(3 / size)
+          scene?.add(gltf.scene)
+          finalize()
+        },
+        undefined,
+        () => {
+          buildFallbackModel(scene!)
+          finalize()
+        },
+      )
+    } else {
+      buildFallbackModel(scene!)
+      finalize()
+    }
+  }
+  void loadModel()
 
   const onResize = () => {
     if (!renderer || !camera || !el) return

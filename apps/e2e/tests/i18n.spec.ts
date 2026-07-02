@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
   test('german is the default without url prefix', async ({ page }) => {
-    await page.goto('/products')
+    await gotoHydrated(page, '/products')
     await expect(page.getByRole('heading', { level: 2, name: 'Produkte' })).toBeVisible()
   })
 
@@ -15,13 +16,13 @@ test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
       cs: 'Produkty',
     }
     for (const [locale, heading] of Object.entries(expectations)) {
-      await page.goto(`/${locale}/products`)
+      await gotoHydrated(page, `/${locale}/products`)
       await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible()
     }
   })
 
   test('language switcher navigates to the locale-prefixed route', async ({ page }) => {
-    await page.goto('/products')
+    await gotoHydrated(page, '/products')
     await page.getByTestId('language-switcher').click()
     await page.locator('[data-locale="en"]').click()
     await page.waitForURL(/\/en\/products/)
@@ -29,16 +30,16 @@ test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
   })
 
   test('product translations follow the locale', async ({ page }) => {
-    await page.goto('/products/spiral-vase')
+    await gotoHydrated(page, '/products/spiral-vase')
     await expect(page.getByTestId('product-name')).toHaveText('Spiralvase')
-    await page.goto('/en/products/spiral-vase')
+    await gotoHydrated(page, '/en/products/spiral-vase')
     await expect(page.getByTestId('product-name')).toHaveText('Spiral Vase')
   })
 
   test('html lang attribute matches the locale', async ({ page }) => {
-    await page.goto('/en')
+    await gotoHydrated(page, '/en')
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-    await page.goto('/fr')
+    await gotoHydrated(page, '/fr')
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
   })
 })

@@ -45,7 +45,7 @@ export const CardHover: Story = {
   render: () => ({
     components: { PsCard },
     template: `
-      <div class="grid max-w-3xl grid-cols-1 gap-lg sm:grid-cols-3">
+      <div class="grid max-w-[48rem] grid-cols-1 gap-lg sm:grid-cols-3">
         <PsCard v-for="index in 3" :key="index" hover>
           <h3 class="text-label-medium text-primary">Karte {{ index }}</h3>
           <p class="mt-sm text-body-regular text-secondary">Bewege die Maus über die Karte, um den Hover-Effekt zu sehen.</p>

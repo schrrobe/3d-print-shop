@@ -35,8 +35,8 @@ function saveSettings() {
     :aria-label="t('consent.title')"
     data-testid="consent-banner"
   >
-    <div class="mx-auto flex max-w-6xl flex-col gap-md md:flex-row md:items-center md:justify-between">
-      <div class="max-w-2xl">
+    <div class="mx-auto flex max-w-[72rem] flex-col gap-md md:flex-row md:items-center md:justify-between">
+      <div class="max-w-[42rem]">
         <h2 class="text-label-medium font-semibold">{{ t('consent.title') }}</h2>
         <p class="mt-xs text-body-regular text-secondary">{{ t('consent.text') }}</p>
       </div>

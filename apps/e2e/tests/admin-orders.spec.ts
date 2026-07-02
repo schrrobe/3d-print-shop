@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin orders', () => {
   test('lists seeded orders with status filter', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/orders')
+    await gotoHydrated(page, '/admin/orders')
     await expect(page.getByTestId('admin-orders')).toBeVisible()
     await expect(page.getByText('PS-2026-00000001')).toBeVisible()
 
@@ -17,7 +18,7 @@ test.describe('admin orders', () => {
   test('bank transfer order can be marked as paid', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/orders')
+    await gotoHydrated(page, '/admin/orders')
     await page.getByTestId('order-status-filter').selectOption('awaiting_bank_transfer')
     await page.getByTestId('order-detail-link').first().click()
     await page.waitForURL(/\/admin\/orders\//)
@@ -30,7 +31,7 @@ test.describe('admin orders', () => {
     const admin = new AdminPage(page)
     await admin.login()
     // Seed order 1 is in_production → quality_check → ready_to_ship → ship
-    await page.goto('/admin/orders')
+    await gotoHydrated(page, '/admin/orders')
     await page.getByTestId('order-status-filter').selectOption('in_production')
     await page.getByTestId('order-detail-link').first().click()
     await page.waitForURL(/\/admin\/orders\//)

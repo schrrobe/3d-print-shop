@@ -60,7 +60,7 @@ async function checkBitcoin() {
 
 <template>
   <PsSection>
-    <div class="mx-auto max-w-2xl" data-testid="order-page">
+    <div class="mx-auto max-w-[42rem]" data-testid="order-page">
       <div class="flex flex-wrap items-center justify-between gap-md">
         <h1 class="text-heading-medium">{{ t('order.title', { number: order.orderNumber }) }}</h1>
         <PsOrderStatusBadge

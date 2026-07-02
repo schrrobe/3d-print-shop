@@ -38,7 +38,7 @@ function isActive(to: string, exact?: boolean) {
     class="sticky top-0 z-30 border-b border-subtle bg-surface/90 backdrop-blur-sm"
     data-testid="site-header"
   >
-    <div class="mx-auto flex max-w-6xl items-center justify-between gap-md px-md py-md">
+    <div class="mx-auto flex max-w-[72rem] items-center justify-between gap-md px-md py-md">
       <NuxtLink :to="localePath('/')" class="flex items-center gap-sm text-label-medium font-semibold">
         <span class="inline-block size-3 rounded-full-pill bg-brand" aria-hidden="true" />
         Print Shop

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 /** WCAG A/AA scans on the core shop pages (design system targets AA). */
 async function scan(page: Page) {
@@ -13,7 +14,7 @@ async function scan(page: Page) {
 test.describe('accessibility (axe, wcag aa)', () => {
   for (const route of ['/', '/products', '/products/spiral-vase', '/cart', '/upload']) {
     test(`no serious/critical violations on ${route}`, async ({ page }) => {
-      await page.goto(route)
+      await gotoHydrated(page, route)
       // settle consent banner into the scan too — it must be accessible itself
       const results = await scan(page)
       const severe = results.violations.filter((v) =>
@@ -26,7 +27,7 @@ test.describe('accessibility (axe, wcag aa)', () => {
   }
 
   test('checkout form fields have labels', async ({ page }) => {
-    await page.goto('/checkout')
+    await gotoHydrated(page, '/checkout')
     const results = await scan(page)
     expect(results.violations.map((v) => v.id)).not.toContain('label')
   })

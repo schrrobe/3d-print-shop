@@ -9,7 +9,7 @@ const meta: Meta<typeof PsCard> = {
     components: { PsCard },
     setup: () => ({ args }),
     template: `
-      <PsCard v-bind="args" class="max-w-sm">
+      <PsCard v-bind="args" class="max-w-[24rem]">
         <h3 class="text-subheading text-primary">Vasenmodus-Übertopf</h3>
         <p class="mt-sm text-body-regular text-secondary">
           Gedruckt aus recyceltem PETG, wasserdicht und spülmaschinenfest.
@@ -27,7 +27,7 @@ export const Unpadded: Story = {
   render: () => ({
     components: { PsCard },
     template: `
-      <PsCard :padded="false" class="max-w-sm">
+      <PsCard :padded="false" class="max-w-[24rem]">
         <div class="aspect-[4/3] rounded-t-card bg-surface"></div>
         <div class="p-md text-body-regular text-primary">Eigenes Padding im Slot</div>
       </PsCard>

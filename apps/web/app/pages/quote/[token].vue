@@ -75,7 +75,7 @@ async function decline() {
 
 <template>
   <PsSection :title="t('quote.title')">
-    <div class="mx-auto max-w-xl" data-testid="quote-page">
+    <div class="mx-auto max-w-[36rem]" data-testid="quote-page">
       <div class="rounded-card border border-subtle bg-surface-elevated p-lg">
         <div class="flex items-center justify-between">
           <span class="text-body-regular text-secondary">{{ t('quote.price') }}</span>

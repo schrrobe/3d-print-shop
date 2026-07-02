@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin products', () => {
   test('lists products and toggles visibility', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/products')
+    await gotoHydrated(page, '/admin/products')
     await expect(page.getByTestId('admin-products')).toBeVisible()
     await expect(page.getByText('spiral-vase')).toBeVisible()
 
@@ -20,7 +21,7 @@ test.describe('admin products', () => {
   test('creates a new product', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/products')
+    await gotoHydrated(page, '/admin/products')
     await page.getByTestId('new-product').click()
 
     const form = page.getByTestId('product-form')
@@ -32,14 +33,14 @@ test.describe('admin products', () => {
 
     await expect(page.getByText('e2e-testprodukt')).toBeVisible()
     // appears in the public shop
-    await page.goto('/products/e2e-testprodukt')
+    await gotoHydrated(page, '/products/e2e-testprodukt')
     await expect(page.getByTestId('product-name')).toHaveText('E2E Testprodukt')
   })
 
   test('rejects duplicate slugs', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/products')
+    await gotoHydrated(page, '/admin/products')
     await page.getByTestId('new-product').click()
     const form = page.getByTestId('product-form')
     await form.locator('input').nth(0).fill('Duplikat')

@@ -1,12 +1,15 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
+import { gotoHydrated } from '../helpers/hydration.js'
+import { ShopPage } from '../pages/shop.js'
 
 const fixtures = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../fixtures')
 
 test.describe('upload request (3mf/stl, max 50 MB)', () => {
   test('customer can submit a model upload request', async ({ page }) => {
-    await page.goto('/upload')
+    await gotoHydrated(page, '/upload')
+    await new ShopPage(page).acceptConsent()
     await expect(page.getByTestId('stepper')).toBeVisible()
 
     await page
@@ -25,7 +28,8 @@ test.describe('upload request (3mf/stl, max 50 MB)', () => {
   })
 
   test('rejects disallowed file types client-side', async ({ page }) => {
-    await page.goto('/upload')
+    await gotoHydrated(page, '/upload')
+    await new ShopPage(page).acceptConsent()
     await page
       .getByTestId('upload-dropzone')
       .locator('input[type="file"]')
@@ -47,7 +51,8 @@ test.describe('upload request (3mf/stl, max 50 MB)', () => {
   })
 
   test('form requires a file before submitting', async ({ page }) => {
-    await page.goto('/upload')
+    await gotoHydrated(page, '/upload')
+    await new ShopPage(page).acceptConsent()
     await page.locator('input[name="name"]').fill('Ohne Datei')
     await page.locator('input[name="email"]').fill('nofile@example.com')
     await page.locator('textarea[name="description"]').fill('Anfrage ohne Datei gesendet.')
@@ -56,7 +61,8 @@ test.describe('upload request (3mf/stl, max 50 MB)', () => {
   })
 
   test('shows the placeholder for future upload terms', async ({ page }) => {
-    await page.goto('/upload')
+    await gotoHydrated(page, '/upload')
+    await new ShopPage(page).acceptConsent()
     await expect(page.getByTestId('upload-terms-placeholder')).toBeVisible()
   })
 })

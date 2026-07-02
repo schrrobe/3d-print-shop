@@ -18,7 +18,7 @@ const meta: Meta<typeof PsCheckoutSummary> = {
   render: (args) => ({
     components: { PsCheckoutSummary },
     setup: () => ({ args }),
-    template: '<div class="max-w-md"><PsCheckoutSummary v-bind="args" /></div>',
+    template: '<div class="max-w-[28rem]"><PsCheckoutSummary v-bind="args" /></div>',
   }),
 }
 export default meta
@@ -43,7 +43,7 @@ export const CustomShippingLabel: Story = {
     components: { PsCheckoutSummary },
     setup: () => ({ args }),
     template: `
-      <div class="max-w-md">
+      <div class="max-w-[28rem]">
         <PsCheckoutSummary v-bind="args">
           <template #shipping-label>Gratisversand 🎉</template>
         </PsCheckoutSummary>

@@ -70,12 +70,12 @@ async function submit() {
   <PsSection :title="t('upload.title')" :subtitle="t('upload.subtitle')">
     <PsStepper :steps="steps" :current="submitted ? 'review' : 'upload'" class="mb-2xl" />
 
-    <div v-if="submitted" class="mx-auto max-w-xl py-2xl text-center" data-testid="upload-success">
+    <div v-if="submitted" class="mx-auto max-w-[36rem] py-2xl text-center" data-testid="upload-success">
       <h2 class="text-heading-small text-brand">{{ t('upload.successTitle') }}</h2>
       <p class="mt-md text-body-regular text-secondary">{{ t('upload.successText') }}</p>
     </div>
 
-    <form v-else class="mx-auto flex max-w-xl flex-col gap-lg" data-testid="upload-form" @submit.prevent="submit">
+    <form v-else class="mx-auto flex max-w-[36rem] flex-col gap-lg" data-testid="upload-form" @submit.prevent="submit">
       <PsUploadDropzone accept=".stl,.3mf" :multiple="true" @files="onFiles" @error="onFileError">
         <p class="text-label-medium">{{ t('upload.dropzone') }}</p>
         <p class="mt-xs text-caption text-secondary">{{ t('upload.accepted') }}</p>

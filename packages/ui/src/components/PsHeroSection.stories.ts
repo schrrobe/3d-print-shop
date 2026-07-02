@@ -39,7 +39,7 @@ export const WithMedia: Story = {
           <PsPillButton size="lg">Jetzt konfigurieren</PsPillButton>
         </template>
         <template #media>
-          <div class="mx-auto max-w-sm">
+          <div class="mx-auto max-w-[24rem]">
             <PsProductCard name="Modularer Schreibtisch-Organizer" :price-cents="2490" badge="Bestseller" />
           </div>
         </template>

@@ -13,7 +13,7 @@ const meta: Meta<typeof PsInput> = {
   render: (args) => ({
     components: { PsInput },
     setup: () => ({ args }),
-    template: '<div class="max-w-sm"><PsInput v-bind="args" /></div>',
+    template: '<div class="max-w-[24rem]"><PsInput v-bind="args" /></div>',
   }),
 }
 export default meta

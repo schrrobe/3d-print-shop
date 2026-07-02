@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('gdpr consent', () => {
   test('banner shows on first visit, nothing tracked before opt-in', async ({ page }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await expect(page.getByTestId('consent-banner')).toBeVisible()
     // No tracking scripts in the document before consent
     expect(await page.locator('script[data-tracker]').count()).toBe(0)
   })
 
   test('reject all hides banner and persists', async ({ page }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await page.getByTestId('consent-reject').click()
     await expect(page.getByTestId('consent-banner')).toBeHidden()
     await page.reload()
@@ -22,7 +23,7 @@ test.describe('gdpr consent', () => {
   })
 
   test('accept all stores opt-in for statistics + marketing', async ({ page }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await page.getByTestId('consent-accept').click()
     const stored = await page.evaluate(() => localStorage.getItem('print-shop-consent'))
     const consent = JSON.parse(stored!) as { statistics: boolean; marketing: boolean }
@@ -31,7 +32,7 @@ test.describe('gdpr consent', () => {
   })
 
   test('custom selection via settings dialog', async ({ page }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await page.getByTestId('consent-settings').click()
     await page.getByTestId('consent-statistics').check()
     await page.getByTestId('consent-save').click()
@@ -44,7 +45,7 @@ test.describe('gdpr consent', () => {
   })
 
   test('consent decisions are logged to the backend', async ({ page, request }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await page.getByTestId('consent-accept').click()
     // ConsentLog row was written (visible via admin audit is separate — check via API count)
     // The POST /api/consent request must have succeeded:
@@ -59,7 +60,7 @@ test.describe('gdpr consent', () => {
   })
 
   test('settings can be reopened from the footer', async ({ page }) => {
-    await page.goto('/')
+    await gotoHydrated(page, '/')
     await page.getByTestId('consent-accept').click()
     await page.getByTestId('open-consent-settings').click()
     await expect(page.getByTestId('consent-settings-dialog')).toBeVisible()

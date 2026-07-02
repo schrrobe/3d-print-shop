@@ -6,7 +6,7 @@ const { t } = useI18n()
 
 <template>
   <PsSection :title="t('legal.privacyTitle')">
-    <div class="max-w-2xl text-body-regular text-secondary" data-testid="legal-privacy">
+    <div class="max-w-[42rem] text-body-regular text-secondary" data-testid="legal-privacy">
       <p>{{ t('legal.placeholder') }}</p>
       <p class="mt-lg">{{ t('consent.text') }}</p>
     </div>

@@ -14,7 +14,7 @@ const meta: Meta<typeof PsUploadDropzone> = {
       return { args, accepted, errorMessage }
     },
     template: `
-      <div class="flex max-w-lg flex-col gap-md">
+      <div class="flex max-w-[32rem] flex-col gap-md">
         <PsUploadDropzone
           v-bind="args"
           @files="(files) => (accepted = files.map((f) => f.name))"
@@ -38,7 +38,7 @@ export const CustomLabel: Story = {
     components: { PsUploadDropzone },
     setup: () => ({ args }),
     template: `
-      <div class="max-w-lg">
+      <div class="max-w-[32rem]">
         <PsUploadDropzone v-bind="args">STL oder 3MF hier ablegen</PsUploadDropzone>
       </div>
     `,

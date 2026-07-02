@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 /** Page object for the public shop. */
 export class ShopPage {
@@ -13,7 +14,7 @@ export class ShopPage {
   }
 
   async addProductToCart(slug: string): Promise<void> {
-    await this.page.goto(`/products/${slug}`)
+    await gotoHydrated(this.page, `/products/${slug}`)
     await this.acceptConsent()
     await this.page.getByTestId('add-to-cart').click()
   }
@@ -22,7 +23,12 @@ export class ShopPage {
     return this.page.getByTestId('cart-count')
   }
 
+  async gotoCheckout(): Promise<void> {
+    await gotoHydrated(this.page, '/checkout')
+  }
+
   async fillCheckoutAddress(email = 'e2e-checkout@example.com'): Promise<void> {
+    await this.page.waitForSelector('html[data-hydrated="true"]')
     await this.page.locator('input[name="firstName"]').fill('Erika')
     await this.page.locator('input[name="lastName"]').fill('E2E')
     await this.page.locator('input[name="street"]').fill('Teststraße 42')

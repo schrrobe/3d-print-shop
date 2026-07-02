@@ -13,7 +13,7 @@ const meta: Meta<typeof PsFileUpload> = {
       return { args, fileNames }
     },
     template: `
-      <div class="flex max-w-md flex-col gap-md">
+      <div class="flex max-w-[28rem] flex-col gap-md">
         <PsFileUpload v-bind="args" @files="(files) => (fileNames = files.map((f) => f.name))">
           3D-Modell auswählen
         </PsFileUpload>

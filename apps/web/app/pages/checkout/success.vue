@@ -21,7 +21,7 @@ async function simulatePayment() {
 
 <template>
   <PsSection>
-    <div class="mx-auto max-w-xl py-3xl text-center" data-testid="checkout-success">
+    <div class="mx-auto max-w-[36rem] py-3xl text-center" data-testid="checkout-success">
       <h1 class="text-heading-large">{{ t('success.title') }}</h1>
       <p class="mt-lg text-body-regular text-secondary">
         {{ t('success.orderNumber') }}: <strong data-testid="order-number">{{ orderNumber }}</strong>

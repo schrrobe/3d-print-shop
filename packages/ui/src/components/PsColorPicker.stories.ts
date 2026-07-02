@@ -27,7 +27,7 @@ const meta: Meta<typeof PsColorPicker> = {
       return { args, selection }
     },
     template: `
-      <div class="flex max-w-md flex-col gap-lg">
+      <div class="flex max-w-[28rem] flex-col gap-lg">
         <PsColorPicker v-bind="args" v-model="selection" />
         <pre class="rounded-card bg-surface-elevated p-md text-caption text-secondary">{{ selection }}</pre>
       </div>

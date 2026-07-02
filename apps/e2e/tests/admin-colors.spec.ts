@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin colors', () => {
   test('lists global colors incl. inactive ones', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/colors')
+    await gotoHydrated(page, '/admin/colors')
     await expect(page.getByTestId('admin-colors')).toBeVisible()
     await expect(page.getByText('Brand Green')).toBeVisible()
     await expect(page.getByText('Neon Orange (ausverkauft)')).toBeVisible()
@@ -14,7 +15,7 @@ test.describe('admin colors', () => {
   test('creates a color and it appears in the public configurator', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/colors')
+    await gotoHydrated(page, '/admin/colors')
     await page.getByTestId('new-color').click()
     const form = page.getByTestId('color-form')
     await form.locator('input').nth(0).fill('E2E Magenta')
@@ -33,7 +34,7 @@ test.describe('admin colors', () => {
   test('deactivating a color hides it from the shop', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/colors')
+    await gotoHydrated(page, '/admin/colors')
     const row = page.locator('tr', { hasText: 'Sun Yellow' })
     await row.getByTestId('toggle-color').click()
     await expect(row.getByText('inaktiv')).toBeVisible()
@@ -49,7 +50,7 @@ test.describe('admin colors', () => {
   test('rejects invalid hex values', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/colors')
+    await gotoHydrated(page, '/admin/colors')
     await page.getByTestId('new-color').click()
     const form = page.getByTestId('color-form')
     await form.locator('input').nth(0).fill('Kaputt')

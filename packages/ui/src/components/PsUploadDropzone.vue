@@ -60,16 +60,8 @@ function onChange(event: Event): void {
 </script>
 
 <template>
-  <button
-    type="button"
-    class="flex w-full cursor-pointer flex-col items-center justify-center gap-sm rounded-card border-2 border-dashed p-3xl text-center transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-    :class="dragging ? 'border-brand bg-brand/5' : 'border-subtle hover:border-brand'"
-    data-testid="upload-dropzone"
-    @click="input?.click()"
-    @dragover.prevent="dragging = true"
-    @dragleave.prevent="dragging = false"
-    @drop.prevent="onDrop"
-  >
+  <!-- file input is a sibling (not nested) of the button — a11y: no nested interactive controls -->
+  <div data-testid="upload-dropzone">
     <input
       ref="input"
       type="file"
@@ -79,13 +71,22 @@ function onChange(event: Event): void {
       :multiple="multiple"
       aria-hidden="true"
       @change="onChange"
-      @click.stop
     />
-    <span class="text-label-medium text-primary">
-      <slot>Dateien hierher ziehen oder klicken</slot>
-    </span>
-    <span class="text-caption text-secondary">
-      {{ accept.toUpperCase() }} · max. {{ formatSize(maxSizeBytes) }}
-    </span>
-  </button>
+    <button
+      type="button"
+      class="flex w-full cursor-pointer flex-col items-center justify-center gap-sm rounded-card border-2 border-dashed p-3xl text-center transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      :class="dragging ? 'border-brand bg-brand/5' : 'border-subtle hover:border-brand'"
+      @click="input?.click()"
+      @dragover.prevent="dragging = true"
+      @dragleave.prevent="dragging = false"
+      @drop.prevent="onDrop"
+    >
+      <span class="text-label-medium text-primary">
+        <slot>Dateien hierher ziehen oder klicken</slot>
+      </span>
+      <span class="text-caption text-secondary">
+        {{ accept.toUpperCase() }} · max. {{ formatSize(maxSizeBytes) }}
+      </span>
+    </button>
+  </div>
 </template>

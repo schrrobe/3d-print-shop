@@ -7,7 +7,7 @@ const consent = useConsentStore()
 <template>
   <footer class="border-t border-subtle bg-surface py-2xl" data-testid="site-footer">
     <div
-      class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-md px-md text-caption text-secondary sm:flex-row"
+      class="mx-auto flex max-w-[72rem] flex-col items-center justify-between gap-md px-md text-caption text-secondary sm:flex-row"
     >
       <p>© 2026 Print Shop · {{ t('footer.claim') }}</p>
       <nav class="flex items-center gap-lg">

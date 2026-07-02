@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('production queue', () => {
   test('shows seeded printing job', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/production')
+    await gotoHydrated(page, '/admin/production')
     await expect(page.getByTestId('production-queue')).toBeVisible()
     const job = page.getByTestId('production-job').filter({ hasText: 'PS-2026-00000001' })
     await expect(job).toBeVisible()
@@ -15,7 +16,7 @@ test.describe('production queue', () => {
   test('walks a job through the production lifecycle', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/production')
+    await gotoHydrated(page, '/admin/production')
     const job = page.getByTestId('production-job').filter({ hasText: 'PS-2026-00000001' })
 
     await job.getByTestId('job-status-printed').click()
@@ -54,7 +55,7 @@ test.describe('production queue', () => {
 
     const admin = new AdminPage(page)
     await admin.login()
-    await page.goto('/admin/production')
+    await gotoHydrated(page, '/admin/production')
     const waiting = page.getByTestId('production-job').filter({ hasText: 'Wartet' }).first()
     await waiting.getByTestId('assign-job').click()
 

@@ -26,7 +26,7 @@ const meta: Meta<typeof PsAccordion> = {
   render: (args) => ({
     components: { PsAccordion },
     setup: () => ({ args }),
-    template: '<div class="max-w-lg"><PsAccordion v-bind="args" /></div>',
+    template: '<div class="max-w-[32rem]"><PsAccordion v-bind="args" /></div>',
   }),
 }
 export default meta
@@ -38,7 +38,7 @@ export const WithSlotOverride: Story = {
     components: { PsAccordion },
     setup: () => ({ args }),
     template: `
-      <div class="max-w-lg">
+      <div class="max-w-[32rem]">
         <PsAccordion v-bind="args">
           <template #material>
             <ul class="list-disc pl-lg">

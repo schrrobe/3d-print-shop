@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test'
 import { adminApiContext, apiContext } from '../helpers/api.js'
 import { AdminPage } from '../pages/admin.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin auth & rbac', () => {
   test('rejects wrong credentials', async ({ page }) => {
-    await page.goto('/admin/login')
+    await gotoHydrated(page, '/admin/login')
     await page.locator('input[name="email"]').fill('admin@example.com')
     await page.locator('input[name="password"]').fill('definitely-wrong-pw')
     await page.getByTestId('login-submit').click()
@@ -20,7 +21,7 @@ test.describe('admin auth & rbac', () => {
   })
 
   test('unauthenticated users are redirected to login', async ({ page }) => {
-    await page.goto('/admin/orders')
+    await gotoHydrated(page, '/admin/orders')
     await page.waitForURL(/\/admin\/login/)
   })
 

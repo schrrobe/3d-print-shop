@@ -20,7 +20,7 @@ const meta: Meta<typeof PsSelect> = {
   render: (args) => ({
     components: { PsSelect },
     setup: () => ({ args, selected: ref<string | undefined>(undefined) }),
-    template: '<div class="max-w-sm"><PsSelect v-bind="args" v-model="selected" /></div>',
+    template: '<div class="max-w-[24rem]"><PsSelect v-bind="args" v-model="selected" /></div>',
   }),
 }
 export default meta

@@ -41,7 +41,7 @@ export const AllStatuses: Story = {
       return { statuses: ORDER_STATUSES, labels }
     },
     template: `
-      <div class="flex max-w-lg flex-wrap gap-sm">
+      <div class="flex max-w-[32rem] flex-wrap gap-sm">
         <PsOrderStatusBadge
           v-for="status in statuses"
           :key="status"

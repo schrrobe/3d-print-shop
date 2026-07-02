@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { createQuoteViaApi } from '../helpers/api.js'
+import { ShopPage } from '../pages/shop.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('quote acceptance via payment link', () => {
   test('customer accepts a quote and receives a payment link', async ({ page }) => {
     const { token } = await createQuoteViaApi('accept-e2e@example.com')
 
-    await page.goto(`/quote/${token}`)
+    await gotoHydrated(page, `/quote/${token}`)
+    await new ShopPage(page).acceptConsent()
     await expect(page.getByTestId('quote-page')).toBeVisible()
     await expect(page.getByTestId('quote-price')).toContainText('129,00')
 
@@ -29,7 +32,8 @@ test.describe('quote acceptance via payment link', () => {
 
   test('customer can decline a quote', async ({ page }) => {
     const { token } = await createQuoteViaApi('decline-e2e@example.com')
-    await page.goto(`/quote/${token}`)
+    await gotoHydrated(page, `/quote/${token}`)
+    await new ShopPage(page).acceptConsent()
     await page.getByTestId('quote-decline').click()
     await expect(page.getByTestId('quote-declined')).toBeVisible()
   })
@@ -58,7 +62,7 @@ test.describe('quote acceptance via payment link', () => {
     const sessionId = new URL(paymentUrl).searchParams.get('session')!
     await request.post(`http://localhost:3001/api/dev/stripe/complete/${sessionId}`)
 
-    await page.goto(`/order/${orderNumber}?token=${accessToken}`)
+    await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)
     await expect(page.getByTestId('order-status')).toContainText('Bezahlt')
   })
 

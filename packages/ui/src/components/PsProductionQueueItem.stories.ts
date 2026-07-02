@@ -19,7 +19,7 @@ const meta: Meta<typeof PsProductionQueueItem> = {
   render: (args) => ({
     components: { PsProductionQueueItem },
     setup: () => ({ args }),
-    template: '<div class="max-w-xl"><PsProductionQueueItem v-bind="args" /></div>',
+    template: '<div class="max-w-[36rem]"><PsProductionQueueItem v-bind="args" /></div>',
   }),
 }
 export default meta
@@ -32,7 +32,7 @@ export const WithActions: Story = {
     components: { PsProductionQueueItem, PsButton },
     setup: () => ({ args }),
     template: `
-      <div class="max-w-xl">
+      <div class="max-w-[36rem]">
         <PsProductionQueueItem v-bind="args">
           <template #actions>
             <PsButton size="sm" variant="secondary">Zuweisen</PsButton>
@@ -46,7 +46,7 @@ export const Queue: Story = {
   render: () => ({
     components: { PsProductionQueueItem },
     template: `
-      <div class="flex max-w-xl flex-col gap-sm">
+      <div class="flex max-w-[36rem] flex-col gap-sm">
         <PsProductionQueueItem order-number="PS-2026-0142" item-name="Schreibtisch-Organizer" status="printing" printer-name="Drucker 01" duration-label="noch 1 Std." />
         <PsProductionQueueItem order-number="PS-2026-0141" item-name="Vasenmodus-Übertopf" status="quality_check" printer-name="Drucker 02" />
         <PsProductionQueueItem order-number="PS-2026-0139" item-name="Wandhalterung Kopfhörer" status="failed" printer-name="Drucker 03" />

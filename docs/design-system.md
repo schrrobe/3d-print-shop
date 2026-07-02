@@ -37,6 +37,11 @@ pill-2xl 52 · pill-3xl 56 · pill-4xl 66 · pill-max 150 · full-pill 400 (px).
 
 Einziger sanktionierter Schatten: `shadow-card` (0 2px 12px rgba(0,0,0,.1)).
 
+> **Achtung — Namenskollision:** Die Spacing-Tokens (`lg`, `xl`, `2xl`, …) speisen in
+> Tailwind 4 auch `w-*`/`max-w-*` u. ä. Utilities. `max-w-lg` bedeutet hier also **24px**,
+> nicht 32rem! Für Container-Breiten deshalb immer Arbitrary Values verwenden
+> (`max-w-[32rem]`, `max-w-[72rem]`, …) — so ist es im gesamten Code umgesetzt.
+
 ## Theme-System
 
 - Dark = Default und Markendesign (`:root`), Light via `[data-theme='light']` / `.light`.

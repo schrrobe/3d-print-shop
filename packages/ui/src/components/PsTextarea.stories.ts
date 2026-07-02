@@ -12,7 +12,7 @@ const meta: Meta<typeof PsTextarea> = {
   render: (args) => ({
     components: { PsTextarea },
     setup: () => ({ args }),
-    template: '<div class="max-w-md"><PsTextarea v-bind="args" /></div>',
+    template: '<div class="max-w-[28rem]"><PsTextarea v-bind="args" /></div>',
   }),
 }
 export default meta

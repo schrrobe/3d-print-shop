@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { apiContext, createQuoteViaApi } from '../helpers/api.js'
 import { ShopPage } from '../pages/shop.js'
+import { gotoHydrated } from '../helpers/hydration.js'
 
 /** Emails run in dev-log mode (no RESEND_API_KEY) — asserted via the EmailLog. */
 async function emailsFor(to: string): Promise<string[]> {
@@ -16,7 +17,7 @@ test.describe('email notifications (dev mode log)', () => {
     const email = `mail-e2e-${Date.now()}@example.com`
     const shop = new ShopPage(page)
     await shop.addProductToCart('spiral-vase')
-    await page.goto('/checkout')
+    await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress(email)
     await page.getByTestId('payment-stripe').click()
     await page.getByTestId('submit-order').click()

@@ -33,7 +33,7 @@ async function submit() {
 
 <template>
   <div class="flex min-h-screen items-center justify-center bg-surface p-md text-primary">
-    <PsCard class="w-full max-w-sm">
+    <PsCard class="w-full max-w-[24rem]">
       <h1 class="text-heading-small">Admin-Login</h1>
       <form class="mt-lg flex flex-col gap-md" data-testid="admin-login-form" @submit.prevent="submit">
         <PsInput v-model="email" label="E-Mail" type="email" name="email" required autocomplete="username" />
