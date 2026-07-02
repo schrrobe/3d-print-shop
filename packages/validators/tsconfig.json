@@ -1,0 +1,4 @@
+{
+  "extends": "@print-shop/config/tsconfig/base.json",
+  "include": ["src/**/*.ts", "test/**/*.ts", "eslint.config.js", "vitest.config.ts"]
+}

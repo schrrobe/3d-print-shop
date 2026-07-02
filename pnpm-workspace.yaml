@@ -2,13 +2,14 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - esbuild
-  - prisma
-  - "@prisma/client"
-  - "@prisma/engines"
-  - argon2
-  - sharp
-  - vue-demi
-  - unrs-resolver
-  - "@parcel/watcher"
+allowBuilds:
+  esbuild: true
+  prisma: true
+  "@prisma/client": true
+  "@prisma/engines": true
+  argon2: true
+  sharp: true
+  vue-demi: true
+  unrs-resolver: true
+  "@parcel/watcher": true
+  "better-sqlite3": false
