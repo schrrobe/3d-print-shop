@@ -1,0 +1,190 @@
+/*
+ * Design tokens — single source of truth for the 3D Print Shop design system.
+ * Consumed by apps/web and packages/ui (Storybook) via:
+ *   @import 'tailwindcss';
+ *   @import '@print-shop/config/tailwind/theme.css';
+ *
+ * Theming: dark is the primary brand theme (default on :root).
+ * Light theme activates via [data-theme='light'] or .light on <html>.
+ */
+
+/* ---------- Raw palette (theme-independent) ---------- */
+:root {
+  --raw-brand-green: #31a871;
+  --raw-surface-dark: #171717;
+  --raw-surface-warm: #f6f3ec;
+  --raw-text-dark: #000000;
+  --raw-text-primary-white: #ffffff;
+  --raw-text-secondary: #5e5e5e;
+  --raw-border-subtle: #000000;
+  --raw-white-translucent: rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- Semantic tokens: DARK (default / brand) ---------- */
+:root,
+[data-theme='dark'],
+.dark {
+  --surface: var(--raw-surface-dark);
+  --surface-elevated: #222222;
+  --surface-inverse: var(--raw-surface-warm);
+  --text-primary: var(--raw-text-primary-white);
+  /* #5e5e5e fails WCAG AA on #171717 → lighter secondary on dark */
+  --text-secondary: #a6a6a6;
+  --text-inverse: var(--raw-text-dark);
+  --border-subtle: var(--raw-white-translucent);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --brand: var(--raw-brand-green);
+  --on-brand: #04130c;
+  color-scheme: dark;
+}
+
+/* ---------- Semantic tokens: LIGHT ---------- */
+[data-theme='light'],
+.light {
+  --surface: var(--raw-surface-warm);
+  --surface-elevated: #ffffff;
+  --surface-inverse: var(--raw-surface-dark);
+  --text-primary: var(--raw-text-dark);
+  --text-secondary: var(--raw-text-secondary);
+  --text-inverse: var(--raw-text-primary-white);
+  --border-subtle: rgba(0, 0, 0, 0.12);
+  --overlay: rgba(0, 0, 0, 0.4);
+  --brand: var(--raw-brand-green);
+  --on-brand: #04130c;
+  color-scheme: light;
+}
+
+/* ---------- Tailwind theme mapping ---------- */
+@theme inline {
+  /* Semantic, theme-switching colors → bg-surface, text-primary, border-subtle, bg-brand … */
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-inverse: var(--text-inverse);
+  --color-subtle: var(--border-subtle);
+  --color-overlay: var(--overlay);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+}
+
+@theme {
+  /* Raw palette also available as utilities (bg-brand-green, bg-surface-dark, …) */
+  --color-brand-green: #31a871;
+  --color-surface-dark: #171717;
+  --color-surface-warm: #f6f3ec;
+  --color-text-dark: #000000;
+  --color-text-primary-white: #ffffff;
+  --color-text-secondary: #5e5e5e;
+
+  /* Typography — Momo Trust Sans with system fallbacks (see fonts.css) */
+  --font-sans:
+    'Momo Trust Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Type scale → text-display-xl, text-heading-large, … */
+  --text-display-xl: 96px;
+  --text-display-xl--line-height: 100.8px;
+  --text-display-xl--letter-spacing: -2.88px;
+  --text-display-xl--font-weight: 600;
+
+  --text-display-large: 72px;
+  --text-display-large--line-height: 75.6px;
+  --text-display-large--letter-spacing: -2.16px;
+  --text-display-large--font-weight: 600;
+
+  --text-display-medium: 64px;
+  --text-display-medium--line-height: 70.4px;
+  --text-display-medium--letter-spacing: -1.28px;
+  --text-display-medium--font-weight: 600;
+
+  --text-heading-large: 44px;
+  --text-heading-large--line-height: 52.8px;
+  --text-heading-large--letter-spacing: -0.44px;
+  --text-heading-large--font-weight: 600;
+
+  --text-heading-medium: 40px;
+  --text-heading-medium--line-height: 48px;
+  --text-heading-medium--letter-spacing: -1.6px;
+  --text-heading-medium--font-weight: 600;
+
+  --text-heading-small: 32px;
+  --text-heading-small--line-height: 38.4px;
+  --text-heading-small--letter-spacing: -1.28px;
+  --text-heading-small--font-weight: 600;
+
+  --text-subheading: 24px;
+  --text-subheading--line-height: 28.8px;
+  --text-subheading--letter-spacing: -0.96px;
+  --text-subheading--font-weight: 600;
+
+  --text-label-medium: 16px;
+  --text-label-medium--line-height: 17.6px;
+  --text-label-medium--letter-spacing: 0.32px;
+  --text-label-medium--font-weight: 500;
+
+  --text-body-regular: 14px;
+  --text-body-regular--line-height: 19.6px;
+  --text-body-regular--font-weight: 400;
+
+  --text-caption: 15px;
+  --text-caption--line-height: 16.5px;
+  --text-caption--font-weight: 600;
+
+  /* Spacing → p-xs, gap-md-lg, mt-6xl, … */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md-sm: 10px;
+  --spacing-md: 16px;
+  --spacing-md-lg: 18px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+  --spacing-3xl: 56px;
+  --spacing-4xl: 64px;
+  --spacing-5xl: 80px;
+  --spacing-6xl: 120px;
+
+  /* Radius → rounded-card, rounded-pill-medium, rounded-full-pill, … */
+  --radius-card: 10px;
+  --radius-pill-small: 21.5px;
+  --radius-pill-medium: 42px;
+  --radius-pill-large: 46px;
+  --radius-pill-xl: 50px;
+  --radius-pill-2xl: 52px;
+  --radius-pill-3xl: 56px;
+  --radius-pill-4xl: 66px;
+  --radius-pill-max: 150px;
+  --radius-full-pill: 400px;
+
+  /* The only sanctioned shadow */
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.1);
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Base ---------- */
+@layer base {
+  html {
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    font-size: 14px;
+    line-height: 19.6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

@@ -1,0 +1,38 @@
+/*
+ * Momo Trust Sans — font files are NOT bundled with this repository.
+ *
+ * To activate the brand font:
+ *   1. Place the licensed font files in apps/web/public/fonts/:
+ *        MomoTrustSans-Regular.woff2
+ *        MomoTrustSans-Medium.woff2
+ *        MomoTrustSans-SemiBold.woff2
+ *   2. Uncomment the @font-face blocks below.
+ *
+ * Until then the system-font fallback stack from theme.css is used.
+ */
+
+/*
+@font-face {
+  font-family: 'Momo Trust Sans';
+  src: url('/fonts/MomoTrustSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Momo Trust Sans';
+  src: url('/fonts/MomoTrustSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Momo Trust Sans';
+  src: url('/fonts/MomoTrustSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+*/
