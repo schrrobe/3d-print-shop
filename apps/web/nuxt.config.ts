@@ -1,0 +1,72 @@
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineNuxtConfig({
+  compatibilityDate: '2026-07-01',
+  devtools: { enabled: false },
+
+  modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode'],
+
+  css: ['~/assets/css/main.css'],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
+  build: {
+    // Workspace packages ship TS/Vue source — let Nuxt transpile them
+    transpile: ['@print-shop/ui', '@print-shop/utils', '@print-shop/types', '@print-shop/validators'],
+  },
+
+  runtimeConfig: {
+    public: {
+      apiBase: '/api',
+      ga4MeasurementId: '',
+      metaPixelId: '',
+    },
+  },
+
+  nitro: {
+    devProxy: {
+      '/api': { target: process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api', changeOrigin: true },
+    },
+    routeRules: {
+      '/api/**': { proxy: `${process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api'}/**` },
+    },
+  },
+
+  colorMode: {
+    // Dark is the primary brand theme; stored in localStorage, System selectable
+    preference: 'dark',
+    fallback: 'dark',
+    dataValue: 'theme',
+    classSuffix: '',
+    storageKey: 'print-shop-color-mode',
+  },
+
+  i18n: {
+    strategy: 'prefix_except_default',
+    defaultLocale: 'de',
+    lazy: true,
+    langDir: 'locales',
+    detectBrowserLanguage: false,
+    locales: [
+      { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+      { code: 'pl', language: 'pl-PL', name: 'Polski', file: 'pl.json' },
+      { code: 'fr', language: 'fr-FR', name: 'Français', file: 'fr.json' },
+      { code: 'nl', language: 'nl-NL', name: 'Nederlands', file: 'nl.json' },
+      { code: 'cs', language: 'cs-CZ', name: 'Čeština', file: 'cs.json' },
+    ],
+  },
+
+  app: {
+    head: {
+      title: '3D Print Shop',
+      htmlAttrs: { lang: 'de' },
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Individuell konfigurierbare 3D-Druck-Artikel' },
+      ],
+    },
+  },
+})

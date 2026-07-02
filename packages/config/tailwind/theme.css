@@ -67,6 +67,7 @@
   --color-overlay: var(--overlay);
   --color-brand: var(--brand);
   --color-on-brand: var(--on-brand);
+  --color-white-translucent: var(--raw-white-translucent);
 }
 
 @theme {

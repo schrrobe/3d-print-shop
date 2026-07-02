@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Domů", "products": "Produkty", "upload": "Váš model", "cart": "Košík" },
+  "hero": {
+    "eyebrow": "3D tisk z Berlína",
+    "title": "Vaše nápady. Vytištěné ve vašich barvách.",
+    "subtitle": "Nakonfigurujte hotové designy ve svých oblíbených barvách — nebo nahrajte vlastní 3D model a získejte individuální nabídku.",
+    "ctaProducts": "Prohlédnout produkty",
+    "ctaUpload": "Nahrát model"
+  },
+  "stats": { "printed": "vytištěných dílů", "colors": "barev", "hours": "hodin tisku" },
+  "features": {
+    "title": "Jak to funguje",
+    "configure": { "title": "Konfigurace", "text": "Vyberte produkt a sestavte barevnou kombinaci živě ve 3D." },
+    "print": { "title": "Tisk", "text": "Tiskneme na strojích Bambu Lab se značkovým filamentem." },
+    "ship": { "title": "Doručení", "text": "Dodání za 3–5 pracovních dnů, zdarma od 150 €." }
+  },
+  "products": {
+    "title": "Produkty",
+    "all": "Všechny produkty",
+    "configure": "Konfigurovat barvy",
+    "addToCart": "Do košíku",
+    "added": "Přidáno do košíku",
+    "viewer": { "hint": "Tažením otáčet · Kolečkem přiblížit", "fallback": "3D náhled" }
+  },
+  "cart": {
+    "title": "Košík",
+    "empty": "Váš košík je prázdný.",
+    "browse": "Prohlédnout produkty",
+    "quantity": "Množství",
+    "remove": "Odebrat",
+    "subtotal": "Mezisoučet",
+    "shipping": "Doprava",
+    "shippingFree": "Zdarma",
+    "freeShippingHint": "Ještě {amount} do dopravy zdarma",
+    "total": "Celkem",
+    "checkout": "K pokladně"
+  },
+  "checkout": {
+    "title": "Pokladna",
+    "contact": "Kontakt a doručovací adresa",
+    "firstName": "Jméno",
+    "lastName": "Příjmení",
+    "company": "Firma (volitelné)",
+    "street": "Ulice a číslo",
+    "zip": "PSČ",
+    "city": "Město",
+    "country": "Země",
+    "email": "E-mail",
+    "phone": "Telefon (volitelné)",
+    "note": "Poznámka (volitelné)",
+    "payment": "Způsob platby",
+    "payStripe": "Karta / Stripe",
+    "payBank": "Bankovní převod",
+    "payBitcoin": "Bitcoin",
+    "submit": "Závazně objednat",
+    "summary": "Souhrn objednávky",
+    "guestHint": "Objednávka jako host — bez účtu."
+  },
+  "success": {
+    "title": "Děkujeme za objednávku!",
+    "orderNumber": "Číslo objednávky",
+    "emailHint": "Potvrzení objednávky jsme vám poslali e-mailem.",
+    "viewOrder": "Zobrazit stav objednávky",
+    "simulatePayment": "Simulovat platbu (dev)"
+  },
+  "order": {
+    "title": "Objednávka {number}",
+    "status": "Stav",
+    "items": "Položky",
+    "bank": { "title": "Prosíme o převod na:", "holder": "Majitel účtu", "reference": "Variabilní symbol" },
+    "bitcoin": {
+      "title": "Platba Bitcoinem",
+      "sendTo": "Pošlete {amount} satoshi na:",
+      "confirmations": "Potvrzení: {current}/{required}",
+      "waiting": "Čekání na platbu …",
+      "check": "Zkontrolovat stav platby"
+    },
+    "statuses": {
+      "pending": "Čeká",
+      "awaiting_payment": "Čeká na platbu",
+      "awaiting_bank_transfer": "Čeká na převod",
+      "paid": "Zaplaceno",
+      "in_production": "Ve výrobě",
+      "quality_check": "Kontrola kvality",
+      "ready_to_ship": "Připraveno k odeslání",
+      "shipped": "Odesláno",
+      "completed": "Dokončeno",
+      "cancelled": "Zrušeno",
+      "refunded": "Vráceno"
+    }
+  },
+  "upload": {
+    "title": "Nechte si vytisknout vlastní model",
+    "subtitle": "Nahrajte soubor 3MF nebo STL (max. 50 MB). Prověříme ho a pošleme vám individuální nabídku.",
+    "dropzone": "Přetáhněte soubory sem nebo klikněte",
+    "accepted": "Povoleno: .stl, .3mf · max. 50 MB",
+    "name": "Jméno",
+    "description": "Popis (materiál, barva, množství, účel …)",
+    "quantity": "Počet kusů",
+    "termsPlaceholder": "Poznámka: podmínky nahrávání budou doplněny. Odesláním potvrzujete, že máte k modelu práva.",
+    "submit": "Odeslat poptávku",
+    "successTitle": "Poptávka přijata!",
+    "successText": "Prověříme váš model a ozveme se s nabídkou e-mailem.",
+    "steps": { "upload": "Nahrání", "review": "Kontrola", "quote": "Nabídka", "payment": "Platba", "production": "Výroba" }
+  },
+  "quote": {
+    "title": "Vaše nabídka",
+    "price": "Nabídková cena",
+    "validUntil": "Platí do",
+    "accept": "Přijmout nabídku",
+    "decline": "Odmítnout",
+    "declined": "Nabídka odmítnuta.",
+    "accepted": "Nabídka přijata — pokračujte k platbě:",
+    "payNow": "Zaplatit nyní",
+    "expired": "Tato nabídka vypršela.",
+    "addressTitle": "Fakturační a doručovací adresa"
+  },
+  "consent": {
+    "title": "Cookies a soukromí",
+    "text": "Používáme nezbytné cookies pro provoz obchodu. Statistické a marketingové cookies načítáme pouze s vaším souhlasem.",
+    "acceptAll": "Přijmout vše",
+    "rejectAll": "Pouze nezbytné",
+    "settings": "Nastavení",
+    "save": "Uložit výběr",
+    "necessary": "Nezbytné",
+    "necessaryText": "Vyžadováno pro košík, pokladnu a nastavení jazyka.",
+    "statistics": "Statistika",
+    "statisticsText": "Google Analytics 4 — pomáhá nám obchod zlepšovat.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — pro relevantnější reklamu."
+  },
+  "footer": {
+    "imprint": "Impressum",
+    "privacy": "Soukromí",
+    "terms": "Obchodní podmínky",
+    "claim": "3D tisk, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Impressum",
+    "privacyTitle": "Zásady ochrany osobních údajů",
+    "termsTitle": "Obchodní podmínky",
+    "placeholder": "Placeholder — právní obsah doplňte před spuštěním."
+  },
+  "common": { "loading": "Načítání …", "error": "Něco se pokazilo.", "back": "Zpět" }
+}

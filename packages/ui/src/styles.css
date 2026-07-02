@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import '@print-shop/config/tailwind/theme.css';
+@import '@print-shop/config/tailwind/fonts.css';
+
+@source "./**/*.vue";
+@source "./**/*.stories.ts";

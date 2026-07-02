@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Home", "products": "Products", "upload": "Your model", "cart": "Cart" },
+  "hero": {
+    "eyebrow": "3D printing from Berlin",
+    "title": "Your ideas. Printed in your colors.",
+    "subtitle": "Configure finished designs in your favorite colors — or upload your own 3D model and receive an individual quote.",
+    "ctaProducts": "Browse products",
+    "ctaUpload": "Upload model"
+  },
+  "stats": { "printed": "printed parts", "colors": "colors", "hours": "print hours" },
+  "features": {
+    "title": "How it works",
+    "configure": { "title": "Configure", "text": "Pick a product and compose your color combination live in 3D." },
+    "print": { "title": "Print", "text": "We print on Bambu Lab machines with brand filament." },
+    "ship": { "title": "Ship", "text": "Delivery in 3–5 business days, free from €150." }
+  },
+  "products": {
+    "title": "Products",
+    "all": "All products",
+    "configure": "Configure colors",
+    "addToCart": "Add to cart",
+    "added": "Added to cart",
+    "viewer": { "hint": "Drag to rotate · Scroll to zoom", "fallback": "3D preview" }
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "browse": "Browse products",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingFree": "Free",
+    "freeShippingHint": "{amount} to go for free shipping",
+    "total": "Total",
+    "checkout": "Checkout"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "contact": "Contact & shipping address",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "company": "Company (optional)",
+    "street": "Street and number",
+    "zip": "ZIP",
+    "city": "City",
+    "country": "Country",
+    "email": "Email",
+    "phone": "Phone (optional)",
+    "note": "Note (optional)",
+    "payment": "Payment method",
+    "payStripe": "Card / Stripe",
+    "payBank": "Bank transfer",
+    "payBitcoin": "Bitcoin",
+    "submit": "Place binding order",
+    "summary": "Order summary",
+    "guestHint": "Guest checkout — no account needed."
+  },
+  "success": {
+    "title": "Thank you for your order!",
+    "orderNumber": "Order number",
+    "emailHint": "We sent you an order confirmation by email.",
+    "viewOrder": "View order status",
+    "simulatePayment": "Simulate payment (dev)"
+  },
+  "order": {
+    "title": "Order {number}",
+    "status": "Status",
+    "items": "Items",
+    "bank": { "title": "Please transfer to:", "holder": "Account holder", "reference": "Reference" },
+    "bitcoin": {
+      "title": "Bitcoin payment",
+      "sendTo": "Send {amount} sats to:",
+      "confirmations": "Confirmations: {current}/{required}",
+      "waiting": "Waiting for payment …",
+      "check": "Check payment status"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "awaiting_payment": "Awaiting payment",
+      "awaiting_bank_transfer": "Awaiting bank transfer",
+      "paid": "Paid",
+      "in_production": "In production",
+      "quality_check": "Quality check",
+      "ready_to_ship": "Ready to ship",
+      "shipped": "Shipped",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    }
+  },
+  "upload": {
+    "title": "Print your own model",
+    "subtitle": "Upload your 3MF or STL file (max. 50 MB). We review it and send you an individual quote.",
+    "dropzone": "Drop files here or click",
+    "accepted": "Allowed: .stl, .3mf · max. 50 MB",
+    "name": "Name",
+    "description": "Description (material, color, quantity, purpose …)",
+    "quantity": "Quantity",
+    "termsPlaceholder": "Note: upload terms coming soon. By submitting you confirm you own the rights to the model.",
+    "submit": "Send request",
+    "successTitle": "Request received!",
+    "successText": "We will review your model and get back to you with a quote by email.",
+    "steps": { "upload": "Upload", "review": "Review", "quote": "Quote", "payment": "Payment", "production": "Production" }
+  },
+  "quote": {
+    "title": "Your quote",
+    "price": "Quoted price",
+    "validUntil": "Valid until",
+    "accept": "Accept quote",
+    "decline": "Decline",
+    "declined": "Quote declined.",
+    "accepted": "Quote accepted — continue to payment:",
+    "payNow": "Pay now",
+    "expired": "This quote has expired.",
+    "addressTitle": "Billing & shipping address"
+  },
+  "consent": {
+    "title": "Cookies & privacy",
+    "text": "We use necessary cookies to run the shop. Statistics and marketing cookies are only loaded with your consent.",
+    "acceptAll": "Accept all",
+    "rejectAll": "Necessary only",
+    "settings": "Settings",
+    "save": "Save selection",
+    "necessary": "Necessary",
+    "necessaryText": "Required for cart, checkout and language settings.",
+    "statistics": "Statistics",
+    "statisticsText": "Google Analytics 4 — helps us improve the shop.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — for more relevant ads."
+  },
+  "footer": {
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "claim": "3D printing, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Imprint",
+    "privacyTitle": "Privacy policy",
+    "termsTitle": "Terms and conditions",
+    "placeholder": "Placeholder — add legal content before going live."
+  },
+  "common": { "loading": "Loading …", "error": "Something went wrong.", "back": "Back" }
+}

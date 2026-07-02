@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+@import '@print-shop/config/tailwind/theme.css';
+@import '@print-shop/config/tailwind/fonts.css';
+
+/* Scan workspace UI package for used classes */
+@source "../../../../../packages/ui/src/**/*.vue";
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

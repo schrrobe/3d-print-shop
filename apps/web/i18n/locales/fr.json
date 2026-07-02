@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Accueil", "products": "Produits", "upload": "Votre modèle", "cart": "Panier" },
+  "hero": {
+    "eyebrow": "Impression 3D de Berlin",
+    "title": "Vos idées. Imprimées dans vos couleurs.",
+    "subtitle": "Configurez des designs finis dans vos couleurs préférées — ou téléversez votre propre modèle 3D et recevez un devis individuel.",
+    "ctaProducts": "Découvrir les produits",
+    "ctaUpload": "Téléverser un modèle"
+  },
+  "stats": { "printed": "pièces imprimées", "colors": "couleurs", "hours": "heures d'impression" },
+  "features": {
+    "title": "Comment ça marche",
+    "configure": { "title": "Configurer", "text": "Choisissez un produit et composez vos couleurs en direct en 3D." },
+    "print": { "title": "Imprimer", "text": "Nous imprimons sur des machines Bambu Lab avec du filament de marque." },
+    "ship": { "title": "Livrer", "text": "Livraison en 3 à 5 jours ouvrés, gratuite dès 150 €." }
+  },
+  "products": {
+    "title": "Produits",
+    "all": "Tous les produits",
+    "configure": "Configurer les couleurs",
+    "addToCart": "Ajouter au panier",
+    "added": "Ajouté au panier",
+    "viewer": { "hint": "Glisser pour tourner · Molette pour zoomer", "fallback": "Aperçu 3D" }
+  },
+  "cart": {
+    "title": "Panier",
+    "empty": "Votre panier est vide.",
+    "browse": "Découvrir les produits",
+    "quantity": "Quantité",
+    "remove": "Retirer",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "shippingFree": "Gratuite",
+    "freeShippingHint": "Encore {amount} pour la livraison gratuite",
+    "total": "Total",
+    "checkout": "Commander"
+  },
+  "checkout": {
+    "title": "Paiement",
+    "contact": "Contact et adresse de livraison",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "company": "Société (facultatif)",
+    "street": "Rue et numéro",
+    "zip": "Code postal",
+    "city": "Ville",
+    "country": "Pays",
+    "email": "E-mail",
+    "phone": "Téléphone (facultatif)",
+    "note": "Remarque (facultatif)",
+    "payment": "Moyen de paiement",
+    "payStripe": "Carte / Stripe",
+    "payBank": "Virement bancaire",
+    "payBitcoin": "Bitcoin",
+    "submit": "Commander avec obligation de paiement",
+    "summary": "Récapitulatif",
+    "guestHint": "Commande en tant qu'invité — sans compte."
+  },
+  "success": {
+    "title": "Merci pour votre commande !",
+    "orderNumber": "Numéro de commande",
+    "emailHint": "Nous vous avons envoyé une confirmation par e-mail.",
+    "viewOrder": "Voir le statut de la commande",
+    "simulatePayment": "Simuler le paiement (dev)"
+  },
+  "order": {
+    "title": "Commande {number}",
+    "status": "Statut",
+    "items": "Articles",
+    "bank": { "title": "Merci de virer à :", "holder": "Titulaire du compte", "reference": "Référence" },
+    "bitcoin": {
+      "title": "Paiement Bitcoin",
+      "sendTo": "Envoyez {amount} sats à :",
+      "confirmations": "Confirmations : {current}/{required}",
+      "waiting": "En attente du paiement …",
+      "check": "Vérifier le statut du paiement"
+    },
+    "statuses": {
+      "pending": "En attente",
+      "awaiting_payment": "En attente de paiement",
+      "awaiting_bank_transfer": "En attente de virement",
+      "paid": "Payée",
+      "in_production": "En production",
+      "quality_check": "Contrôle qualité",
+      "ready_to_ship": "Prête à expédier",
+      "shipped": "Expédiée",
+      "completed": "Terminée",
+      "cancelled": "Annulée",
+      "refunded": "Remboursée"
+    }
+  },
+  "upload": {
+    "title": "Faites imprimer votre modèle",
+    "subtitle": "Téléversez votre fichier 3MF ou STL (max. 50 Mo). Nous l'examinons et vous envoyons un devis individuel.",
+    "dropzone": "Déposez vos fichiers ici ou cliquez",
+    "accepted": "Autorisé : .stl, .3mf · max. 50 Mo",
+    "name": "Nom",
+    "description": "Description (matériau, couleur, quantité, usage …)",
+    "quantity": "Quantité",
+    "termsPlaceholder": "Remarque : conditions d'upload à venir. En envoyant, vous confirmez détenir les droits sur le modèle.",
+    "submit": "Envoyer la demande",
+    "successTitle": "Demande reçue !",
+    "successText": "Nous examinons votre modèle et revenons vers vous avec un devis par e-mail.",
+    "steps": { "upload": "Téléversement", "review": "Vérification", "quote": "Devis", "payment": "Paiement", "production": "Production" }
+  },
+  "quote": {
+    "title": "Votre devis",
+    "price": "Prix proposé",
+    "validUntil": "Valable jusqu'au",
+    "accept": "Accepter le devis",
+    "decline": "Refuser",
+    "declined": "Devis refusé.",
+    "accepted": "Devis accepté — passez au paiement :",
+    "payNow": "Payer maintenant",
+    "expired": "Ce devis a expiré.",
+    "addressTitle": "Adresse de facturation et de livraison"
+  },
+  "consent": {
+    "title": "Cookies et confidentialité",
+    "text": "Nous utilisons des cookies nécessaires au fonctionnement de la boutique. Les cookies statistiques et marketing ne sont chargés qu'avec votre consentement.",
+    "acceptAll": "Tout accepter",
+    "rejectAll": "Nécessaires uniquement",
+    "settings": "Paramètres",
+    "save": "Enregistrer la sélection",
+    "necessary": "Nécessaires",
+    "necessaryText": "Requis pour le panier, le paiement et la langue.",
+    "statistics": "Statistiques",
+    "statisticsText": "Google Analytics 4 — nous aide à améliorer la boutique.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — pour des publicités plus pertinentes."
+  },
+  "footer": {
+    "imprint": "Mentions légales",
+    "privacy": "Confidentialité",
+    "terms": "CGV",
+    "claim": "Impression 3D, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Mentions légales",
+    "privacyTitle": "Politique de confidentialité",
+    "termsTitle": "Conditions générales de vente",
+    "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne."
+  },
+  "common": { "loading": "Chargement …", "error": "Une erreur est survenue.", "back": "Retour" }
+}

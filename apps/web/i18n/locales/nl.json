@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Home", "products": "Producten", "upload": "Jouw model", "cart": "Winkelwagen" },
+  "hero": {
+    "eyebrow": "3D-printen uit Berlijn",
+    "title": "Jouw ideeën. Geprint in jouw kleuren.",
+    "subtitle": "Configureer kant-en-klare ontwerpen in je favoriete kleuren — of upload je eigen 3D-model en ontvang een individuele offerte.",
+    "ctaProducts": "Producten bekijken",
+    "ctaUpload": "Model uploaden"
+  },
+  "stats": { "printed": "geprinte onderdelen", "colors": "kleuren", "hours": "printuren" },
+  "features": {
+    "title": "Zo werkt het",
+    "configure": { "title": "Configureren", "text": "Kies een product en stel je kleurcombinatie live in 3D samen." },
+    "print": { "title": "Printen", "text": "We printen op Bambu Lab-machines met merkfilament." },
+    "ship": { "title": "Bezorgen", "text": "Levering in 3–5 werkdagen, gratis vanaf €150." }
+  },
+  "products": {
+    "title": "Producten",
+    "all": "Alle producten",
+    "configure": "Kleuren configureren",
+    "addToCart": "In winkelwagen",
+    "added": "Toegevoegd aan winkelwagen",
+    "viewer": { "hint": "Sleep om te draaien · Scroll om te zoomen", "fallback": "3D-voorbeeld" }
+  },
+  "cart": {
+    "title": "Winkelwagen",
+    "empty": "Je winkelwagen is leeg.",
+    "browse": "Producten bekijken",
+    "quantity": "Aantal",
+    "remove": "Verwijderen",
+    "subtotal": "Subtotaal",
+    "shipping": "Verzending",
+    "shippingFree": "Gratis",
+    "freeShippingHint": "Nog {amount} tot gratis verzending",
+    "total": "Totaal",
+    "checkout": "Afrekenen"
+  },
+  "checkout": {
+    "title": "Afrekenen",
+    "contact": "Contact & bezorgadres",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "company": "Bedrijf (optioneel)",
+    "street": "Straat en huisnummer",
+    "zip": "Postcode",
+    "city": "Plaats",
+    "country": "Land",
+    "email": "E-mail",
+    "phone": "Telefoon (optioneel)",
+    "note": "Opmerking (optioneel)",
+    "payment": "Betaalmethode",
+    "payStripe": "Kaart / Stripe",
+    "payBank": "Bankoverschrijving",
+    "payBitcoin": "Bitcoin",
+    "submit": "Bestelling plaatsen",
+    "summary": "Besteloverzicht",
+    "guestHint": "Bestellen als gast — geen account nodig."
+  },
+  "success": {
+    "title": "Bedankt voor je bestelling!",
+    "orderNumber": "Bestelnummer",
+    "emailHint": "We hebben je een orderbevestiging per e-mail gestuurd.",
+    "viewOrder": "Bestelstatus bekijken",
+    "simulatePayment": "Betaling simuleren (dev)"
+  },
+  "order": {
+    "title": "Bestelling {number}",
+    "status": "Status",
+    "items": "Artikelen",
+    "bank": { "title": "Maak over naar:", "holder": "Rekeninghouder", "reference": "Kenmerk" },
+    "bitcoin": {
+      "title": "Bitcoin-betaling",
+      "sendTo": "Stuur {amount} sats naar:",
+      "confirmations": "Bevestigingen: {current}/{required}",
+      "waiting": "Wachten op betaling …",
+      "check": "Betaalstatus controleren"
+    },
+    "statuses": {
+      "pending": "In behandeling",
+      "awaiting_payment": "Wacht op betaling",
+      "awaiting_bank_transfer": "Wacht op overschrijving",
+      "paid": "Betaald",
+      "in_production": "In productie",
+      "quality_check": "Kwaliteitscontrole",
+      "ready_to_ship": "Klaar voor verzending",
+      "shipped": "Verzonden",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd",
+      "refunded": "Terugbetaald"
+    }
+  },
+  "upload": {
+    "title": "Laat je eigen model printen",
+    "subtitle": "Upload je 3MF- of STL-bestand (max. 50 MB). We beoordelen het en sturen je een individuele offerte.",
+    "dropzone": "Sleep bestanden hierheen of klik",
+    "accepted": "Toegestaan: .stl, .3mf · max. 50 MB",
+    "name": "Naam",
+    "description": "Beschrijving (materiaal, kleur, aantal, doel …)",
+    "quantity": "Aantal",
+    "termsPlaceholder": "Let op: uploadvoorwaarden volgen. Door te verzenden bevestig je dat je de rechten op het model bezit.",
+    "submit": "Aanvraag versturen",
+    "successTitle": "Aanvraag ontvangen!",
+    "successText": "We beoordelen je model en nemen per e-mail contact op met een offerte.",
+    "steps": { "upload": "Uploaden", "review": "Beoordeling", "quote": "Offerte", "payment": "Betaling", "production": "Productie" }
+  },
+  "quote": {
+    "title": "Jouw offerte",
+    "price": "Offerteprijs",
+    "validUntil": "Geldig tot",
+    "accept": "Offerte accepteren",
+    "decline": "Afwijzen",
+    "declined": "Offerte afgewezen.",
+    "accepted": "Offerte geaccepteerd — ga door naar betaling:",
+    "payNow": "Nu betalen",
+    "expired": "Deze offerte is verlopen.",
+    "addressTitle": "Factuur- en bezorgadres"
+  },
+  "consent": {
+    "title": "Cookies & privacy",
+    "text": "We gebruiken noodzakelijke cookies voor de werking van de shop. Statistiek- en marketingcookies laden we alleen met jouw toestemming.",
+    "acceptAll": "Alles accepteren",
+    "rejectAll": "Alleen noodzakelijk",
+    "settings": "Instellingen",
+    "save": "Selectie opslaan",
+    "necessary": "Noodzakelijk",
+    "necessaryText": "Vereist voor winkelwagen, afrekenen en taalinstelling.",
+    "statistics": "Statistiek",
+    "statisticsText": "Google Analytics 4 — helpt ons de shop te verbeteren.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — voor relevantere advertenties."
+  },
+  "footer": {
+    "imprint": "Colofon",
+    "privacy": "Privacy",
+    "terms": "Voorwaarden",
+    "claim": "3D-printen, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Colofon",
+    "privacyTitle": "Privacyverklaring",
+    "termsTitle": "Algemene voorwaarden",
+    "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang."
+  },
+  "common": { "loading": "Laden …", "error": "Er ging iets mis.", "back": "Terug" }
+}

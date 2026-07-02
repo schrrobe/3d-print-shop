@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#171717"/>
+  <g transform="translate(200,150)">
+    <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="#31a871" stroke-width="3"/>
+    <polygon points="0,-60 52,-30 0,0 -52,-30" fill="#31a871" opacity="0.35"/>
+    <polygon points="0,0 52,-30 52,30 0,60" fill="#31a871" opacity="0.2"/>
+  </g>
+  <text x="200" y="272" text-anchor="middle" fill="#5e5e5e" font-family="system-ui" font-size="14">planetary-gear-toy</text>
+</svg>

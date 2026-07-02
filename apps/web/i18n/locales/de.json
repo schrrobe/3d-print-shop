@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Start", "products": "Produkte", "upload": "Eigenes Modell", "cart": "Warenkorb" },
+  "hero": {
+    "eyebrow": "3D-Druck aus Berlin",
+    "title": "Deine Ideen. Gedruckt in deinen Farben.",
+    "subtitle": "Konfiguriere fertige Designs in deinen Wunschfarben — oder lade dein eigenes 3D-Modell hoch und erhalte ein individuelles Angebot.",
+    "ctaProducts": "Produkte entdecken",
+    "ctaUpload": "Modell hochladen"
+  },
+  "stats": { "printed": "gedruckte Teile", "colors": "Farben", "hours": "Druckstunden" },
+  "features": {
+    "title": "So funktioniert's",
+    "configure": { "title": "Konfigurieren", "text": "Wähle ein Produkt und stelle deine Farbkombination live in 3D zusammen." },
+    "print": { "title": "Drucken", "text": "Wir drucken auf Bambu Lab Maschinen mit Markenfilament." },
+    "ship": { "title": "Liefern", "text": "Versand in 3–5 Werktagen, kostenlos ab 150 €." }
+  },
+  "products": {
+    "title": "Produkte",
+    "all": "Alle Produkte",
+    "configure": "Farben konfigurieren",
+    "addToCart": "In den Warenkorb",
+    "added": "Zum Warenkorb hinzugefügt",
+    "viewer": { "hint": "Ziehen zum Drehen · Scrollen zum Zoomen", "fallback": "3D-Vorschau" }
+  },
+  "cart": {
+    "title": "Warenkorb",
+    "empty": "Dein Warenkorb ist leer.",
+    "browse": "Jetzt Produkte entdecken",
+    "quantity": "Menge",
+    "remove": "Entfernen",
+    "subtotal": "Zwischensumme",
+    "shipping": "Versand",
+    "shippingFree": "Kostenlos",
+    "freeShippingHint": "Noch {amount} bis zum kostenlosen Versand",
+    "total": "Gesamt",
+    "checkout": "Zur Kasse"
+  },
+  "checkout": {
+    "title": "Kasse",
+    "contact": "Kontakt & Lieferadresse",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "company": "Firma (optional)",
+    "street": "Straße und Hausnummer",
+    "zip": "PLZ",
+    "city": "Stadt",
+    "country": "Land",
+    "email": "E-Mail",
+    "phone": "Telefon (optional)",
+    "note": "Anmerkung (optional)",
+    "payment": "Zahlungsart",
+    "payStripe": "Karte / Stripe",
+    "payBank": "Banküberweisung",
+    "payBitcoin": "Bitcoin",
+    "submit": "Jetzt kostenpflichtig bestellen",
+    "summary": "Bestellübersicht",
+    "guestHint": "Bestellung als Gast — kein Konto nötig."
+  },
+  "success": {
+    "title": "Danke für deine Bestellung!",
+    "orderNumber": "Bestellnummer",
+    "emailHint": "Wir haben dir eine Bestellbestätigung per E-Mail geschickt.",
+    "viewOrder": "Bestellstatus ansehen",
+    "simulatePayment": "Zahlung simulieren (Dev)"
+  },
+  "order": {
+    "title": "Bestellung {number}",
+    "status": "Status",
+    "items": "Positionen",
+    "bank": { "title": "Bitte überweise an:", "holder": "Kontoinhaber", "reference": "Verwendungszweck" },
+    "bitcoin": {
+      "title": "Bitcoin-Zahlung",
+      "sendTo": "Sende {amount} Sats an:",
+      "confirmations": "Bestätigungen: {current}/{required}",
+      "waiting": "Warte auf Zahlung …",
+      "check": "Zahlungsstatus prüfen"
+    },
+    "statuses": {
+      "pending": "Offen",
+      "awaiting_payment": "Warte auf Zahlung",
+      "awaiting_bank_transfer": "Warte auf Überweisung",
+      "paid": "Bezahlt",
+      "in_production": "In Produktion",
+      "quality_check": "Qualitätsprüfung",
+      "ready_to_ship": "Versandbereit",
+      "shipped": "Versendet",
+      "completed": "Abgeschlossen",
+      "cancelled": "Storniert",
+      "refunded": "Erstattet"
+    }
+  },
+  "upload": {
+    "title": "Eigenes Modell drucken lassen",
+    "subtitle": "Lade deine 3MF- oder STL-Datei hoch (max. 50 MB). Wir prüfen sie und schicken dir ein individuelles Angebot.",
+    "dropzone": "Dateien hierher ziehen oder klicken",
+    "accepted": "Erlaubt: .stl, .3mf · max. 50 MB",
+    "name": "Name",
+    "description": "Beschreibung (Material, Farbe, Menge, Verwendungszweck …)",
+    "quantity": "Stückzahl",
+    "termsPlaceholder": "Hinweis: Upload-Bedingungen folgen. Mit dem Absenden bestätigst du, dass du die Rechte am Modell besitzt.",
+    "submit": "Anfrage senden",
+    "successTitle": "Anfrage erhalten!",
+    "successText": "Wir prüfen dein Modell und melden uns mit einem Angebot per E-Mail.",
+    "steps": { "upload": "Hochladen", "review": "Prüfung", "quote": "Angebot", "payment": "Zahlung", "production": "Produktion" }
+  },
+  "quote": {
+    "title": "Dein Angebot",
+    "price": "Angebotspreis",
+    "validUntil": "Gültig bis",
+    "accept": "Angebot annehmen",
+    "decline": "Ablehnen",
+    "declined": "Angebot abgelehnt.",
+    "accepted": "Angebot angenommen — weiter zur Zahlung:",
+    "payNow": "Jetzt bezahlen",
+    "expired": "Dieses Angebot ist abgelaufen.",
+    "addressTitle": "Rechnungs- & Lieferadresse"
+  },
+  "consent": {
+    "title": "Cookies & Datenschutz",
+    "text": "Wir verwenden notwendige Cookies für den Betrieb des Shops. Statistik- und Marketing-Cookies laden wir nur mit deiner Einwilligung.",
+    "acceptAll": "Alle akzeptieren",
+    "rejectAll": "Nur notwendige",
+    "settings": "Einstellungen",
+    "save": "Auswahl speichern",
+    "necessary": "Notwendig",
+    "necessaryText": "Für Warenkorb, Checkout und Spracheinstellung erforderlich.",
+    "statistics": "Statistik",
+    "statisticsText": "Google Analytics 4 — hilft uns, den Shop zu verbessern.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — für relevantere Werbung."
+  },
+  "footer": {
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "claim": "3D-Druck, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Impressum",
+    "privacyTitle": "Datenschutzerklärung",
+    "termsTitle": "Allgemeine Geschäftsbedingungen",
+    "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen."
+  },
+  "common": { "loading": "Lädt …", "error": "Etwas ist schiefgelaufen.", "back": "Zurück" }
+}

@@ -1,0 +1,4 @@
+{
+  "extends": "@print-shop/config/tsconfig/node.json",
+  "include": ["tests/**/*.ts", "helpers/**/*.ts", "pages/**/*.ts", "playwright.config.ts", "global-setup.ts", "eslint.config.js"]
+}

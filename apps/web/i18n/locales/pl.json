@@ -1,0 +1,145 @@
+{
+  "nav": { "home": "Start", "products": "Produkty", "upload": "Twój model", "cart": "Koszyk" },
+  "hero": {
+    "eyebrow": "Druk 3D z Berlina",
+    "title": "Twoje pomysły. Wydrukowane w Twoich kolorach.",
+    "subtitle": "Skonfiguruj gotowe projekty w ulubionych kolorach — albo prześlij własny model 3D i otrzymaj indywidualną wycenę.",
+    "ctaProducts": "Zobacz produkty",
+    "ctaUpload": "Prześlij model"
+  },
+  "stats": { "printed": "wydrukowanych części", "colors": "kolorów", "hours": "godzin druku" },
+  "features": {
+    "title": "Jak to działa",
+    "configure": { "title": "Konfiguruj", "text": "Wybierz produkt i skomponuj kolory na żywo w 3D." },
+    "print": { "title": "Drukujemy", "text": "Drukujemy na maszynach Bambu Lab z markowym filamentem." },
+    "ship": { "title": "Wysyłamy", "text": "Dostawa w 3–5 dni roboczych, gratis od 150 €." }
+  },
+  "products": {
+    "title": "Produkty",
+    "all": "Wszystkie produkty",
+    "configure": "Konfiguruj kolory",
+    "addToCart": "Do koszyka",
+    "added": "Dodano do koszyka",
+    "viewer": { "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć", "fallback": "Podgląd 3D" }
+  },
+  "cart": {
+    "title": "Koszyk",
+    "empty": "Twój koszyk jest pusty.",
+    "browse": "Zobacz produkty",
+    "quantity": "Ilość",
+    "remove": "Usuń",
+    "subtotal": "Suma częściowa",
+    "shipping": "Wysyłka",
+    "shippingFree": "Gratis",
+    "freeShippingHint": "Brakuje {amount} do darmowej wysyłki",
+    "total": "Razem",
+    "checkout": "Do kasy"
+  },
+  "checkout": {
+    "title": "Kasa",
+    "contact": "Kontakt i adres dostawy",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "company": "Firma (opcjonalnie)",
+    "street": "Ulica i numer",
+    "zip": "Kod pocztowy",
+    "city": "Miasto",
+    "country": "Kraj",
+    "email": "E-mail",
+    "phone": "Telefon (opcjonalnie)",
+    "note": "Uwagi (opcjonalnie)",
+    "payment": "Metoda płatności",
+    "payStripe": "Karta / Stripe",
+    "payBank": "Przelew bankowy",
+    "payBitcoin": "Bitcoin",
+    "submit": "Zamawiam i płacę",
+    "summary": "Podsumowanie zamówienia",
+    "guestHint": "Zakupy jako gość — bez konta."
+  },
+  "success": {
+    "title": "Dziękujemy za zamówienie!",
+    "orderNumber": "Numer zamówienia",
+    "emailHint": "Wysłaliśmy potwierdzenie zamówienia e-mailem.",
+    "viewOrder": "Zobacz status zamówienia",
+    "simulatePayment": "Symuluj płatność (dev)"
+  },
+  "order": {
+    "title": "Zamówienie {number}",
+    "status": "Status",
+    "items": "Pozycje",
+    "bank": { "title": "Prosimy o przelew na:", "holder": "Właściciel konta", "reference": "Tytuł przelewu" },
+    "bitcoin": {
+      "title": "Płatność Bitcoin",
+      "sendTo": "Wyślij {amount} satoshi na:",
+      "confirmations": "Potwierdzenia: {current}/{required}",
+      "waiting": "Oczekiwanie na płatność …",
+      "check": "Sprawdź status płatności"
+    },
+    "statuses": {
+      "pending": "Oczekujące",
+      "awaiting_payment": "Oczekuje na płatność",
+      "awaiting_bank_transfer": "Oczekuje na przelew",
+      "paid": "Opłacone",
+      "in_production": "W produkcji",
+      "quality_check": "Kontrola jakości",
+      "ready_to_ship": "Gotowe do wysyłki",
+      "shipped": "Wysłane",
+      "completed": "Zakończone",
+      "cancelled": "Anulowane",
+      "refunded": "Zwrócone"
+    }
+  },
+  "upload": {
+    "title": "Wydrukuj własny model",
+    "subtitle": "Prześlij plik 3MF lub STL (maks. 50 MB). Sprawdzimy go i wyślemy indywidualną wycenę.",
+    "dropzone": "Przeciągnij pliki tutaj lub kliknij",
+    "accepted": "Dozwolone: .stl, .3mf · maks. 50 MB",
+    "name": "Imię i nazwisko",
+    "description": "Opis (materiał, kolor, ilość, zastosowanie …)",
+    "quantity": "Ilość sztuk",
+    "termsPlaceholder": "Uwaga: regulamin przesyłania plików wkrótce. Wysyłając potwierdzasz, że masz prawa do modelu.",
+    "submit": "Wyślij zapytanie",
+    "successTitle": "Zapytanie otrzymane!",
+    "successText": "Sprawdzimy Twój model i odezwiemy się z wyceną e-mailem.",
+    "steps": { "upload": "Przesyłanie", "review": "Weryfikacja", "quote": "Wycena", "payment": "Płatność", "production": "Produkcja" }
+  },
+  "quote": {
+    "title": "Twoja wycena",
+    "price": "Cena ofertowa",
+    "validUntil": "Ważna do",
+    "accept": "Akceptuję wycenę",
+    "decline": "Odrzuć",
+    "declined": "Wycena odrzucona.",
+    "accepted": "Wycena zaakceptowana — przejdź do płatności:",
+    "payNow": "Zapłać teraz",
+    "expired": "Ta wycena wygasła.",
+    "addressTitle": "Adres rozliczeniowy i dostawy"
+  },
+  "consent": {
+    "title": "Pliki cookie i prywatność",
+    "text": "Używamy niezbędnych plików cookie do działania sklepu. Cookies statystyczne i marketingowe ładujemy tylko za Twoją zgodą.",
+    "acceptAll": "Akceptuj wszystkie",
+    "rejectAll": "Tylko niezbędne",
+    "settings": "Ustawienia",
+    "save": "Zapisz wybór",
+    "necessary": "Niezbędne",
+    "necessaryText": "Wymagane do koszyka, kasy i ustawień języka.",
+    "statistics": "Statystyka",
+    "statisticsText": "Google Analytics 4 — pomaga nam ulepszać sklep.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel — dla trafniejszych reklam."
+  },
+  "footer": {
+    "imprint": "Impressum",
+    "privacy": "Prywatność",
+    "terms": "Regulamin",
+    "claim": "Druk 3D, made in Berlin."
+  },
+  "legal": {
+    "imprintTitle": "Impressum",
+    "privacyTitle": "Polityka prywatności",
+    "termsTitle": "Regulamin",
+    "placeholder": "Placeholder — uzupełnij treści prawne przed startem."
+  },
+  "common": { "loading": "Ładowanie …", "error": "Coś poszło nie tak.", "back": "Wstecz" }
+}

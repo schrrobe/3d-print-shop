@@ -1,0 +1,7 @@
+{
+  "extends": "@print-shop/config/tsconfig/vue.json",
+  "include": ["src/**/*.ts", "src/**/*.vue", ".storybook/**/*.ts"],
+  "compilerOptions": {
+    "types": ["vite/client"]
+  }
+}
