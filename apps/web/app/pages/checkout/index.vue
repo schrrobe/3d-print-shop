@@ -30,6 +30,10 @@ const form = reactive({
 })
 const paymentMethod = ref<'stripe' | 'bank_transfer' | 'bitcoin'>('stripe')
 const submitting = ref(false)
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
 const errorMessage = ref('')
 
 interface CheckoutResponse {
@@ -147,7 +151,7 @@ const paymentOptions = computed(() => [
         <p v-if="errorMessage" class="text-caption text-red-500" role="alert" data-testid="checkout-error">
           {{ errorMessage }}
         </p>
-        <PsPillButton type="submit" size="lg" :disabled="submitting" data-testid="submit-order">
+        <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="submit-order">
           {{ t('checkout.submit') }}
         </PsPillButton>
       </aside>

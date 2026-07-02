@@ -11,6 +11,11 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const submitting = ref(false)
+// Guards against pre-hydration native form submits (e2e clicks fast)
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
 
 async function submit() {
   submitting.value = true
@@ -41,7 +46,7 @@ async function submit() {
           autocomplete="current-password"
         />
         <p v-if="error" class="text-caption text-red-500" role="alert" data-testid="login-error">{{ error }}</p>
-        <PsPillButton type="submit" :disabled="submitting" data-testid="login-submit">Anmelden</PsPillButton>
+        <PsPillButton type="submit" :disabled="submitting || !hydrated" data-testid="login-submit">Anmelden</PsPillButton>
       </form>
     </PsCard>
   </div>

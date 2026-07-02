@@ -24,6 +24,10 @@ if (error.value) {
 const quote = computed(() => data.value!.quote)
 const showAddressForm = ref(false)
 const submitting = ref(false)
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
 const paymentUrl = ref('')
 const declined = ref(false)
 
@@ -106,7 +110,7 @@ async function decline() {
           <PsPillButton size="lg" data-testid="quote-accept" @click="showAddressForm = true">
             {{ t('quote.accept') }}
           </PsPillButton>
-          <PsPillButton size="lg" variant="secondary" :disabled="submitting" data-testid="quote-decline" @click="decline">
+          <PsPillButton size="lg" variant="secondary" :disabled="submitting || !hydrated" data-testid="quote-decline" @click="decline">
             {{ t('quote.decline') }}
           </PsPillButton>
         </div>
@@ -124,7 +128,7 @@ async function decline() {
             <PsInput v-model="address.country" :label="t('checkout.country')" required />
           </div>
           <PsInput v-model="address.email" :label="t('checkout.email')" type="email" required />
-          <PsPillButton type="submit" size="lg" :disabled="submitting" data-testid="quote-accept-submit">
+          <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="quote-accept-submit">
             {{ t('quote.accept') }}
           </PsPillButton>
         </form>

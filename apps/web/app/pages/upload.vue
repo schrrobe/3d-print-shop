@@ -16,6 +16,10 @@ const toast = useToast()
 const files = ref<File[]>([])
 const form = reactive({ name: '', email: '', phone: '', description: '', quantity: 1 })
 const submitting = ref(false)
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
 const submitted = ref(false)
 const errorMessage = ref('')
 
@@ -113,7 +117,7 @@ async function submit() {
       <p v-if="errorMessage" class="text-caption text-red-500" role="alert" data-testid="upload-error">
         {{ errorMessage }}
       </p>
-      <PsPillButton type="submit" size="lg" :disabled="submitting" data-testid="upload-submit">
+      <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="upload-submit">
         {{ t('upload.submit') }}
       </PsPillButton>
     </form>
