@@ -1,13 +1,17 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends object">
 withDefaults(
   defineProps<{
     columns: { key: string; label: string; align?: 'left' | 'right' }[]
-    rows: Record<string, unknown>[]
+    rows: T[]
     rowKey?: string
     empty?: string
   }>(),
   { rowKey: 'id', empty: 'Keine Einträge vorhanden.' },
 )
+
+function cell(row: T, key: string): unknown {
+  return (row as Record<string, unknown>)[key]
+}
 </script>
 
 <template>
@@ -33,7 +37,7 @@ withDefaults(
       </tr>
       <tr
         v-for="row in rows"
-        :key="String(row[rowKey])"
+        :key="String(cell(row, rowKey))"
         class="border-b border-subtle transition-colors hover:bg-surface"
       >
         <td
@@ -42,8 +46,8 @@ withDefaults(
           class="px-md py-sm text-primary"
           :class="column.align === 'right' ? 'text-right' : 'text-left'"
         >
-          <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]">
-            {{ row[column.key] }}
+          <slot :name="`cell-${column.key}`" :row="row" :value="cell(row, column.key)">
+            {{ cell(row, column.key) }}
           </slot>
         </td>
       </tr>

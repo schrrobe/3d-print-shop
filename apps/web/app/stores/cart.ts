@@ -1,4 +1,4 @@
-import type { ColorSelection, Locale } from '@print-shop/types'
+import type { ColorSelection } from '@print-shop/types'
 import { calcCartTotals } from '@print-shop/utils'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -81,5 +81,3 @@ export const useCartStore = defineStore('cart', () => {
 
   return { items, count, totals, hydrate, add, setQuantity, remove, clear, toCheckoutItems }
 })
-
-export type { Locale }

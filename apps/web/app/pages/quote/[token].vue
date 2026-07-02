@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PsBadge, PsInput, PsPillButton, PsPrice, PsSection } from '@print-shop/ui'
-import type { Locale } from '@print-shop/types'
 
 /** Public quote page — customer accepts (→ payment link) or declines. */
 const { t, locale } = useI18n()

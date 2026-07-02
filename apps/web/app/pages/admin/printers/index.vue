@@ -86,7 +86,7 @@ const statusOptions = PRINTER_STATUSES.map((s) => ({ value: s, label: s }))
             label="Status setzen"
             :options="statusOptions"
             data-testid="printer-status-select"
-            @update:model-value="setStatus(printer, $event)"
+            @update:model-value="(value: string | undefined) => value && setStatus(printer, value)"
           />
         </div>
       </PsCard>

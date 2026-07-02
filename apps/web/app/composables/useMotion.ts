@@ -1,6 +1,8 @@
+import type { gsap as GsapCore } from 'gsap'
+import type { ScrollTrigger as ScrollTriggerCore } from 'gsap/ScrollTrigger'
 import { onBeforeUnmount, onMounted } from 'vue'
 
-type GsapContextFn = (gsap: typeof import('gsap').gsap, ScrollTrigger: typeof import('gsap/ScrollTrigger').ScrollTrigger) => void
+type GsapContextFn = (gsap: typeof GsapCore, ScrollTrigger: typeof ScrollTriggerCore) => void
 
 /**
  * Runs GSAP/ScrollTrigger animations client-side only, skipping entirely

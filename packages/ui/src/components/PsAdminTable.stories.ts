@@ -16,9 +16,11 @@ const rows = [
   { id: '3', orderNumber: 'PS-2026-0140', customer: 'Miriam Voss', status: 'awaiting_payment', totalCents: 12900 },
 ]
 
-const meta: Meta<typeof PsAdminTable> = {
+// Generic component (generic="T extends object") — Storybook's Meta typing
+// can't infer generic SFCs, so the component is registered untyped.
+const meta: Meta = {
   title: 'Admin/AdminTable',
-  component: PsAdminTable,
+  component: PsAdminTable as never,
   args: { columns, rows },
   render: (args) => ({
     components: { PsAdminTable, PsOrderStatusBadge, PsPrice },
@@ -36,7 +38,7 @@ const meta: Meta<typeof PsAdminTable> = {
   }),
 }
 export default meta
-type Story = StoryObj<typeof PsAdminTable>
+type Story = StoryObj
 
 export const Default: Story = {}
 export const PlainCells: Story = {

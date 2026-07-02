@@ -1,4 +1,4 @@
-import type { ColorZoneSlot, Locale } from '@print-shop/types'
+import type { ColorZoneSlot } from '@print-shop/types'
 
 export interface ApiTranslation {
   locale: string
@@ -70,5 +70,3 @@ export function useProducts() {
 export function useColors() {
   return useFetch<{ colors: ApiColor[] }>('/api/colors')
 }
-
-export type { Locale }
