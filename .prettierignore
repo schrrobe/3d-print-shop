@@ -1,0 +1,9 @@
+node_modules
+dist
+.output
+.nuxt
+.turbo
+storybook-static
+coverage
+pnpm-lock.yaml
+apps/api/prisma/migrations

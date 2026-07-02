@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment / Secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+
+# Builds
+dist/
+.output/
+.nuxt/
+.nitro/
+.turbo/
+storybook-static/
+coverage/
+
+# Databases / local data
+*.sqlite
+*.db
+pgdata/
+postgres-data/
+
+# User uploads (customer 3D files) — never commit
+apps/api/uploads/
+uploads/
+
+# Generated invoices
+apps/api/invoices/
+
+# Test artifacts
+apps/e2e/test-results/
+apps/e2e/playwright-report/
+apps/e2e/blob-report/
+playwright/.cache/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Tooling caches
+.eslintcache
+*.tsbuildinfo
+.tokensave/

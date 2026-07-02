@@ -1,0 +1,14 @@
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - esbuild
+  - prisma
+  - "@prisma/client"
+  - "@prisma/engines"
+  - argon2
+  - sharp
+  - vue-demi
+  - unrs-resolver
+  - "@parcel/watcher"
