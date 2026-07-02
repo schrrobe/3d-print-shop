@@ -1,0 +1,56 @@
+{
+  "name": "@print-shop/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc --noEmit && prisma validate",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:validate": "prisma validate",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "@print-shop/emails": "workspace:*",
+    "@print-shop/types": "workspace:*",
+    "@print-shop/utils": "workspace:*",
+    "@print-shop/validators": "workspace:*",
+    "argon2": "^0.43.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1",
+    "pdfkit": "^0.17.1",
+    "resend": "^4.5.2",
+    "stripe": "^18.2.1",
+    "zod": "^3.25.64"
+  },
+  "devDependencies": {
+    "@print-shop/config": "workspace:*",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^24.0.1",
+    "@types/pdfkit": "^0.14.0",
+    "eslint": "^9.28.0",
+    "prisma": "^6.9.0",
+    "tsx": "^4.20.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.3"
+  }
+}

@@ -1,0 +1,510 @@
+// 3D Print Shop — data model
+// Enum values mirror @print-shop/types (English snake_case keys, i18n labels in the frontend).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum RoleName {
+  admin
+  product_manager
+  production
+  shipping
+  support
+}
+
+enum Locale {
+  de
+  en
+  pl
+  fr
+  nl
+  cs
+}
+
+enum OrderStatus {
+  pending
+  awaiting_payment
+  awaiting_bank_transfer
+  paid
+  in_production
+  quality_check
+  ready_to_ship
+  shipped
+  completed
+  cancelled
+  refunded
+}
+
+enum PaymentMethod {
+  stripe
+  stripe_payment_link
+  bank_transfer
+  bitcoin
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  paid
+  failed
+  refunded
+  expired
+}
+
+enum BitcoinPaymentStatus {
+  awaiting_payment
+  unconfirmed
+  confirming
+  paid
+  underpaid
+  expired
+}
+
+enum QuoteRequestStatus {
+  new
+  in_review
+  quoted
+  accepted
+  rejected
+  cancelled
+}
+
+enum QuoteStatus {
+  draft
+  sent
+  accepted
+  declined
+  expired
+}
+
+/// frei, vorbereitet, druckt, pausiert, fehler, wartung
+enum PrinterStatus {
+  idle
+  prepared
+  printing
+  paused
+  error
+  maintenance
+}
+
+/// wartet, zugewiesen, druckt, fertig, qualitätsprüfung, versandbereit, versendet, fehlgeschlagen, reprint_nötig
+enum ProductionStatus {
+  waiting
+  assigned
+  printing
+  printed
+  quality_check
+  ready_to_ship
+  shipped
+  failed
+  reprint_needed
+}
+
+enum AssetType {
+  image
+  glb_preview
+  production_file
+}
+
+enum Carrier {
+  dhl
+  hermes
+}
+
+enum ColorZoneSlot {
+  zone_1_main
+  zone_2_accent
+  zone_3_detail
+  zone_4_text
+}
+
+enum EmailStatus {
+  sent
+  dev_logged
+  failed
+}
+
+// ---------- Auth / RBAC ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  active       Boolean  @default(true)
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auditLogs      AdminAuditLog[]      @relation("AuditActor")
+  passwordResets PasswordResetToken[]
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  name        RoleName     @unique
+  permissions Permission[]
+  users       User[]
+}
+
+model Permission {
+  id    String @id @default(cuid())
+  key   String @unique
+  roles Role[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+// ---------- Catalog ----------
+
+model Product {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  priceCents Int
+  active     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  translations ProductTranslation[]
+  assets       ProductAsset[]
+  colorSlots   ProductColorSlot[]
+  orderItems   OrderItem[]
+  cartItems    CartItem[]
+}
+
+model ProductTranslation {
+  id             String  @id @default(cuid())
+  productId      String
+  product        Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale         Locale
+  name           String
+  description    String
+  seoTitle       String?
+  seoDescription String?
+
+  @@unique([productId, locale])
+}
+
+model ProductAsset {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      AssetType
+  url       String
+  alt       String?
+  sortOrder Int       @default(0)
+}
+
+model ProductColorSlot {
+  id             String        @id @default(cuid())
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  slot           ColorZoneSlot
+  label          String
+  defaultColorId String?
+  defaultColor   Color?        @relation(fields: [defaultColorId], references: [id])
+
+  @@unique([productId, slot])
+}
+
+model Color {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  hex          String
+  material     String
+  manufacturer String
+  active       Boolean @default(true)
+  stockGrams   Int?
+  amsSlot      Int?
+
+  defaultForSlots ProductColorSlot[]
+  filamentSpools  FilamentSpool[]
+}
+
+// ---------- Cart ----------
+
+model Cart {
+  id        String     @id @default(cuid())
+  sessionId String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id             String  @id @default(cuid())
+  cartId         String
+  cart           Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  quantity       Int
+  colorSelection Json
+}
+
+// ---------- Orders ----------
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  /// Token for guest access to confirmation / status page
+  accessToken    String      @unique
+  status         OrderStatus @default(pending)
+  locale         Locale      @default(de)
+  email          String
+  firstName      String
+  lastName       String
+  company        String?
+  street         String
+  zip             String
+  city           String
+  country        String
+  phone          String?
+  note           String?
+  subtotalCents  Int
+  shippingCents  Int
+  totalCents     Int
+  carrier        Carrier?
+  trackingNumber String?
+  shippedAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  items       OrderItem[]
+  payments    Payment[]
+  invoice     Invoice?
+  printerJobs PrinterJob[]
+  quotes      Quote[]
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id])
+  /// Snapshot of the product/quote name at purchase time
+  name           String
+  quantity       Int
+  unitPriceCents Int
+  colorSelection Json?
+
+  printerJobs PrinterJob[]
+}
+
+// ---------- Payments ----------
+
+model Payment {
+  id                   String        @id @default(cuid())
+  orderId              String
+  order                Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method               PaymentMethod
+  status               PaymentStatus @default(pending)
+  amountCents          Int
+  /// Stripe checkout session / payment link id
+  stripeSessionId      String?
+  stripePaymentLinkUrl String?
+  /// Manual reference (e.g. bank transfer reference)
+  reference            String?
+  paidAt               DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  bitcoinPayment BitcoinPayment?
+}
+
+model BitcoinPayment {
+  id            String               @id @default(cuid())
+  paymentId     String               @unique
+  payment       Payment              @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  /// Receive address (derived from xpub) or payment reference
+  address       String
+  expectedSats  BigInt
+  receivedSats  BigInt               @default(0)
+  confirmations Int                  @default(0)
+  status        BitcoinPaymentStatus @default(awaiting_payment)
+  expiresAt     DateTime
+  txId          String?
+  updatedAt     DateTime             @updatedAt
+  createdAt     DateTime             @default(now())
+}
+
+// ---------- Upload requests & quotes ----------
+
+model QuoteRequest {
+  id          String             @id @default(cuid())
+  status      QuoteRequestStatus @default(new)
+  name        String
+  email       String
+  phone       String?
+  description String
+  quantity    Int                @default(1)
+  locale      Locale             @default(de)
+  /// Placeholder: acceptance of future legal upload terms
+  acceptedUploadTerms Boolean    @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  files  UploadedFile[]
+  quotes Quote[]
+}
+
+model UploadedFile {
+  id             String       @id @default(cuid())
+  quoteRequestId String
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  originalName   String
+  storedPath     String
+  extension      String
+  sizeBytes      Int
+  createdAt      DateTime     @default(now())
+}
+
+model Quote {
+  id             String       @id @default(cuid())
+  quoteRequestId String
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  status         QuoteStatus  @default(draft)
+  priceCents     Int
+  message        String?
+  /// Public token for the customer-facing quote/acceptance page
+  token          String       @unique
+  validUntil     DateTime
+  sentAt         DateTime?
+  decidedAt      DateTime?
+  /// Order created after acceptance
+  orderId        String?
+  order          Order?       @relation(fields: [orderId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// ---------- Production ----------
+
+model Printer {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  model     String
+  status    PrinterStatus @default(idle)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  jobs   PrinterJob[]
+  spools FilamentSpool[]
+}
+
+model PrinterJob {
+  id                   String           @id @default(cuid())
+  printerId            String?
+  printer              Printer?         @relation(fields: [printerId], references: [id])
+  orderId              String
+  order                Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId          String?
+  orderItem            OrderItem?       @relation(fields: [orderItemId], references: [id])
+  status               ProductionStatus @default(waiting)
+  printDurationMinutes Int?
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  /// AMS slot / spool assignment documentation
+  spoolNotes           String?
+  notes                String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model FilamentSpool {
+  id             String   @id @default(cuid())
+  printerId      String?
+  printer        Printer? @relation(fields: [printerId], references: [id])
+  amsSlot        Int?
+  colorId        String?
+  color          Color?   @relation(fields: [colorId], references: [id])
+  material       String
+  remainingGrams Int?
+  notes          String?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+}
+
+// ---------- Invoices ----------
+
+model Invoice {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  year          Int
+  sequence      Int
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id])
+  locale        Locale   @default(de)
+  subtotalCents Int
+  shippingCents Int
+  totalCents    Int
+  paymentMethod PaymentMethod
+  pdfPath       String?
+  issuedAt      DateTime @default(now())
+
+  @@unique([year, sequence])
+}
+
+/// Single-row-per-year counter for sequential invoice numbers (locked via transaction)
+model InvoiceCounter {
+  year         Int @id
+  lastSequence Int @default(0)
+}
+
+// ---------- Logging ----------
+
+model EmailLog {
+  id        String      @id @default(cuid())
+  to        String
+  template  String
+  subject   String
+  status    EmailStatus
+  payload   Json?
+  error     String?
+  createdAt DateTime    @default(now())
+}
+
+model ConsentLog {
+  id          String   @id @default(cuid())
+  /// Anonymous client id (random, stored alongside consent in the browser)
+  anonymousId String?
+  necessary   Boolean  @default(true)
+  statistics  Boolean
+  marketing   Boolean
+  version     String
+  locale      Locale?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation("AuditActor", fields: [userId], references: [id])
+  action     String
+  entityType String?
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
