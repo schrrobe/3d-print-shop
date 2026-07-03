@@ -14,7 +14,10 @@ test.describe('invoices', () => {
     await page.getByTestId('payment-stripe').click()
     await page.getByTestId('submit-order').click()
     await page.waitForURL(/\/checkout\/success/)
+    await page.waitForSelector('html[data-hydrated="true"]')
     await page.getByTestId('simulate-payment').click()
+    // button hides once the mock-complete request finished — next action must not cancel it
+    await expect(page.getByTestId('simulate-payment')).toBeHidden()
 
     // Invoice appears in admin with RE-<year>-<seq> number
     const admin = new AdminPage(page)

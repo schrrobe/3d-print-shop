@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
+import type { PluginOption } from 'vite'
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-01',
@@ -9,7 +10,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   vite: {
-    plugins: [tailwindcss()],
+    // Cast: @tailwindcss/vite may resolve against a second vite instance in CI,
+    // which makes the Plugin type nominally incompatible
+    plugins: [tailwindcss() as unknown as PluginOption],
   },
 
   build: {

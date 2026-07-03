@@ -25,7 +25,10 @@ test.describe('email notifications (dev mode log)', () => {
 
     expect(await emailsFor(email)).toContain('order_confirmation')
 
+    await page.waitForSelector('html[data-hydrated="true"]')
     await page.getByTestId('simulate-payment').click()
+    // button hides once the mock-complete request finished — next action must not cancel it
+    await expect(page.getByTestId('simulate-payment')).toBeHidden()
     await expect
       .poll(async () => emailsFor(email), { timeout: 10_000 })
       .toEqual(expect.arrayContaining(['payment_received', 'invoice']))

@@ -18,11 +18,18 @@ test.describe('checkout with stripe (mock)', () => {
     expect(orderNumber).toMatch(/^PS-\d{4}-\d{8}$/)
 
     // Complete the mock payment, then the order page shows "paid"
+    await page.waitForSelector('html[data-hydrated="true"]')
     await page.getByTestId('simulate-payment').click()
+    // button hides once the mock-complete request finished — next action must not cancel it
+    await expect(page.getByTestId('simulate-payment')).toBeHidden()
     await page.getByTestId('view-order').click()
     await page.waitForURL(/\/order\//)
     await expect(page.getByTestId('order-page')).toBeVisible()
-    await expect(page.getByTestId('order-status')).toContainText('Bezahlt')
+    // markOrderPaid (invoice pdf + emails) may still be running in CI — poll with reload
+    await expect(async () => {
+      await page.reload()
+      await expect(page.getByTestId('order-status')).toContainText('Bezahlt', { timeout: 2000 })
+    }).toPass({ timeout: 30_000 })
   })
 
   test('validation: missing address blocks submit', async ({ page }) => {
