@@ -13,7 +13,7 @@ pnpm prisma:validate       # Schema validieren
 pnpm --filter @print-shop/api prisma:reset-data   # Tabellen leeren (Test-Fixture)
 ```
 
-## Modelle (24)
+## Modelle
 
 **Auth/RBAC**: `User`, `Role`, `Permission` (m:n), `PasswordResetToken`.
 Rollen: admin, product_manager, production, shipping, support — Rechtematrix in
@@ -45,6 +45,30 @@ ready_to_ship → shipped, plus failed/reprint_needed; Druckzeit für ETA), `Fil
 `accessToken` für den öffentlichen Thread, Status/Priorität/Kategorie, optionale Order-
 und Bearbeiter-Verknüpfung), `TicketMessage` (customer/staff-Thread). Details:
 [support.md](./support.md).
+
+**Reklamationen**: `Complaint` (`REK-<Jahr>-<5-stellig>` via `ComplaintCounter`, `accessToken`,
+Status/Grund, optionale Ticket-Verknüpfung), `ComplaintItem`, `ComplaintAttachment`
+(privat), `ComplaintDecision` (Ersatzdruck/Erstattung/Gutschein/Ablehnung). Details:
+[complaints.md](./complaints.md).
+
+**Qualitätskontrolle**: `QcRecord` (6-Punkte-Checkliste je Prüfversuch = Historie),
+`QcAttachment` (privat). Details: [quality-control.md](./quality-control.md).
+
+**Filament/AMS**: `FilamentSpool` (erweitert: Mindestbestand, Nachbestell-Flag),
+`AmsUnit` + `AmsSlot` (Bambu-Lab-AMS-Zuordnung); `Color` erweitert um `minStockGrams`/
+`outOfStock`. Details: [filament-ams.md](./filament-ams.md).
+
+**Produktionskalender**: `PrinterJob.plannedStartAt/plannedEndAt`, `MaintenanceWindow`
+(Wartungsfenster je Drucker). Details: [production-workflow.md](./production-workflow.md).
+
+**Versand**: `Shipment` (`VER-<Jahr>-<5-stellig>` via `ShipmentCounter`), `ShipmentItem`,
+`ShipmentStatusEvent` (Historie). Details: [shipping.md](./shipping.md).
+
+**Kundenbereich**: `MagicLinkToken` (nur SHA-256-Hash, 30 Tage, max. 3 aktiv/E-Mail),
+`PortalAccessLog`. Details: [customer-portal.md](./customer-portal.md).
+
+**Konfigurator/Reviews**: `SavedConfiguration` (dedupliziert, stabiler `shareToken`),
+`Review` (eine je Bestellposition, moderiert). Details: [reviews.md](./reviews.md).
 
 **Protokolle**: `EmailLog` (sent | dev_logged | failed), `ConsentLog` (DSGVO-Einwilligungen,
 anonyme ID, Version), `AdminAuditLog` (alle Admin-Mutationen).

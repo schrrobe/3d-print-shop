@@ -13,8 +13,8 @@ packages/config      ESLint-/TS-Presets + Design-Tokens (Tailwind-4-Theme, CSS)
 packages/types       Shared Domain-Typen & Enums (Quelle der Wahrheit, vom Prisma-Schema gespiegelt)
 packages/validators  Zod-Schemas (von web UND api verwendet)
 packages/utils       Pure Domänenlogik (Preise, Versand, Statusmaschinen, RBAC, …) — Vitest-getestet
-packages/emails      E-Mail-Template-Renderer (10 Templates, de/en + en-Fallback)
-packages/ui          35 wiederverwendbare Vue-Komponenten (Radix Vue) + Storybook
+packages/emails      E-Mail-Template-Renderer (16 Templates, de/en + en-Fallback)
+packages/ui          54 wiederverwendbare Vue-Komponenten (Radix Vue) + Storybook
 ```
 
 Interne Packages werden als **TypeScript-Quellcode** konsumiert (kein Build-Schritt):
@@ -41,8 +41,15 @@ In Produktion übernimmt ein Reverse Proxy (siehe `deployment-hostinger.md`) die
   Farbwahlen serverseitig neu und erstellt direkt `Order` + `OrderItem`.
 - **Gastbestellung**: Bestellzugriff über `orderNumber` + `accessToken` (zufälliges Token,
   in Bestätigungs-E-Mail/URL) statt Kundenkonten.
-- **Statusmaschinen** für Bestellungen und Druckaufträge liegen in `packages/utils` und werden
-  von der API erzwungen (`assertOrderTransition`, HTTP 409 bei ungültigen Übergängen).
+- **Statusmaschinen** für Bestellungen, Druckaufträge, Reklamationen, QC, Sendungen und
+  Reviews liegen in `packages/utils` und werden von der API erzwungen
+  (`assertXTransition`, HTTP 409 `invalid_transition` bei ungültigen Übergängen).
+- **QC-Gate**: Kein Versand ohne bestandene (oder bewusst überschriebene) Qualitätsprüfung —
+  erzwungen auf Produktions- und Sendungsebene. Siehe [quality-control.md](quality-control.md).
+- **Kundenbereich (Magic-Link)**: E-Mail-basierte Aggregatsicht, Token nur als SHA-256-Hash
+  gespeichert, Bearer-Transport, Anti-Enumeration. Siehe [customer-portal.md](customer-portal.md).
+- **Private Uploads**: Reklamations-, QC- und Review-Fotos liegen unter `UPLOAD_DIR`, werden
+  aber nie statisch ausgeliefert — nur über token-/permission-geprüfte Endpunkte.
 - **Zahlungsabstraktion**: Alle drei Wege münden in `markOrderPaid()` (Order → paid,
   Rechnung + PDF, Produktionsjobs, E-Mails) — idempotent für Webhook-Retries.
 - **3D-Viewer-Fallback**: Da keine GLB-Binärdateien im Repo liegen, rendert der Viewer ein

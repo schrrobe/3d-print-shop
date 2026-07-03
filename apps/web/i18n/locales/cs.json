@@ -55,7 +55,10 @@
     "shippingFree": "Zdarma",
     "freeShippingHint": "Ještě {amount} do dopravy zdarma",
     "total": "Celkem",
-    "checkout": "K pokladně"
+    "checkout": "K pokladně",
+    "updated": "Košík aktualizován",
+    "saveChanges": "Uložit změny",
+    "edit": "Upravit"
   },
   "checkout": {
     "title": "Pokladna",
@@ -251,5 +254,127 @@
       "generic": "Něco se pokazilo",
       "back": "Zpět na úvod"
     }
+  },
+  "portal": {
+    "title": "Můj zákaznický účet",
+    "orders": "Objednávky",
+    "noOrders": "Pro tento e-mail neexistují žádné objednávky.",
+    "quotes": "Cenové nabídky",
+    "quote": "Nabídka",
+    "configurations": "Uložené kombinace barev",
+    "complaintsOnOrder": "Reklamace",
+    "requestNew": "Požádat o nový přístupový odkaz",
+    "invalid": "Tento přístupový odkaz je neplatný.",
+    "request": {
+      "title": "Přístup k vašim objednávkám",
+      "intro": "Zadejte svůj e-mail a my vám pošleme bezpečný odkaz na vaše objednávky.",
+      "email": "E-mailová adresa",
+      "orderNumber": "Číslo objednávky (nepovinné)",
+      "submit": "Požádat o přístupový odkaz",
+      "confirmation": "Pokud pro tento e-mail existují objednávky, odeslali jsme přístupový odkaz.",
+      "privacy": "Odkaz je platný 30 dní a odesílá se pouze na zadanou adresu."
+    },
+    "expired": {
+      "title": "Přístupový odkaz vypršel",
+      "intro": "Tento odkaz vypršel. Požádejte o nový.",
+      "renew": "Požádat o nový odkaz"
+    },
+    "production": {
+      "none": "Zatím ve výrobě není",
+      "progress": "Dokončeno {done}/{total} ve výrobě"
+    },
+    "actions": {
+      "details": "Podrobnosti",
+      "invoice": "Stáhnout fakturu",
+      "complaint": "Otevřít reklamaci",
+      "open": "Otevřít"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Poškozeno",
+      "wrong_item": "Nesprávná položka",
+      "quality_issue": "Vada kvality",
+      "missing_parts": "Chybějící díly",
+      "color_mismatch": "Nesoulad barvy",
+      "other": "Jiné"
+    },
+    "status": {
+      "submitted": "Přijato",
+      "in_review": "V posouzení",
+      "info_needed": "Nutné informace",
+      "approved": "Schváleno",
+      "rejected": "Zamítnuto",
+      "replacement_planned": "Naplánován nový tisk",
+      "refund_planned": "Naplánováno vrácení peněz",
+      "closed": "Uzavřeno"
+    },
+    "resolution": {
+      "replacement_print": "Nový tisk",
+      "refund": "Vrácení peněz",
+      "voucher": "Poukaz",
+      "rejection": "Zamítnutí",
+      "further_review": "Další posouzení"
+    },
+    "form": {
+      "title": "Otevřít reklamaci",
+      "missingContext": "Chybí platný odkaz na objednávku. Otevřete reklamaci ze svého zákaznického účtu.",
+      "goToPortal": "Přejít na účet",
+      "customMadeNote": "Upozornění: personalizované výrobky na zakázku jsou vyloučeny z práva na odstoupení. Reklamace vad a vyřízení z dobré vůle jsou samozřejmě možné.",
+      "selectItems": "Dotčené položky",
+      "quantity": "Množství",
+      "reason": "Důvod",
+      "description": "Popis",
+      "photos": "Fotografie (nepovinné)",
+      "photosHint": "Až 5 obrázků (JPG, PNG, WebP).",
+      "submit": "Odeslat reklamaci",
+      "noItems": "Vyberte alespoň jednu položku.",
+      "descriptionTooShort": "Popište prosím problém (alespoň 10 znaků).",
+      "submitError": "Reklamaci se nepodařilo odeslat."
+    },
+    "view": {
+      "order": "Objednávka",
+      "description": "Popis",
+      "items": "Položky",
+      "photos": "Fotografie",
+      "decisions": "Rozhodnutí",
+      "replyTitle": "Potřebujeme více informací",
+      "replyIntro": "Potřebujeme více podrobností. Odpovězte níže.",
+      "replyLabel": "Vaše odpověď",
+      "replySubmit": "Odeslat odpověď"
+    }
+  },
+  "wishlist": {
+    "title": "Seznam přání",
+    "empty": "Váš seznam přání je prázdný.",
+    "toCart": "Do košíku",
+    "share": "Sdílet",
+    "add": "Přidat do seznamu přání",
+    "remove": "Odebrat ze seznamu přání",
+    "added": "Přidáno do seznamu přání",
+    "removed": "Odebráno ze seznamu přání",
+    "movedToCart": "Přesunuto do košíku",
+    "shareCopied": "Odkaz zkopírován",
+    "shareError": "Odkaz se nepodařilo vytvořit"
+  },
+  "configurator": {
+    "popular": "Oblíbené kombinace",
+    "reset": "Obnovit výchozí",
+    "share": "Sdílet konfiguraci",
+    "shareCopied": "Odkaz na konfiguraci zkopírován",
+    "shareError": "Odkaz se nepodařilo vytvořit",
+    "loadError": "Konfiguraci se nepodařilo načíst",
+    "unavailableShort": "nedostupné",
+    "unavailableZone": "{zone}: {color} je momentálně nedostupná",
+    "availability": {
+      "unavailable": "{zone}: zvolená barva již není dostupná",
+      "out_of_stock": "{zone}: zvolená barva je momentálně vyprodaná"
+    }
+  },
+  "reviews": {
+    "title": "Recenze",
+    "empty": "Zatím žádné recenze.",
+    "count": "Počet recenzí: {count}",
+    "ratingLabel": "{rating} z 5 hvězdiček"
   }
 }

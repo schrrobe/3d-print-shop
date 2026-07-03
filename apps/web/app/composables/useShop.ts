@@ -39,6 +39,7 @@ export interface ApiColor {
   material: string
   manufacturer: string
   active: boolean
+  outOfStock?: boolean
 }
 
 export function pickTranslation(product: ApiProduct, locale: string): ApiTranslation {

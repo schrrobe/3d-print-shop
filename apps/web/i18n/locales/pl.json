@@ -55,7 +55,10 @@
     "shippingFree": "Gratis",
     "freeShippingHint": "Brakuje {amount} do darmowej wysyłki",
     "total": "Razem",
-    "checkout": "Do kasy"
+    "checkout": "Do kasy",
+    "updated": "Koszyk zaktualizowany",
+    "saveChanges": "Zapisz zmiany",
+    "edit": "Edytuj"
   },
   "checkout": {
     "title": "Kasa",
@@ -251,5 +254,127 @@
       "generic": "Coś poszło nie tak",
       "back": "Wróć na stronę główną"
     }
+  },
+  "portal": {
+    "title": "Moje konto",
+    "orders": "Zamówienia",
+    "noOrders": "Brak zamówień dla tego adresu e-mail.",
+    "quotes": "Wyceny",
+    "quote": "Wycena",
+    "configurations": "Zapisane kombinacje kolorów",
+    "complaintsOnOrder": "Reklamacje",
+    "requestNew": "Poproś o nowy link dostępu",
+    "invalid": "Ten link dostępu jest nieprawidłowy.",
+    "request": {
+      "title": "Dostęp do Twoich zamówień",
+      "intro": "Podaj swój adres e-mail, a wyślemy Ci bezpieczny link do zamówień.",
+      "email": "Adres e-mail",
+      "orderNumber": "Numer zamówienia (opcjonalnie)",
+      "submit": "Poproś o link dostępu",
+      "confirmation": "Jeśli istnieją zamówienia dla tego adresu, wysłaliśmy link dostępu.",
+      "privacy": "Link jest ważny 30 dni i wysyłany wyłącznie na podany adres."
+    },
+    "expired": {
+      "title": "Link dostępu wygasł",
+      "intro": "Ten link wygasł. Poproś o nowy.",
+      "renew": "Poproś o nowy link"
+    },
+    "production": {
+      "none": "Jeszcze nie w produkcji",
+      "progress": "Ukończono {done}/{total} w produkcji"
+    },
+    "actions": {
+      "details": "Szczegóły",
+      "invoice": "Pobierz fakturę",
+      "complaint": "Zgłoś reklamację",
+      "open": "Otwórz"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Uszkodzony",
+      "wrong_item": "Niewłaściwy produkt",
+      "quality_issue": "Wada jakościowa",
+      "missing_parts": "Brakujące części",
+      "color_mismatch": "Niezgodność koloru",
+      "other": "Inne"
+    },
+    "status": {
+      "submitted": "Zgłoszona",
+      "in_review": "W trakcie analizy",
+      "info_needed": "Wymagane informacje",
+      "approved": "Zatwierdzona",
+      "rejected": "Odrzucona",
+      "replacement_planned": "Zaplanowano ponowny druk",
+      "refund_planned": "Zaplanowano zwrot",
+      "closed": "Zamknięta"
+    },
+    "resolution": {
+      "replacement_print": "Ponowny druk",
+      "refund": "Zwrot pieniędzy",
+      "voucher": "Bon",
+      "rejection": "Odrzucenie",
+      "further_review": "Dalsza analiza"
+    },
+    "form": {
+      "title": "Zgłoś reklamację",
+      "missingContext": "Brak prawidłowego odniesienia do zamówienia. Otwórz reklamację z poziomu swojego konta.",
+      "goToPortal": "Przejdź do konta",
+      "customMadeNote": "Uwaga: spersonalizowane produkty na zamówienie są wyłączone z prawa odstąpienia. Reklamacje wad oraz rozpatrzenie w ramach dobrej woli są oczywiście możliwe.",
+      "selectItems": "Pozycje objęte reklamacją",
+      "quantity": "Ilość",
+      "reason": "Powód",
+      "description": "Opis",
+      "photos": "Zdjęcia (opcjonalnie)",
+      "photosHint": "Do 5 zdjęć (JPG, PNG, WebP).",
+      "submit": "Wyślij reklamację",
+      "noItems": "Wybierz co najmniej jedną pozycję.",
+      "descriptionTooShort": "Opisz problem (co najmniej 10 znaków).",
+      "submitError": "Nie udało się wysłać reklamacji."
+    },
+    "view": {
+      "order": "Zamówienie",
+      "description": "Opis",
+      "items": "Pozycje",
+      "photos": "Zdjęcia",
+      "decisions": "Decyzje",
+      "replyTitle": "Potrzebne dodatkowe informacje",
+      "replyIntro": "Potrzebujemy więcej szczegółów. Odpowiedz poniżej.",
+      "replyLabel": "Twoja odpowiedź",
+      "replySubmit": "Wyślij odpowiedź"
+    }
+  },
+  "wishlist": {
+    "title": "Lista życzeń",
+    "empty": "Twoja lista życzeń jest pusta.",
+    "toCart": "Dodaj do koszyka",
+    "share": "Udostępnij",
+    "add": "Dodaj do listy życzeń",
+    "remove": "Usuń z listy życzeń",
+    "added": "Dodano do listy życzeń",
+    "removed": "Usunięto z listy życzeń",
+    "movedToCart": "Przeniesiono do koszyka",
+    "shareCopied": "Link skopiowany",
+    "shareError": "Nie udało się utworzyć linku"
+  },
+  "configurator": {
+    "popular": "Popularne kombinacje",
+    "reset": "Przywróć domyślne",
+    "share": "Udostępnij konfigurację",
+    "shareCopied": "Link do konfiguracji skopiowany",
+    "shareError": "Nie udało się utworzyć linku",
+    "loadError": "Nie udało się wczytać konfiguracji",
+    "unavailableShort": "niedostępny",
+    "unavailableZone": "{zone}: {color} jest obecnie niedostępny",
+    "availability": {
+      "unavailable": "{zone}: wybrany kolor nie jest już dostępny",
+      "out_of_stock": "{zone}: wybrany kolor jest obecnie wyprzedany"
+    }
+  },
+  "reviews": {
+    "title": "Opinie",
+    "empty": "Brak opinii.",
+    "count": "Opinie: {count}",
+    "ratingLabel": "{rating} na 5 gwiazdek"
   }
 }

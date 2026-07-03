@@ -55,7 +55,10 @@
     "shippingFree": "Gratis",
     "freeShippingHint": "Nog {amount} tot gratis verzending",
     "total": "Totaal",
-    "checkout": "Afrekenen"
+    "checkout": "Afrekenen",
+    "updated": "Winkelwagen bijgewerkt",
+    "saveChanges": "Wijzigingen opslaan",
+    "edit": "Bewerken"
   },
   "checkout": {
     "title": "Afrekenen",
@@ -251,5 +254,127 @@
       "generic": "Er is iets misgegaan",
       "back": "Terug naar home"
     }
+  },
+  "portal": {
+    "title": "Mijn klantomgeving",
+    "orders": "Bestellingen",
+    "noOrders": "Er zijn geen bestellingen voor dit e-mailadres.",
+    "quotes": "Offertes",
+    "quote": "Offerte",
+    "configurations": "Opgeslagen kleurcombinaties",
+    "complaintsOnOrder": "Klachten",
+    "requestNew": "Nieuwe toegangslink aanvragen",
+    "invalid": "Deze toegangslink is ongeldig.",
+    "request": {
+      "title": "Toegang tot je bestellingen",
+      "intro": "Voer je e-mailadres in; we sturen je een veilige link naar je bestellingen.",
+      "email": "E-mailadres",
+      "orderNumber": "Bestelnummer (optioneel)",
+      "submit": "Toegangslink aanvragen",
+      "confirmation": "Als er bestellingen bestaan voor dit e-mailadres, hebben we een toegangslink verstuurd.",
+      "privacy": "De link is 30 dagen geldig en wordt alleen naar het opgegeven adres gestuurd."
+    },
+    "expired": {
+      "title": "Toegangslink verlopen",
+      "intro": "Deze link is verlopen. Vraag een nieuwe aan.",
+      "renew": "Nieuwe link aanvragen"
+    },
+    "production": {
+      "none": "Nog niet in productie",
+      "progress": "{done}/{total} voltooid in productie"
+    },
+    "actions": {
+      "details": "Details",
+      "invoice": "Factuur downloaden",
+      "complaint": "Klacht indienen",
+      "open": "Openen"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Beschadigd",
+      "wrong_item": "Verkeerd artikel",
+      "quality_issue": "Kwaliteitsgebrek",
+      "missing_parts": "Ontbrekende onderdelen",
+      "color_mismatch": "Kleurafwijking",
+      "other": "Overig"
+    },
+    "status": {
+      "submitted": "Ingediend",
+      "in_review": "In behandeling",
+      "info_needed": "Informatie nodig",
+      "approved": "Goedgekeurd",
+      "rejected": "Afgewezen",
+      "replacement_planned": "Herdruk gepland",
+      "refund_planned": "Terugbetaling gepland",
+      "closed": "Afgesloten"
+    },
+    "resolution": {
+      "replacement_print": "Herdruk",
+      "refund": "Terugbetaling",
+      "voucher": "Tegoedbon",
+      "rejection": "Afwijzing",
+      "further_review": "Nader onderzoek"
+    },
+    "form": {
+      "title": "Klacht indienen",
+      "missingContext": "Geen geldige orderreferentie. Open de klacht via je klantomgeving.",
+      "goToPortal": "Naar mijn klantomgeving",
+      "customMadeNote": "Let op: gepersonaliseerde maatwerkartikelen zijn uitgesloten van het herroepingsrecht. Klachten over gebreken en coulance zijn uiteraard wel mogelijk.",
+      "selectItems": "Betrokken artikelen",
+      "quantity": "Aantal",
+      "reason": "Reden",
+      "description": "Omschrijving",
+      "photos": "Foto's (optioneel)",
+      "photosHint": "Maximaal 5 afbeeldingen (JPG, PNG, WebP).",
+      "submit": "Klacht versturen",
+      "noItems": "Selecteer minstens één artikel.",
+      "descriptionTooShort": "Beschrijf het probleem (minstens 10 tekens).",
+      "submitError": "De klacht kon niet worden verzonden."
+    },
+    "view": {
+      "order": "Bestelling",
+      "description": "Omschrijving",
+      "items": "Artikelen",
+      "photos": "Foto's",
+      "decisions": "Beslissingen",
+      "replyTitle": "Meer informatie nodig",
+      "replyIntro": "We hebben meer details nodig. Reageer hieronder.",
+      "replyLabel": "Je reactie",
+      "replySubmit": "Reactie versturen"
+    }
+  },
+  "wishlist": {
+    "title": "Verlanglijst",
+    "empty": "Je verlanglijst is leeg.",
+    "toCart": "In winkelwagen",
+    "share": "Delen",
+    "add": "Aan verlanglijst toevoegen",
+    "remove": "Van verlanglijst verwijderen",
+    "added": "Toegevoegd aan verlanglijst",
+    "removed": "Verwijderd van verlanglijst",
+    "movedToCart": "Naar winkelwagen verplaatst",
+    "shareCopied": "Link gekopieerd",
+    "shareError": "Link kon niet worden aangemaakt"
+  },
+  "configurator": {
+    "popular": "Populaire combinaties",
+    "reset": "Standaard herstellen",
+    "share": "Configuratie delen",
+    "shareCopied": "Configuratielink gekopieerd",
+    "shareError": "Link kon niet worden aangemaakt",
+    "loadError": "Configuratie kon niet worden geladen",
+    "unavailableShort": "niet beschikbaar",
+    "unavailableZone": "{zone}: {color} is momenteel niet beschikbaar",
+    "availability": {
+      "unavailable": "{zone}: de gekozen kleur is niet meer beschikbaar",
+      "out_of_stock": "{zone}: de gekozen kleur is momenteel uitverkocht"
+    }
+  },
+  "reviews": {
+    "title": "Beoordelingen",
+    "empty": "Nog geen beoordelingen.",
+    "count": "{count} beoordelingen",
+    "ratingLabel": "{rating} van de 5 sterren"
   }
 }

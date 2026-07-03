@@ -55,7 +55,10 @@
     "shippingFree": "Gratuite",
     "freeShippingHint": "Encore {amount} pour la livraison gratuite",
     "total": "Total",
-    "checkout": "Commander"
+    "checkout": "Commander",
+    "updated": "Panier mis à jour",
+    "saveChanges": "Enregistrer les modifications",
+    "edit": "Modifier"
   },
   "checkout": {
     "title": "Paiement",
@@ -251,5 +254,127 @@
       "generic": "Une erreur est survenue",
       "back": "Retour à l'accueil"
     }
+  },
+  "portal": {
+    "title": "Mon espace client",
+    "orders": "Commandes",
+    "noOrders": "Aucune commande pour cette adresse e-mail.",
+    "quotes": "Devis",
+    "quote": "Devis",
+    "configurations": "Combinaisons de couleurs enregistrées",
+    "complaintsOnOrder": "Réclamations",
+    "requestNew": "Demander un nouveau lien d'accès",
+    "invalid": "Ce lien d'accès n'est pas valide.",
+    "request": {
+      "title": "Accéder à vos commandes",
+      "intro": "Saisissez votre adresse e-mail : nous vous enverrons un lien sécurisé vers vos commandes.",
+      "email": "Adresse e-mail",
+      "orderNumber": "Numéro de commande (facultatif)",
+      "submit": "Demander le lien d'accès",
+      "confirmation": "Si des commandes existent pour cette adresse, nous avons envoyé un lien d'accès.",
+      "privacy": "Le lien est valable 30 jours et n'est envoyé qu'à l'adresse indiquée."
+    },
+    "expired": {
+      "title": "Lien d'accès expiré",
+      "intro": "Ce lien a expiré. Demandez-en un nouveau.",
+      "renew": "Demander un nouveau lien"
+    },
+    "production": {
+      "none": "Pas encore en production",
+      "progress": "{done}/{total} terminés en production"
+    },
+    "actions": {
+      "details": "Détails",
+      "invoice": "Télécharger la facture",
+      "complaint": "Ouvrir une réclamation",
+      "open": "Ouvrir"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Endommagé",
+      "wrong_item": "Mauvais article",
+      "quality_issue": "Défaut de qualité",
+      "missing_parts": "Pièces manquantes",
+      "color_mismatch": "Couleur non conforme",
+      "other": "Autre"
+    },
+    "status": {
+      "submitted": "Reçue",
+      "in_review": "En cours d'examen",
+      "info_needed": "Informations requises",
+      "approved": "Approuvée",
+      "rejected": "Rejetée",
+      "replacement_planned": "Réimpression prévue",
+      "refund_planned": "Remboursement prévu",
+      "closed": "Clôturée"
+    },
+    "resolution": {
+      "replacement_print": "Réimpression",
+      "refund": "Remboursement",
+      "voucher": "Bon d’achat",
+      "rejection": "Refus",
+      "further_review": "Examen complémentaire"
+    },
+    "form": {
+      "title": "Ouvrir une réclamation",
+      "missingContext": "Aucune référence de commande valide. Veuillez ouvrir la réclamation depuis votre espace client.",
+      "goToPortal": "Aller à mon espace",
+      "customMadeNote": "Remarque : les articles personnalisés fabriqués sur commande sont exclus du droit de rétractation. Les réclamations pour défauts et les gestes commerciaux restent bien entendu possibles.",
+      "selectItems": "Articles concernés",
+      "quantity": "Quantité",
+      "reason": "Motif",
+      "description": "Description",
+      "photos": "Photos (facultatif)",
+      "photosHint": "Jusqu'à 5 images (JPG, PNG, WebP).",
+      "submit": "Envoyer la réclamation",
+      "noItems": "Veuillez sélectionner au moins un article.",
+      "descriptionTooShort": "Veuillez décrire le problème (au moins 10 caractères).",
+      "submitError": "La réclamation n'a pas pu être envoyée."
+    },
+    "view": {
+      "order": "Commande",
+      "description": "Description",
+      "items": "Articles",
+      "photos": "Photos",
+      "decisions": "Décisions",
+      "replyTitle": "Informations complémentaires requises",
+      "replyIntro": "Nous avons besoin de plus de détails. Répondez ci-dessous.",
+      "replyLabel": "Votre réponse",
+      "replySubmit": "Envoyer la réponse"
+    }
+  },
+  "wishlist": {
+    "title": "Liste de souhaits",
+    "empty": "Votre liste de souhaits est vide.",
+    "toCart": "Ajouter au panier",
+    "share": "Partager",
+    "add": "Ajouter à la liste de souhaits",
+    "remove": "Retirer de la liste de souhaits",
+    "added": "Ajouté à la liste de souhaits",
+    "removed": "Retiré de la liste de souhaits",
+    "movedToCart": "Déplacé vers le panier",
+    "shareCopied": "Lien copié",
+    "shareError": "Impossible de créer le lien"
+  },
+  "configurator": {
+    "popular": "Combinaisons populaires",
+    "reset": "Réinitialiser",
+    "share": "Partager la configuration",
+    "shareCopied": "Lien de configuration copié",
+    "shareError": "Impossible de créer le lien",
+    "loadError": "Impossible de charger la configuration",
+    "unavailableShort": "indisponible",
+    "unavailableZone": "{zone} : {color} est actuellement indisponible",
+    "availability": {
+      "unavailable": "{zone} : la couleur choisie n’est plus disponible",
+      "out_of_stock": "{zone} : la couleur choisie est actuellement en rupture"
+    }
+  },
+  "reviews": {
+    "title": "Avis",
+    "empty": "Aucun avis pour le moment.",
+    "count": "{count} avis",
+    "ratingLabel": "{rating} sur 5 étoiles"
   }
 }

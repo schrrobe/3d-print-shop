@@ -27,6 +27,20 @@ export const PERMISSIONS = [
   'audit:read',
   'tickets:read',
   'tickets:write',
+  'social-posts:read',
+  'social-posts:write',
+  'complaints:read',
+  'complaints:write',
+  'complaints:decide',
+  'qc:read',
+  'qc:write',
+  'qc:override',
+  'filament:read',
+  'filament:write',
+  'shipments:read',
+  'shipments:write',
+  'reviews:read',
+  'reviews:moderate',
 ] as const
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -36,6 +50,12 @@ export type Permission = (typeof PERMISSIONS)[number]
  * production: review uploads, manage printers & print jobs.
  * shipping: shipping status, tracking numbers, orders for shipping.
  * support: read-only orders, customer requests, statuses; owns support tickets.
+ * Social posts: admin & product_manager plan/publish, support reads.
+ * Complaints: support handles communication, only admin decides (complaints:decide).
+ * QC: production performs checks, only admin overrides (qc:override).
+ * Filament/AMS: production manages stock, product_manager reads.
+ * Shipments: shipping owns the flow, production/support read.
+ * Reviews: product_manager & support moderate.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   admin: PERMISSIONS,
@@ -47,6 +67,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'colors:write',
     'assets:write',
     'content:write',
+    'social-posts:read',
+    'social-posts:write',
+    'filament:read',
+    'reviews:read',
+    'reviews:moderate',
   ],
   production: [
     'dashboard:read',
@@ -57,8 +82,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'print-jobs:read',
     'print-jobs:write',
     'orders:read',
+    'qc:read',
+    'qc:write',
+    'filament:read',
+    'filament:write',
+    'complaints:read',
+    'shipments:read',
   ],
-  shipping: ['dashboard:read', 'orders:read', 'orders:ship'],
+  shipping: [
+    'dashboard:read',
+    'orders:read',
+    'orders:ship',
+    'shipments:read',
+    'shipments:write',
+    'qc:read',
+  ],
   support: [
     'dashboard:read',
     'orders:read',
@@ -67,6 +105,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'payments:read',
     'tickets:read',
     'tickets:write',
+    'social-posts:read',
+    'complaints:read',
+    'complaints:write',
+    'shipments:read',
+    'reviews:read',
+    'reviews:moderate',
   ],
 }
 

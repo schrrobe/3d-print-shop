@@ -22,6 +22,12 @@ export type EmailTemplateName =
   | 'ticket_created'
   | 'ticket_reply'
   | 'ticket_customer_reply'
+  | 'complaint_received'
+  | 'complaint_updated'
+  | 'magic_link'
+  | 'review_request'
+  | 'review_submitted'
+  | 'review_approved'
 
 /**
  * i18n: de + en are fully translated; the remaining shop locales (pl, fr, nl, cs)
@@ -349,4 +355,172 @@ export function renderTicketCustomerReply(
     paragraph(escapeHtml(data.subject)) + button(data.adminUrl, 'Ticket öffnen'),
   )
   return { subject, html, text: `${subject}: ${data.adminUrl}` }
+}
+
+// ---------- Complaints (Reklamationen) ----------
+
+export interface ComplaintEmailData {
+  complaintNumber: string
+  orderNumber: string
+  firstName: string
+  complaintUrl: string
+}
+
+export function renderComplaintReceived(data: ComplaintEmailData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Reklamation ${data.complaintNumber} eingegangen`,
+    `Complaint ${data.complaintNumber} received`,
+  )
+  const title = pick(locale, 'Reklamation eingegangen', 'Complaint received')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `wir haben deine Reklamation <strong>${data.complaintNumber}</strong> zur Bestellung <strong>${data.orderNumber}</strong> erhalten und melden uns, sobald wir sie geprüft haben.`,
+          `we received your complaint <strong>${data.complaintNumber}</strong> for order <strong>${data.orderNumber}</strong> and will get back to you once we have reviewed it.`,
+        ),
+      ) +
+      button(data.complaintUrl, pick(locale, 'Status ansehen', 'View status')),
+  )
+  return { subject, html, text: `${title}: ${data.complaintNumber}\n${data.complaintUrl}` }
+}
+
+export interface ComplaintUpdatedData extends ComplaintEmailData {
+  statusLabel: string
+  message?: string
+}
+
+export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Update zu deiner Reklamation ${data.complaintNumber}`,
+    `Update on your complaint ${data.complaintNumber}`,
+  )
+  const title = pick(locale, 'Reklamation aktualisiert', 'Complaint updated')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `es gibt Neuigkeiten zu deiner Reklamation <strong>${data.complaintNumber}</strong>: ${escapeHtml(data.statusLabel)}.`,
+          `there is an update on your complaint <strong>${data.complaintNumber}</strong>: ${escapeHtml(data.statusLabel)}.`,
+        ),
+      ) +
+      (data.message ? paragraph(escapeHtml(data.message)) : '') +
+      button(data.complaintUrl, pick(locale, 'Details ansehen', 'View details')),
+  )
+  return { subject, html, text: `${title}: ${data.complaintNumber} — ${data.statusLabel}\n${data.complaintUrl}` }
+}
+
+// ---------- Customer portal (magic link) ----------
+
+export interface MagicLinkData {
+  portalUrl: string
+  expiresDays: number
+}
+
+export function renderMagicLink(data: MagicLinkData, locale: Locale): RenderedEmail {
+  const subject = pick(locale, 'Dein Zugang zum Kundenbereich', 'Your customer portal access')
+  const title = pick(locale, 'Kundenbereich öffnen', 'Open customer portal')
+  const html = emailLayout(
+    title,
+    paragraph(
+      pick(
+        locale,
+        'mit dem folgenden Link kannst du deine Bestellungen, Rechnungen und Angebote einsehen. Der Link ist persönlich — bitte nicht weitergeben.',
+        'use the link below to view your orders, invoices and quotes. The link is personal — please do not share it.',
+      ),
+    ) +
+      button(data.portalUrl, pick(locale, 'Kundenbereich öffnen', 'Open portal')) +
+      paragraph(
+        pick(
+          locale,
+          `Der Link ist ${data.expiresDays} Tage gültig. Danach kannst du jederzeit einen neuen anfordern.`,
+          `The link is valid for ${data.expiresDays} days. You can request a new one at any time.`,
+        ),
+      ),
+  )
+  return { subject, html, text: `${title}: ${data.portalUrl}` }
+}
+
+// ---------- Reviews ----------
+
+export interface ReviewRequestData {
+  orderNumber: string
+  firstName: string
+  items: { name: string }[]
+  reviewUrl: string
+}
+
+export function renderReviewRequest(data: ReviewRequestData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Wie zufrieden bist du mit Bestellung ${data.orderNumber}?`,
+    `How happy are you with order ${data.orderNumber}?`,
+  )
+  const title = pick(locale, 'Deine Meinung zählt', 'Your opinion matters')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+      paragraph(
+        pick(
+          locale,
+          'wir würden uns freuen, wenn du deine gedruckten Artikel bewertest:',
+          'we would love to hear what you think about your printed items:',
+        ),
+      ) +
+      paragraph(data.items.map((i) => escapeHtml(i.name)).join('<br>')) +
+      button(data.reviewUrl, pick(locale, 'Jetzt bewerten', 'Write a review')),
+  )
+  return { subject, html, text: `${title}: ${data.orderNumber}\n${data.reviewUrl}` }
+}
+
+export interface ReviewSubmittedData {
+  firstName: string
+  productName: string
+}
+
+export function renderReviewSubmitted(data: ReviewSubmittedData, locale: Locale): RenderedEmail {
+  const subject = pick(locale, 'Danke für deine Bewertung!', 'Thanks for your review!')
+  const title = pick(locale, 'Bewertung eingegangen', 'Review received')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `danke für deine Bewertung zu <strong>${escapeHtml(data.productName)}</strong>. Wir prüfen sie kurz und schalten sie dann frei.`,
+          `thank you for reviewing <strong>${escapeHtml(data.productName)}</strong>. We will review and publish it shortly.`,
+        ),
+      ),
+  )
+  return { subject, html, text: `${title}: ${data.productName}` }
+}
+
+export interface ReviewApprovedData {
+  firstName: string
+  productName: string
+  productUrl: string
+}
+
+export function renderReviewApproved(data: ReviewApprovedData, locale: Locale): RenderedEmail {
+  const subject = pick(locale, 'Deine Bewertung ist online', 'Your review is live')
+  const title = pick(locale, 'Bewertung freigegeben', 'Review published')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `deine Bewertung zu <strong>${escapeHtml(data.productName)}</strong> wurde freigegeben und ist jetzt sichtbar.`,
+          `your review of <strong>${escapeHtml(data.productName)}</strong> has been approved and is now visible.`,
+        ),
+      ) +
+      button(data.productUrl, pick(locale, 'Produkt ansehen', 'View product')),
+  )
+  return { subject, html, text: `${title}: ${data.productName}\n${data.productUrl}` }
 }

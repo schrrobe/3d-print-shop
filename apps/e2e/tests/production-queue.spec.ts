@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { adminApiContext, passQcForOrder } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('production queue', () => {
@@ -25,8 +26,31 @@ test.describe('production queue', () => {
     await job.getByTestId('job-status-quality_check').click()
     await expect(job.getByText('Qualitätsprüfung')).toBeVisible()
 
+    // QC gate: ready_to_ship is blocked until the job passes quality control.
+    const admin2 = await adminApiContext()
+    await passQcForOrder(admin2, 'PS-2026-00000001')
+    await admin2.dispose()
+
+    await page.reload()
+    await page.waitForSelector('html[data-hydrated="true"]')
     await job.getByTestId('job-status-ready_to_ship').click()
     await expect(job.getByText('Versandbereit')).toBeVisible()
+  })
+
+  test('ready_to_ship is rejected by the api without passed QC', async () => {
+    const admin = await adminApiContext()
+    const queue = (await (await admin.get('/api/admin/production/queue')).json()) as {
+      jobs: { id: string; status: string; order: { orderNumber: string } }[]
+    }
+    // A freshly printed job that has not been through QC yet
+    const job = queue.jobs.find((j) => j.status === 'printed')
+    if (job) {
+      const response = await admin.post(`/api/admin/production/${job.id}/status`, {
+        data: { status: 'ready_to_ship' },
+      })
+      expect(response.status()).toBe(409)
+    }
+    await admin.dispose()
   })
 
   test('assigns a waiting job to a printer with duration', async ({ page, request }) => {

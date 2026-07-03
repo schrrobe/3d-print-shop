@@ -160,6 +160,91 @@ enum TicketAuthorType {
   staff
 }
 
+enum SocialPlatform {
+  instagram
+  facebook
+}
+
+/// entwurf, geplant, wird veröffentlicht (Worker-Lock), veröffentlicht, fehlgeschlagen, abgebrochen
+enum SocialPostStatus {
+  draft
+  scheduled
+  publishing
+  published
+  failed
+  cancelled
+}
+
+/// eingereicht, in Prüfung, weitere Infos benötigt, genehmigt, abgelehnt, Ersatzdruck geplant, Erstattung geplant, abgeschlossen
+enum ComplaintStatus {
+  submitted
+  in_review
+  info_needed
+  approved
+  rejected
+  replacement_planned
+  refund_planned
+  closed
+}
+
+enum ComplaintReason {
+  damaged
+  wrong_item
+  quality_issue
+  missing_parts
+  color_mismatch
+  other
+}
+
+/// Ersatzdruck, Erstattung, Gutschein, Ablehnung, weitere Prüfung
+enum ComplaintResolution {
+  replacement_print
+  refund
+  voucher
+  rejection
+  further_review
+}
+
+enum AttachmentAuthor {
+  customer
+  staff
+}
+
+/// offen, bestanden, fehlgeschlagen, Reprint erforderlich, überschrieben
+enum QcStatus {
+  open
+  passed
+  failed
+  reprint_required
+  overridden
+}
+
+enum AmsSlotStatus {
+  empty
+  loaded
+  low
+  error
+  disabled
+}
+
+/// wartet auf QC, bereit für Versand, verpackt, versendet, zugestellt, Problem
+enum ShipmentStatus {
+  waiting_for_qc
+  ready_for_shipping
+  packed
+  shipped
+  delivered
+  problem
+}
+
+/// ausstehend, freigegeben, abgelehnt, ausgeblendet
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  hidden
+}
+
 // ---------- Auth / RBAC ----------
 
 model User {
@@ -177,6 +262,14 @@ model User {
   passwordResets  PasswordResetToken[]
   assignedTickets Ticket[]             @relation("TicketAssignee")
   ticketMessages  TicketMessage[]      @relation("TicketMessageAuthor")
+  socialPosts     SocialMediaPost[]    @relation("SocialPostAuthor")
+
+  complaintDecisions ComplaintDecision[]  @relation("ComplaintDecider")
+  qcApprovals        QcRecord[]           @relation("QcApprover")
+  moderatedReviews   Review[]             @relation("ReviewModerator")
+  maintenanceWindows MaintenanceWindow[]  @relation("MaintenanceAuthor")
+  shipments          Shipment[]           @relation("ShipmentAuthor")
+  shipmentEvents     ShipmentStatusEvent[] @relation("ShipmentEventActor")
 }
 
 model Role {
@@ -209,14 +302,20 @@ model Product {
   slug       String   @unique
   priceCents Int
   active     Boolean  @default(false)
+  /// Sonderanfertigung (made-to-order / farblich personalisiert): kein Widerruf,
+  /// nur Reklamation/Kulanz. Steuert den Hinweis im Reklamations-Formular.
+  customMade Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  translations ProductTranslation[]
-  assets       ProductAsset[]
-  colorSlots   ProductColorSlot[]
-  orderItems   OrderItem[]
-  cartItems    CartItem[]
+  translations        ProductTranslation[]
+  assets              ProductAsset[]
+  colorSlots          ProductColorSlot[]
+  orderItems          OrderItem[]
+  cartItems           CartItem[]
+  socialPosts         SocialMediaPost[]
+  reviews             Review[]
+  savedConfigurations SavedConfiguration[]
 }
 
 model ProductTranslation {
@@ -263,6 +362,10 @@ model Color {
   active       Boolean @default(true)
   stockGrams   Int?
   amsSlot      Int?
+  /// Mindestbestand über alle Spulen dieser Farbe (Gramm); unterschritten → Warnung/Einkaufsliste
+  minStockGrams Int?
+  /// „Aktuell nicht verfügbar": bleibt im Shop sichtbar, aber nicht wählbar (active=false versteckt komplett)
+  outOfStock    Boolean @default(false)
 
   defaultForSlots ProductColorSlot[]
   filamentSpools  FilamentSpool[]
@@ -322,6 +425,9 @@ model Order {
   printerJobs PrinterJob[]
   quotes      Quote[]
   tickets     Ticket[]
+  complaints  Complaint[]
+  shipments   Shipment[]
+  reviews     Review[]
 }
 
 model OrderItem {
@@ -336,7 +442,10 @@ model OrderItem {
   unitPriceCents Int
   colorSelection Json?
 
-  printerJobs PrinterJob[]
+  printerJobs    PrinterJob[]
+  complaintItems ComplaintItem[]
+  shipmentItems  ShipmentItem[]
+  review         Review?
 }
 
 // ---------- Payments ----------
@@ -437,8 +546,10 @@ model Printer {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  jobs   PrinterJob[]
-  spools FilamentSpool[]
+  jobs               PrinterJob[]
+  spools             FilamentSpool[]
+  amsUnits           AmsUnit[]
+  maintenanceWindows MaintenanceWindow[]
 }
 
 model PrinterJob {
@@ -451,6 +562,9 @@ model PrinterJob {
   orderItem            OrderItem?       @relation(fields: [orderItemId], references: [id])
   status               ProductionStatus @default(waiting)
   printDurationMinutes Int?
+  /// Produktionskalender: geplantes Zeitfenster (UTC; Anzeige in Admin-Zeitzone)
+  plannedStartAt       DateTime?
+  plannedEndAt         DateTime?
   startedAt            DateTime?
   finishedAt           DateTime?
   /// AMS slot / spool assignment documentation
@@ -458,20 +572,133 @@ model PrinterJob {
   notes                String?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
+
+  qcRecords         QcRecord[]
+  complaintDecision ComplaintDecision?
+
+  @@index([printerId, plannedStartAt])
 }
 
 model FilamentSpool {
   id             String   @id @default(cuid())
+  /// deprecated: Zuordnung läuft künftig über AmsSlot.spoolId (Multi-Unit-fähig)
   printerId      String?
   printer        Printer? @relation(fields: [printerId], references: [id])
+  /// deprecated: siehe AmsSlot
   amsSlot        Int?
   colorId        String?
   color          Color?   @relation(fields: [colorId], references: [id])
   material       String
+  manufacturer   String?
+  /// Anzeigename / Charge, z. B. "PLA Matte Schwarz #2"
+  label          String?
+  totalGrams     Int?
   remainingGrams Int?
+  /// Mindestbestand dieser Spule (Gramm); unterschritten → Warnung
+  minRemainingGrams Int?
+  storageLocation   String?
+  active            Boolean @default(true)
+  /// Nachbestellen-Flag → erscheint auf der Einkaufsliste
+  reorder           Boolean @default(false)
   notes          String?
   updatedAt      DateTime @updatedAt
   createdAt      DateTime @default(now())
+
+  amsSlotAssignment AmsSlot?
+}
+
+/// AMS-Einheit eines Druckers (Bambu Lab AMS 2 Pro: bis 4 Units × 4 Slots)
+model AmsUnit {
+  id        String   @id @default(cuid())
+  printerId String
+  printer   Printer  @relation(fields: [printerId], references: [id], onDelete: Cascade)
+  name      String
+  position  Int      @default(1)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slots AmsSlot[]
+
+  @@unique([printerId, position])
+}
+
+model AmsSlot {
+  id        String        @id @default(cuid())
+  amsUnitId String
+  amsUnit   AmsUnit       @relation(fields: [amsUnitId], references: [id], onDelete: Cascade)
+  /// Slot-Nummer innerhalb der Unit (1–4)
+  slotIndex Int
+  status    AmsSlotStatus @default(empty)
+  /// Eine Spule kann nur in genau einem Slot stecken
+  spoolId   String?       @unique
+  spool     FilamentSpool? @relation(fields: [spoolId], references: [id])
+  notes     String?
+  updatedAt DateTime      @updatedAt
+
+  @@unique([amsUnitId, slotIndex])
+}
+
+/// Wartungsfenster blockiert den Drucker im Produktionskalender (UTC)
+model MaintenanceWindow {
+  id          String   @id @default(cuid())
+  printerId   String
+  printer     Printer  @relation(fields: [printerId], references: [id], onDelete: Cascade)
+  title       String
+  startsAt    DateTime
+  endsAt      DateTime
+  notes       String?
+  createdById String?
+  createdBy   User?    @relation("MaintenanceAuthor", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([printerId, startsAt])
+}
+
+// ---------- Qualitätskontrolle ----------
+
+/// QC-Prüfung eines Druckauftrags vor Versand. Mehrere Records pro Job = Historie
+/// (nach Reprint entsteht ein neuer Record). Aktueller Stand = neuester Record.
+model QcRecord {
+  id           String     @id @default(cuid())
+  printerJobId String
+  printerJob   PrinterJob @relation(fields: [printerJobId], references: [id])
+  shipmentId   String?
+  shipment     Shipment?  @relation(fields: [shipmentId], references: [id])
+  status       QcStatus   @default(open)
+
+  colorOk        Boolean @default(false)
+  surfaceOk      Boolean @default(false)
+  dimensionsOk   Boolean @default(false)
+  stabilityOk    Boolean @default(false)
+  completenessOk Boolean @default(false)
+  packagingOk    Boolean @default(false)
+
+  note           String?
+  /// Pflicht bei Status "overridden" (bewusste Freigabe trotz nicht bestandener QC)
+  overrideReason String?
+  approvedById   String?
+  approvedBy     User?     @relation("QcApprover", fields: [approvedById], references: [id])
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  attachments QcAttachment[]
+
+  @@index([printerJobId])
+  @@index([status])
+}
+
+model QcAttachment {
+  id           String   @id @default(cuid())
+  qcRecordId   String
+  qcRecord     QcRecord @relation(fields: [qcRecordId], references: [id], onDelete: Cascade)
+  originalName String
+  /// Absoluter Pfad im UPLOAD_DIR — niemals in Public-Responses
+  storedPath   String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
 }
 
 // ---------- Invoices ----------
@@ -524,7 +751,8 @@ model Ticket {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  messages TicketMessage[]
+  messages  TicketMessage[]
+  complaint Complaint?
 
   @@index([status, priority])
   @@index([assignedToId])
@@ -581,6 +809,50 @@ model ConsentLog {
   createdAt   DateTime @default(now())
 }
 
+// ---------- Social media planner ----------
+
+/// Ein Post pro Plattform-Ziel: "beide Plattformen" erzeugt zwei Zeilen.
+/// Idempotenz beim Publishing: Status-CAS (updateMany auf status=scheduled),
+/// lockUntil gegen parallele Worker, publishRequestId pro Versuch.
+model SocialMediaPost {
+  id       String           @id @default(cuid())
+  platform SocialPlatform
+  status   SocialPostStatus @default(draft)
+  caption  String
+  /// Bild-URLs (Produkt-Assets oder hochgeladene Medien), app-relativ oder absolut
+  mediaUrls String[]
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  /// Veröffentlichungszeit in UTC (Eingabe in Admin-Zeitzone, Umrechnung im Editor)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+
+  errorMessage   String?
+  /// ID des Posts auf der Zielplattform (Graph API)
+  externalPostId String?
+  /// Publisher, der den Post veröffentlicht (mock | meta)
+  provider       String    @default("mock")
+  attempts       Int       @default(0)
+  lastAttemptAt  DateTime?
+  /// Worker-Lock: solange in der Zukunft, darf kein anderer Worker den Post anfassen
+  lockUntil      DateTime?
+  /// Eindeutige ID des laufenden Publish-Versuchs (Idempotenz-Nachweis)
+  publishRequestId String? @unique
+  metadata         Json?
+
+  createdById String?
+  createdBy   User?    @relation("SocialPostAuthor", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([platform, status])
+  @@index([productId])
+  @@index([createdAt])
+}
+
 model AdminAuditLog {
   id         String   @id @default(cuid())
   userId     String?
@@ -593,4 +865,230 @@ model AdminAuditLog {
 
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ---------- Reklamationen ----------
+
+model Complaint {
+  id              String          @id @default(cuid())
+  /// z. B. REK-2026-00001 (ComplaintCounter, jahresweise)
+  complaintNumber String          @unique
+  /// Kundenzugriff auf die Reklamation (analog Ticket.accessToken)
+  accessToken     String          @unique
+  orderId         String
+  order           Order           @relation(fields: [orderId], references: [id])
+  status          ComplaintStatus @default(submitted)
+  reason          ComplaintReason
+  description     String
+  /// Staff-only — niemals in Public-Responses
+  internalNote    String?
+  ticketId        String?         @unique
+  ticket          Ticket?         @relation(fields: [ticketId], references: [id])
+  closedAt        DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  items       ComplaintItem[]
+  attachments ComplaintAttachment[]
+  decisions   ComplaintDecision[]
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model ComplaintItem {
+  id          String    @id @default(cuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  quantity    Int       @default(1)
+  note        String?
+
+  @@unique([complaintId, orderItemId])
+}
+
+model ComplaintAttachment {
+  id           String           @id @default(cuid())
+  complaintId  String
+  complaint    Complaint        @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  originalName String
+  /// Absoluter Pfad im UPLOAD_DIR — niemals in Public-Responses
+  storedPath   String
+  mimeType     String
+  sizeBytes    Int
+  uploadedBy   AttachmentAuthor @default(customer)
+  createdAt    DateTime         @default(now())
+}
+
+/// Entscheidung zu einer Reklamation. Mehrere pro Reklamation möglich
+/// (z. B. weitere Prüfung → endgültige Entscheidung).
+model ComplaintDecision {
+  id                String              @id @default(cuid())
+  complaintId       String
+  complaint         Complaint           @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  resolution        ComplaintResolution
+  note              String?
+  refundAmountCents Int?
+  voucherCode       String?
+  reprintJobId      String?             @unique
+  reprintJob        PrinterJob?         @relation(fields: [reprintJobId], references: [id])
+  decidedById       String?
+  decidedBy         User?               @relation("ComplaintDecider", fields: [decidedById], references: [id])
+  decidedAt         DateTime            @default(now())
+
+  @@index([complaintId])
+}
+
+model ComplaintCounter {
+  year         Int @id
+  lastSequence Int @default(0)
+}
+
+// ---------- Versand ----------
+
+model Shipment {
+  id                  String         @id @default(cuid())
+  /// z. B. VER-2026-00001 (ShipmentCounter, jahresweise)
+  shipmentNumber      String         @unique
+  orderId             String
+  order               Order          @relation(fields: [orderId], references: [id])
+  status              ShipmentStatus @default(waiting_for_qc)
+  carrier             Carrier?
+  trackingNumber      String?
+  packedAt            DateTime?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  weightGrams         Int?
+  notes               String?
+  packingListPdfPath  String?
+  deliveryNotePdfPath String?
+  createdById         String?
+  createdBy           User?          @relation("ShipmentAuthor", fields: [createdById], references: [id])
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  items        ShipmentItem[]
+  statusEvents ShipmentStatusEvent[]
+  qcRecords    QcRecord[]
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model ShipmentItem {
+  id          String    @id @default(cuid())
+  shipmentId  String
+  shipment    Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  quantity    Int       @default(1)
+
+  @@unique([shipmentId, orderItemId])
+}
+
+/// Versandhistorie: jeder Statuswechsel wird protokolliert
+model ShipmentStatusEvent {
+  id         String          @id @default(cuid())
+  shipmentId String
+  shipment   Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  fromStatus ShipmentStatus?
+  toStatus   ShipmentStatus
+  byUserId   String?
+  byUser     User?           @relation("ShipmentEventActor", fields: [byUserId], references: [id])
+  note       String?
+  createdAt  DateTime        @default(now())
+
+  @@index([shipmentId])
+}
+
+model ShipmentCounter {
+  year         Int @id
+  lastSequence Int @default(0)
+}
+
+// ---------- Kundenbereich (Magic-Link) ----------
+
+/// Magic-Link-Token für den Kundenbereich. Es wird NUR der sha256-Hash
+/// gespeichert (analog PasswordResetToken) — nie der Klartext.
+model MagicLinkToken {
+  id         String    @id @default(cuid())
+  /// lowercased — Scope: alle Bestellungen/Angebote dieser E-Mail
+  email      String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  useCount   Int       @default(0)
+  /// gesetzt, wenn durch neuere Links verdrängt (max. 3 aktive pro E-Mail)
+  revokedAt  DateTime?
+  requestIp  String?
+  createdAt  DateTime  @default(now())
+
+  accessLogs PortalAccessLog[]
+
+  @@index([email])
+}
+
+model PortalAccessLog {
+  id        String         @id @default(cuid())
+  tokenId   String
+  token     MagicLinkToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  action    String
+  entityId  String?
+  ip        String?
+  createdAt DateTime       @default(now())
+
+  @@index([tokenId, createdAt])
+}
+
+// ---------- Konfigurator ----------
+
+/// Geteilte/gespeicherte Farbkombination. Dedupliziert pro Produkt+Kombination
+/// (kanonischer Key), damit Share-Links stabil bleiben.
+model SavedConfiguration {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Record<ColorZoneSlot, colorId> — gleiche Form wie OrderItem.colorSelection
+  selectedColors Json
+  previewImage   String?
+  shareToken     String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([productId])
+}
+
+// ---------- Bewertungen ----------
+
+model Review {
+  id            String       @id @default(cuid())
+  /// genau eine Bewertung pro Bestellposition
+  orderItemId   String       @unique
+  orderItem     OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderId       String
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// 1–5 (Zod-validiert)
+  rating        Int
+  title         String?
+  body          String
+  /// Absoluter Pfad im UPLOAD_DIR — öffentlich nur bei status=approved
+  photoPath     String?
+  /// Einziges öffentlich sichtbares Kunden-Feld
+  displayName   String
+  locale        Locale       @default(de)
+  status        ReviewStatus @default(pending)
+  /// Staff-only
+  internalNote  String?
+  flaggedAbuse  Boolean      @default(false)
+  moderatedById String?
+  moderatedBy   User?        @relation("ReviewModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+  moderatedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([productId, status])
+  @@index([status])
 }

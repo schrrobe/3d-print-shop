@@ -36,6 +36,20 @@ const envSchema = z.object({
   BANK_BIC: z.string().default('XXXXDEXXXXX'),
   INVOICE_DIR: z.string().default('./invoices'),
   INVOICE_PREFIX: z.string().default('RE'),
+  // --- Social media publishing (Meta Graph API; "mock" needs no credentials) ---
+  SOCIAL_PUBLISHING_PROVIDER: z.enum(['mock', 'meta']).default('mock'),
+  SOCIAL_PUBLISHING_CRON_ENABLED: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
+  SOCIAL_PUBLISHING_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(60),
+  META_APP_ID: z.string().optional().default(''),
+  META_APP_SECRET: z.string().optional().default(''),
+  META_GRAPH_API_VERSION: z.string().default('v23.0'),
+  META_FACEBOOK_PAGE_ID: z.string().optional().default(''),
+  META_FACEBOOK_PAGE_ACCESS_TOKEN: z.string().optional().default(''),
+  META_INSTAGRAM_BUSINESS_ACCOUNT_ID: z.string().optional().default(''),
+  META_INSTAGRAM_ACCESS_TOKEN: z.string().optional().default(''),
 })
 
 export const env = envSchema.parse(process.env)

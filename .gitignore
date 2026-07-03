@@ -50,3 +50,4 @@ playwright/.cache/
 .eslintcache
 *.tsbuildinfo
 .tokensave/
+.serena/

@@ -55,7 +55,10 @@
     "shippingFree": "Free",
     "freeShippingHint": "{amount} to go for free shipping",
     "total": "Total",
-    "checkout": "Checkout"
+    "checkout": "Checkout",
+    "updated": "Cart updated",
+    "saveChanges": "Save changes",
+    "edit": "Edit"
   },
   "checkout": {
     "title": "Checkout",
@@ -251,5 +254,127 @@
       "generic": "Something went wrong",
       "back": "Back to home"
     }
+  },
+  "portal": {
+    "title": "My account area",
+    "orders": "Orders",
+    "noOrders": "There are no orders for this email address.",
+    "quotes": "Quotes",
+    "quote": "Quote",
+    "configurations": "Saved colour combinations",
+    "complaintsOnOrder": "Complaints",
+    "requestNew": "Request a new access link",
+    "invalid": "This access link is invalid.",
+    "request": {
+      "title": "Access your orders",
+      "intro": "Enter your email address and we will send you a secure link to your orders.",
+      "email": "Email address",
+      "orderNumber": "Order number (optional)",
+      "submit": "Request access link",
+      "confirmation": "If orders exist for this email, we have sent an access link.",
+      "privacy": "The link is valid for 30 days and is only sent to the address provided."
+    },
+    "expired": {
+      "title": "Access link expired",
+      "intro": "This link has expired. Request a new one.",
+      "renew": "Request a new link"
+    },
+    "production": {
+      "none": "Not in production yet",
+      "progress": "{done}/{total} finished in production"
+    },
+    "actions": {
+      "details": "Details",
+      "invoice": "Download invoice",
+      "complaint": "Open a complaint",
+      "open": "Open"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Damaged",
+      "wrong_item": "Wrong item",
+      "quality_issue": "Quality issue",
+      "missing_parts": "Missing parts",
+      "color_mismatch": "Colour mismatch",
+      "other": "Other"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "in_review": "In review",
+      "info_needed": "Info needed",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "replacement_planned": "Replacement planned",
+      "refund_planned": "Refund planned",
+      "closed": "Closed"
+    },
+    "resolution": {
+      "replacement_print": "Replacement print",
+      "refund": "Refund",
+      "voucher": "Voucher",
+      "rejection": "Rejection",
+      "further_review": "Further review"
+    },
+    "form": {
+      "title": "Open a complaint",
+      "missingContext": "No valid order reference. Please open the complaint from your account area.",
+      "goToPortal": "Go to my account",
+      "customMadeNote": "Note: personalised made-to-order items are excluded from the right of withdrawal. Complaints about defects and goodwill cases are of course still possible.",
+      "selectItems": "Affected items",
+      "quantity": "Quantity",
+      "reason": "Reason",
+      "description": "Description",
+      "photos": "Photos (optional)",
+      "photosHint": "Up to 5 images (JPG, PNG, WebP).",
+      "submit": "Submit complaint",
+      "noItems": "Please select at least one item.",
+      "descriptionTooShort": "Please describe the problem (at least 10 characters).",
+      "submitError": "The complaint could not be sent."
+    },
+    "view": {
+      "order": "Order",
+      "description": "Description",
+      "items": "Items",
+      "photos": "Photos",
+      "decisions": "Decisions",
+      "replyTitle": "More information needed",
+      "replyIntro": "We need more details. Please reply below.",
+      "replyLabel": "Your reply",
+      "replySubmit": "Send reply"
+    }
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "empty": "Your wishlist is empty.",
+    "toCart": "Add to cart",
+    "share": "Share",
+    "add": "Add to wishlist",
+    "remove": "Remove from wishlist",
+    "added": "Added to wishlist",
+    "removed": "Removed from wishlist",
+    "movedToCart": "Moved to cart",
+    "shareCopied": "Link copied",
+    "shareError": "Could not create link"
+  },
+  "configurator": {
+    "popular": "Popular combinations",
+    "reset": "Reset to default",
+    "share": "Share configuration",
+    "shareCopied": "Configuration link copied",
+    "shareError": "Could not create link",
+    "loadError": "Could not load configuration",
+    "unavailableShort": "unavailable",
+    "unavailableZone": "{zone}: {color} is currently unavailable",
+    "availability": {
+      "unavailable": "{zone}: the selected colour is no longer available",
+      "out_of_stock": "{zone}: the selected colour is currently out of stock"
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "empty": "No reviews yet.",
+    "count": "{count} reviews",
+    "ratingLabel": "{rating} out of 5 stars"
   }
 }

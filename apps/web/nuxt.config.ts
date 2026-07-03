@@ -4,6 +4,12 @@ import type { PluginOption } from 'vite'
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-01',
   devtools: { enabled: false },
+  experimental: {
+    // Non-standard watcher value kept intentionally for the local sandbox setup;
+    // Nuxt's published type only lists chokidar/parcel/chokidar-granular.
+    // @ts-expect-error -- accepted at runtime, narrower than the published union type
+    watcher: 'builder',
+  },
 
   modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode'],
 
@@ -13,6 +19,23 @@ export default defineNuxtConfig({
     // Cast: @tailwindcss/vite may resolve against a second vite instance in CI,
     // which makes the Plugin type nominally incompatible
     plugins: [tailwindcss() as unknown as PluginOption],
+    server: {
+      watch: {
+        usePolling: true,
+        interval: 500,
+        ignored: [
+          '**/.git/**',
+          '**/.nuxt/**',
+          '**/.output/**',
+          '**/.turbo/**',
+          '**/.tokensave/**',
+          '**/.serena/**',
+          '**/coverage/**',
+          '**/dist/**',
+          '**/node_modules/**',
+        ],
+      },
+    },
   },
 
   build: {

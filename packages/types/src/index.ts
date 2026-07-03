@@ -120,6 +120,76 @@ export const COLOR_ZONE_SLOTS = ['zone_1_main', 'zone_2_accent', 'zone_3_detail'
 export type ColorZoneSlot = (typeof COLOR_ZONE_SLOTS)[number]
 export const MAX_COLOR_ZONES = 4
 
+/** Social-Media-Plattformen für den Post-Planner (Meta Graph API). */
+export const SOCIAL_PLATFORMS = ['instagram', 'facebook'] as const
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]
+
+/** Social-Post-Status: Entwurf, geplant, wird veröffentlicht, veröffentlicht, fehlgeschlagen, abgebrochen */
+export const SOCIAL_POST_STATUSES = [
+  'draft',
+  'scheduled',
+  'publishing',
+  'published',
+  'failed',
+  'cancelled',
+] as const
+export type SocialPostStatus = (typeof SOCIAL_POST_STATUSES)[number]
+
+/** Reklamationsstatus: eingereicht, in Prüfung, weitere Infos benötigt, genehmigt, abgelehnt, Ersatzdruck geplant, Erstattung geplant, abgeschlossen */
+export const COMPLAINT_STATUSES = [
+  'submitted',
+  'in_review',
+  'info_needed',
+  'approved',
+  'rejected',
+  'replacement_planned',
+  'refund_planned',
+  'closed',
+] as const
+export type ComplaintStatus = (typeof COMPLAINT_STATUSES)[number]
+
+export const COMPLAINT_REASONS = [
+  'damaged',
+  'wrong_item',
+  'quality_issue',
+  'missing_parts',
+  'color_mismatch',
+  'other',
+] as const
+export type ComplaintReason = (typeof COMPLAINT_REASONS)[number]
+
+/** Entscheidung: Ersatzdruck, Erstattung, Gutschein, Ablehnung, weitere Prüfung */
+export const COMPLAINT_RESOLUTIONS = [
+  'replacement_print',
+  'refund',
+  'voucher',
+  'rejection',
+  'further_review',
+] as const
+export type ComplaintResolution = (typeof COMPLAINT_RESOLUTIONS)[number]
+
+/** QC-Status: offen, bestanden, fehlgeschlagen, Reprint erforderlich, überschrieben */
+export const QC_STATUSES = ['open', 'passed', 'failed', 'reprint_required', 'overridden'] as const
+export type QcStatus = (typeof QC_STATUSES)[number]
+
+export const AMS_SLOT_STATUSES = ['empty', 'loaded', 'low', 'error', 'disabled'] as const
+export type AmsSlotStatus = (typeof AMS_SLOT_STATUSES)[number]
+
+/** Versandstatus: wartet auf QC, bereit für Versand, verpackt, versendet, zugestellt, Problem */
+export const SHIPMENT_STATUSES = [
+  'waiting_for_qc',
+  'ready_for_shipping',
+  'packed',
+  'shipped',
+  'delivered',
+  'problem',
+] as const
+export type ShipmentStatus = (typeof SHIPMENT_STATUSES)[number]
+
+/** Bewertungsstatus: ausstehend, freigegeben, abgelehnt, ausgeblendet */
+export const REVIEW_STATUSES = ['pending', 'approved', 'rejected', 'hidden'] as const
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number]
+
 // ---------- DTOs shared between web and api ----------
 
 export interface ColorDto {

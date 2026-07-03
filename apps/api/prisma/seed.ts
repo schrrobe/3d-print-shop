@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { PrismaClient } from '@prisma/client'
 import { PERMISSIONS, ROLE_PERMISSIONS } from '@print-shop/utils'
 import { USER_ROLES } from '@print-shop/types'
@@ -315,6 +316,50 @@ async function seedOrders() {
 
 }
 
+// 4: shipped order for kunde1 (portal, reviews, complaints — 4 items, one stays unreviewed for e2e)
+async function seedPortalOrder() {
+  if (await prisma.order.findUnique({ where: { orderNumber: 'PS-2026-00000004' } })) return
+  const vase = await prisma.product.findUniqueOrThrow({
+    where: { slug: 'spiral-vase' },
+    include: { colorSlots: true },
+  })
+  const organizer = await prisma.product.findUniqueOrThrow({ where: { slug: 'desk-organizer' } })
+  const gear = await prisma.product.findUniqueOrThrow({ where: { slug: 'planetary-gear-toy' } })
+  const hooks = await prisma.product.findUniqueOrThrow({ where: { slug: 'wall-hook-set' } })
+  await prisma.order.create({
+    data: {
+      orderNumber: 'PS-2026-00000004',
+      accessToken: 'seed-token-order-4',
+      status: 'shipped',
+      locale: 'de',
+      email: 'kunde1@example.com',
+      firstName: 'Kim',
+      lastName: 'Kunde',
+      street: 'Beispielweg 12',
+      zip: '10115',
+      city: 'Berlin',
+      country: 'DE',
+      subtotalCents: 9696,
+      shippingCents: 699,
+      totalCents: 10395,
+      carrier: 'hermes',
+      trackingNumber: 'HERMES-SEED-654321',
+      shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      items: {
+        create: [
+          { productId: vase.id, name: 'Spiralvase', quantity: 1, unitPriceCents: 2499, colorSelection: { zone_1_main: vase.colorSlots[0]?.defaultColorId ?? '' } },
+          { productId: organizer.id, name: 'Schreibtisch-Organizer', quantity: 1, unitPriceCents: 3999, colorSelection: {} },
+          { productId: gear.id, name: 'Planetengetriebe-Fidget', quantity: 1, unitPriceCents: 1899, colorSelection: {} },
+          { productId: hooks.id, name: 'Wandhaken-Set (3 Stück)', quantity: 1, unitPriceCents: 1299, colorSelection: {} },
+        ],
+      },
+      payments: {
+        create: [{ method: 'stripe', status: 'paid', amountCents: 10395, paidAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) }],
+      },
+    },
+  })
+}
+
 async function seedProductionJobs() {
   if ((await prisma.printerJob.count()) > 0) return
   const order1 = await prisma.order.findUniqueOrThrow({
@@ -452,6 +497,358 @@ async function seedTickets() {
   })
 }
 
+async function seedSocialPosts() {
+  if ((await prisma.socialMediaPost.count()) > 0) return
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: DEV_ADMIN_EMAIL } })
+  const vase = await prisma.product.findUniqueOrThrow({
+    where: { slug: 'spiral-vase' },
+    include: { translations: true },
+  })
+  const organizer = await prisma.product.findUniqueOrThrow({ where: { slug: 'desk-organizer' } })
+  const vaseName = vase.translations.find((t) => t.locale === 'de')?.name ?? vase.slug
+
+  // Entwurf (Instagram)
+  await prisma.socialMediaPost.create({
+    data: {
+      platform: 'instagram',
+      status: 'draft',
+      caption: `${vaseName} — frisch vom Drucker! 🌿\n\nWasserdicht versiegelt, perfekt für Trockenblumen.\n\nJetzt im Shop: http://localhost:3000/products/spiral-vase`,
+      mediaUrls: [`/images/products/spiral-vase.svg`],
+      productId: vase.id,
+      createdById: admin.id,
+    },
+  })
+
+  // Geplanter Post (Facebook, morgen 10:00 UTC)
+  const tomorrow = new Date()
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+  tomorrow.setUTCHours(10, 0, 0, 0)
+  await prisma.socialMediaPost.create({
+    data: {
+      platform: 'facebook',
+      status: 'scheduled',
+      caption:
+        'Ordnung auf dem Schreibtisch: unser modularer Desk Organizer in deinen Wunschfarben. 🖥️\n\nhttp://localhost:3000/products/desk-organizer',
+      mediaUrls: [`/images/products/desk-organizer.svg`],
+      productId: organizer.id,
+      scheduledAt: tomorrow,
+      createdById: admin.id,
+    },
+  })
+
+  // Fehlgeschlagener Post (Instagram)
+  await prisma.socialMediaPost.create({
+    data: {
+      platform: 'instagram',
+      status: 'failed',
+      caption: 'Planetengetriebe-Fidget — print-in-place und sofort beweglich. ⚙️',
+      mediaUrls: [],
+      scheduledAt: new Date(Date.now() - 60 * 60 * 1000),
+      errorMessage: 'Instagram posts require at least one image',
+      attempts: 1,
+      lastAttemptAt: new Date(Date.now() - 55 * 60 * 1000),
+      createdById: admin.id,
+    },
+  })
+}
+
+async function seedFilamentAms() {
+  // Farben: Mindestbestand + „aktuell nicht verfügbar"
+  await prisma.color.update({ where: { name: 'Sun Yellow' }, data: { minStockGrams: 500 } })
+  await prisma.color.update({ where: { name: 'Brand Green' }, data: { minStockGrams: 200 } })
+  await prisma.color.update({ where: { name: 'Ocean Blue' }, data: { outOfStock: true } })
+
+  if ((await prisma.amsUnit.count()) > 0) return
+  const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
+  const spools = await prisma.filamentSpool.findMany({
+    where: { printerId: x1c.id },
+    orderBy: { amsSlot: 'asc' },
+    include: { color: true },
+  })
+  // Bestandsspulen mit Stammdaten anreichern (1× unter Minimum, 1× Nachbestellen)
+  for (const [i, spool] of spools.entries()) {
+    await prisma.filamentSpool.update({
+      where: { id: spool.id },
+      data: {
+        manufacturer: 'Bambu Lab',
+        label: `${spool.color?.name ?? spool.material} Spule #${i + 1}`,
+        totalGrams: 1000,
+        minRemainingGrams: i === 1 ? (spool.remainingGrams ?? 0) + 200 : 100,
+        storageLocation: 'Regal A',
+        reorder: i === 2,
+      },
+    })
+  }
+  const unit = await prisma.amsUnit.create({
+    data: { printerId: x1c.id, name: 'AMS 2 Pro #1', position: 1, notes: 'Hauptdrucker-AMS' },
+  })
+  for (const [i, spool] of spools.slice(0, 4).entries()) {
+    await prisma.amsSlot.create({
+      data: {
+        amsUnitId: unit.id,
+        slotIndex: i + 1,
+        status: i === 1 ? 'low' : 'loaded',
+        spoolId: spool.id,
+      },
+    })
+  }
+}
+
+async function seedProductionSchedule() {
+  if ((await prisma.maintenanceWindow.count()) > 0) return
+  const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
+  const a1 = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab A1 #2' } })
+  const job = await prisma.printerJob.findFirst({ where: { printerId: x1c.id, status: 'printing' } })
+  if (job) {
+    const start = new Date()
+    await prisma.printerJob.update({
+      where: { id: job.id },
+      data: { plannedStartAt: start, plannedEndAt: new Date(start.getTime() + 180 * 60 * 1000) },
+    })
+  }
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  tomorrow.setUTCHours(8, 0, 0, 0)
+  await prisma.maintenanceWindow.create({
+    data: {
+      printerId: a1.id,
+      title: 'Düse tauschen (0.4 mm)',
+      startsAt: tomorrow,
+      endsAt: new Date(tomorrow.getTime() + 2 * 60 * 60 * 1000),
+      notes: 'Ersatzdüse liegt bereit',
+    },
+  })
+}
+
+async function seedQcAndShipments() {
+  if ((await prisma.qcRecord.count()) > 0) return
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: DEV_ADMIN_EMAIL } })
+  const order4 = await prisma.order.findUniqueOrThrow({
+    where: { orderNumber: 'PS-2026-00000004' },
+    include: { items: true },
+  })
+  const order1 = await prisma.order.findUniqueOrThrow({
+    where: { orderNumber: 'PS-2026-00000001' },
+    include: { items: true },
+  })
+  const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
+
+  // Historischer Job (versendet) mit bestandener QC
+  const shippedJob = await prisma.printerJob.create({
+    data: {
+      orderId: order4.id,
+      orderItemId: order4.items[0]?.id,
+      printerId: x1c.id,
+      status: 'shipped',
+      printDurationMinutes: 120,
+      startedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      finishedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000),
+    },
+  })
+  await prisma.qcRecord.create({
+    data: {
+      printerJobId: shippedJob.id,
+      status: 'passed',
+      colorOk: true,
+      surfaceOk: true,
+      dimensionsOk: true,
+      stabilityOk: true,
+      completenessOk: true,
+      packagingOk: true,
+      note: 'Einwandfrei — Seed-Beispiel',
+      approvedById: admin.id,
+      approvedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    },
+  })
+
+  // Offene QC an einem Job in der Qualitätsprüfung
+  const qcJob = await prisma.printerJob.create({
+    data: {
+      orderId: order4.id,
+      orderItemId: order4.items[1]?.id,
+      status: 'quality_check',
+      printDurationMinutes: 90,
+    },
+  })
+  await prisma.qcRecord.create({
+    data: { printerJobId: qcJob.id, status: 'open', colorOk: true, surfaceOk: true },
+  })
+
+  // Versand: 1 versendete Sendung (Historie) + 1 wartet auf QC
+  const shipment1 = await prisma.shipment.create({
+    data: {
+      shipmentNumber: 'VER-2026-00001',
+      orderId: order4.id,
+      status: 'shipped',
+      carrier: 'hermes',
+      trackingNumber: 'HERMES-SEED-654321',
+      packedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      createdById: admin.id,
+      items: {
+        create: order4.items.map((item) => ({ orderItemId: item.id, quantity: item.quantity })),
+      },
+    },
+  })
+  await prisma.shipmentStatusEvent.createMany({
+    data: [
+      { shipmentId: shipment1.id, fromStatus: null, toStatus: 'waiting_for_qc', byUserId: admin.id },
+      { shipmentId: shipment1.id, fromStatus: 'waiting_for_qc', toStatus: 'ready_for_shipping', byUserId: admin.id },
+      { shipmentId: shipment1.id, fromStatus: 'ready_for_shipping', toStatus: 'packed', byUserId: admin.id },
+      { shipmentId: shipment1.id, fromStatus: 'packed', toStatus: 'shipped', byUserId: admin.id, note: 'Hermes-Abholung' },
+    ],
+  })
+  const shipment2 = await prisma.shipment.create({
+    data: {
+      shipmentNumber: 'VER-2026-00002',
+      orderId: order1.id,
+      status: 'waiting_for_qc',
+      createdById: admin.id,
+      items: { create: [{ orderItemId: order1.items[0]!.id, quantity: 1 }] },
+    },
+  })
+  await prisma.shipmentStatusEvent.create({
+    data: { shipmentId: shipment2.id, fromStatus: null, toStatus: 'waiting_for_qc', byUserId: admin.id },
+  })
+  await prisma.shipmentCounter.upsert({
+    where: { year: 2026 },
+    create: { year: 2026, lastSequence: 2 },
+    update: { lastSequence: 2 },
+  })
+}
+
+async function seedComplaints() {
+  if ((await prisma.complaint.count()) > 0) return
+  const order4 = await prisma.order.findUniqueOrThrow({
+    where: { orderNumber: 'PS-2026-00000004' },
+    include: { items: true },
+  })
+  const gearItem = order4.items.find((i) => i.name.includes('Planeten')) ?? order4.items[2]!
+  await prisma.complaint.create({
+    data: {
+      complaintNumber: 'REK-2026-00001',
+      accessToken: 'seed-complaint-token-1',
+      orderId: order4.id,
+      status: 'submitted',
+      reason: 'quality_issue',
+      description: 'Die Zahnräder klemmen nach wenigen Umdrehungen, ein Layer hat sich gelöst.',
+      items: { create: [{ orderItemId: gearItem.id, quantity: 1 }] },
+    },
+  })
+  await prisma.complaintCounter.upsert({
+    where: { year: 2026 },
+    create: { year: 2026, lastSequence: 1 },
+    update: { lastSequence: 1 },
+  })
+}
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+async function seedPortalTokens() {
+  if ((await prisma.magicLinkToken.count()) > 0) return
+  // Klartext-Tokens nur für Entwicklung/E2E — dokumentiert in docs/customer-portal.md
+  await prisma.magicLinkToken.create({
+    data: {
+      email: 'kunde1@example.com',
+      tokenHash: sha256('test-magic-token-kunde1'),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  })
+  await prisma.magicLinkToken.create({
+    data: {
+      email: 'kunde1@example.com',
+      tokenHash: sha256('test-magic-token-expired'),
+      expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    },
+  })
+}
+
+async function seedSavedConfigurations() {
+  if ((await prisma.savedConfiguration.count()) > 0) return
+  const vase = await prisma.product.findUniqueOrThrow({
+    where: { slug: 'spiral-vase' },
+    include: { colorSlots: true },
+  })
+  const brandGreen = await prisma.color.findUniqueOrThrow({ where: { name: 'Brand Green' } })
+  const neonOrange = await prisma.color.findUniqueOrThrow({
+    where: { name: 'Neon Orange (ausverkauft)' },
+  })
+  const slot = vase.colorSlots[0]?.slot ?? 'zone_1_main'
+  await prisma.savedConfiguration.create({
+    data: {
+      productId: vase.id,
+      selectedColors: { [slot]: brandGreen.id },
+      shareToken: 'seed-config-vase-1',
+    },
+  })
+  // Kombination mit inaktiver Farbe → Verfügbarkeitswarnung testbar
+  await prisma.savedConfiguration.create({
+    data: {
+      productId: vase.id,
+      selectedColors: { [slot]: neonOrange.id },
+      shareToken: 'seed-config-vase-2',
+    },
+  })
+}
+
+async function seedReviews() {
+  if ((await prisma.review.count()) > 0) return
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: DEV_ADMIN_EMAIL } })
+  const order4 = await prisma.order.findUniqueOrThrow({
+    where: { orderNumber: 'PS-2026-00000004' },
+    include: { items: { include: { product: true } } },
+  })
+  const itemBySlug = (slug: string) => order4.items.find((i) => i.product?.slug === slug)
+  const vaseItem = itemBySlug('spiral-vase')!
+  const gearItem = itemBySlug('planetary-gear-toy')!
+  const hooksItem = itemBySlug('wall-hook-set')!
+  // Der Organizer-Posten bleibt unbewertet → E2E kann eine Bewertung abgeben.
+  await prisma.review.create({
+    data: {
+      orderItemId: vaseItem.id,
+      orderId: order4.id,
+      productId: vaseItem.productId!,
+      rating: 5,
+      title: 'Wunderschön gedruckt',
+      body: 'Die Vase sieht fantastisch aus, saubere Layer und kräftige Farbe. Gerne wieder!',
+      displayName: 'Anna K.',
+      locale: 'de',
+      status: 'approved',
+      moderatedById: admin.id,
+      moderatedAt: new Date(),
+    },
+  })
+  await prisma.review.create({
+    data: {
+      orderItemId: gearItem.id,
+      orderId: order4.id,
+      productId: gearItem.productId!,
+      rating: 3,
+      body: 'Nettes Spielzeug, aber die Zahnräder könnten leichter laufen.',
+      displayName: 'Kim K.',
+      locale: 'de',
+      status: 'pending',
+    },
+  })
+  await prisma.review.create({
+    data: {
+      orderItemId: hooksItem.id,
+      orderId: order4.id,
+      productId: hooksItem.productId!,
+      rating: 1,
+      body: 'SPAM SPAM besucht meine Website unter example-spam.tld!!!',
+      displayName: 'Spammer',
+      locale: 'de',
+      status: 'rejected',
+      flaggedAbuse: true,
+      internalNote: 'Offensichtlicher Spam — abgelehnt.',
+      moderatedById: admin.id,
+      moderatedAt: new Date(),
+    },
+  })
+}
+
 async function main() {
   console.log('Seeding roles & permissions …')
   await seedRoles()
@@ -465,11 +862,28 @@ async function main() {
   await seedPrinters()
   console.log('Seeding orders …')
   await seedOrders()
+  await seedPortalOrder()
   await seedProductionJobs()
   console.log('Seeding quote requests …')
   await seedQuoteRequest()
   console.log('Seeding support tickets …')
   await seedTickets()
+  console.log('Seeding social media posts …')
+  await seedSocialPosts()
+  console.log('Seeding filament & AMS …')
+  await seedFilamentAms()
+  console.log('Seeding production schedule …')
+  await seedProductionSchedule()
+  console.log('Seeding QC & shipments …')
+  await seedQcAndShipments()
+  console.log('Seeding complaints …')
+  await seedComplaints()
+  console.log('Seeding portal tokens …')
+  await seedPortalTokens()
+  console.log('Seeding saved configurations …')
+  await seedSavedConfigurations()
+  console.log('Seeding reviews …')
+  await seedReviews()
   console.log(`Done. Admin login: ${DEV_ADMIN_EMAIL} / ${DEV_ADMIN_PASSWORD}`)
 }
 
