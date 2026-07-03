@@ -79,6 +79,15 @@ const rows = computed(() =>
     </div>
 
     <PsAdminTable :columns="columns" :rows="rows" empty="Keine Produkte">
+      <template #cell-name="{ row, value }">
+        <NuxtLink
+          :to="`/admin/products/${(row as unknown as AdminProduct).id}`"
+          class="text-brand hover:underline"
+          data-testid="open-product"
+        >
+          {{ value }}
+        </NuxtLink>
+      </template>
       <template #cell-priceCents="{ value }">
         <PsPrice :cents="Number(value)" size="sm" />
       </template>

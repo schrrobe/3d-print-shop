@@ -83,10 +83,12 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 - **Fonts:** Momo Trust Sans ist lizenzpflichtig und nicht enthalten. WOFF2-Dateien nach
   `apps/web/public/fonts/` legen und die `@font-face`-Blöcke in
   `packages/config/tailwind/fonts.css` einkommentieren. Bis dahin greift der System-Fallback.
-- **3D-Modelle:** GLB-Vorschaudateien unter `apps/web/public/models/<slug>.glb` (Meshes/
-  Materialien nach Farbzonen benannt: `zone_1_main`, `zone_2_accent`, `zone_3_detail`,
-  `zone_4_text`). Ohne GLB rendert der Viewer ein prozedurales Fallback-Modell mit denselben
-  Zonen. STL eignet sich nicht für die farbige Web-Vorschau.
+- **3D-Modelle:** GLB-Upload direkt im Admin (`/admin/products/<id>` → „3D-Modell“) — Ablage
+  unter `UPLOAD_DIR/models/`, ausgeliefert über `GET /api/models/:filename`. Alternativ statisch
+  unter `apps/web/public/models/<slug>.glb`. Meshes/Materialien nach Farbzonen benannt:
+  `zone_1_main`, `zone_2_accent`, `zone_3_detail`, `zone_4_text`. Ohne GLB rendert der Viewer
+  ein prozedurales Fallback-Modell mit denselben Zonen. STL eignet sich nicht für die farbige
+  Web-Vorschau.
 - **Resend (E-Mails):** ohne `RESEND_API_KEY` werden Mails im Dev-Modus geloggt
   (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 10 Templates in
   `packages/emails`; Absenderdomain bei Resend verifizieren, dann Key in `.env` setzen.

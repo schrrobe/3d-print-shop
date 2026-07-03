@@ -12,6 +12,7 @@ Fehlerformat: `{ "error": "<code>", "message": "…", "details"?: … }`.
 | `GET /api/products` | Aktive Produkte inkl. Übersetzungen, Assets, Farbzonen |
 | `GET /api/products/:slug` | Produktdetail |
 | `GET /api/colors` | Aktive globale Farben |
+| `GET /api/models/:filename` | Admin-hochgeladene GLB-Vorschaumodelle (`model/gltf-binary`) |
 | `POST /api/checkout` | Gast-Checkout `{items, address, paymentMethod: stripe\|bank_transfer\|bitcoin, locale, note?}` → `{orderNumber, accessToken, totals, payment}` (Rate-Limit) |
 | `GET /api/orders/:orderNumber?token=` | Bestellstatus für Gäste (Token aus Bestätigung) |
 | `POST /api/upload-requests` | multipart: `files[]` (.stl/.3mf ≤ 50 MB, max 5) + name, email, description, quantity, locale (Rate-Limit) |
@@ -39,7 +40,7 @@ Auth: `POST auth/login` (Rate-Limit 10/15 min) · `POST auth/logout` · `GET aut
 | Ressource | Endpunkte | Permission |
 |---|---|---|
 | Dashboard | `GET dashboard` | dashboard:read |
-| Produkte | `GET/POST products`, `PATCH/DELETE products/:id`, `POST products/:id/assets` | products:read/write, assets:write |
+| Produkte | `GET/POST products`, `GET/PATCH/DELETE products/:id`, `POST products/:id/assets`, `POST products/:id/model` (multipart `file`, .glb ≤ 50 MB — ersetzt das GLB-Vorschaumodell) | products:read/write, assets:write |
 | Farben | `GET/POST colors`, `PATCH/DELETE colors/:id` | colors:read/write |
 | Upload-Anfragen | `GET quote-requests[/:id]`, `POST quote-requests/:id/status` | uploads:read/review |
 | Angebote | `POST quote-requests/:id/quotes` (sendet E-Mail mit Link) | quotes:write |

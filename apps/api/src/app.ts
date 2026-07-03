@@ -22,6 +22,7 @@ import { checkoutRouter } from './routes/public/checkout.js'
 import { colorsRouter } from './routes/public/colors.js'
 import { consentRouter } from './routes/public/consent.js'
 import { devRouter } from './routes/public/dev.js'
+import { modelsRouter } from './routes/public/models.js'
 import { ordersRouter } from './routes/public/orders.js'
 import { paymentsRouter } from './routes/public/payments.js'
 import { productsRouter } from './routes/public/products.js'
@@ -62,6 +63,7 @@ export function createApp(): Express {
   app.use('/api/consent', consentRouter)
   app.use('/api/payments', paymentsRouter)
   app.use('/api/tickets', ticketsRouter)
+  app.use('/api/models', modelsRouter)
 
   // Admin API (session cookie + RBAC per route)
   app.use('/api/admin/auth', adminAuthRouter)
