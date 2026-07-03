@@ -3,11 +3,17 @@ import { Resend } from 'resend'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
+/** Shared Resend client — null in dev mode (no key). Also used by the inbound webhook. */
+export const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
 
 export interface EmailAttachment {
   filename: string
   content: Buffer
+}
+
+export interface SendEmailOptions {
+  /** Reply-To header, e.g. the ticket+<token> inbound address. */
+  replyTo?: string
 }
 
 /**
@@ -19,6 +25,7 @@ export async function sendEmail(
   template: string,
   rendered: RenderedEmail,
   attachments: EmailAttachment[] = [],
+  options: SendEmailOptions = {},
 ): Promise<void> {
   if (!resend) {
     console.info(`[email:dev] to=${to} template=${template} subject="${rendered.subject}"`)
@@ -28,7 +35,11 @@ export async function sendEmail(
         template,
         subject: rendered.subject,
         status: 'dev_logged',
-        payload: { text: rendered.text, attachments: attachments.map((a) => a.filename) },
+        payload: {
+          text: rendered.text,
+          attachments: attachments.map((a) => a.filename),
+          replyTo: options.replyTo ?? null,
+        },
       },
     })
     return
@@ -41,6 +52,7 @@ export async function sendEmail(
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,
+      replyTo: options.replyTo,
       attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
     })
     await prisma.emailLog.create({

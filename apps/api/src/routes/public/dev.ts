@@ -1,7 +1,10 @@
 import { Router } from 'express'
+import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
+import { randomToken } from '../../lib/tokens.js'
 import { notFound } from '../../middleware/error.js'
 import { markOrderPaid } from '../../services/order-flow.js'
+import { processInboundTicketEmail } from '../../services/ticket.js'
 
 /**
  * Dev-only helpers (never mounted in production, see app.ts):
@@ -40,6 +43,34 @@ devRouter.post('/bitcoin/:paymentId/advance', async (req, res, next) => {
       },
     })
     res.json({ ok: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * Simulates an inbound ticket reply mail — exercises the full shared pipeline
+ * (address parse → lookup → auto-reply check → quote stripping → status/dedupe),
+ * bypassing only the svix signature and the Resend body fetch.
+ */
+devRouter.post('/inbound-ticket-email', async (req, res, next) => {
+  try {
+    const body = req.body as {
+      token?: string
+      to?: string
+      text?: string
+      headers?: Record<string, string>
+    }
+    const domain = env.TICKET_REPLY_DOMAIN || 'reply.example.com'
+    const to = body.to ? [body.to] : body.token ? [`ticket+${body.token}@${domain}`] : []
+    const result = await processInboundTicketEmail({
+      to,
+      text: body.text ?? null,
+      headers: body.headers ?? {},
+      inboundEmailId: `dev_${randomToken(8)}`,
+      replyDomain: domain,
+    })
+    res.json(result)
   } catch (err) {
     next(err)
   }

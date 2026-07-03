@@ -14,6 +14,12 @@ async function scan(page: Page) {
 test.describe('accessibility (axe, wcag aa)', () => {
   for (const route of ['/', '/products', '/products/spiral-vase', '/cart', '/upload']) {
     test(`no serious/critical violations on ${route}`, async ({ page }) => {
+      // Scan the settled UI: with reduced motion the GSAP word-reveal renders
+      // text fully visible instead of mid-fade, which axe otherwise flags as a
+      // color-contrast violation depending on scan timing (flaky).
+      // emulateMedia, not test.use({ reducedMotion }) — the latter does not
+      // reach matchMedia here (verified against Playwright 1.61).
+      await page.emulateMedia({ reducedMotion: 'reduce' })
       await gotoHydrated(page, route)
       // settle consent banner into the scan too — it must be accessible itself
       const results = await scan(page)

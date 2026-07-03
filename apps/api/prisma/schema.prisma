@@ -534,15 +534,17 @@ model Ticket {
 }
 
 model TicketMessage {
-  id         String           @id @default(cuid())
-  ticketId   String
-  ticket     Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  authorType TicketAuthorType
+  id             String           @id @default(cuid())
+  ticketId       String
+  ticket         Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorType     TicketAuthorType
   /// Staff author (null for customer messages)
-  userId     String?
-  user       User?            @relation("TicketMessageAuthor", fields: [userId], references: [id])
-  body       String
-  createdAt  DateTime         @default(now())
+  userId         String?
+  user           User?            @relation("TicketMessageAuthor", fields: [userId], references: [id])
+  body           String
+  /// Resend email_id of the inbound mail that created this message (dedupe on webhook retries)
+  inboundEmailId String?          @unique
+  createdAt      DateTime         @default(now())
 
   @@index([ticketId, createdAt])
 }

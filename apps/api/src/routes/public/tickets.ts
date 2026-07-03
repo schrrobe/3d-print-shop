@@ -1,5 +1,5 @@
-import { renderTicketCreated, renderTicketCustomerReply } from '@print-shop/emails'
-import { formatInvoiceNumber, nextInvoiceSequence, statusAfterCustomerReply } from '@print-shop/utils'
+import { renderTicketCreated } from '@print-shop/emails'
+import { formatInvoiceNumber, nextInvoiceSequence } from '@print-shop/utils'
 import { ticketCreateSchema, ticketMessageSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { env } from '../../env.js'
@@ -8,6 +8,7 @@ import { randomToken } from '../../lib/tokens.js'
 import { conflict, notFound } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { sendEmail } from '../../services/email.js'
+import { addCustomerReply, ticketReplyToAddress } from '../../services/ticket.js'
 
 export const ticketsRouter = Router()
 
@@ -64,6 +65,8 @@ ticketsRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         { name: input.name, ticketNumber: ticket.ticketNumber, subject: input.subject, ticketUrl },
         input.locale,
       ),
+      [],
+      { replyTo: ticketReplyToAddress(accessToken) },
     )
 
     res.status(201).json({
@@ -122,33 +125,10 @@ ticketsRouter.post('/:token/messages', sensitiveLimiter, async (req, res, next) 
     })
     if (!ticket) throw notFound('Ticket not found')
 
-    const nextStatus = statusAfterCustomerReply(ticket.status)
-    if (nextStatus === null) throw conflict('Ticket is closed')
+    const status = await addCustomerReply(ticket, input.body)
+    if (status === null) throw conflict('Ticket is closed')
 
-    await prisma.$transaction([
-      prisma.ticketMessage.create({
-        data: { ticketId: ticket.id, authorType: 'customer', body: input.body },
-      }),
-      prisma.ticket.update({
-        where: { id: ticket.id },
-        data: { status: nextStatus, resolvedAt: nextStatus === 'in_progress' ? null : undefined },
-      }),
-    ])
-
-    await sendEmail(
-      ticket.assignedTo?.email ?? env.ADMIN_NOTIFICATION_EMAIL,
-      'ticket_customer_reply',
-      renderTicketCustomerReply(
-        {
-          ticketNumber: ticket.ticketNumber,
-          subject: ticket.subject,
-          adminUrl: `${env.WEB_URL}/admin/tickets/${ticket.id}`,
-        },
-        'de',
-      ),
-    )
-
-    res.status(201).json({ ok: true, status: nextStatus })
+    res.status(201).json({ ok: true, status })
   } catch (err) {
     next(err)
   }

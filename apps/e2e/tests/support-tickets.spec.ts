@@ -151,4 +151,58 @@ test.describe('support tickets', () => {
     const response = await page.goto('/support/ticket/not-a-real-token')
     expect(response?.status()).toBe(404)
   })
+
+  test('inbound email reply lands in the thread, strips quotes and reopens', async ({ request }) => {
+    const email = `ticket-inbound-${Date.now()}@example.com`
+    const { ticketNumber, accessToken } = await createTicketViaApi(email)
+    const { id } = await ticketByNumber(ticketNumber)
+
+    const adminCtx = await adminApiContext()
+    await adminCtx.post(`/api/admin/tickets/${id}/status`, { data: { status: 'waiting_customer' } })
+
+    // Simulated inbound mail with quoted history → quote stripped, status reopened
+    const inbound = await request.post('http://localhost:3001/api/dev/inbound-ticket-email', {
+      data: {
+        token: accessToken,
+        text: 'Danke, hier die Info!\n\nAm 03.07.2026 um 10:00 schrieb Print Shop Support:\n> alte Nachricht',
+      },
+    })
+    expect(await inbound.json()).toEqual({
+      outcome: 'created',
+      ticketId: id,
+      status: 'in_progress',
+    })
+
+    const ctx = await apiContext()
+    const view = (await (await ctx.get(`/api/tickets/${accessToken}`)).json()) as {
+      ticket: { status: string; messages: { authorType: string; body: string }[] }
+    }
+    expect(view.ticket.status).toBe('in_progress')
+    const last = view.ticket.messages.at(-1)!
+    expect(last.authorType).toBe('customer')
+    expect(last.body).toBe('Danke, hier die Info!')
+    await ctx.dispose()
+
+    // Auto-reply headers → skipped, no new message
+    const autoReply = await request.post('http://localhost:3001/api/dev/inbound-ticket-email', {
+      data: { token: accessToken, text: 'Bin im Urlaub', headers: { 'Auto-Submitted': 'auto-replied' } },
+    })
+    expect(await autoReply.json()).toEqual({ outcome: 'skipped', reason: 'auto_reply' })
+
+    // Closed ticket → skipped
+    await adminCtx.post(`/api/admin/tickets/${id}/status`, { data: { status: 'closed' } })
+    const closed = await request.post('http://localhost:3001/api/dev/inbound-ticket-email', {
+      data: { token: accessToken, text: 'Noch eine Frage!' },
+    })
+    expect(await closed.json()).toEqual({ outcome: 'skipped', reason: 'ticket_closed' })
+    await adminCtx.dispose()
+
+    // ticket_created mail carries the replyTo field in the dev log payload
+    const mailCtx = await apiContext()
+    const log = (await (
+      await mailCtx.get(`/api/dev/emails?to=${encodeURIComponent(email)}&template=ticket_created`)
+    ).json()) as { emails: { payload: { replyTo: string | null } }[] }
+    expect(log.emails[0]!.payload).toHaveProperty('replyTo')
+    await mailCtx.dispose()
+  })
 })

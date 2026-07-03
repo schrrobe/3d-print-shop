@@ -24,6 +24,8 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional().default(''),
   EMAIL_FROM: z.string().default('Print Shop <noreply@example.com>'),
   ADMIN_NOTIFICATION_EMAIL: z.string().default('admin@example.com'),
+  RESEND_WEBHOOK_SECRET: z.string().optional().default(''),
+  TICKET_REPLY_DOMAIN: z.string().optional().default(''),
   STRIPE_SECRET_KEY: z.string().optional().default(''),
   STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
   BITCOIN_PROVIDER: z.enum(['mock', 'blockchain-api']).default('mock'),

@@ -8,6 +8,7 @@ import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { sendEmail } from '../../services/email.js'
+import { ticketReplyToAddress } from '../../services/ticket.js'
 
 export const adminTicketsRouter = Router()
 
@@ -100,6 +101,8 @@ adminTicketsRouter.post('/:id/messages', requirePermission('tickets:write'), asy
         },
         ticket.locale,
       ),
+      [],
+      { replyTo: ticketReplyToAddress(ticket.accessToken) },
     )
     await audit(req, 'ticket.reply', { type: 'ticket', id: ticket.id }, { status: nextStatus })
     res.status(201).json({ ok: true, status: nextStatus })
