@@ -5,6 +5,8 @@ import type { Locale, OrderStatus } from '@print-shop/types'
 /** Guest order status page (order number + access token from email/confirmation). */
 const { t, locale } = useI18n()
 const route = useRoute()
+// Private token URL — must never end up in a search index
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const orderNumber = String(route.params.number)
 const token = String(route.query.token ?? '')

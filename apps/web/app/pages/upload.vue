@@ -13,6 +13,11 @@ import {
 const { t, locale } = useI18n()
 const toast = useToast()
 
+useSeo({
+  title: () => t('seo.upload.title'),
+  description: () => t('seo.upload.description'),
+})
+
 const files = ref<File[]>([])
 const form = reactive({ name: '', email: '', phone: '', description: '', quantity: 1 })
 const submitting = ref(false)
@@ -67,7 +72,7 @@ async function submit() {
 </script>
 
 <template>
-  <PsSection :title="t('upload.title')" :subtitle="t('upload.subtitle')">
+  <PsSection :title="t('upload.title')" :subtitle="t('upload.subtitle')" heading-level="h1">
     <PsStepper :steps="steps" :current="submitted ? 'review' : 'upload'" class="mb-2xl" />
 
     <div v-if="submitted" class="mx-auto max-w-[36rem] py-2xl text-center" data-testid="upload-success">

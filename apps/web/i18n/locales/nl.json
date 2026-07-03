@@ -214,5 +214,42 @@
         "closed": "Gesloten"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Individuele 3D-prints in jouw kleuren",
+      "description": "Configureerbare 3D-geprinte producten met live kleurvoorbeeld, upload je eigen modellen en ontvang een offerte. Gratis verzending vanaf € 150."
+    },
+    "products": {
+      "description": "Alle 3D-geprinte producten in één overzicht — kleuren volledig configureerbaar met 3D-voorbeeld in de browser."
+    },
+    "cart": {
+      "title": "Winkelwagen",
+      "description": "Je winkelwagen bij de 3D Print Shop — verzending € 6,99, gratis vanaf € 150."
+    },
+    "upload": {
+      "title": "Upload je model",
+      "description": "Upload een STL- of 3MF-bestand en ontvang een individuele offerte voor je 3D-print."
+    },
+    "support": {
+      "title": "Support",
+      "description": "Vragen over je bestelling, betaling of verzending? Maak een supportticket aan — we reageren per e-mail."
+    },
+    "checkout": {
+      "title": "Afrekenen",
+      "description": "Rond je bestelling af — betaal met kaart, overschrijving of Bitcoin."
+    },
+    "legal": {
+      "imprint": "Colofon",
+      "privacy": "Privacyverklaring",
+      "terms": "Algemene voorwaarden",
+      "description": "Juridische informatie over de 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Pagina niet gevonden",
+      "notFoundText": "Deze pagina bestaat niet of is verwijderd.",
+      "generic": "Er is iets misgegaan",
+      "back": "Terug naar home"
+    }
   }
 }

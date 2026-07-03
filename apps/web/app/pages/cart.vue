@@ -10,10 +10,15 @@ const cart = useCartStore()
 onMounted(() => cart.hydrate())
 
 const missingForFree = computed(() => centsUntilFreeShipping(cart.totals.subtotalCents))
+
+useSeo({
+  title: () => t('seo.cart.title'),
+  description: () => t('seo.cart.description'),
+})
 </script>
 
 <template>
-  <PsSection :title="t('cart.title')">
+  <PsSection :title="t('cart.title')" heading-level="h1">
     <div v-if="cart.items.length === 0" class="py-3xl text-center" data-testid="cart-empty">
       <p class="text-body-regular text-secondary">{{ t('cart.empty') }}</p>
       <NuxtLink :to="localePath('/products')" class="mt-lg inline-block">

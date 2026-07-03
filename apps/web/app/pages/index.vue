@@ -14,6 +14,12 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const { data } = useProducts()
 
+useSeo({
+  title: () => t('seo.home.title'),
+  description: () => t('seo.home.description'),
+  fullTitle: true,
+})
+
 const products = computed(() => data.value?.products ?? [])
 
 /* Scroll-triggered animations: fade-up cards, parallax hero blob, pinned feature section */

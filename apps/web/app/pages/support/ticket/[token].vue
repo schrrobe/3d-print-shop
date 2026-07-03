@@ -5,6 +5,8 @@ import { PsBadge, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
 /** Public ticket thread — the customer reads staff replies and answers via token. */
 const { t, locale } = useI18n()
 const route = useRoute()
+// Private token URL — must never end up in a search index
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const token = String(route.params.token)
 

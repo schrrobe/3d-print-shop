@@ -8,11 +8,14 @@ const { data, status } = useProducts()
 
 const products = computed(() => data.value?.products ?? [])
 
-useHead({ title: () => `${t('products.title')} — Print Shop` })
+useSeo({
+  title: () => t('products.title'),
+  description: () => t('seo.products.description'),
+})
 </script>
 
 <template>
-  <PsSection :title="t('products.title')">
+  <PsSection :title="t('products.title')" heading-level="h1">
     <p v-if="status === 'pending'" class="text-secondary">{{ t('common.loading') }}</p>
     <PsProductGrid v-else data-testid="product-grid">
       <NuxtLink

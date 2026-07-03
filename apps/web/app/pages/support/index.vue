@@ -6,6 +6,11 @@ import { PsInput, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
+useSeo({
+  title: () => t('seo.support.title'),
+  description: () => t('seo.support.description'),
+})
+
 const form = reactive({
   name: '',
   email: '',
@@ -48,7 +53,7 @@ async function submit() {
 </script>
 
 <template>
-  <PsSection :title="t('support.title')" :subtitle="t('support.subtitle')">
+  <PsSection :title="t('support.title')" :subtitle="t('support.subtitle')" heading-level="h1">
     <div
       v-if="result"
       class="mx-auto max-w-[36rem] py-2xl text-center"

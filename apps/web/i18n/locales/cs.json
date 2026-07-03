@@ -214,5 +214,42 @@
         "closed": "Uzavřeno"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Individuální 3D tisk ve vašich barvách",
+      "description": "Konfigurovatelné 3D tištěné produkty s živým náhledem barev, nahrajte vlastní modely a získejte nabídku. Doprava zdarma od 150 €."
+    },
+    "products": {
+      "description": "Všechny 3D tištěné produkty v přehledu — barvy plně konfigurovatelné s 3D náhledem v prohlížeči."
+    },
+    "cart": {
+      "title": "Košík",
+      "description": "Váš košík v 3D Print Shopu — doprava 6,99 €, zdarma od 150 €."
+    },
+    "upload": {
+      "title": "Nahrajte vlastní model",
+      "description": "Nahrajte soubor STL nebo 3MF a získejte individuální nabídku na váš 3D tisk."
+    },
+    "support": {
+      "title": "Podpora",
+      "description": "Otázky k objednávce, platbě nebo dopravě? Vytvořte tiket podpory — odpovíme e-mailem."
+    },
+    "checkout": {
+      "title": "Pokladna",
+      "description": "Dokončete objednávku — platba kartou, převodem nebo Bitcoinem."
+    },
+    "legal": {
+      "imprint": "Impresum",
+      "privacy": "Zásady ochrany osobních údajů",
+      "terms": "Obchodní podmínky",
+      "description": "Právní informace o 3D Print Shopu."
+    },
+    "error": {
+      "notFound": "Stránka nenalezena",
+      "notFoundText": "Tato stránka neexistuje nebo byla odstraněna.",
+      "generic": "Něco se pokazilo",
+      "back": "Zpět na úvod"
+    }
   }
 }

@@ -214,5 +214,42 @@
         "closed": "Geschlossen"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Individueller 3D-Druck in deinen Farben",
+      "description": "Konfigurierbare 3D-Druck-Produkte mit Live-Farbvorschau, eigene Modelle hochladen & Angebot erhalten. Versandkostenfrei ab 150 €."
+    },
+    "products": {
+      "description": "Alle 3D-Druck-Produkte im Überblick — Farben frei konfigurierbar, direkt im Browser mit 3D-Vorschau."
+    },
+    "cart": {
+      "title": "Warenkorb",
+      "description": "Dein Warenkorb im 3D Print Shop — Versand 6,99 €, versandkostenfrei ab 150 €."
+    },
+    "upload": {
+      "title": "Eigenes Modell hochladen",
+      "description": "STL- oder 3MF-Datei hochladen und ein individuelles Angebot für deinen 3D-Druck erhalten."
+    },
+    "support": {
+      "title": "Support",
+      "description": "Fragen zu Bestellung, Zahlung oder Versand? Erstelle ein Support-Ticket — wir melden uns per E-Mail."
+    },
+    "checkout": {
+      "title": "Kasse",
+      "description": "Bestellung abschließen — Zahlung per Karte, Überweisung oder Bitcoin."
+    },
+    "legal": {
+      "imprint": "Impressum",
+      "privacy": "Datenschutzerklärung",
+      "terms": "AGB",
+      "description": "Rechtliche Informationen zum 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Seite nicht gefunden",
+      "notFoundText": "Diese Seite existiert nicht oder wurde entfernt.",
+      "generic": "Etwas ist schiefgelaufen",
+      "back": "Zur Startseite"
+    }
   }
 }

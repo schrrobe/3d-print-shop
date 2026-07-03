@@ -214,5 +214,42 @@
         "closed": "Zamknięte"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Indywidualny druk 3D w Twoich kolorach",
+      "description": "Konfigurowalne produkty z druku 3D z podglądem kolorów na żywo, wgraj własne modele i otrzymaj wycenę. Darmowa dostawa od 150 €."
+    },
+    "products": {
+      "description": "Wszystkie produkty z druku 3D — kolory w pełni konfigurowalne z podglądem 3D w przeglądarce."
+    },
+    "cart": {
+      "title": "Koszyk",
+      "description": "Twój koszyk w 3D Print Shop — dostawa 6,99 €, darmowa od 150 €."
+    },
+    "upload": {
+      "title": "Wgraj własny model",
+      "description": "Wgraj plik STL lub 3MF i otrzymaj indywidualną wycenę druku 3D."
+    },
+    "support": {
+      "title": "Pomoc",
+      "description": "Pytania o zamówienie, płatność lub dostawę? Utwórz zgłoszenie — odpowiemy e-mailem."
+    },
+    "checkout": {
+      "title": "Kasa",
+      "description": "Dokończ zamówienie — płatność kartą, przelewem lub Bitcoinem."
+    },
+    "legal": {
+      "imprint": "Impressum",
+      "privacy": "Polityka prywatności",
+      "terms": "Regulamin",
+      "description": "Informacje prawne o 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Nie znaleziono strony",
+      "notFoundText": "Ta strona nie istnieje lub została usunięta.",
+      "generic": "Coś poszło nie tak",
+      "back": "Wróć na stronę główną"
+    }
   }
 }

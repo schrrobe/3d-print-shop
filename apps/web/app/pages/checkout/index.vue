@@ -11,6 +11,12 @@ const localePath = useLocalePath()
 const cart = useCartStore()
 const router = useRouter()
 
+useSeo({
+  title: () => t('seo.checkout.title'),
+  description: () => t('seo.checkout.description'),
+})
+useHead({ meta: [{ name: 'robots', content: 'noindex' }] })
+
 onMounted(() => {
   cart.hydrate()
   if (cart.items.length === 0) router.replace(localePath('/cart'))

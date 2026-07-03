@@ -4,7 +4,7 @@ import { gotoHydrated } from '../helpers/hydration.js'
 test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
   test('german is the default without url prefix', async ({ page }) => {
     await gotoHydrated(page, '/products')
-    await expect(page.getByRole('heading', { level: 2, name: 'Produkte' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Produkte' })).toBeVisible()
   })
 
   test('all five other locales render translated content', async ({ page }) => {
@@ -17,7 +17,7 @@ test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
     }
     for (const [locale, heading] of Object.entries(expectations)) {
       await gotoHydrated(page, `/${locale}/products`)
-      await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible()
+      await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible()
     }
   })
 
@@ -26,7 +26,7 @@ test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
     await page.getByTestId('language-switcher').click()
     await page.locator('[data-locale="en"]').click()
     await page.waitForURL(/\/en\/products/)
-    await expect(page.getByRole('heading', { level: 2, name: 'Products' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Products' })).toBeVisible()
   })
 
   test('product translations follow the locale', async ({ page }) => {

@@ -98,6 +98,11 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
   Anbindung einer echten Blockchain-API: [docs/payments.md](docs/payments.md).
 - **DSGVO/Consent:** Tracking lädt ausschließlich nach Opt-in —
   [docs/privacy-consent.md](docs/privacy-consent.md).
+- **SEO:** `NUXT_PUBLIC_SITE_URL` auf die Produktions-Domain setzen — steuert Canonical,
+  hreflang, `og:url` und die Sitemap. `robots.txt` + `sitemap.xml` werden von Nitro-Routen
+  generiert (`apps/web/server/routes/`), Seiten-Metadaten über `useSeo()`
+  (`apps/web/app/composables/useSeo.ts`), OG-Default-Bild: `apps/web/public/og-default.png`.
+  Produktseiten nutzen `seoTitle`/`seoDescription` aus den Produkt-Übersetzungen (Admin-UI).
 - **Deployment (Hostinger VPS):** [docs/deployment-hostinger.md](docs/deployment-hostinger.md).
 
 ## Dokumentation

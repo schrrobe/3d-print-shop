@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// Admin is client-side gated only — keep the shell out of search indexes
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 import { PsAdminHeader, PsAdminSidebar, PsButton, PsToastProvider } from '@print-shop/ui'
 
 /** Admin shell — subtle styling only, no big animations (design rule). */

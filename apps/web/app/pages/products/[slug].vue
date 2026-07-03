@@ -62,9 +62,39 @@ function addToCart() {
   toast.show(t('products.added'), { variant: 'success' })
 }
 
+useSeo({
+  // seoTitle from the product translation is complete on its own; the plain
+  // name goes through the global titleTemplate
+  title: () => translation.value.seoTitle ?? translation.value.name,
+  fullTitle: Boolean(translation.value.seoTitle),
+  description: () =>
+    translation.value.seoDescription ?? translation.value.description.slice(0, 155),
+  image: () => productImage(product.value),
+  type: 'product',
+})
+
+// Product rich result (price, availability) for search engines
 useHead({
-  title: () => translation.value.seoTitle ?? `${translation.value.name} — Print Shop`,
-  meta: [{ name: 'description', content: () => translation.value.seoDescription ?? '' }],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: computed(() =>
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: translation.value.name,
+          description: translation.value.description,
+          image: productImage(product.value) ?? undefined,
+          offers: {
+            '@type': 'Offer',
+            price: (product.value.priceCents / 100).toFixed(2),
+            priceCurrency: 'EUR',
+            availability: 'https://schema.org/InStock',
+          },
+        }),
+      ),
+    },
+  ],
 })
 </script>
 

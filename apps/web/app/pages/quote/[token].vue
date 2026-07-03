@@ -4,6 +4,8 @@ import { PsBadge, PsInput, PsPillButton, PsPrice, PsSection } from '@print-shop/
 /** Public quote page — customer accepts (→ payment link) or declines. */
 const { t, locale } = useI18n()
 const route = useRoute()
+// Private token URL — must never end up in a search index
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const token = String(route.params.token)
 

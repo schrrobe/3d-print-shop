@@ -214,5 +214,42 @@
         "closed": "Clôturé"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Impression 3D personnalisée dans vos couleurs",
+      "description": "Produits imprimés en 3D configurables avec aperçu couleur en direct, téléchargez vos modèles et recevez un devis. Livraison gratuite dès 150 €."
+    },
+    "products": {
+      "description": "Tous les produits imprimés en 3D — couleurs entièrement configurables avec aperçu 3D dans le navigateur."
+    },
+    "cart": {
+      "title": "Panier",
+      "description": "Votre panier au 3D Print Shop — livraison 6,99 €, gratuite dès 150 €."
+    },
+    "upload": {
+      "title": "Téléchargez votre modèle",
+      "description": "Téléchargez un fichier STL ou 3MF et recevez un devis individuel pour votre impression 3D."
+    },
+    "support": {
+      "title": "Support",
+      "description": "Des questions sur votre commande, le paiement ou la livraison ? Ouvrez un ticket — nous répondons par e-mail."
+    },
+    "checkout": {
+      "title": "Paiement",
+      "description": "Finalisez votre commande — paiement par carte, virement ou Bitcoin."
+    },
+    "legal": {
+      "imprint": "Mentions légales",
+      "privacy": "Politique de confidentialité",
+      "terms": "CGV",
+      "description": "Informations légales sur le 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Page introuvable",
+      "notFoundText": "Cette page n'existe pas ou a été supprimée.",
+      "generic": "Une erreur est survenue",
+      "back": "Retour à l'accueil"
+    }
   }
 }

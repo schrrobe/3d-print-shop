@@ -214,5 +214,42 @@
         "closed": "Closed"
       }
     }
+  },
+  "seo": {
+    "home": {
+      "title": "3D Print Shop — Custom 3D prints in your colors",
+      "description": "Configurable 3D-printed products with live color preview, upload your own models & get a quote. Free shipping from €150."
+    },
+    "products": {
+      "description": "All 3D-printed products at a glance — colors fully configurable with a live 3D preview in your browser."
+    },
+    "cart": {
+      "title": "Cart",
+      "description": "Your cart at the 3D Print Shop — shipping €6.99, free from €150."
+    },
+    "upload": {
+      "title": "Upload your model",
+      "description": "Upload an STL or 3MF file and receive an individual quote for your 3D print."
+    },
+    "support": {
+      "title": "Support",
+      "description": "Questions about your order, payment or shipping? Open a support ticket — we reply by email."
+    },
+    "checkout": {
+      "title": "Checkout",
+      "description": "Complete your order — pay by card, bank transfer or Bitcoin."
+    },
+    "legal": {
+      "imprint": "Imprint",
+      "privacy": "Privacy policy",
+      "terms": "Terms & conditions",
+      "description": "Legal information about the 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Page not found",
+      "notFoundText": "This page does not exist or has been removed.",
+      "generic": "Something went wrong",
+      "back": "Back to home"
+    }
   }
 }
