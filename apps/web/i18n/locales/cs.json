@@ -1,5 +1,11 @@
 {
-  "nav": { "home": "Domů", "products": "Produkty", "upload": "Váš model", "cart": "Košík" },
+  "nav": {
+    "home": "Domů",
+    "products": "Produkty",
+    "upload": "Váš model",
+    "cart": "Košík",
+    "support": "Podpora"
+  },
   "hero": {
     "eyebrow": "3D tisk z Berlína",
     "title": "Vaše nápady. Vytištěné ve vašich barvách.",
@@ -7,12 +13,25 @@
     "ctaProducts": "Prohlédnout produkty",
     "ctaUpload": "Nahrát model"
   },
-  "stats": { "printed": "vytištěných dílů", "colors": "barev", "hours": "hodin tisku" },
+  "stats": {
+    "printed": "vytištěných dílů",
+    "colors": "barev",
+    "hours": "hodin tisku"
+  },
   "features": {
     "title": "Jak to funguje",
-    "configure": { "title": "Konfigurace", "text": "Vyberte produkt a sestavte barevnou kombinaci živě ve 3D." },
-    "print": { "title": "Tisk", "text": "Tiskneme na strojích Bambu Lab se značkovým filamentem." },
-    "ship": { "title": "Doručení", "text": "Dodání za 3–5 pracovních dnů, zdarma od 150 €." }
+    "configure": {
+      "title": "Konfigurace",
+      "text": "Vyberte produkt a sestavte barevnou kombinaci živě ve 3D."
+    },
+    "print": {
+      "title": "Tisk",
+      "text": "Tiskneme na strojích Bambu Lab se značkovým filamentem."
+    },
+    "ship": {
+      "title": "Doručení",
+      "text": "Dodání za 3–5 pracovních dnů, zdarma od 150 €."
+    }
   },
   "products": {
     "title": "Produkty",
@@ -20,7 +39,10 @@
     "configure": "Konfigurovat barvy",
     "addToCart": "Do košíku",
     "added": "Přidáno do košíku",
-    "viewer": { "hint": "Tažením otáčet · Kolečkem přiblížit", "fallback": "3D náhled" }
+    "viewer": {
+      "hint": "Tažením otáčet · Kolečkem přiblížit",
+      "fallback": "3D náhled"
+    }
   },
   "cart": {
     "title": "Košík",
@@ -67,7 +89,11 @@
     "title": "Objednávka {number}",
     "status": "Stav",
     "items": "Položky",
-    "bank": { "title": "Prosíme o převod na:", "holder": "Majitel účtu", "reference": "Variabilní symbol" },
+    "bank": {
+      "title": "Prosíme o převod na:",
+      "holder": "Majitel účtu",
+      "reference": "Variabilní symbol"
+    },
     "bitcoin": {
       "title": "Platba Bitcoinem",
       "sendTo": "Pošlete {amount} satoshi na:",
@@ -101,7 +127,13 @@
     "submit": "Odeslat poptávku",
     "successTitle": "Poptávka přijata!",
     "successText": "Prověříme váš model a ozveme se s nabídkou e-mailem.",
-    "steps": { "upload": "Nahrání", "review": "Kontrola", "quote": "Nabídka", "payment": "Platba", "production": "Výroba" }
+    "steps": {
+      "upload": "Nahrání",
+      "review": "Kontrola",
+      "quote": "Nabídka",
+      "payment": "Platba",
+      "production": "Výroba"
+    }
   },
   "quote": {
     "title": "Vaše nabídka",
@@ -141,5 +173,46 @@
     "termsTitle": "Obchodní podmínky",
     "placeholder": "Placeholder — právní obsah doplňte před spuštěním."
   },
-  "common": { "loading": "Načítání …", "error": "Něco se pokazilo.", "back": "Zpět" }
+  "common": {
+    "loading": "Načítání …",
+    "error": "Něco se pokazilo.",
+    "back": "Zpět"
+  },
+  "support": {
+    "title": "Podpora",
+    "subtitle": "Máte dotaz k objednávce, platbě nebo produktu? Rádi pomůžeme.",
+    "name": "Jméno",
+    "email": "E-mail",
+    "subject": "Předmět",
+    "category": "Kategorie",
+    "orderNumber": "Číslo objednávky (volitelné)",
+    "orderNumberHint": "Pokud se váš dotaz týká objednávky, uveďte číslo objednávky z potvrzovacího e-mailu.",
+    "message": "Zpráva",
+    "submit": "Odeslat dotaz",
+    "categories": {
+      "order": "Objednávka",
+      "payment": "Platba",
+      "shipping": "Doprava",
+      "product": "Produkt",
+      "other": "Ostatní"
+    },
+    "successTitle": "Dotaz přijat!",
+    "successText": "Poslali jsme vám e-mail s odkazem na váš tiket. Číslo tiketu:",
+    "viewTicket": "Zobrazit tiket",
+    "ticket": {
+      "title": "Tiket podpory",
+      "you": "Vy",
+      "team": "Tým podpory",
+      "reply": "Vaše odpověď",
+      "send": "Odeslat odpověď",
+      "closedNote": "Tento tiket je uzavřen. V případě dalších dotazů vytvořte prosím nový dotaz.",
+      "status": {
+        "open": "Otevřený",
+        "in_progress": "V řešení",
+        "waiting_customer": "Čeká na vaši odpověď",
+        "resolved": "Vyřešeno",
+        "closed": "Uzavřeno"
+      }
+    }
+  }
 }

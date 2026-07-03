@@ -41,12 +41,23 @@ describe('RBAC', () => {
     expect(hasPermission('shipping', 'printers:write')).toBe(false)
   })
 
-  it('support is read-only', () => {
+  it('support is read-only except for tickets', () => {
     expect(hasPermission('support', 'orders:read')).toBe(true)
     expect(hasPermission('support', 'quotes:read')).toBe(true)
     expect(hasPermission('support', 'payments:read')).toBe(true)
-    for (const permission of PERMISSIONS.filter((p) => p.endsWith(':write') || p === 'orders:ship')) {
+    for (const permission of PERMISSIONS.filter(
+      (p) => (p.endsWith(':write') && p !== 'tickets:write') || p === 'orders:ship',
+    )) {
       expect(hasPermission('support', permission)).toBe(false)
+    }
+  })
+
+  it('support owns tickets; other non-admin roles have no ticket access', () => {
+    expect(hasPermission('support', 'tickets:read')).toBe(true)
+    expect(hasPermission('support', 'tickets:write')).toBe(true)
+    for (const role of ['product_manager', 'production', 'shipping'] as const) {
+      expect(hasPermission(role, 'tickets:read')).toBe(false)
+      expect(hasPermission(role, 'tickets:write')).toBe(false)
     }
   })
 

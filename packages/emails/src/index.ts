@@ -19,6 +19,9 @@ export type EmailTemplateName =
   | 'invoice'
   | 'password_reset'
   | 'admin_notification'
+  | 'ticket_created'
+  | 'ticket_reply'
+  | 'ticket_customer_reply'
 
 /**
  * i18n: de + en are fully translated; the remaining shop locales (pl, fr, nl, cs)
@@ -270,4 +273,80 @@ export function renderAdminNotification(data: AdminNotificationData, _locale: Lo
     paragraph(escapeHtml(data.detail)) + button(data.adminUrl, 'Open admin'),
   )
   return { subject, html, text: `${data.event}: ${data.detail}` }
+}
+
+export interface TicketCreatedData {
+  name: string
+  ticketNumber: string
+  subject: string
+  ticketUrl: string
+}
+
+export function renderTicketCreated(data: TicketCreatedData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Support-Ticket ${data.ticketNumber} erstellt`,
+    `Support ticket ${data.ticketNumber} created`,
+  )
+  const title = pick(locale, 'Wir haben deine Anfrage erhalten', 'We received your request')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.name)},`, `Hi ${escapeHtml(data.name)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `dein Support-Ticket <strong>${data.ticketNumber}</strong> („${escapeHtml(data.subject)}") wurde erstellt. Unser Team meldet sich so schnell wie möglich. Über den Link kannst du jederzeit den Status einsehen und antworten.`,
+          `your support ticket <strong>${data.ticketNumber}</strong> (“${escapeHtml(data.subject)}”) has been created. Our team will get back to you as soon as possible. Use the link below to check the status and reply at any time.`,
+        ),
+      ) +
+      button(data.ticketUrl, pick(locale, 'Ticket ansehen', 'View ticket')),
+  )
+  return { subject, html, text: `${title}: ${data.ticketNumber}\n${data.ticketUrl}` }
+}
+
+export interface TicketReplyData {
+  name: string
+  ticketNumber: string
+  ticketUrl: string
+}
+
+export function renderTicketReply(data: TicketReplyData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Neue Antwort zu deinem Ticket ${data.ticketNumber}`,
+    `New reply to your ticket ${data.ticketNumber}`,
+  )
+  const title = pick(locale, 'Neue Antwort vom Support', 'New reply from support')
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.name)},`, `Hi ${escapeHtml(data.name)},`)) +
+      paragraph(
+        pick(
+          locale,
+          `unser Team hat auf dein Ticket <strong>${data.ticketNumber}</strong> geantwortet.`,
+          `our team replied to your ticket <strong>${data.ticketNumber}</strong>.`,
+        ),
+      ) +
+      button(data.ticketUrl, pick(locale, 'Antwort lesen', 'Read reply')),
+  )
+  return { subject, html, text: `${title}: ${data.ticketNumber}\n${data.ticketUrl}` }
+}
+
+export interface TicketCustomerReplyData {
+  ticketNumber: string
+  subject: string
+  adminUrl: string
+}
+
+/** Internal notification when a customer replied on the public ticket page. */
+export function renderTicketCustomerReply(
+  data: TicketCustomerReplyData,
+  _locale: Locale,
+): RenderedEmail {
+  const subject = `[Ticket] Neue Kundenantwort: ${data.ticketNumber}`
+  const html = emailLayout(
+    `Neue Kundenantwort zu ${data.ticketNumber}`,
+    paragraph(escapeHtml(data.subject)) + button(data.adminUrl, 'Ticket öffnen'),
+  )
+  return { subject, html, text: `${subject}: ${data.adminUrl}` }
 }

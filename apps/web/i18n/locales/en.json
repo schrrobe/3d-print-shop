@@ -1,5 +1,11 @@
 {
-  "nav": { "home": "Home", "products": "Products", "upload": "Your model", "cart": "Cart" },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "upload": "Your model",
+    "cart": "Cart",
+    "support": "Support"
+  },
   "hero": {
     "eyebrow": "3D printing from Berlin",
     "title": "Your ideas. Printed in your colors.",
@@ -7,12 +13,25 @@
     "ctaProducts": "Browse products",
     "ctaUpload": "Upload model"
   },
-  "stats": { "printed": "printed parts", "colors": "colors", "hours": "print hours" },
+  "stats": {
+    "printed": "printed parts",
+    "colors": "colors",
+    "hours": "print hours"
+  },
   "features": {
     "title": "How it works",
-    "configure": { "title": "Configure", "text": "Pick a product and compose your color combination live in 3D." },
-    "print": { "title": "Print", "text": "We print on Bambu Lab machines with brand filament." },
-    "ship": { "title": "Ship", "text": "Delivery in 3–5 business days, free from €150." }
+    "configure": {
+      "title": "Configure",
+      "text": "Pick a product and compose your color combination live in 3D."
+    },
+    "print": {
+      "title": "Print",
+      "text": "We print on Bambu Lab machines with brand filament."
+    },
+    "ship": {
+      "title": "Ship",
+      "text": "Delivery in 3–5 business days, free from €150."
+    }
   },
   "products": {
     "title": "Products",
@@ -20,7 +39,10 @@
     "configure": "Configure colors",
     "addToCart": "Add to cart",
     "added": "Added to cart",
-    "viewer": { "hint": "Drag to rotate · Scroll to zoom", "fallback": "3D preview" }
+    "viewer": {
+      "hint": "Drag to rotate · Scroll to zoom",
+      "fallback": "3D preview"
+    }
   },
   "cart": {
     "title": "Cart",
@@ -67,7 +89,11 @@
     "title": "Order {number}",
     "status": "Status",
     "items": "Items",
-    "bank": { "title": "Please transfer to:", "holder": "Account holder", "reference": "Reference" },
+    "bank": {
+      "title": "Please transfer to:",
+      "holder": "Account holder",
+      "reference": "Reference"
+    },
     "bitcoin": {
       "title": "Bitcoin payment",
       "sendTo": "Send {amount} sats to:",
@@ -101,7 +127,13 @@
     "submit": "Send request",
     "successTitle": "Request received!",
     "successText": "We will review your model and get back to you with a quote by email.",
-    "steps": { "upload": "Upload", "review": "Review", "quote": "Quote", "payment": "Payment", "production": "Production" }
+    "steps": {
+      "upload": "Upload",
+      "review": "Review",
+      "quote": "Quote",
+      "payment": "Payment",
+      "production": "Production"
+    }
   },
   "quote": {
     "title": "Your quote",
@@ -141,5 +173,46 @@
     "termsTitle": "Terms and conditions",
     "placeholder": "Placeholder — add legal content before going live."
   },
-  "common": { "loading": "Loading …", "error": "Something went wrong.", "back": "Back" }
+  "common": {
+    "loading": "Loading …",
+    "error": "Something went wrong.",
+    "back": "Back"
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Questions about your order, payment or a product? We are happy to help.",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "category": "Category",
+    "orderNumber": "Order number (optional)",
+    "orderNumberHint": "If your request relates to an order, add the order number from your confirmation email.",
+    "message": "Message",
+    "submit": "Send request",
+    "categories": {
+      "order": "Order",
+      "payment": "Payment",
+      "shipping": "Shipping",
+      "product": "Product",
+      "other": "Other"
+    },
+    "successTitle": "Request received!",
+    "successText": "We sent you an email with the link to your ticket. Your ticket number:",
+    "viewTicket": "View ticket",
+    "ticket": {
+      "title": "Support ticket",
+      "you": "You",
+      "team": "Support team",
+      "reply": "Your reply",
+      "send": "Send reply",
+      "closedNote": "This ticket is closed. Please create a new request if you have further questions.",
+      "status": {
+        "open": "Open",
+        "in_progress": "In progress",
+        "waiting_customer": "Waiting for your reply",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      }
+    }
+  }
 }

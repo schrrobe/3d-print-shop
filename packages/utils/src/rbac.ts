@@ -25,6 +25,8 @@ export const PERMISSIONS = [
   'users:read',
   'users:write',
   'audit:read',
+  'tickets:read',
+  'tickets:write',
 ] as const
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -33,7 +35,7 @@ export type Permission = (typeof PERMISSIONS)[number]
  * admin: everything. product_manager: products, colors, assets, content.
  * production: review uploads, manage printers & print jobs.
  * shipping: shipping status, tracking numbers, orders for shipping.
- * support: read-only orders, customer requests, statuses.
+ * support: read-only orders, customer requests, statuses; owns support tickets.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   admin: PERMISSIONS,
@@ -63,6 +65,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'uploads:read',
     'quotes:read',
     'payments:read',
+    'tickets:read',
+    'tickets:write',
   ],
 }
 

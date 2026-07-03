@@ -1,5 +1,11 @@
 {
-  "nav": { "home": "Start", "products": "Produkte", "upload": "Eigenes Modell", "cart": "Warenkorb" },
+  "nav": {
+    "home": "Start",
+    "products": "Produkte",
+    "upload": "Eigenes Modell",
+    "cart": "Warenkorb",
+    "support": "Support"
+  },
   "hero": {
     "eyebrow": "3D-Druck aus Berlin",
     "title": "Deine Ideen. Gedruckt in deinen Farben.",
@@ -7,12 +13,25 @@
     "ctaProducts": "Produkte entdecken",
     "ctaUpload": "Modell hochladen"
   },
-  "stats": { "printed": "gedruckte Teile", "colors": "Farben", "hours": "Druckstunden" },
+  "stats": {
+    "printed": "gedruckte Teile",
+    "colors": "Farben",
+    "hours": "Druckstunden"
+  },
   "features": {
     "title": "So funktioniert's",
-    "configure": { "title": "Konfigurieren", "text": "Wähle ein Produkt und stelle deine Farbkombination live in 3D zusammen." },
-    "print": { "title": "Drucken", "text": "Wir drucken auf Bambu Lab Maschinen mit Markenfilament." },
-    "ship": { "title": "Liefern", "text": "Versand in 3–5 Werktagen, kostenlos ab 150 €." }
+    "configure": {
+      "title": "Konfigurieren",
+      "text": "Wähle ein Produkt und stelle deine Farbkombination live in 3D zusammen."
+    },
+    "print": {
+      "title": "Drucken",
+      "text": "Wir drucken auf Bambu Lab Maschinen mit Markenfilament."
+    },
+    "ship": {
+      "title": "Liefern",
+      "text": "Versand in 3–5 Werktagen, kostenlos ab 150 €."
+    }
   },
   "products": {
     "title": "Produkte",
@@ -20,7 +39,10 @@
     "configure": "Farben konfigurieren",
     "addToCart": "In den Warenkorb",
     "added": "Zum Warenkorb hinzugefügt",
-    "viewer": { "hint": "Ziehen zum Drehen · Scrollen zum Zoomen", "fallback": "3D-Vorschau" }
+    "viewer": {
+      "hint": "Ziehen zum Drehen · Scrollen zum Zoomen",
+      "fallback": "3D-Vorschau"
+    }
   },
   "cart": {
     "title": "Warenkorb",
@@ -67,7 +89,11 @@
     "title": "Bestellung {number}",
     "status": "Status",
     "items": "Positionen",
-    "bank": { "title": "Bitte überweise an:", "holder": "Kontoinhaber", "reference": "Verwendungszweck" },
+    "bank": {
+      "title": "Bitte überweise an:",
+      "holder": "Kontoinhaber",
+      "reference": "Verwendungszweck"
+    },
     "bitcoin": {
       "title": "Bitcoin-Zahlung",
       "sendTo": "Sende {amount} Sats an:",
@@ -101,7 +127,13 @@
     "submit": "Anfrage senden",
     "successTitle": "Anfrage erhalten!",
     "successText": "Wir prüfen dein Modell und melden uns mit einem Angebot per E-Mail.",
-    "steps": { "upload": "Hochladen", "review": "Prüfung", "quote": "Angebot", "payment": "Zahlung", "production": "Produktion" }
+    "steps": {
+      "upload": "Hochladen",
+      "review": "Prüfung",
+      "quote": "Angebot",
+      "payment": "Zahlung",
+      "production": "Produktion"
+    }
   },
   "quote": {
     "title": "Dein Angebot",
@@ -141,5 +173,46 @@
     "termsTitle": "Allgemeine Geschäftsbedingungen",
     "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen."
   },
-  "common": { "loading": "Lädt …", "error": "Etwas ist schiefgelaufen.", "back": "Zurück" }
+  "common": {
+    "loading": "Lädt …",
+    "error": "Etwas ist schiefgelaufen.",
+    "back": "Zurück"
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Fragen zu Bestellung, Zahlung oder Produkt? Wir helfen weiter.",
+    "name": "Name",
+    "email": "E-Mail",
+    "subject": "Betreff",
+    "category": "Kategorie",
+    "orderNumber": "Bestellnummer (optional)",
+    "orderNumberHint": "Wenn sich deine Anfrage auf eine Bestellung bezieht, gib die Bestellnummer aus der Bestätigungs-E-Mail an.",
+    "message": "Nachricht",
+    "submit": "Anfrage senden",
+    "categories": {
+      "order": "Bestellung",
+      "payment": "Zahlung",
+      "shipping": "Versand",
+      "product": "Produkt",
+      "other": "Sonstiges"
+    },
+    "successTitle": "Anfrage erhalten!",
+    "successText": "Wir haben dir eine E-Mail mit dem Link zu deinem Ticket geschickt. Deine Ticketnummer:",
+    "viewTicket": "Ticket ansehen",
+    "ticket": {
+      "title": "Support-Ticket",
+      "you": "Du",
+      "team": "Support-Team",
+      "reply": "Deine Antwort",
+      "send": "Antwort senden",
+      "closedNote": "Dieses Ticket ist geschlossen. Bei weiteren Fragen erstelle bitte eine neue Anfrage.",
+      "status": {
+        "open": "Offen",
+        "in_progress": "In Bearbeitung",
+        "waiting_customer": "Wartet auf deine Antwort",
+        "resolved": "Gelöst",
+        "closed": "Geschlossen"
+      }
+    }
+  }
 }

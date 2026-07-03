@@ -1,5 +1,11 @@
 {
-  "nav": { "home": "Accueil", "products": "Produits", "upload": "Votre modèle", "cart": "Panier" },
+  "nav": {
+    "home": "Accueil",
+    "products": "Produits",
+    "upload": "Votre modèle",
+    "cart": "Panier",
+    "support": "Assistance"
+  },
   "hero": {
     "eyebrow": "Impression 3D de Berlin",
     "title": "Vos idées. Imprimées dans vos couleurs.",
@@ -7,12 +13,25 @@
     "ctaProducts": "Découvrir les produits",
     "ctaUpload": "Téléverser un modèle"
   },
-  "stats": { "printed": "pièces imprimées", "colors": "couleurs", "hours": "heures d'impression" },
+  "stats": {
+    "printed": "pièces imprimées",
+    "colors": "couleurs",
+    "hours": "heures d'impression"
+  },
   "features": {
     "title": "Comment ça marche",
-    "configure": { "title": "Configurer", "text": "Choisissez un produit et composez vos couleurs en direct en 3D." },
-    "print": { "title": "Imprimer", "text": "Nous imprimons sur des machines Bambu Lab avec du filament de marque." },
-    "ship": { "title": "Livrer", "text": "Livraison en 3 à 5 jours ouvrés, gratuite dès 150 €." }
+    "configure": {
+      "title": "Configurer",
+      "text": "Choisissez un produit et composez vos couleurs en direct en 3D."
+    },
+    "print": {
+      "title": "Imprimer",
+      "text": "Nous imprimons sur des machines Bambu Lab avec du filament de marque."
+    },
+    "ship": {
+      "title": "Livrer",
+      "text": "Livraison en 3 à 5 jours ouvrés, gratuite dès 150 €."
+    }
   },
   "products": {
     "title": "Produits",
@@ -20,7 +39,10 @@
     "configure": "Configurer les couleurs",
     "addToCart": "Ajouter au panier",
     "added": "Ajouté au panier",
-    "viewer": { "hint": "Glisser pour tourner · Molette pour zoomer", "fallback": "Aperçu 3D" }
+    "viewer": {
+      "hint": "Glisser pour tourner · Molette pour zoomer",
+      "fallback": "Aperçu 3D"
+    }
   },
   "cart": {
     "title": "Panier",
@@ -67,7 +89,11 @@
     "title": "Commande {number}",
     "status": "Statut",
     "items": "Articles",
-    "bank": { "title": "Merci de virer à :", "holder": "Titulaire du compte", "reference": "Référence" },
+    "bank": {
+      "title": "Merci de virer à :",
+      "holder": "Titulaire du compte",
+      "reference": "Référence"
+    },
     "bitcoin": {
       "title": "Paiement Bitcoin",
       "sendTo": "Envoyez {amount} sats à :",
@@ -101,7 +127,13 @@
     "submit": "Envoyer la demande",
     "successTitle": "Demande reçue !",
     "successText": "Nous examinons votre modèle et revenons vers vous avec un devis par e-mail.",
-    "steps": { "upload": "Téléversement", "review": "Vérification", "quote": "Devis", "payment": "Paiement", "production": "Production" }
+    "steps": {
+      "upload": "Téléversement",
+      "review": "Vérification",
+      "quote": "Devis",
+      "payment": "Paiement",
+      "production": "Production"
+    }
   },
   "quote": {
     "title": "Votre devis",
@@ -141,5 +173,46 @@
     "termsTitle": "Conditions générales de vente",
     "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne."
   },
-  "common": { "loading": "Chargement …", "error": "Une erreur est survenue.", "back": "Retour" }
+  "common": {
+    "loading": "Chargement …",
+    "error": "Une erreur est survenue.",
+    "back": "Retour"
+  },
+  "support": {
+    "title": "Assistance",
+    "subtitle": "Des questions sur votre commande, votre paiement ou un produit ? Nous sommes là pour vous aider.",
+    "name": "Nom",
+    "email": "E-mail",
+    "subject": "Objet",
+    "category": "Catégorie",
+    "orderNumber": "Numéro de commande (facultatif)",
+    "orderNumberHint": "Si votre demande concerne une commande, indiquez le numéro de commande figurant dans l’e-mail de confirmation.",
+    "message": "Message",
+    "submit": "Envoyer la demande",
+    "categories": {
+      "order": "Commande",
+      "payment": "Paiement",
+      "shipping": "Livraison",
+      "product": "Produit",
+      "other": "Autre"
+    },
+    "successTitle": "Demande reçue !",
+    "successText": "Nous vous avons envoyé un e-mail avec le lien vers votre ticket. Votre numéro de ticket :",
+    "viewTicket": "Voir le ticket",
+    "ticket": {
+      "title": "Ticket d’assistance",
+      "you": "Vous",
+      "team": "Équipe d’assistance",
+      "reply": "Votre réponse",
+      "send": "Envoyer la réponse",
+      "closedNote": "Ce ticket est clôturé. Pour toute autre question, veuillez créer une nouvelle demande.",
+      "status": {
+        "open": "Ouvert",
+        "in_progress": "En cours",
+        "waiting_customer": "En attente de votre réponse",
+        "resolved": "Résolu",
+        "closed": "Clôturé"
+      }
+    }
+  }
 }

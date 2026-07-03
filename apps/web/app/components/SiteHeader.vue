@@ -26,6 +26,7 @@ const links = computed(() => [
   { to: localePath('/'), label: t('nav.home'), exact: true },
   { to: localePath('/products'), label: t('nav.products') },
   { to: localePath('/upload'), label: t('nav.upload') },
+  { to: localePath('/support'), label: t('nav.support') },
 ])
 
 function isActive(to: string, exact?: boolean) {

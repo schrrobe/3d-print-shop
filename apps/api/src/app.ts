@@ -16,6 +16,7 @@ import { adminPrintersRouter } from './routes/admin/printers.js'
 import { adminProductionRouter } from './routes/admin/production.js'
 import { adminProductsRouter } from './routes/admin/products.js'
 import { adminQuoteRequestsRouter } from './routes/admin/quote-requests.js'
+import { adminTicketsRouter } from './routes/admin/tickets.js'
 import { adminUsersRouter } from './routes/admin/users.js'
 import { checkoutRouter } from './routes/public/checkout.js'
 import { colorsRouter } from './routes/public/colors.js'
@@ -25,6 +26,7 @@ import { ordersRouter } from './routes/public/orders.js'
 import { paymentsRouter } from './routes/public/payments.js'
 import { productsRouter } from './routes/public/products.js'
 import { quotesRouter } from './routes/public/quotes.js'
+import { ticketsRouter } from './routes/public/tickets.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
@@ -59,6 +61,7 @@ export function createApp(): Express {
   app.use('/api/quotes', quotesRouter)
   app.use('/api/consent', consentRouter)
   app.use('/api/payments', paymentsRouter)
+  app.use('/api/tickets', ticketsRouter)
 
   // Admin API (session cookie + RBAC per route)
   app.use('/api/admin/auth', adminAuthRouter)
@@ -72,6 +75,7 @@ export function createApp(): Express {
   app.use('/api/admin/printers', requireAuth, adminPrintersRouter)
   app.use('/api/admin/production', requireAuth, adminProductionRouter)
   app.use('/api/admin/users', requireAuth, adminUsersRouter)
+  app.use('/api/admin/tickets', requireAuth, adminTicketsRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
 
   // Dev-only simulation endpoints (mock payments, email log)

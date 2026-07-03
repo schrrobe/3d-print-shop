@@ -22,6 +22,9 @@ Fehlerformat: `{ "error": "<code>", "message": "…", "details"?: … }`.
 | `GET /api/payments/:paymentId` | Zahlungsstatus (Polling) |
 | `POST /api/payments/bitcoin/:paymentId/sync` | Blockchain-Provider abfragen; ab 2 Bestätigungen → bezahlt |
 | `POST /api/webhooks/stripe` | Stripe-Webhook (raw body, Signaturprüfung wenn Secret gesetzt) |
+| `POST /api/tickets` | Support-Ticket erstellen `{name, email, subject, message, category, orderNumber?, locale}` → `{ticketNumber, accessToken, orderLinked}` (Rate-Limit; Order nur bei E-Mail-Match verknüpft) |
+| `GET /api/tickets/:token` | Öffentlicher Ticket-Thread (Token aus Bestätigungs-E-Mail) |
+| `POST /api/tickets/:token/messages` | Kundenantwort `{body}`; reopent wartende/gelöste Tickets, 409 bei geschlossenen (Rate-Limit) |
 
 ## Dev-only (`NODE_ENV !== production`)
 
@@ -46,6 +49,7 @@ Auth: `POST auth/login` (Rate-Limit 10/15 min) · `POST auth/logout` · `GET aut
 | Drucker | `GET/POST printers`, `POST printers/:id/status`, `POST printers/:id/spools`, `PATCH printers/spools/:id` | printers:read/write |
 | Produktion | `GET production/queue` (inkl. ETA je Drucker), `POST production/:jobId/assign`, `POST production/:jobId/status` | print-jobs:read/write |
 | Benutzer | `GET/POST users`, `PATCH users/:id` | users:read/write |
+| Support-Tickets | `GET tickets` (Filter status/priority/assignedToId), `GET tickets/assignees`, `GET tickets/:id`, `POST tickets/:id/messages` (E-Mail an Kunde), `POST tickets/:id/status`, `PATCH tickets/:id` (Priorität/Kategorie/Zuweisung) | tickets:read/write |
 | Audit | `GET audit-log` | audit:read |
 
 Alle Admin-Mutationen schreiben ins `AdminAuditLog`.

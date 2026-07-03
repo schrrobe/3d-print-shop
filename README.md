@@ -2,7 +2,8 @@
 
 DSGVO-konformer Onlineshop für 3D-Druck-Artikel: konfigurierbare Standardprodukte mit
 Live-3D-Farbvorschau, Upload eigener Modelle mit individuellem Angebot & Zahlungslink,
-Adminbereich mit Rollen, Drucker-/Produktionsverwaltung, interne Rechnungserstellung.
+Support-Ticketsystem mit Token-Zugriff, Adminbereich mit Rollen,
+Drucker-/Produktionsverwaltung, interne Rechnungserstellung.
 
 ## Tech-Stack
 
@@ -64,8 +65,9 @@ Theme-Umschalter in der Toolbar.
 
 - **Unit (Vitest):** Preis-/Versandlogik (6,99 € / frei ab 150 €), Statusmaschinen,
   Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung, RBAC, Consent, Farbmapping.
-- **E2E (Playwright, 19 Specs):** kompletter Kauf-, Upload-/Angebots-, Admin-, Produktions-,
-  Consent-, i18n-, Theme- und Accessibility-Flow. Details: [docs/testing.md](docs/testing.md)
+- **E2E (Playwright, 20 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
+  Admin-, Produktions-, Consent-, i18n-, Theme- und Accessibility-Flow.
+  Details: [docs/testing.md](docs/testing.md)
 
 ## GitHub-Repo einrichten (falls nicht geschehen)
 
@@ -101,5 +103,5 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 [architecture](docs/architecture.md) · [design-system](docs/design-system.md) ·
 [database](docs/database.md) · [api](docs/api.md) · [testing](docs/testing.md) ·
 [payments](docs/payments.md) · [production-workflow](docs/production-workflow.md) ·
-[privacy-consent](docs/privacy-consent.md) ·
+[support](docs/support.md) · [privacy-consent](docs/privacy-consent.md) ·
 [deployment-hostinger](docs/deployment-hostinger.md)

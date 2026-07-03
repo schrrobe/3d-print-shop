@@ -39,6 +39,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
         payments: { include: { bitcoinPayment: true } },
         invoice: true,
         printerJobs: { include: { printer: true } },
+        tickets: { select: { id: true, ticketNumber: true, status: true, subject: true } },
       },
     })
     if (!order) throw notFound('Order not found')

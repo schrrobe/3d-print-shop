@@ -19,6 +19,7 @@ const navItems = computed(() => {
     { key: 'dashboard', label: 'Dashboard', href: '/admin', icon: '📊', permission: 'dashboard:read' as const },
     { key: 'orders', label: 'Bestellungen', href: '/admin/orders', icon: '🧾', permission: 'orders:read' as const },
     { key: 'uploads', label: 'Upload-Anfragen', href: '/admin/uploads', icon: '📥', permission: 'uploads:read' as const },
+    { key: 'tickets', label: 'Support-Tickets', href: '/admin/tickets', icon: '🎫', permission: 'tickets:read' as const },
     { key: 'products', label: 'Produkte', href: '/admin/products', icon: '📦', permission: 'products:read' as const },
     { key: 'colors', label: 'Farben', href: '/admin/colors', icon: '🎨', permission: 'colors:read' as const },
     { key: 'printers', label: 'Drucker', href: '/admin/printers', icon: '🖨️', permission: 'printers:read' as const },

@@ -87,6 +87,25 @@ export type UserRole = (typeof USER_ROLES)[number]
 export const CONSENT_CATEGORIES = ['necessary', 'statistics', 'marketing'] as const
 export type ConsentCategory = (typeof CONSENT_CATEGORIES)[number]
 
+/** Ticketstatus: offen, in Bearbeitung, wartet auf Kunde, gelöst, geschlossen */
+export const TICKET_STATUSES = [
+  'open',
+  'in_progress',
+  'waiting_customer',
+  'resolved',
+  'closed',
+] as const
+export type TicketStatus = (typeof TICKET_STATUSES)[number]
+
+export const TICKET_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number]
+
+export const TICKET_CATEGORIES = ['order', 'payment', 'shipping', 'product', 'other'] as const
+export type TicketCategory = (typeof TICKET_CATEGORIES)[number]
+
+export const TICKET_AUTHOR_TYPES = ['customer', 'staff'] as const
+export type TicketAuthorType = (typeof TICKET_AUTHOR_TYPES)[number]
+
 export const ASSET_TYPES = ['image', 'glb_preview', 'production_file'] as const
 export type AssetType = (typeof ASSET_TYPES)[number]
 
@@ -183,4 +202,24 @@ export interface ConsentStateDto {
   marketing: boolean
   version: string
   updatedAt: string
+}
+
+export interface TicketMessageDto {
+  id: string
+  authorType: TicketAuthorType
+  /** Staff display name; null for customer messages. */
+  authorName: string | null
+  body: string
+  createdAt: string
+}
+
+/** Public (token page) shape of a ticket. */
+export interface TicketDto {
+  ticketNumber: string
+  status: TicketStatus
+  category: TicketCategory
+  subject: string
+  orderNumber: string | null
+  createdAt: string
+  messages: TicketMessageDto[]
 }

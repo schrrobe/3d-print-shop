@@ -1,5 +1,11 @@
 {
-  "nav": { "home": "Home", "products": "Producten", "upload": "Jouw model", "cart": "Winkelwagen" },
+  "nav": {
+    "home": "Home",
+    "products": "Producten",
+    "upload": "Jouw model",
+    "cart": "Winkelwagen",
+    "support": "Support"
+  },
   "hero": {
     "eyebrow": "3D-printen uit Berlijn",
     "title": "Jouw ideeën. Geprint in jouw kleuren.",
@@ -7,12 +13,25 @@
     "ctaProducts": "Producten bekijken",
     "ctaUpload": "Model uploaden"
   },
-  "stats": { "printed": "geprinte onderdelen", "colors": "kleuren", "hours": "printuren" },
+  "stats": {
+    "printed": "geprinte onderdelen",
+    "colors": "kleuren",
+    "hours": "printuren"
+  },
   "features": {
     "title": "Zo werkt het",
-    "configure": { "title": "Configureren", "text": "Kies een product en stel je kleurcombinatie live in 3D samen." },
-    "print": { "title": "Printen", "text": "We printen op Bambu Lab-machines met merkfilament." },
-    "ship": { "title": "Bezorgen", "text": "Levering in 3–5 werkdagen, gratis vanaf €150." }
+    "configure": {
+      "title": "Configureren",
+      "text": "Kies een product en stel je kleurcombinatie live in 3D samen."
+    },
+    "print": {
+      "title": "Printen",
+      "text": "We printen op Bambu Lab-machines met merkfilament."
+    },
+    "ship": {
+      "title": "Bezorgen",
+      "text": "Levering in 3–5 werkdagen, gratis vanaf €150."
+    }
   },
   "products": {
     "title": "Producten",
@@ -20,7 +39,10 @@
     "configure": "Kleuren configureren",
     "addToCart": "In winkelwagen",
     "added": "Toegevoegd aan winkelwagen",
-    "viewer": { "hint": "Sleep om te draaien · Scroll om te zoomen", "fallback": "3D-voorbeeld" }
+    "viewer": {
+      "hint": "Sleep om te draaien · Scroll om te zoomen",
+      "fallback": "3D-voorbeeld"
+    }
   },
   "cart": {
     "title": "Winkelwagen",
@@ -67,7 +89,11 @@
     "title": "Bestelling {number}",
     "status": "Status",
     "items": "Artikelen",
-    "bank": { "title": "Maak over naar:", "holder": "Rekeninghouder", "reference": "Kenmerk" },
+    "bank": {
+      "title": "Maak over naar:",
+      "holder": "Rekeninghouder",
+      "reference": "Kenmerk"
+    },
     "bitcoin": {
       "title": "Bitcoin-betaling",
       "sendTo": "Stuur {amount} sats naar:",
@@ -101,7 +127,13 @@
     "submit": "Aanvraag versturen",
     "successTitle": "Aanvraag ontvangen!",
     "successText": "We beoordelen je model en nemen per e-mail contact op met een offerte.",
-    "steps": { "upload": "Uploaden", "review": "Beoordeling", "quote": "Offerte", "payment": "Betaling", "production": "Productie" }
+    "steps": {
+      "upload": "Uploaden",
+      "review": "Beoordeling",
+      "quote": "Offerte",
+      "payment": "Betaling",
+      "production": "Productie"
+    }
   },
   "quote": {
     "title": "Jouw offerte",
@@ -141,5 +173,46 @@
     "termsTitle": "Algemene voorwaarden",
     "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang."
   },
-  "common": { "loading": "Laden …", "error": "Er ging iets mis.", "back": "Terug" }
+  "common": {
+    "loading": "Laden …",
+    "error": "Er ging iets mis.",
+    "back": "Terug"
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Vragen over je bestelling, betaling of een product? We helpen je graag.",
+    "name": "Naam",
+    "email": "E-mail",
+    "subject": "Onderwerp",
+    "category": "Categorie",
+    "orderNumber": "Bestelnummer (optioneel)",
+    "orderNumberHint": "Gaat je vraag over een bestelling? Vermeld dan het bestelnummer uit de bevestigingsmail.",
+    "message": "Bericht",
+    "submit": "Verzoek versturen",
+    "categories": {
+      "order": "Bestelling",
+      "payment": "Betaling",
+      "shipping": "Verzending",
+      "product": "Product",
+      "other": "Overig"
+    },
+    "successTitle": "Verzoek ontvangen!",
+    "successText": "We hebben je een e-mail gestuurd met de link naar je ticket. Je ticketnummer:",
+    "viewTicket": "Ticket bekijken",
+    "ticket": {
+      "title": "Supportticket",
+      "you": "Jij",
+      "team": "Supportteam",
+      "reply": "Je antwoord",
+      "send": "Antwoord versturen",
+      "closedNote": "Dit ticket is gesloten. Maak bij verdere vragen een nieuw verzoek aan.",
+      "status": {
+        "open": "Open",
+        "in_progress": "In behandeling",
+        "waiting_customer": "Wacht op je antwoord",
+        "resolved": "Opgelost",
+        "closed": "Gesloten"
+      }
+    }
+  }
 }

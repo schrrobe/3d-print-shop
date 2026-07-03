@@ -47,6 +47,18 @@ async function seedUsers() {
     },
     update: {},
   })
+
+  const supportRole = await prisma.role.findUniqueOrThrow({ where: { name: 'support' } })
+  await prisma.user.upsert({
+    where: { email: 'support@example.com' },
+    create: {
+      email: 'support@example.com',
+      name: 'Sami Support',
+      passwordHash,
+      roleId: supportRole.id,
+    },
+    update: { roleId: supportRole.id, active: true },
+  })
 }
 
 async function seedColors() {
@@ -348,6 +360,98 @@ async function seedQuoteRequest() {
   })
 }
 
+async function seedTickets() {
+  if ((await prisma.ticket.count()) > 0) return
+  const support = await prisma.user.findUniqueOrThrow({ where: { email: 'support@example.com' } })
+  const order = await prisma.order.findUnique({ where: { orderNumber: 'PS-2026-00000001' } })
+
+  await prisma.ticketCounter.upsert({
+    where: { year: 2026 },
+    create: { year: 2026, lastSequence: 3 },
+    update: { lastSequence: { increment: 3 } },
+  })
+
+  await prisma.ticket.create({
+    data: {
+      ticketNumber: 'TIC-2026-00001',
+      accessToken: 'seed-ticket-token-1',
+      status: 'open',
+      priority: 'normal',
+      category: 'product',
+      subject: 'Frage zur Materialauswahl',
+      name: 'Klara Kundin',
+      email: 'klara@example.com',
+      locale: 'de',
+      messages: {
+        create: [
+          {
+            authorType: 'customer',
+            body: 'Hallo, ist das Wandregal auch in PETG statt PLA druckbar? Es soll ins Badezimmer.',
+          },
+        ],
+      },
+    },
+  })
+
+  await prisma.ticket.create({
+    data: {
+      ticketNumber: 'TIC-2026-00002',
+      accessToken: 'seed-ticket-token-2',
+      status: 'in_progress',
+      priority: 'high',
+      category: 'order',
+      subject: 'Lieferzeit meiner Bestellung',
+      name: 'Max Mustermann',
+      email: 'max@example.com',
+      locale: 'de',
+      orderId: order?.id,
+      assignedToId: support.id,
+      messages: {
+        create: [
+          {
+            authorType: 'customer',
+            body: 'Wann wird meine Bestellung PS-2026-00000001 voraussichtlich versendet?',
+          },
+          {
+            authorType: 'staff',
+            userId: support.id,
+            body: 'Hallo Max, die Bestellung ist aktuell im Druck. Voraussichtlicher Versand: Ende der Woche.',
+          },
+          {
+            authorType: 'customer',
+            body: 'Super, danke für die schnelle Antwort!',
+          },
+        ],
+      },
+    },
+  })
+
+  await prisma.ticket.create({
+    data: {
+      ticketNumber: 'TIC-2026-00003',
+      accessToken: 'seed-ticket-token-3',
+      status: 'resolved',
+      priority: 'low',
+      category: 'other',
+      subject: 'Rechnung als PDF',
+      name: 'Erika Beispiel',
+      email: 'erika@example.com',
+      locale: 'de',
+      resolvedAt: new Date(),
+      messages: {
+        create: [
+          { authorType: 'customer', body: 'Kann ich meine Rechnung nochmal als PDF bekommen?' },
+          {
+            authorType: 'staff',
+            userId: support.id,
+            body: 'Klar — die Rechnung hängt jetzt an der Bestellbestätigungs-Mail. Viele Grüße!',
+          },
+        ],
+      },
+    },
+  })
+}
+
 async function main() {
   console.log('Seeding roles & permissions …')
   await seedRoles()
@@ -364,6 +468,8 @@ async function main() {
   await seedProductionJobs()
   console.log('Seeding quote requests …')
   await seedQuoteRequest()
+  console.log('Seeding support tickets …')
+  await seedTickets()
   console.log(`Done. Admin login: ${DEV_ADMIN_EMAIL} / ${DEV_ADMIN_PASSWORD}`)
 }
 

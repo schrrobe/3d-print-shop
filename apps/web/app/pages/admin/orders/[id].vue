@@ -35,6 +35,7 @@ interface AdminOrderDetail {
   items: { id: string; name: string; quantity: number; unitPriceCents: number }[]
   payments: { id: string; method: string; status: string; amountCents: number }[]
   invoice: { id: string; number: string } | null
+  tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
 }
 
 const { data, refresh } = await useFetch<{ order: AdminOrderDetail }>(
@@ -122,6 +123,17 @@ async function ship() {
         <ul class="mt-sm text-body-regular text-secondary">
           <li v-for="p in order.payments" :key="p.id">{{ p.method }} — {{ p.status }}</li>
         </ul>
+        <template v-if="order.tickets.length">
+          <h3 class="mt-lg text-label-medium">Support-Tickets</h3>
+          <ul class="mt-sm text-body-regular" data-testid="order-tickets">
+            <li v-for="ticketRow in order.tickets" :key="ticketRow.id">
+              <NuxtLink :to="`/admin/tickets/${ticketRow.id}`" class="text-brand hover:underline">
+                {{ ticketRow.ticketNumber }}
+              </NuxtLink>
+              <span class="text-secondary"> — {{ ticketRow.subject }} ({{ ticketRow.status }})</span>
+            </li>
+          </ul>
+        </template>
       </PsCard>
     </div>
 

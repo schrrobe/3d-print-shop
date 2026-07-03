@@ -4,6 +4,9 @@ import {
   CONSENT_CATEGORIES,
   LOCALES,
   PAYMENT_METHODS,
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES,
   USER_ROLES,
 } from '@print-shop/types'
 import { ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_BYTES } from '@print-shop/utils'
@@ -191,4 +194,33 @@ export const consentCategorySchema = z.enum(CONSENT_CATEGORIES)
 
 export const markPaidSchema = z.object({
   reference: z.string().trim().max(200).optional(),
+})
+
+// ---------- Support tickets ----------
+
+export const ticketCreateSchema = z.object({
+  name: z.string().trim().min(1).max(150),
+  email: z.string().trim().email().max(254),
+  subject: z.string().trim().min(3).max(200),
+  message: z.string().trim().min(10).max(4000),
+  category: z.enum(TICKET_CATEGORIES).default('other'),
+  orderNumber: z.string().trim().max(40).optional(),
+  locale: localeSchema.default('de'),
+})
+export type TicketCreateInput = z.infer<typeof ticketCreateSchema>
+
+export const ticketMessageSchema = z.object({
+  body: z.string().trim().min(1).max(4000),
+})
+export type TicketMessageInput = z.infer<typeof ticketMessageSchema>
+
+export const ticketUpdateSchema = z.object({
+  priority: z.enum(TICKET_PRIORITIES).optional(),
+  category: z.enum(TICKET_CATEGORIES).optional(),
+  assignedToId: cuidSchema.nullable().optional(),
+})
+export type TicketUpdateInput = z.infer<typeof ticketUpdateSchema>
+
+export const ticketStatusSchema = z.object({
+  status: z.enum(TICKET_STATUSES),
 })

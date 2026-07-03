@@ -132,6 +132,34 @@ enum EmailStatus {
   failed
 }
 
+enum TicketStatus {
+  open
+  in_progress
+  waiting_customer
+  resolved
+  closed
+}
+
+enum TicketPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum TicketCategory {
+  order
+  payment
+  shipping
+  product
+  other
+}
+
+enum TicketAuthorType {
+  customer
+  staff
+}
+
 // ---------- Auth / RBAC ----------
 
 model User {
@@ -145,8 +173,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  auditLogs      AdminAuditLog[]      @relation("AuditActor")
-  passwordResets PasswordResetToken[]
+  auditLogs       AdminAuditLog[]      @relation("AuditActor")
+  passwordResets  PasswordResetToken[]
+  assignedTickets Ticket[]             @relation("TicketAssignee")
+  ticketMessages  TicketMessage[]      @relation("TicketMessageAuthor")
 }
 
 model Role {
@@ -163,13 +193,13 @@ model Permission {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 // ---------- Catalog ----------
@@ -272,7 +302,7 @@ model Order {
   lastName       String
   company        String?
   street         String
-  zip             String
+  zip            String
   city           String
   country        String
   phone          String?
@@ -291,6 +321,7 @@ model Order {
   invoice     Invoice?
   printerJobs PrinterJob[]
   quotes      Quote[]
+  tickets     Ticket[]
 }
 
 model OrderItem {
@@ -348,18 +379,18 @@ model BitcoinPayment {
 // ---------- Upload requests & quotes ----------
 
 model QuoteRequest {
-  id          String             @id @default(cuid())
-  status      QuoteRequestStatus @default(new)
-  name        String
-  email       String
-  phone       String?
-  description String
-  quantity    Int                @default(1)
-  locale      Locale             @default(de)
+  id                  String             @id @default(cuid())
+  status              QuoteRequestStatus @default(new)
+  name                String
+  email               String
+  phone               String?
+  description         String
+  quantity            Int                @default(1)
+  locale              Locale             @default(de)
   /// Placeholder: acceptance of future legal upload terms
-  acceptedUploadTerms Boolean    @default(false)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  acceptedUploadTerms Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   files  UploadedFile[]
   quotes Quote[]
@@ -446,25 +477,78 @@ model FilamentSpool {
 // ---------- Invoices ----------
 
 model Invoice {
-  id            String   @id @default(cuid())
-  number        String   @unique
+  id            String        @id @default(cuid())
+  number        String        @unique
   year          Int
   sequence      Int
-  orderId       String   @unique
-  order         Order    @relation(fields: [orderId], references: [id])
-  locale        Locale   @default(de)
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id])
+  locale        Locale        @default(de)
   subtotalCents Int
   shippingCents Int
   totalCents    Int
   paymentMethod PaymentMethod
   pdfPath       String?
-  issuedAt      DateTime @default(now())
+  issuedAt      DateTime      @default(now())
 
   @@unique([year, sequence])
 }
 
 /// Single-row-per-year counter for sequential invoice numbers (locked via transaction)
 model InvoiceCounter {
+  year         Int @id
+  lastSequence Int @default(0)
+}
+
+// ---------- Support tickets ----------
+
+model Ticket {
+  id           String         @id @default(cuid())
+  /// Human-readable sequential number, e.g. TIC-2026-00001
+  ticketNumber String         @unique
+  /// Public token for the customer-facing ticket thread page
+  accessToken  String         @unique
+  status       TicketStatus   @default(open)
+  priority     TicketPriority @default(normal)
+  category     TicketCategory @default(other)
+  subject      String
+  name         String
+  email        String
+  locale       Locale         @default(de)
+  orderId      String?
+  order        Order?         @relation(fields: [orderId], references: [id])
+  assignedToId String?
+  assignedTo   User?          @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  messages TicketMessage[]
+
+  @@index([status, priority])
+  @@index([assignedToId])
+  @@index([orderId])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id         String           @id @default(cuid())
+  ticketId   String
+  ticket     Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorType TicketAuthorType
+  /// Staff author (null for customer messages)
+  userId     String?
+  user       User?            @relation("TicketMessageAuthor", fields: [userId], references: [id])
+  body       String
+  createdAt  DateTime         @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+/// Single-row-per-year counter for sequential ticket numbers (locked via transaction)
+model TicketCounter {
   year         Int @id
   lastSequence Int @default(0)
 }

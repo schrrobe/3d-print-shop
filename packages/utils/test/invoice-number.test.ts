@@ -18,6 +18,15 @@ describe('invoice numbers', () => {
     expect(() => formatInvoiceNumber('RE', 2026, 1.5)).toThrow()
   })
 
+  it('formats and parses ticket numbers with the TIC prefix', () => {
+    expect(formatInvoiceNumber('TIC', 2026, 1)).toBe('TIC-2026-00001')
+    expect(parseInvoiceNumber('TIC-2026-00007')).toEqual({
+      prefix: 'TIC',
+      year: 2026,
+      sequence: 7,
+    })
+  })
+
   it('parses formatted numbers back', () => {
     expect(parseInvoiceNumber('RE-2026-00042')).toEqual({ prefix: 'RE', year: 2026, sequence: 42 })
     expect(parseInvoiceNumber('nonsense')).toBeNull()

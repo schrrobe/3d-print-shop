@@ -34,6 +34,29 @@ export async function getFirstProduct(): Promise<SeedProduct> {
   return product
 }
 
+/** Creates a support ticket via the public API; returns number + public token. */
+export async function createTicketViaApi(
+  email = 'e2e-ticket@example.com',
+  overrides: Record<string, string> = {},
+): Promise<{ ticketNumber: string; accessToken: string }> {
+  const ctx = await apiContext()
+  const response = await ctx.post('/api/tickets', {
+    data: {
+      name: 'E2E Ticket Tester',
+      email,
+      subject: 'E2E Support-Anfrage',
+      message: 'Dies ist eine automatisch erstellte Support-Anfrage aus dem E2E-Test.',
+      category: 'other',
+      locale: 'de',
+      ...overrides,
+    },
+  })
+  if (!response.ok()) throw new Error(`ticket create failed: ${response.status()}`)
+  const data = (await response.json()) as { ticketNumber: string; accessToken: string }
+  await ctx.dispose()
+  return data
+}
+
 /** Creates an upload request + quote via the API; returns the public quote token. */
 export async function createQuoteViaApi(email = 'e2e-quote@example.com'): Promise<{
   token: string

@@ -41,6 +41,11 @@ ready_to_ship → shipped, plus failed/reprint_needed; Druckzeit für ETA), `Fil
 **Rechnungen**: `Invoice` (fortlaufende Nummer `RE-<Jahr>-<5-stellig>`, `@@unique([year, sequence])`),
 `InvoiceCounter` (eine Zeile pro Jahr; Inkrement in Transaktion → keine Duplikate).
 
+**Support**: `Ticket` (fortlaufende `ticketNumber` `TIC-<Jahr>-<5-stellig>` via `TicketCounter`,
+`accessToken` für den öffentlichen Thread, Status/Priorität/Kategorie, optionale Order-
+und Bearbeiter-Verknüpfung), `TicketMessage` (customer/staff-Thread). Details:
+[support.md](./support.md).
+
 **Protokolle**: `EmailLog` (sent | dev_logged | failed), `ConsentLog` (DSGVO-Einwilligungen,
 anonyme ID, Version), `AdminAuditLog` (alle Admin-Mutationen).
 
