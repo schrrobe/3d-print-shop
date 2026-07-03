@@ -5,10 +5,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-01',
   devtools: { enabled: false },
   experimental: {
-    // Non-standard watcher value kept intentionally for the local sandbox setup;
-    // Nuxt's published type only lists chokidar/parcel/chokidar-granular.
-    // @ts-expect-error -- accepted at runtime, narrower than the published union type
-    watcher: 'builder',
+    // chokidar is the default watcher; the actual sandbox file-watching workaround
+    // is the Vite polling config below (vite.server.watch.usePolling).
+    watcher: 'chokidar',
   },
 
   modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode'],
