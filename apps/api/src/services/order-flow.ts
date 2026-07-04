@@ -45,9 +45,14 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   if (order.status === 'paid') return // idempotent (webhook retries)
   assertOrderTransition(order.status, 'paid')
 
+  // With no explicit paymentId, pick the most recent non-failed payment: an
+  // order can carry a stale abandoned "pending" alongside the one that just
+  // succeeded, and "first non-failed" would flip the wrong row to paid.
   const payment = paymentId
     ? order.payments.find((p) => p.id === paymentId)
-    : order.payments.find((p) => p.status !== 'failed')
+    : [...order.payments]
+        .filter((p) => p.status !== 'failed')
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
   await prisma.$transaction([

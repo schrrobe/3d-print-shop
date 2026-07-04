@@ -173,6 +173,13 @@ describe('formatInvoiceDate', () => {
     expect(formatInvoiceDate(d, true)).toBe('04.07.2026')
     expect(formatInvoiceDate(d, false)).toBe('04 Jul 2026')
   })
+
+  it('pins the calendar date to Europe/Berlin regardless of the runner timezone', () => {
+    // 23:30 UTC is already the next day in Berlin (CEST, +2) — the printed
+    // Rechnungsdatum must not depend on where the server happens to run.
+    const nearMidnight = new Date('2026-06-30T23:30:00Z')
+    expect(formatInvoiceDate(nearMidnight, true)).toBe('01.07.2026')
+  })
 })
 
 describe('renderInvoicePdf', () => {

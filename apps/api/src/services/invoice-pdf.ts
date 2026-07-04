@@ -138,17 +138,28 @@ export function buildEpcQrPayload(opts: {
   reference: string
 }): string {
   const iban = opts.iban.replace(/\s+/g, '').toUpperCase()
+  // EPC amount field is capped at 999_999_999.99 EUR (12 chars incl. "EUR").
+  // A larger value would silently produce an unscannable GiroCode; throwing
+  // here lets the caller fall back to rendering the invoice without a QR.
+  if (!Number.isInteger(opts.amountCents) || opts.amountCents < 1 || opts.amountCents > 99_999_999_999) {
+    throw new Error(`EPC amount out of range: ${opts.amountCents} cents`)
+  }
   const amount = `EUR${Math.floor(opts.amountCents / 100)}.${String(opts.amountCents % 100).padStart(2, '0')}`
   return ['BCD', '002', '1', 'SCT', opts.bic, opts.name, iban, amount, '', '', opts.reference].join('\n')
 }
 
 export function formatInvoiceDate(date: Date, de: boolean): string {
-  return new Intl.DateTimeFormat(
-    de ? 'de-DE' : 'en-GB',
-    de
+  // Dates are stored as UTC instants (issuedAt @default(now()), shippedAt).
+  // Pin to Europe/Berlin so the calendar date printed on this German tax
+  // document is the seller's local date and never shifts with the server's
+  // timezone (cloud hosts are often not UTC), which would break the
+  // Rechnungsdatum/Leistungsdatum correctness required by §14 UStG.
+  return new Intl.DateTimeFormat(de ? 'de-DE' : 'en-GB', {
+    timeZone: 'Europe/Berlin',
+    ...(de
       ? { day: '2-digit', month: '2-digit', year: 'numeric' }
-      : { day: '2-digit', month: 'short', year: 'numeric' },
-  ).format(date)
+      : { day: '2-digit', month: 'short', year: 'numeric' }),
+  }).format(date)
 }
 
 function countryName(code: string, de: boolean): string {
@@ -385,10 +396,22 @@ function drawItemsTable(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Transl
   const lineH = doc.currentLineHeight()
   const maxDescH = lineH * MAX_DESC_LINES
 
+  // Per-line "Gesamt" must reconcile with the stored subtotal. Quote orders
+  // derive unitPriceCents = round(priceCents / quantity) (see quotes.ts) while
+  // subtotalCents keeps the all-in price, so unitPrice*quantity can differ from
+  // the subtotal by the rounding residue. Absorb that residue into the last
+  // line so the displayed line totals sum to the printed Zwischensumme/Gesamt.
+  const lineTotals = order.items.map((item) => item.unitPriceCents * item.quantity)
+  if (lineTotals.length > 0) {
+    const rawSum = lineTotals.reduce((sum, cents) => sum + cents, 0)
+    lineTotals[lineTotals.length - 1]! += invoice.subtotalCents - rawSum
+  }
+
   order.items.forEach((item, i) => {
     doc.font(FONT).fontSize(SIZE.table).fillColor('#000000')
-    const truncate = doc.heightOfString(item.name, { width: DESC_TEXT_W }) > maxDescH
-    const descH = truncate ? maxDescH : doc.heightOfString(item.name, { width: DESC_TEXT_W })
+    const measuredDescH = doc.heightOfString(item.name, { width: DESC_TEXT_W })
+    const truncate = measuredDescH > maxDescH
+    const descH = truncate ? maxDescH : measuredDescH
     const rowH = Math.max(descH, lineH) + 2 * LAYOUT.cellPadY
 
     ensureSpace(doc, data, t, cur, rowH, { redrawTableHeader: true })
@@ -408,7 +431,7 @@ function drawItemsTable(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Transl
       align: 'right',
       lineBreak: false,
     })
-    doc.text(formatCents(item.unitPriceCents * item.quantity, invoice.locale), COLS.total.x, y, {
+    doc.text(formatCents(lineTotals[i]!, invoice.locale), COLS.total.x, y, {
       width: COLS.total.w,
       align: 'right',
       lineBreak: false,
