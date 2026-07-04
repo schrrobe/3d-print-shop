@@ -16,6 +16,8 @@ interface OrderView {
   status: OrderStatus
   subtotalCents: number
   shippingCents: number
+  discountCents: number
+  voucherCode: string | null
   totalCents: number
   carrier: string | null
   trackingNumber: string | null
@@ -82,6 +84,14 @@ async function checkBitcoin() {
           <PsPrice :cents="item.unitPriceCents * item.quantity" :locale="locale as Locale" />
         </li>
       </ul>
+      <div
+        v-if="order.discountCents > 0"
+        class="mt-md flex justify-between text-body-regular"
+        data-testid="order-discount"
+      >
+        <span class="text-secondary">{{ t('cart.voucherLabel', { code: order.voucherCode ?? '' }) }}</span>
+        <span class="text-brand">−<PsPrice :cents="order.discountCents" :locale="locale as Locale" size="sm" /></span>
+      </div>
       <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">
         <span>{{ t('cart.total') }}</span>
         <PsPrice :cents="order.totalCents" :locale="locale as Locale" />

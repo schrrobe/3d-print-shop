@@ -24,6 +24,7 @@ import { adminShipmentsRouter } from './routes/admin/shipments.js'
 import { adminSocialPostsRouter } from './routes/admin/social-posts.js'
 import { adminTicketsRouter } from './routes/admin/tickets.js'
 import { adminUsersRouter } from './routes/admin/users.js'
+import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { checkoutRouter } from './routes/public/checkout.js'
 import { colorsRouter } from './routes/public/colors.js'
 import { complaintsRouter } from './routes/public/complaints.js'
@@ -40,6 +41,7 @@ import { reviewsRouter } from './routes/public/reviews.js'
 import { socialMediaRouter } from './routes/public/social-media.js'
 import { ticketsRouter } from './routes/public/tickets.js'
 import { uploadsRouter } from './routes/public/uploads.js'
+import { vouchersRouter } from './routes/public/vouchers.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
 export function createApp(): Express {
@@ -68,6 +70,7 @@ export function createApp(): Express {
   app.use('/api/products', productsRouter)
   app.use('/api/colors', colorsRouter)
   app.use('/api/checkout', checkoutRouter)
+  app.use('/api/vouchers', vouchersRouter)
   app.use('/api/orders', ordersRouter)
   app.use('/api/upload-requests', uploadsRouter)
   app.use('/api/quotes', quotesRouter)
@@ -101,6 +104,7 @@ export function createApp(): Express {
   app.use('/api/admin/filament', requireAuth, adminFilamentRouter)
   app.use('/api/admin/shipments', requireAuth, adminShipmentsRouter)
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)
+  app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
 
   // Dev-only simulation endpoints (mock payments, email log)

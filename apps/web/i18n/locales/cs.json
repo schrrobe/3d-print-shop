@@ -58,7 +58,19 @@
     "checkout": "K pokladně",
     "updated": "Košík aktualizován",
     "saveChanges": "Uložit změny",
-    "edit": "Upravit"
+    "edit": "Upravit",
+    "voucherLabel": "Slevový kód ({code})",
+    "voucherPlaceholder": "Slevový kód",
+    "voucherApply": "Uplatnit",
+    "voucherRemove": "Odebrat",
+    "voucherReason": {
+      "not_found": "Slevový kód nebyl nalezen",
+      "inactive": "Tento kód není aktivní",
+      "not_yet_valid": "Tento kód zatím není platný",
+      "expired": "Platnost tohoto kódu vypršela",
+      "exhausted": "Tento kód už byl plně vyčerpán",
+      "min_order_not_met": "Minimální hodnota objednávky {amount} nebyla dosažena"
+    }
   },
   "checkout": {
     "title": "Pokladna",

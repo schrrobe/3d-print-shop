@@ -58,7 +58,19 @@
     "checkout": "Do kasy",
     "updated": "Koszyk zaktualizowany",
     "saveChanges": "Zapisz zmiany",
-    "edit": "Edytuj"
+    "edit": "Edytuj",
+    "voucherLabel": "Kupon ({code})",
+    "voucherPlaceholder": "Kod kuponu",
+    "voucherApply": "Zrealizuj",
+    "voucherRemove": "Usuń",
+    "voucherReason": {
+      "not_found": "Nie znaleziono kodu kuponu",
+      "inactive": "Ten kupon jest nieaktywny",
+      "not_yet_valid": "Ten kupon nie jest jeszcze ważny",
+      "expired": "Ten kupon wygasł",
+      "exhausted": "Ten kupon został już w pełni wykorzystany",
+      "min_order_not_met": "Nie osiągnięto minimalnej wartości zamówienia {amount}"
+    }
   },
   "checkout": {
     "title": "Kasa",

@@ -70,6 +70,7 @@ async function submit() {
         note: form.note || undefined,
         paymentMethod: paymentMethod.value,
         locale: locale.value,
+        voucherCode: cart.voucher?.code,
       },
     })
     cart.clear()
@@ -82,7 +83,16 @@ async function submit() {
       )
     }
   } catch (err) {
-    errorMessage.value = t('common.error')
+    // Stale voucher from localStorage (expired/exhausted meanwhile): drop it,
+    // show the specific message, let the customer resubmit without the code.
+    const rejection = (err as { data?: { details?: { voucherRejection?: string } } })?.data
+      ?.details?.voucherRejection
+    if (rejection && cart.voucher) {
+      cart.removeVoucher()
+      errorMessage.value = t(`cart.voucherReason.${rejection}`, { amount: '' })
+    } else {
+      errorMessage.value = t('common.error')
+    }
     console.error(err)
   } finally {
     submitting.value = false
@@ -150,6 +160,8 @@ const paymentOptions = computed(() => [
           :items="cart.items.map((i) => ({ name: i.name, quantity: i.quantity, unitPriceCents: i.unitPriceCents }))"
           :subtotal-cents="cart.totals.subtotalCents"
           :shipping-cents="cart.totals.shippingCents"
+          :discount-cents="cart.totals.discountCents"
+          :discount-label="cart.voucher ? t('cart.voucherLabel', { code: cart.voucher.code }) : undefined"
           :total-cents="cart.totals.totalCents"
           :free-shipping-applied="cart.totals.freeShippingApplied"
           :locale="locale as Locale"

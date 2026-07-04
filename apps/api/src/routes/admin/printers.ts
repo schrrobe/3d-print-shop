@@ -89,8 +89,11 @@ adminPrintersRouter.post('/:id/spools', requirePermission('printers:write'), asy
     const input = spoolSchema.parse(req.body)
     const printer = await prisma.printer.findUnique({ where: { id: String(req.params.id) } })
     if (!printer) throw notFound('Printer not found')
+    // Since the filament refactor spools live independently of printers;
+    // AMS slot assignment is modeled via AmsSlot, not on the spool itself.
+    const { amsSlot: _amsSlot, ...spoolData } = input
     const spool = await prisma.filamentSpool.create({
-      data: { ...input, printerId: printer.id },
+      data: spoolData,
       include: { color: true },
     })
     await audit(req, 'printer.spool.create', { type: 'printer', id: printer.id }, input)

@@ -58,7 +58,19 @@
     "checkout": "Afrekenen",
     "updated": "Winkelwagen bijgewerkt",
     "saveChanges": "Wijzigingen opslaan",
-    "edit": "Bewerken"
+    "edit": "Bewerken",
+    "voucherLabel": "Kortingscode ({code})",
+    "voucherPlaceholder": "Kortingscode",
+    "voucherApply": "Inwisselen",
+    "voucherRemove": "Verwijderen",
+    "voucherReason": {
+      "not_found": "Kortingscode niet gevonden",
+      "inactive": "Deze kortingscode is niet actief",
+      "not_yet_valid": "Deze kortingscode is nog niet geldig",
+      "expired": "Deze kortingscode is verlopen",
+      "exhausted": "Deze kortingscode is al volledig gebruikt",
+      "min_order_not_met": "Minimale bestelwaarde {amount} niet bereikt"
+    }
   },
   "checkout": {
     "title": "Afrekenen",

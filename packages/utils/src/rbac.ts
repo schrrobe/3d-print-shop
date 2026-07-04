@@ -41,6 +41,8 @@ export const PERMISSIONS = [
   'shipments:write',
   'reviews:read',
   'reviews:moderate',
+  'vouchers:read',
+  'vouchers:write',
 ] as const
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -56,6 +58,7 @@ export type Permission = (typeof PERMISSIONS)[number]
  * Filament/AMS: production manages stock, product_manager reads.
  * Shipments: shipping owns the flow, production/support read.
  * Reviews: product_manager & support moderate.
+ * Vouchers: only admin manages (vouchers:write), support reads for order questions.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   admin: PERMISSIONS,
@@ -111,6 +114,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'shipments:read',
     'reviews:read',
     'reviews:moderate',
+    'vouchers:read',
   ],
 }
 

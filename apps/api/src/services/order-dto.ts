@@ -20,6 +20,8 @@ export function publicOrderDto(order: OrderForDto) {
     createdAt: order.createdAt,
     subtotalCents: order.subtotalCents,
     shippingCents: order.shippingCents,
+    discountCents: order.discountCents,
+    voucherCode: order.voucherCode,
     totalCents: order.totalCents,
     carrier: order.carrier,
     trackingNumber: order.trackingNumber,
