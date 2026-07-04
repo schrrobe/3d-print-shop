@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MediaOption, SocialEditorValue } from '@print-shop/ui'
+import type { AdminSocialPost } from '~/composables/useAdminSocialPosts'
 import { canEditSocialPost } from '@print-shop/utils'
 import {
   PsButton,
@@ -199,7 +200,8 @@ async function deletePost() {
         class="mb-md rounded-card border border-subtle bg-surface-elevated p-md text-body-regular text-secondary"
         data-testid="social-readonly-notice"
       >
-        Dieser Post ist {{ post.status === 'published' ? 'veröffentlicht' : `im Status „${post.status}"` }}
+        Dieser Post ist
+        {{ post.status === 'published' ? 'veröffentlicht' : `im Status „${post.status}"` }}
         und kann nicht mehr bearbeitet oder gelöscht werden.
       </p>
       <PsSocialPostPreview
@@ -220,7 +222,12 @@ async function deletePost() {
     >
       <div class="flex justify-end gap-sm">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>
-        <PsButton variant="danger" :disabled="busy" data-testid="social-detail-delete-confirm" @click="deletePost">
+        <PsButton
+          variant="danger"
+          :disabled="busy"
+          data-testid="social-detail-delete-confirm"
+          @click="deletePost"
+        >
           Löschen
         </PsButton>
       </div>

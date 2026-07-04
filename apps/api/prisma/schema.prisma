@@ -264,11 +264,11 @@ model User {
   ticketMessages  TicketMessage[]      @relation("TicketMessageAuthor")
   socialPosts     SocialMediaPost[]    @relation("SocialPostAuthor")
 
-  complaintDecisions ComplaintDecision[]  @relation("ComplaintDecider")
-  qcApprovals        QcRecord[]           @relation("QcApprover")
-  moderatedReviews   Review[]             @relation("ReviewModerator")
-  maintenanceWindows MaintenanceWindow[]  @relation("MaintenanceAuthor")
-  shipments          Shipment[]           @relation("ShipmentAuthor")
+  complaintDecisions ComplaintDecision[]   @relation("ComplaintDecider")
+  qcApprovals        QcRecord[]            @relation("QcApprover")
+  moderatedReviews   Review[]              @relation("ReviewModerator")
+  maintenanceWindows MaintenanceWindow[]   @relation("MaintenanceAuthor")
+  shipments          Shipment[]            @relation("ShipmentAuthor")
   shipmentEvents     ShipmentStatusEvent[] @relation("ShipmentEventActor")
 }
 
@@ -354,14 +354,14 @@ model ProductColorSlot {
 }
 
 model Color {
-  id           String  @id @default(cuid())
-  name         String  @unique
-  hex          String
-  material     String
-  manufacturer String
-  active       Boolean @default(true)
-  stockGrams   Int?
-  amsSlot      Int?
+  id            String  @id @default(cuid())
+  name          String  @unique
+  hex           String
+  material      String
+  manufacturer  String
+  active        Boolean @default(true)
+  stockGrams    Int?
+  amsSlot       Int?
   /// Mindestbestand über alle Spulen dieser Farbe (Gramm); unterschritten → Warnung/Einkaufsliste
   minStockGrams Int?
   /// „Aktuell nicht verfügbar": bleibt im Shop sichtbar, aber nicht wählbar (active=false versteckt komplett)
@@ -547,7 +547,6 @@ model Printer {
   updatedAt DateTime      @updatedAt
 
   jobs               PrinterJob[]
-  spools             FilamentSpool[]
   amsUnits           AmsUnit[]
   maintenanceWindows MaintenanceWindow[]
 }
@@ -580,29 +579,24 @@ model PrinterJob {
 }
 
 model FilamentSpool {
-  id             String   @id @default(cuid())
-  /// deprecated: Zuordnung läuft künftig über AmsSlot.spoolId (Multi-Unit-fähig)
-  printerId      String?
-  printer        Printer? @relation(fields: [printerId], references: [id])
-  /// deprecated: siehe AmsSlot
-  amsSlot        Int?
-  colorId        String?
-  color          Color?   @relation(fields: [colorId], references: [id])
-  material       String
-  manufacturer   String?
+  id                String   @id @default(cuid())
+  colorId           String?
+  color             Color?   @relation(fields: [colorId], references: [id])
+  material          String
+  manufacturer      String?
   /// Anzeigename / Charge, z. B. "PLA Matte Schwarz #2"
-  label          String?
-  totalGrams     Int?
-  remainingGrams Int?
+  label             String?
+  totalGrams        Int?
+  remainingGrams    Int?
   /// Mindestbestand dieser Spule (Gramm); unterschritten → Warnung
   minRemainingGrams Int?
   storageLocation   String?
-  active            Boolean @default(true)
+  active            Boolean  @default(true)
   /// Nachbestellen-Flag → erscheint auf der Einkaufsliste
-  reorder           Boolean @default(false)
-  notes          String?
-  updatedAt      DateTime @updatedAt
-  createdAt      DateTime @default(now())
+  reorder           Boolean  @default(false)
+  notes             String?
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
 
   amsSlotAssignment AmsSlot?
 }
@@ -624,17 +618,17 @@ model AmsUnit {
 }
 
 model AmsSlot {
-  id        String        @id @default(cuid())
+  id        String         @id @default(cuid())
   amsUnitId String
-  amsUnit   AmsUnit       @relation(fields: [amsUnitId], references: [id], onDelete: Cascade)
+  amsUnit   AmsUnit        @relation(fields: [amsUnitId], references: [id], onDelete: Cascade)
   /// Slot-Nummer innerhalb der Unit (1–4)
   slotIndex Int
-  status    AmsSlotStatus @default(empty)
+  status    AmsSlotStatus  @default(empty)
   /// Eine Spule kann nur in genau einem Slot stecken
-  spoolId   String?       @unique
+  spoolId   String?        @unique
   spool     FilamentSpool? @relation(fields: [spoolId], references: [id])
   notes     String?
-  updatedAt DateTime      @updatedAt
+  updatedAt DateTime       @updatedAt
 
   @@unique([amsUnitId, slotIndex])
 }
@@ -815,10 +809,10 @@ model ConsentLog {
 /// Idempotenz beim Publishing: Status-CAS (updateMany auf status=scheduled),
 /// lockUntil gegen parallele Worker, publishRequestId pro Versuch.
 model SocialMediaPost {
-  id       String           @id @default(cuid())
-  platform SocialPlatform
-  status   SocialPostStatus @default(draft)
-  caption  String
+  id        String           @id @default(cuid())
+  platform  SocialPlatform
+  status    SocialPostStatus @default(draft)
+  caption   String
   /// Bild-URLs (Produkt-Assets oder hochgeladene Medien), app-relativ oder absolut
   mediaUrls String[]
 
@@ -829,17 +823,17 @@ model SocialMediaPost {
   scheduledAt DateTime?
   publishedAt DateTime?
 
-  errorMessage   String?
+  errorMessage     String?
   /// ID des Posts auf der Zielplattform (Graph API)
-  externalPostId String?
+  externalPostId   String?
   /// Publisher, der den Post veröffentlicht (mock | meta)
-  provider       String    @default("mock")
-  attempts       Int       @default(0)
-  lastAttemptAt  DateTime?
+  provider         String    @default("mock")
+  attempts         Int       @default(0)
+  lastAttemptAt    DateTime?
   /// Worker-Lock: solange in der Zukunft, darf kein anderer Worker den Post anfassen
-  lockUntil      DateTime?
+  lockUntil        DateTime?
   /// Eindeutige ID des laufenden Publish-Versuchs (Idempotenz-Nachweis)
-  publishRequestId String? @unique
+  publishRequestId String?   @unique
   metadata         Json?
 
   createdById String?

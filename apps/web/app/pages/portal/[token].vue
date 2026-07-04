@@ -24,12 +24,18 @@ const { orders, quotes, configurations, email, loading, errorKind, load, downloa
 
 const renewEmail = ref('')
 const renewSubmitted = ref(false)
+const renewFailed = ref(false)
 
 onMounted(load)
 
 async function renew() {
-  await requestPortalLink({ email: renewEmail.value || email.value || '', locale: locale.value })
-  renewSubmitted.value = true
+  renewFailed.value = false
+  try {
+    await requestPortalLink({ email: renewEmail.value || email.value || '', locale: locale.value })
+    renewSubmitted.value = true
+  } catch {
+    renewFailed.value = true
+  }
 }
 
 function productionLabel(order: (typeof orders.value)[number]): string {
@@ -54,7 +60,11 @@ function productionLabel(order: (typeof orders.value)[number]): string {
       <PsCard v-else-if="errorKind === 'expired'" class="mt-xl" data-testid="portal-expired">
         <h2 class="text-label-medium">{{ t('portal.expired.title') }}</h2>
         <p class="mt-md text-body-regular text-secondary">{{ t('portal.expired.intro') }}</p>
-        <div v-if="renewSubmitted" class="mt-md text-body-regular" data-testid="portal-renew-confirmation">
+        <div
+          v-if="renewSubmitted"
+          class="mt-md text-body-regular"
+          data-testid="portal-renew-confirmation"
+        >
           {{ t('portal.request.confirmation') }}
         </div>
         <form v-else class="mt-md flex flex-col gap-md" @submit.prevent="renew">
@@ -66,13 +76,21 @@ function productionLabel(order: (typeof orders.value)[number]): string {
             :placeholder="email ?? ''"
             data-testid="portal-renew-email"
           />
-          <PsButton type="submit" data-testid="portal-renew-submit">{{ t('portal.expired.renew') }}</PsButton>
+          <PsButton type="submit" data-testid="portal-renew-submit">{{
+            t('portal.expired.renew')
+          }}</PsButton>
+          <p v-if="renewFailed" class="text-caption text-danger" data-testid="portal-renew-error">
+            {{ t('portal.request.error') }}
+          </p>
         </form>
       </PsCard>
 
       <PsCard v-else-if="errorKind" class="mt-xl" data-testid="portal-invalid">
         <p class="text-body-regular">{{ t('portal.invalid') }}</p>
-        <NuxtLink :to="`/${locale === 'de' ? '' : locale + '/'}portal`" class="mt-md block text-brand hover:underline">
+        <NuxtLink
+          :to="`/${locale === 'de' ? '' : locale + '/'}portal`"
+          class="mt-md block text-brand hover:underline"
+        >
           {{ t('portal.requestNew') }}
         </NuxtLink>
       </PsCard>
@@ -98,7 +116,9 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                   :label="t(`order.statuses.${order.status}`)"
                 />
               </div>
-              <div class="mt-md flex flex-wrap items-center justify-between gap-md text-body-regular">
+              <div
+                class="mt-md flex flex-wrap items-center justify-between gap-md text-body-regular"
+              >
                 <span class="text-secondary">{{ productionLabel(order) }}</span>
                 <PsPrice :cents="order.totalCents" :locale="locale as Locale" size="sm" />
               </div>
@@ -111,10 +131,14 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                 <span class="font-mono">{{ order.trackingNumber }}</span>
               </p>
               <div class="mt-md flex flex-wrap gap-sm">
-                <a :href="order.orderUrl" target="_blank" rel="noopener">
-                  <PsButton variant="secondary" size="sm" data-testid="portal-order-details">
-                    {{ t('portal.actions.details') }}
-                  </PsButton>
+                <a
+                  :href="order.orderUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex h-9 items-center justify-center rounded-button border border-subtle px-md text-label-small font-medium text-primary hover:bg-surface-muted"
+                  data-testid="portal-order-details"
+                >
+                  {{ t('portal.actions.details') }}
                 </a>
                 <PsButton
                   v-if="order.invoiceAvailable"
@@ -125,10 +149,12 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                 >
                   {{ t('portal.actions.invoice') }}
                 </PsButton>
-                <NuxtLink :to="`/complaint/new?order=${order.orderNumber}&token=${order.accessToken}`">
-                  <PsButton variant="ghost" size="sm" data-testid="portal-order-complaint">
-                    {{ t('portal.actions.complaint') }}
-                  </PsButton>
+                <NuxtLink
+                  :to="`/complaint/new?order=${order.orderNumber}&token=${order.accessToken}`"
+                  class="inline-flex h-9 items-center justify-center rounded-button px-md text-label-small font-medium text-primary hover:bg-surface-muted"
+                  data-testid="portal-order-complaint"
+                >
+                  {{ t('portal.actions.complaint') }}
                 </NuxtLink>
               </div>
               <div v-if="order.complaints.length" class="mt-md text-caption text-secondary">

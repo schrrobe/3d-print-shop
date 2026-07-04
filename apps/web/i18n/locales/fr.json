@@ -272,6 +272,7 @@
       "orderNumber": "Numéro de commande (facultatif)",
       "submit": "Demander le lien d'accès",
       "confirmation": "Si des commandes existent pour cette adresse, nous avons envoyé un lien d'accès.",
+      "error": "Impossible de demander le lien d'accès. Veuillez réessayer.",
       "privacy": "Le lien est valable 30 jours et n'est envoyé qu'à l'adresse indiquée."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Avis",
     "empty": "Aucun avis pour le moment.",
     "count": "{count} avis",
-    "ratingLabel": "{rating} sur 5 étoiles"
+    "ratingLabel": "{rating} sur 5 étoiles",
+    "photoAlt": "Photo d'avis de {name}"
   }
 }

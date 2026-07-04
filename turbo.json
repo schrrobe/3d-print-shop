@@ -6,6 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".output/**", ".nuxt/**"]
     },
+    "@print-shop/api#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "lint": {},
     "typecheck": {},
     "test": {},

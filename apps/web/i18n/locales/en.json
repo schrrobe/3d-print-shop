@@ -272,6 +272,7 @@
       "orderNumber": "Order number (optional)",
       "submit": "Request access link",
       "confirmation": "If orders exist for this email, we have sent an access link.",
+      "error": "The access link could not be requested. Please try again.",
       "privacy": "The link is valid for 30 days and is only sent to the address provided."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Reviews",
     "empty": "No reviews yet.",
     "count": "{count} reviews",
-    "ratingLabel": "{rating} out of 5 stars"
+    "ratingLabel": "{rating} out of 5 stars",
+    "photoAlt": "Review photo by {name}"
   }
 }

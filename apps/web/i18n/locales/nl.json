@@ -272,6 +272,7 @@
       "orderNumber": "Bestelnummer (optioneel)",
       "submit": "Toegangslink aanvragen",
       "confirmation": "Als er bestellingen bestaan voor dit e-mailadres, hebben we een toegangslink verstuurd.",
+      "error": "De toegangslink kon niet worden aangevraagd. Probeer het opnieuw.",
       "privacy": "De link is 30 dagen geldig en wordt alleen naar het opgegeven adres gestuurd."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Beoordelingen",
     "empty": "Nog geen beoordelingen.",
     "count": "{count} beoordelingen",
-    "ratingLabel": "{rating} van de 5 sterren"
+    "ratingLabel": "{rating} van de 5 sterren",
+    "photoAlt": "Reviewfoto van {name}"
   }
 }

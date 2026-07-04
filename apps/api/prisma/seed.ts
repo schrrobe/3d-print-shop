@@ -64,14 +64,67 @@ async function seedUsers() {
 
 async function seedColors() {
   const colors = [
-    { name: 'Brand Green', hex: '#31a871', material: 'PLA', manufacturer: 'Bambu Lab', amsSlot: 1, stockGrams: 800 },
-    { name: 'Deep Black', hex: '#171717', material: 'PLA', manufacturer: 'Bambu Lab', amsSlot: 2, stockGrams: 950 },
-    { name: 'Warm White', hex: '#f6f3ec', material: 'PLA', manufacturer: 'Bambu Lab', amsSlot: 3, stockGrams: 620 },
-    { name: 'Signal Red', hex: '#d23f31', material: 'PLA', manufacturer: 'Polymaker', amsSlot: 4, stockGrams: 400 },
-    { name: 'Ocean Blue', hex: '#1f6fb2', material: 'PETG', manufacturer: 'Prusament', stockGrams: 700 },
-    { name: 'Sun Yellow', hex: '#e8b71a', material: 'PLA', manufacturer: 'Polymaker', stockGrams: 300 },
-    { name: 'Slate Grey', hex: '#5e5e5e', material: 'PETG', manufacturer: 'Prusament', stockGrams: 550 },
-    { name: 'Neon Orange (ausverkauft)', hex: '#ff6a00', material: 'PLA', manufacturer: 'Polymaker', active: false, stockGrams: 0 },
+    {
+      name: 'Brand Green',
+      hex: '#31a871',
+      material: 'PLA',
+      manufacturer: 'Bambu Lab',
+      amsSlot: 1,
+      stockGrams: 800,
+    },
+    {
+      name: 'Deep Black',
+      hex: '#171717',
+      material: 'PLA',
+      manufacturer: 'Bambu Lab',
+      amsSlot: 2,
+      stockGrams: 950,
+    },
+    {
+      name: 'Warm White',
+      hex: '#f6f3ec',
+      material: 'PLA',
+      manufacturer: 'Bambu Lab',
+      amsSlot: 3,
+      stockGrams: 620,
+    },
+    {
+      name: 'Signal Red',
+      hex: '#d23f31',
+      material: 'PLA',
+      manufacturer: 'Polymaker',
+      amsSlot: 4,
+      stockGrams: 400,
+    },
+    {
+      name: 'Ocean Blue',
+      hex: '#1f6fb2',
+      material: 'PETG',
+      manufacturer: 'Prusament',
+      stockGrams: 700,
+    },
+    {
+      name: 'Sun Yellow',
+      hex: '#e8b71a',
+      material: 'PLA',
+      manufacturer: 'Polymaker',
+      stockGrams: 300,
+    },
+    {
+      name: 'Slate Grey',
+      hex: '#5e5e5e',
+      material: 'PETG',
+      manufacturer: 'Prusament',
+      stockGrams: 550,
+    },
+    {
+      name: 'Neon Orange (ausverkauft)',
+      hex: '#ff6a00',
+      material: 'PLA',
+      manufacturer: 'Polymaker',
+      active: false,
+      stockGrams: 0,
+    },
   ]
   for (const color of colors) {
     await prisma.color.upsert({ where: { name: color.name }, create: color, update: color })
@@ -83,19 +136,29 @@ interface SeedProduct {
   priceCents: number
   de: { name: string; description: string }
   en: { name: string; description: string }
-  slots: { slot: 'zone_1_main' | 'zone_2_accent' | 'zone_3_detail' | 'zone_4_text'; label: string; defaultColor: string }[]
+  slots: {
+    slot: 'zone_1_main' | 'zone_2_accent' | 'zone_3_detail' | 'zone_4_text'
+    label: string
+    defaultColor: string
+  }[]
 }
 
 async function seedProducts() {
-  const colorIds = new Map(
-    (await prisma.color.findMany()).map((c) => [c.name, c.id]),
-  )
+  const colorIds = new Map((await prisma.color.findMany()).map((c) => [c.name, c.id]))
   const products: SeedProduct[] = [
     {
       slug: 'spiral-vase',
       priceCents: 2499,
-      de: { name: 'Spiralvase', description: 'Elegante Spiralvase im Vasenmodus gedruckt — wasserdicht versiegelt, perfekt für Trockenblumen.' },
-      en: { name: 'Spiral Vase', description: 'Elegant spiral vase printed in vase mode — sealed watertight, perfect for dried flowers.' },
+      de: {
+        name: 'Spiralvase',
+        description:
+          'Elegante Spiralvase im Vasenmodus gedruckt — wasserdicht versiegelt, perfekt für Trockenblumen.',
+      },
+      en: {
+        name: 'Spiral Vase',
+        description:
+          'Elegant spiral vase printed in vase mode — sealed watertight, perfect for dried flowers.',
+      },
       slots: [
         { slot: 'zone_1_main', label: 'Korpus', defaultColor: 'Brand Green' },
         { slot: 'zone_2_accent', label: 'Sockel', defaultColor: 'Deep Black' },
@@ -104,8 +167,16 @@ async function seedProducts() {
     {
       slug: 'desk-organizer',
       priceCents: 3999,
-      de: { name: 'Schreibtisch-Organizer', description: 'Modularer Organizer mit Stiftehalter, Kartenfach und Handy-Ablage. In vier Farbzonen individualisierbar.' },
-      en: { name: 'Desk Organizer', description: 'Modular organizer with pen holder, card slot and phone stand. Customizable in four color zones.' },
+      de: {
+        name: 'Schreibtisch-Organizer',
+        description:
+          'Modularer Organizer mit Stiftehalter, Kartenfach und Handy-Ablage. In vier Farbzonen individualisierbar.',
+      },
+      en: {
+        name: 'Desk Organizer',
+        description:
+          'Modular organizer with pen holder, card slot and phone stand. Customizable in four color zones.',
+      },
       slots: [
         { slot: 'zone_1_main', label: 'Basis', defaultColor: 'Deep Black' },
         { slot: 'zone_2_accent', label: 'Einsätze', defaultColor: 'Brand Green' },
@@ -116,8 +187,16 @@ async function seedProducts() {
     {
       slug: 'planetary-gear-toy',
       priceCents: 1899,
-      de: { name: 'Planetengetriebe-Fidget', description: 'Voll funktionsfähiges Planetengetriebe zum Spielen — print-in-place, sofort beweglich.' },
-      en: { name: 'Planetary Gear Fidget', description: 'Fully functional planetary gear fidget — print-in-place, moving right off the bed.' },
+      de: {
+        name: 'Planetengetriebe-Fidget',
+        description:
+          'Voll funktionsfähiges Planetengetriebe zum Spielen — print-in-place, sofort beweglich.',
+      },
+      en: {
+        name: 'Planetary Gear Fidget',
+        description:
+          'Fully functional planetary gear fidget — print-in-place, moving right off the bed.',
+      },
       slots: [
         { slot: 'zone_1_main', label: 'Gehäuse', defaultColor: 'Slate Grey' },
         { slot: 'zone_2_accent', label: 'Zahnräder', defaultColor: 'Signal Red' },
@@ -127,16 +206,34 @@ async function seedProducts() {
     {
       slug: 'wall-hook-set',
       priceCents: 1299,
-      de: { name: 'Wandhaken-Set (3 Stück)', description: 'Belastbare Wandhaken mit verdeckter Verschraubung, bis 5 kg pro Haken.' },
-      en: { name: 'Wall Hook Set (3 pcs)', description: 'Sturdy wall hooks with hidden screw mount, up to 5 kg per hook.' },
+      de: {
+        name: 'Wandhaken-Set (3 Stück)',
+        description: 'Belastbare Wandhaken mit verdeckter Verschraubung, bis 5 kg pro Haken.',
+      },
+      en: {
+        name: 'Wall Hook Set (3 pcs)',
+        description: 'Sturdy wall hooks with hidden screw mount, up to 5 kg per hook.',
+      },
       slots: [{ slot: 'zone_1_main', label: 'Haken', defaultColor: 'Warm White' }],
     },
   ]
 
   for (const p of products) {
     const translations = [
-      { locale: 'de' as const, name: p.de.name, description: p.de.description, seoTitle: `${p.de.name} — 3D-Druck`, seoDescription: p.de.description.slice(0, 160) },
-      { locale: 'en' as const, name: p.en.name, description: p.en.description, seoTitle: `${p.en.name} — 3D print`, seoDescription: p.en.description.slice(0, 160) },
+      {
+        locale: 'de' as const,
+        name: p.de.name,
+        description: p.de.description,
+        seoTitle: `${p.de.name} — 3D-Druck`,
+        seoDescription: p.de.description.slice(0, 160),
+      },
+      {
+        locale: 'en' as const,
+        name: p.en.name,
+        description: p.en.description,
+        seoTitle: `${p.en.name} — 3D print`,
+        seoDescription: p.en.description.slice(0, 160),
+      },
     ]
     const colorSlots = p.slots.map((s) => ({
       slot: s.slot,
@@ -144,7 +241,12 @@ async function seedProducts() {
       defaultColorId: colorIds.get(s.defaultColor) ?? null,
     }))
     const assets = [
-      { type: 'image' as const, url: `/images/products/${p.slug}.svg`, alt: p.en.name, sortOrder: 0 },
+      {
+        type: 'image' as const,
+        url: `/images/products/${p.slug}.svg`,
+        alt: p.en.name,
+        sortOrder: 0,
+      },
       { type: 'glb_preview' as const, url: `/models/${p.slug}.glb`, alt: null, sortOrder: 1 },
     ]
 
@@ -171,8 +273,18 @@ async function seedProducts() {
 
 async function seedPrinters() {
   const printers = [
-    { name: 'Bambu Lab X1C #1', model: 'Bambu Lab X1 Carbon + AMS 2 Pro', status: 'idle' as const, notes: 'Hauptdrucker, AMS 2 Pro mit 4 Slots' },
-    { name: 'Bambu Lab A1 #2', model: 'Bambu Lab A1', status: 'maintenance' as const, notes: 'Düse 0.4 verstopft — Wartung geplant' },
+    {
+      name: 'Bambu Lab X1C #1',
+      model: 'Bambu Lab X1 Carbon + AMS 2 Pro',
+      status: 'idle' as const,
+      notes: 'Hauptdrucker, AMS 2 Pro mit 4 Slots',
+    },
+    {
+      name: 'Bambu Lab A1 #2',
+      model: 'Bambu Lab A1',
+      status: 'maintenance' as const,
+      notes: 'Düse 0.4 verstopft — Wartung geplant',
+    },
   ]
   for (const p of printers) {
     await prisma.printer.upsert({ where: { name: p.name }, create: p, update: {} })
@@ -180,13 +292,11 @@ async function seedPrinters() {
 
   const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
   const colors = await prisma.color.findMany({ where: { amsSlot: { not: null } } })
-  const existingSpools = await prisma.filamentSpool.count({ where: { printerId: x1c.id } })
+  const existingSpools = await prisma.filamentSpool.count()
   if (existingSpools === 0) {
     for (const color of colors) {
       await prisma.filamentSpool.create({
         data: {
-          printerId: x1c.id,
-          amsSlot: color.amsSlot,
           colorId: color.id,
           material: color.material,
           remainingGrams: color.stockGrams,
@@ -271,7 +381,12 @@ async function seedOrders() {
       },
       payments: {
         create: [
-          { method: 'bank_transfer', status: 'pending', amountCents: 4698, reference: 'PS-2026-00000002' },
+          {
+            method: 'bank_transfer',
+            status: 'pending',
+            amountCents: 4698,
+            reference: 'PS-2026-00000002',
+          },
         ],
       },
     },
@@ -313,7 +428,6 @@ async function seedOrders() {
       },
     },
   })
-
 }
 
 // 4: shipped order for kunde1 (portal, reviews, complaints — 4 items, one stays unreviewed for e2e)
@@ -347,14 +461,45 @@ async function seedPortalOrder() {
       shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       items: {
         create: [
-          { productId: vase.id, name: 'Spiralvase', quantity: 1, unitPriceCents: 2499, colorSelection: { zone_1_main: vase.colorSlots[0]?.defaultColorId ?? '' } },
-          { productId: organizer.id, name: 'Schreibtisch-Organizer', quantity: 1, unitPriceCents: 3999, colorSelection: {} },
-          { productId: gear.id, name: 'Planetengetriebe-Fidget', quantity: 1, unitPriceCents: 1899, colorSelection: {} },
-          { productId: hooks.id, name: 'Wandhaken-Set (3 Stück)', quantity: 1, unitPriceCents: 1299, colorSelection: {} },
+          {
+            productId: vase.id,
+            name: 'Spiralvase',
+            quantity: 1,
+            unitPriceCents: 2499,
+            colorSelection: { zone_1_main: vase.colorSlots[0]?.defaultColorId ?? '' },
+          },
+          {
+            productId: organizer.id,
+            name: 'Schreibtisch-Organizer',
+            quantity: 1,
+            unitPriceCents: 3999,
+            colorSelection: {},
+          },
+          {
+            productId: gear.id,
+            name: 'Planetengetriebe-Fidget',
+            quantity: 1,
+            unitPriceCents: 1899,
+            colorSelection: {},
+          },
+          {
+            productId: hooks.id,
+            name: 'Wandhaken-Set (3 Stück)',
+            quantity: 1,
+            unitPriceCents: 1299,
+            colorSelection: {},
+          },
         ],
       },
       payments: {
-        create: [{ method: 'stripe', status: 'paid', amountCents: 10395, paidAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) }],
+        create: [
+          {
+            method: 'stripe',
+            status: 'paid',
+            amountCents: 10395,
+            paidAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          },
+        ],
       },
     },
   })
@@ -387,7 +532,8 @@ async function seedQuoteRequest() {
     data: {
       name: 'Sam Sample',
       email: 'sam@example.com',
-      description: 'Ersatzteil für eine Küchenmaschine, Material sollte lebensmittelecht sein (PETG).',
+      description:
+        'Ersatzteil für eine Küchenmaschine, Material sollte lebensmittelecht sein (PETG).',
       quantity: 2,
       locale: 'de',
       status: 'new',
@@ -560,11 +706,12 @@ async function seedFilamentAms() {
 
   if ((await prisma.amsUnit.count()) > 0) return
   const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
-  const spools = await prisma.filamentSpool.findMany({
-    where: { printerId: x1c.id },
-    orderBy: { amsSlot: 'asc' },
-    include: { color: true },
-  })
+  const spools = (
+    await prisma.filamentSpool.findMany({
+      where: { color: { amsSlot: { not: null } } },
+      include: { color: true },
+    })
+  ).sort((a, b) => (a.color?.amsSlot ?? 0) - (b.color?.amsSlot ?? 0))
   // Bestandsspulen mit Stammdaten anreichern (1× unter Minimum, 1× Nachbestellen)
   for (const [i, spool] of spools.entries()) {
     await prisma.filamentSpool.update({
@@ -598,7 +745,9 @@ async function seedProductionSchedule() {
   if ((await prisma.maintenanceWindow.count()) > 0) return
   const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
   const a1 = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab A1 #2' } })
-  const job = await prisma.printerJob.findFirst({ where: { printerId: x1c.id, status: 'printing' } })
+  const job = await prisma.printerJob.findFirst({
+    where: { printerId: x1c.id, status: 'printing' },
+  })
   if (job) {
     const start = new Date()
     await prisma.printerJob.update({
@@ -691,10 +840,31 @@ async function seedQcAndShipments() {
   })
   await prisma.shipmentStatusEvent.createMany({
     data: [
-      { shipmentId: shipment1.id, fromStatus: null, toStatus: 'waiting_for_qc', byUserId: admin.id },
-      { shipmentId: shipment1.id, fromStatus: 'waiting_for_qc', toStatus: 'ready_for_shipping', byUserId: admin.id },
-      { shipmentId: shipment1.id, fromStatus: 'ready_for_shipping', toStatus: 'packed', byUserId: admin.id },
-      { shipmentId: shipment1.id, fromStatus: 'packed', toStatus: 'shipped', byUserId: admin.id, note: 'Hermes-Abholung' },
+      {
+        shipmentId: shipment1.id,
+        fromStatus: null,
+        toStatus: 'waiting_for_qc',
+        byUserId: admin.id,
+      },
+      {
+        shipmentId: shipment1.id,
+        fromStatus: 'waiting_for_qc',
+        toStatus: 'ready_for_shipping',
+        byUserId: admin.id,
+      },
+      {
+        shipmentId: shipment1.id,
+        fromStatus: 'ready_for_shipping',
+        toStatus: 'packed',
+        byUserId: admin.id,
+      },
+      {
+        shipmentId: shipment1.id,
+        fromStatus: 'packed',
+        toStatus: 'shipped',
+        byUserId: admin.id,
+        note: 'Hermes-Abholung',
+      },
     ],
   })
   const shipment2 = await prisma.shipment.create({
@@ -707,7 +877,12 @@ async function seedQcAndShipments() {
     },
   })
   await prisma.shipmentStatusEvent.create({
-    data: { shipmentId: shipment2.id, fromStatus: null, toStatus: 'waiting_for_qc', byUserId: admin.id },
+    data: {
+      shipmentId: shipment2.id,
+      fromStatus: null,
+      toStatus: 'waiting_for_qc',
+      byUserId: admin.id,
+    },
   })
   await prisma.shipmentCounter.upsert({
     where: { year: 2026 },

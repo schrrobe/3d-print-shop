@@ -12,12 +12,20 @@ const email = ref('')
 const orderNumber = ref('')
 const submitting = ref(false)
 const submitted = ref(false)
+const requestFailed = ref(false)
 
 async function submit() {
   submitting.value = true
+  requestFailed.value = false
   try {
-    await requestPortalLink({ email: email.value, orderNumber: orderNumber.value, locale: locale.value })
+    await requestPortalLink({
+      email: email.value,
+      orderNumber: orderNumber.value,
+      locale: locale.value,
+    })
     submitted.value = true
+  } catch {
+    requestFailed.value = true
   } finally {
     submitting.value = false
   }
@@ -53,9 +61,16 @@ async function submit() {
           name="orderNumber"
           data-testid="portal-request-order"
         />
-        <PsButton type="submit" :disabled="submitting || !email" data-testid="portal-request-submit">
+        <PsButton
+          type="submit"
+          :disabled="submitting || !email"
+          data-testid="portal-request-submit"
+        >
           {{ t('portal.request.submit') }}
         </PsButton>
+        <p v-if="requestFailed" class="text-caption text-danger" data-testid="portal-request-error">
+          {{ t('portal.request.error') }}
+        </p>
         <p class="text-caption text-secondary">{{ t('portal.request.privacy') }}</p>
       </form>
     </div>

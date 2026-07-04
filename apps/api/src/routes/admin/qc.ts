@@ -1,11 +1,21 @@
 import path from 'node:path'
+import { Prisma } from '@prisma/client'
 import { renderAdminNotification } from '@print-shop/emails'
 import { assertProductionTransition, assertQcTransition } from '@print-shop/utils'
-import { qcChecklistSchema, qcCreateSchema, qcOverrideSchema, qcStatusSchema } from '@print-shop/validators'
+import {
+  qcChecklistSchema,
+  qcCreateSchema,
+  qcOverrideSchema,
+  qcStatusSchema,
+} from '@print-shop/validators'
 import { Router } from 'express'
 import { env } from '../../env.js'
 import { audit } from '../../lib/audit.js'
-import { createImageUpload } from '../../lib/image-upload.js'
+import {
+  cleanupUploadedFiles,
+  createImageUpload,
+  validateUploadedImages,
+} from '../../lib/image-upload.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
@@ -24,7 +34,15 @@ const qcInclude = {
     },
   },
   approvedBy: { select: { name: true, email: true } },
-  attachments: true,
+  attachments: {
+    select: {
+      id: true,
+      originalName: true,
+      mimeType: true,
+      sizeBytes: true,
+      createdAt: true,
+    },
+  },
 } satisfies NonNullable<Parameters<typeof prisma.qcRecord.findUnique>[0]>['include']
 
 /** QC overview: records (filterable) + jobs currently in quality_check without an open record. */
@@ -79,6 +97,10 @@ adminQcRouter.post('/', requirePermission('qc:write'), async (req, res, next) =>
     await audit(req, 'qc.create', { type: 'qc_record', id: record.id }, { printerJobId: job.id })
     res.status(201).json({ record })
   } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      next(conflict('There is already an open QC record for this job'))
+      return
+    }
     next(err)
   }
 })
@@ -119,29 +141,33 @@ const CHECKLIST_FIELDS = [
 adminQcRouter.post('/:id/status', requirePermission('qc:write'), async (req, res, next) => {
   try {
     const { status } = qcStatusSchema.parse(req.body)
-    if (status === 'overridden') throw badRequest('Use the override endpoint (requires qc:override)')
-    const record = await prisma.qcRecord.findUnique({
-      where: { id: String(req.params.id) },
-      include: { printerJob: { include: { order: { select: { orderNumber: true } } } } },
-    })
-    if (!record) throw notFound('QC record not found')
-    assertQcTransition(record.status, status)
-    if (status === 'passed' && !CHECKLIST_FIELDS.every((f) => record[f])) {
-      throw conflict('All checklist items must be confirmed before passing QC')
-    }
+    if (status === 'overridden')
+      throw badRequest('Use the override endpoint (requires qc:override)')
+    const result = await prisma.$transaction(async (tx) => {
+      const record = await tx.qcRecord.findUnique({
+        where: { id: String(req.params.id) },
+        include: { printerJob: { include: { order: { select: { orderNumber: true } } } } },
+      })
+      if (!record) throw notFound('QC record not found')
+      assertQcTransition(record.status, status)
+      if (status === 'passed' && !CHECKLIST_FIELDS.every((f) => record[f])) {
+        throw conflict('All checklist items must be confirmed before passing QC')
+      }
 
-    const updated = await prisma.$transaction(async (tx) => {
       if (status === 'reprint_required') {
         assertProductionTransition(record.printerJob.status, 'reprint_needed')
         if (record.printerJob.printerId) {
-          await tx.printer.update({ where: { id: record.printerJob.printerId }, data: { status: 'idle' } })
+          await tx.printer.update({
+            where: { id: record.printerJob.printerId },
+            data: { status: 'idle' },
+          })
         }
         await tx.printerJob.update({
           where: { id: record.printerJobId },
           data: { status: 'reprint_needed', printerId: null },
         })
       }
-      return tx.qcRecord.update({
+      const updated = await tx.qcRecord.update({
         where: { id: record.id },
         data: {
           status,
@@ -150,25 +176,31 @@ adminQcRouter.post('/:id/status', requirePermission('qc:write'), async (req, res
         },
         include: qcInclude,
       })
+      return { record: updated, fromStatus: record.status }
     })
 
     if (status === 'failed' || status === 'reprint_required') {
-      await sendEmail(
+      sendEmail(
         env.ADMIN_NOTIFICATION_EMAIL,
         'admin_notification',
         renderAdminNotification(
           {
             event: 'QC fehlgeschlagen',
-            detail: `Auftrag ${record.printerJob.order.orderNumber} — QC ${status === 'reprint_required' ? 'fehlgeschlagen, Reprint erforderlich' : 'fehlgeschlagen'}`,
+            detail: `Auftrag ${result.record.printerJob.order.orderNumber} — QC ${status === 'reprint_required' ? 'fehlgeschlagen, Reprint erforderlich' : 'fehlgeschlagen'}`,
             adminUrl: `${env.WEB_URL}/admin/qc`,
           },
           'de',
         ),
-      )
+      ).catch((err) => console.error('QC notification email failed', err))
     }
 
-    await audit(req, 'qc.status', { type: 'qc_record', id: record.id }, { from: record.status, to: status })
-    res.json({ record: updated })
+    await audit(
+      req,
+      'qc.status',
+      { type: 'qc_record', id: result.record.id },
+      { from: result.fromStatus, to: status },
+    )
+    res.json({ record: result.record })
   } catch (err) {
     next(err)
   }
@@ -194,7 +226,12 @@ adminQcRouter.post('/:id/override', requirePermission('qc:override'), async (req
       },
       include: qcInclude,
     })
-    await audit(req, 'qc.override', { type: 'qc_record', id: record.id }, { reason: input.overrideReason })
+    await audit(
+      req,
+      'qc.override',
+      { type: 'qc_record', id: record.id },
+      { reason: input.overrideReason },
+    )
     res.json({ record: updated })
   } catch (err) {
     next(err)
@@ -212,6 +249,7 @@ adminQcRouter.post(
       if (!record) throw notFound('QC record not found')
       const files = (req.files ?? []) as Express.Multer.File[]
       if (files.length === 0) throw badRequest('At least one photo is required')
+      await validateUploadedImages(files)
       await prisma.qcAttachment.createMany({
         data: files.map((file) => ({
           qcRecordId: record.id,
@@ -221,9 +259,15 @@ adminQcRouter.post(
           sizeBytes: file.size,
         })),
       })
-      await audit(req, 'qc.photo_upload', { type: 'qc_record', id: record.id }, { count: files.length })
+      await audit(
+        req,
+        'qc.photo_upload',
+        { type: 'qc_record', id: record.id },
+        { count: files.length },
+      )
       res.status(201).json({ ok: true })
     } catch (err) {
+      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
       next(err)
     }
   },

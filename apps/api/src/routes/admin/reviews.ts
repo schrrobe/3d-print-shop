@@ -12,7 +12,16 @@ import { sendEmail } from '../../services/email.js'
 export const adminReviewsRouter = Router()
 
 const reviewInclude = {
-  order: { select: { id: true, orderNumber: true, email: true, firstName: true, lastName: true, locale: true } },
+  order: {
+    select: {
+      id: true,
+      orderNumber: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      locale: true,
+    },
+  },
   orderItem: { select: { id: true, name: true, quantity: true } },
   product: { select: { id: true, slug: true } },
   moderatedBy: { select: { name: true, email: true } },
@@ -79,6 +88,13 @@ adminReviewsRouter.patch('/:id', requirePermission('reviews:moderate'), async (r
       include: reviewInclude,
     })
 
+    await audit(
+      req,
+      'review.moderate',
+      { type: 'review', id: review.id },
+      { from: review.status, to: input.status ?? review.status, flaggedAbuse: input.flaggedAbuse },
+    )
+
     if (statusChanges && input.status === 'approved') {
       await sendEmail(
         review.order.email,
@@ -87,19 +103,12 @@ adminReviewsRouter.patch('/:id', requirePermission('reviews:moderate'), async (r
           {
             firstName: review.order.firstName,
             productName: review.orderItem.name,
-            productUrl: `${env.WEB_URL}/products/${review.product.slug}`,
+            productUrl: `/products/`,
           },
           review.order.locale,
         ),
       )
     }
-
-    await audit(
-      req,
-      'review.moderate',
-      { type: 'review', id: review.id },
-      { from: review.status, to: input.status ?? review.status, flaggedAbuse: input.flaggedAbuse },
-    )
     res.json({ review: updated })
   } catch (err) {
     next(err)

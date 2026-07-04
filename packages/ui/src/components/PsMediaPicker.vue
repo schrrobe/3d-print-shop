@@ -28,6 +28,8 @@ const model = defineModel<string[]>({ default: () => [] })
 const emit = defineEmits<{ upload: [file: File] }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
+const allowedExtensions = new Set(['jpg', 'jpeg', 'png', 'webp'])
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 function toggle(url: string) {
   if (props.disabled) return
@@ -39,7 +41,10 @@ function toggle(url: string) {
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-  if (file) emit('upload', file)
+  if (file) {
+    const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+    if (allowedExtensions.has(extension) && allowedMimeTypes.has(file.type)) emit('upload', file)
+  }
   input.value = ''
 }
 </script>
@@ -47,10 +52,19 @@ function onFileChange(event: Event) {
 <template>
   <div class="flex flex-col gap-xs" data-testid="media-picker">
     <p v-if="label" class="text-caption text-secondary">{{ label }}</p>
-    <p v-if="options.length === 0" class="rounded-card border border-subtle p-md text-body-regular text-secondary">
+    <p
+      v-if="options.length === 0"
+      class="rounded-card border border-subtle p-md text-body-regular text-secondary"
+    >
       Keine Medien verfügbar — Produkt wählen oder Bild hochladen.
     </p>
-    <ul v-else class="grid grid-cols-3 gap-sm sm:grid-cols-4" role="listbox" aria-label="Medienauswahl" aria-multiselectable="true">
+    <ul
+      v-else
+      class="grid grid-cols-3 gap-sm sm:grid-cols-4"
+      role="listbox"
+      aria-label="Medienauswahl"
+      aria-multiselectable="true"
+    >
       <li v-for="option in options" :key="option.url">
         <button
           type="button"
@@ -58,13 +72,19 @@ function onFileChange(event: Event) {
           :aria-selected="model.includes(option.url)"
           :disabled="disabled"
           class="relative block w-full cursor-pointer overflow-hidden rounded-card border-2 transition-colors focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
-          :class="model.includes(option.url) ? 'border-brand' : 'border-subtle hover:border-brand/50'"
+          :class="
+            model.includes(option.url) ? 'border-brand' : 'border-subtle hover:border-brand/50'
+          "
           data-testid="media-option"
           :data-url="option.url"
           :data-selected="model.includes(option.url) ? 'true' : 'false'"
           @click="toggle(option.url)"
         >
-          <img :src="option.url" :alt="option.alt ?? ''" class="aspect-square w-full bg-surface-elevated object-cover" />
+          <img
+            :src="option.url"
+            :alt="option.alt ?? ''"
+            class="aspect-square w-full bg-surface-elevated object-cover"
+          />
           <span
             v-if="model.includes(option.url)"
             class="absolute right-xs top-xs flex size-5 items-center justify-center rounded-full-pill bg-brand text-caption text-on-brand"
@@ -76,7 +96,14 @@ function onFileChange(event: Event) {
       </li>
     </ul>
     <div v-if="allowUpload">
-      <input ref="fileInput" type="file" accept=".jpg,.jpeg,.png,.webp" class="sr-only" data-testid="media-upload-input" @change="onFileChange" />
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".jpg,.jpeg,.png,.webp"
+        class="sr-only"
+        data-testid="media-upload-input"
+        @change="onFileChange"
+      />
       <button
         type="button"
         :disabled="disabled"

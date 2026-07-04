@@ -272,6 +272,7 @@
       "orderNumber": "Numer zamówienia (opcjonalnie)",
       "submit": "Poproś o link dostępu",
       "confirmation": "Jeśli istnieją zamówienia dla tego adresu, wysłaliśmy link dostępu.",
+      "error": "Nie udało się poprosić o link dostępu. Spróbuj ponownie.",
       "privacy": "Link jest ważny 30 dni i wysyłany wyłącznie na podany adres."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Opinie",
     "empty": "Brak opinii.",
     "count": "Opinie: {count}",
-    "ratingLabel": "{rating} na 5 gwiazdek"
+    "ratingLabel": "{rating} na 5 gwiazdek",
+    "photoAlt": "Zdjęcie z opinii od {name}"
   }
 }
