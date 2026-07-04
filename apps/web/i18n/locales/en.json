@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom",
       "fallback": "3D preview"
+    },
+    "configuratorTitle": "Configure & order",
+    "gallery": {
+      "placeholder": "No product photo available",
+      "thumbnailLabel": "Show image {n}"
     }
   },
   "cart": {

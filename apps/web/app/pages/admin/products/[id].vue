@@ -56,9 +56,18 @@ const { data: colorData } = await useFetch<{ colors: AdminColor[] }>('/api/admin
 const product = computed(() => data.value?.product)
 const glbAsset = computed(() => product.value?.assets.find((a) => a.type === 'glb_preview'))
 
+const MAX_PRODUCT_IMAGES = 4
+const imageAssets = computed(() => product.value?.assets.filter((a) => a.type === 'image') ?? [])
+const remainingImageSlots = computed(() => MAX_PRODUCT_IMAGES - imageAssets.value.length)
+
 const form = reactive({ slug: '', priceEuros: '', active: false })
 
-type TranslationForm = { name: string; description: string; seoTitle: string; seoDescription: string }
+type TranslationForm = {
+  name: string
+  description: string
+  seoTitle: string
+  seoDescription: string
+}
 const emptyTranslation = (): TranslationForm => ({
   name: '',
   description: '',
@@ -66,7 +75,10 @@ const emptyTranslation = (): TranslationForm => ({
   seoDescription: '',
 })
 const translations = reactive(
-  Object.fromEntries(LOCALES.map((l) => [l, emptyTranslation()])) as Record<Locale, TranslationForm>,
+  Object.fromEntries(LOCALES.map((l) => [l, emptyTranslation()])) as Record<
+    Locale,
+    TranslationForm
+  >,
 )
 
 const ZONE_DEFAULT_LABELS: Record<ColorZoneSlot, string> = {
@@ -80,7 +92,10 @@ type SlotForm = { enabled: boolean; label: string; defaultColorId: string }
 const NO_DEFAULT_COLOR = 'none'
 const slots = reactive(
   Object.fromEntries(
-    COLOR_ZONE_SLOTS.map((s) => [s, { enabled: false, label: '', defaultColorId: NO_DEFAULT_COLOR }]),
+    COLOR_ZONE_SLOTS.map((s) => [
+      s,
+      { enabled: false, label: '', defaultColorId: NO_DEFAULT_COLOR },
+    ]),
   ) as Record<ColorZoneSlot, SlotForm>,
 )
 
@@ -158,8 +173,7 @@ async function save() {
     colorSlots: COLOR_ZONE_SLOTS.filter((z) => slots[z].enabled).map((z) => ({
       slot: z,
       label: slots[z].label.trim() || ZONE_DEFAULT_LABELS[z],
-      defaultColorId:
-        slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
+      defaultColorId: slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
     })),
   }
   saving.value = true
@@ -196,6 +210,40 @@ async function uploadModel(files: File[]) {
   }
 }
 
+async function uploadImages(files: File[]) {
+  if (files.length === 0) return
+  if (files.length > remainingImageSlots.value) {
+    toast.show(`Maximal ${MAX_PRODUCT_IMAGES} Fotos pro Produkt`, { variant: 'error' })
+    return
+  }
+  const body = new FormData()
+  for (const file of files) body.append('files', file)
+  try {
+    await $fetch(`/api/admin/products/${productId}/images`, {
+      method: 'POST',
+      credentials: 'include',
+      body,
+    })
+    toast.show('Fotos hochgeladen', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Upload fehlgeschlagen', { variant: 'error' })
+  }
+}
+
+async function deleteImage(assetId: string) {
+  try {
+    await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    toast.show('Foto gelöscht', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
+  }
+}
+
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
@@ -228,13 +276,28 @@ async function deleteProduct() {
       <h3 class="text-label-medium">Stammdaten</h3>
       <div class="mt-md grid gap-md sm:grid-cols-2">
         <div>
-          <PsInput v-model="form.slug" label="Slug (kebab-case)" name="slug" :disabled="!auth.can('products:write')" />
+          <PsInput
+            v-model="form.slug"
+            label="Slug (kebab-case)"
+            name="slug"
+            :disabled="!auth.can('products:write')"
+          />
           <p class="mt-xs text-caption text-secondary">Achtung: ändert die öffentliche URL.</p>
         </div>
-        <PsInput v-model="form.priceEuros" label="Preis (EUR)" name="priceEuros" :disabled="!auth.can('products:write')" />
+        <PsInput
+          v-model="form.priceEuros"
+          label="Preis (EUR)"
+          name="priceEuros"
+          :disabled="!auth.can('products:write')"
+        />
       </div>
       <label class="mt-md flex items-center gap-sm text-body-regular">
-        <input v-model="form.active" type="checkbox" :disabled="!auth.can('products:write')" data-testid="product-active" />
+        <input
+          v-model="form.active"
+          type="checkbox"
+          :disabled="!auth.can('products:write')"
+          data-testid="product-active"
+        />
         Im Shop sichtbar
       </label>
     </PsCard>
@@ -322,6 +385,59 @@ async function deleteProduct() {
     </PsCard>
 
     <PsCard>
+      <h3 class="text-label-medium">Produktfotos</h3>
+      <p class="mt-xs text-caption text-secondary">
+        Bis zu {{ MAX_PRODUCT_IMAGES }} Fotos (.jpg, .png, .webp). Das erste Foto erscheint im
+        Katalog. {{ imageAssets.length }}/{{ MAX_PRODUCT_IMAGES }} Fotos.
+      </p>
+      <p
+        v-if="imageAssets.length === 0"
+        class="mt-md text-body-regular text-secondary"
+        data-testid="product-images-empty"
+      >
+        Keine Fotos vorhanden.
+      </p>
+      <div v-else class="mt-md grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-sm">
+        <div
+          v-for="asset in imageAssets"
+          :key="asset.id"
+          class="flex flex-col gap-xs"
+          data-testid="product-image"
+        >
+          <img
+            :src="asset.url"
+            :alt="asset.alt ?? ''"
+            class="aspect-square w-full rounded-card border border-subtle object-cover"
+            loading="lazy"
+          />
+          <PsButton
+            v-if="auth.can('assets:write')"
+            variant="ghost"
+            size="sm"
+            data-testid="delete-product-image"
+            @click="deleteImage(asset.id)"
+          >
+            Entfernen
+          </PsButton>
+        </div>
+      </div>
+      <div v-if="auth.can('assets:write')" class="mt-md" data-testid="image-upload">
+        <PsUploadDropzone
+          v-if="remainingImageSlots > 0"
+          accept=".jpg,.jpeg,.png,.webp"
+          :multiple="true"
+          :max-size-bytes="10 * 1024 * 1024"
+          @files="uploadImages"
+          @error="(msg: string) => toast.show(msg, { variant: 'error' })"
+        />
+        <p v-else class="text-caption text-secondary" data-testid="image-upload-maxed">
+          Maximum von {{ MAX_PRODUCT_IMAGES }} Fotos erreicht — zum Hochladen zuerst ein Foto
+          entfernen.
+        </p>
+      </div>
+    </PsCard>
+
+    <PsCard>
       <h3 class="text-label-medium">3D-Modell (GLB)</h3>
       <p v-if="glbAsset" class="mt-sm text-body-regular" data-testid="model-asset-url">
         Aktuelles Modell: <code class="text-caption">{{ glbAsset.url }}</code>
@@ -339,7 +455,10 @@ async function deleteProduct() {
       </div>
     </PsCard>
 
-    <div v-if="auth.can('products:write')" class="flex flex-wrap items-center justify-between gap-md">
+    <div
+      v-if="auth.can('products:write')"
+      class="flex flex-wrap items-center justify-between gap-md"
+    >
       <PsButton data-testid="save-product-detail" :disabled="saving" @click="save">
         Speichern
       </PsButton>
@@ -350,8 +469,8 @@ async function deleteProduct() {
 
     <PsDialog v-model:open="deleteDialogOpen" title="Produkt löschen">
       <p class="text-body-regular">
-        „{{ translations.de.name || product.slug }}“ endgültig löschen? Bestellungen behalten
-        ihren Namens-Snapshot, offene Warenkörbe verlieren die Position.
+        „{{ translations.de.name || product.slug }}“ endgültig löschen? Bestellungen behalten ihren
+        Namens-Snapshot, offene Warenkörbe verlieren die Position.
       </p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>

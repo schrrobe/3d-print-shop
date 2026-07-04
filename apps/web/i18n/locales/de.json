@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen",
       "fallback": "3D-Vorschau"
+    },
+    "configuratorTitle": "Konfigurieren & bestellen",
+    "gallery": {
+      "placeholder": "Kein Produktfoto vorhanden",
+      "thumbnailLabel": "Bild {n} anzeigen"
     }
   },
   "cart": {

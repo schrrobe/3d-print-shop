@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć",
       "fallback": "Podgląd 3D"
+    },
+    "configuratorTitle": "Konfiguruj i zamów",
+    "gallery": {
+      "placeholder": "Brak zdjęcia produktu",
+      "thumbnailLabel": "Pokaż zdjęcie {n}"
     }
   },
   "cart": {

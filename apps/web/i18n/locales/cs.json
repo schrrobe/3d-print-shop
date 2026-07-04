@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit",
       "fallback": "3D náhled"
+    },
+    "configuratorTitle": "Konfigurovat a objednat",
+    "gallery": {
+      "placeholder": "Žádná fotografie produktu",
+      "thumbnailLabel": "Zobrazit obrázek {n}"
     }
   },
   "cart": {

@@ -25,7 +25,9 @@ export const conflict = (message: string, details?: unknown) =>
 
 export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof ApiError) {
-    res.status(err.status).json({ error: err.code ?? 'error', message: err.message, details: err.details })
+    res
+      .status(err.status)
+      .json({ error: err.code ?? 'error', message: err.message, details: err.details })
     return
   }
   if (err instanceof ZodError) {
@@ -43,6 +45,15 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   // Multer file size / type errors
   if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'LIMIT_FILE_SIZE') {
     res.status(413).json({ error: 'file_too_large', message: 'File exceeds the 50 MB limit' })
+    return
+  }
+  if (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE')
+  ) {
+    res.status(400).json({ error: 'too_many_files', message: 'Too many files uploaded' })
     return
   }
 

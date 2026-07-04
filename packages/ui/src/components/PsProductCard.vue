@@ -3,6 +3,7 @@ import type { Locale } from '@print-shop/types'
 import PsBadge from './PsBadge.vue'
 import PsCard from './PsCard.vue'
 import PsPrice from './PsPrice.vue'
+import PsProductPlaceholder from './PsProductPlaceholder.vue'
 
 withDefaults(
   defineProps<{
@@ -35,21 +36,7 @@ withDefaults(
           class="size-full max-w-full object-cover"
           loading="lazy"
         />
-        <div v-else class="text-secondary" aria-hidden="true">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linejoin="round"
-          >
-            <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-            <path d="M3 7l9 5 9-5" />
-            <path d="M12 12v10" />
-          </svg>
-        </div>
+        <PsProductPlaceholder v-else />
         <div v-if="badge" class="absolute left-md top-md">
           <PsBadge variant="brand">{{ badge }}</PsBadge>
         </div>

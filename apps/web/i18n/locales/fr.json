@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer",
       "fallback": "Aperçu 3D"
+    },
+    "configuratorTitle": "Configurer et commander",
+    "gallery": {
+      "placeholder": "Aucune photo du produit",
+      "thumbnailLabel": "Afficher l’image {n}"
     }
   },
   "cart": {

@@ -42,6 +42,11 @@
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen",
       "fallback": "3D-voorbeeld"
+    },
+    "configuratorTitle": "Configureren & bestellen",
+    "gallery": {
+      "placeholder": "Geen productfoto beschikbaar",
+      "thumbnailLabel": "Afbeelding {n} tonen"
     }
   },
   "cart": {
