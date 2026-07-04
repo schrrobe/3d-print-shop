@@ -37,6 +37,20 @@ const envSchema = z
     BANK_BIC: z.string().default('XXXXDEXXXXX'),
     INVOICE_DIR: z.string().default('./invoices'),
     INVOICE_PREFIX: z.string().default('RE'),
+    // --- Invoice PDF: company identity (placeholders — set real values before go-live) ---
+    COMPANY_NAME: z.string().default('Print Shop GmbH'),
+    COMPANY_STREET: z.string().default('Musterstraße 1'),
+    COMPANY_ZIP: z.string().default('12345'),
+    COMPANY_CITY: z.string().default('Berlin'),
+    COMPANY_EMAIL: z.string().default('info@example.com'),
+    COMPANY_PHONE: z.string().default('+49 30 0000000'),
+    COMPANY_WEBSITE: z.string().default('www.example.com'),
+    /// Steuernummer — printed in the footer (§14 UStG mandatory detail)
+    COMPANY_TAX_NUMBER: z.string().default('12/345/67890'),
+    COMPANY_OWNER: z.string().default('Max Mustermann'),
+    /// Optional PNG/JPEG letterhead logo; empty = company name rendered as text
+    INVOICE_LOGO_PATH: z.string().optional().default(''),
+    PAYMENT_TERMS_DAYS: z.coerce.number().int().min(0).default(14),
     // --- Social media publishing (Meta Graph API; "mock" needs no credentials) ---
     SOCIAL_PUBLISHING_PROVIDER: z.enum(['mock', 'meta']).default('mock'),
     SOCIAL_PUBLISHING_CRON_ENABLED: z

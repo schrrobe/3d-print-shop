@@ -72,7 +72,14 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   // Invoice: number, PDF, email with attachment
   if (!order.invoice) {
     const invoice = await createInvoiceForOrder(order.id)
-    const pdfPath = await generateInvoicePdf(invoice, order)
+    // order was loaded before the transaction above — patch the just-paid
+    // payment so the PDF renders the "already paid" variant, not a stale one
+    const pdfPath = await generateInvoicePdf(invoice, {
+      ...order,
+      payments: order.payments.map((p) =>
+        p.id === payment.id ? { ...p, status: 'paid' as const, paidAt: p.paidAt ?? new Date() } : p,
+      ),
+    })
     const pdf = await readFile(pdfPath)
     await sendEmail(
       order.email,
