@@ -13,7 +13,7 @@ export default function globalSetup(): void {
     ...process.env,
     DATABASE_URL:
       process.env.DATABASE_URL ??
-      'postgresql://printshop:printshop@localhost:5432/printshop?schema=public',
+      'postgresql://printshop:printshop@localhost:15433/printshop?schema=public',
   }
   const run = (command: string) => execSync(command, { cwd: repoRoot, env, stdio: 'inherit' })
   run('pnpm --filter @print-shop/api prisma:deploy')

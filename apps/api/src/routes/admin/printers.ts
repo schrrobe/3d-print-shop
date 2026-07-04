@@ -13,7 +13,17 @@ adminPrintersRouter.get('/', requirePermission('printers:read'), async (_req, re
   try {
     const printers = await prisma.printer.findMany({
       include: {
-        spools: { include: { color: true }, orderBy: { amsSlot: 'asc' } },
+        amsUnits: {
+          include: {
+            slots: {
+              include: {
+                spool: { include: { color: true } },
+              },
+              orderBy: { slotIndex: 'asc' },
+            },
+          },
+          orderBy: { position: 'asc' },
+        },
         jobs: {
           where: { status: { in: ['assigned', 'printing'] } },
           include: { order: { select: { orderNumber: true } } },
@@ -21,7 +31,19 @@ adminPrintersRouter.get('/', requirePermission('printers:read'), async (_req, re
       },
       orderBy: { name: 'asc' },
     })
-    res.json({ printers })
+    res.json({
+      printers: printers.map(({ amsUnits, ...printer }) => ({
+        ...printer,
+        spools: amsUnits.flatMap((unit) =>
+          unit.slots
+            .filter((slot) => slot.spool)
+            .map((slot) => ({
+              ...slot.spool!,
+              amsSlot: (unit.position - 1) * 4 + slot.slotIndex,
+            })),
+        ),
+      })),
+    })
   } catch (err) {
     next(err)
   }

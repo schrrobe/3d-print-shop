@@ -28,7 +28,7 @@ export default defineConfig({
       env: {
         DATABASE_URL:
           process.env.DATABASE_URL ??
-          'postgresql://printshop:printshop@localhost:5432/printshop?schema=public',
+          'postgresql://printshop:printshop@localhost:15433/printshop?schema=public',
         NODE_ENV: 'development',
       },
     },
