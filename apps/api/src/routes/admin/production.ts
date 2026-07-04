@@ -135,6 +135,8 @@ adminProductionRouter.get('/calendar', requirePermission('print-jobs:read'), asy
         where: {
           plannedStartAt: { not: null, lt: to },
           plannedEndAt: { gt: from },
+          // Shipped jobs no longer occupy the printer — match the conflict query.
+          status: { notIn: ['shipped'] },
         },
         include: {
           order: { select: { orderNumber: true, status: true } },
@@ -267,6 +269,29 @@ adminProductionRouter.post(
       const input = maintenanceWindowSchema.parse(req.body)
       const printer = await prisma.printer.findUnique({ where: { id: String(req.params.printerId) } })
       if (!printer) throw notFound('Printer not found')
+
+      // Same overlap gate as job scheduling — a maintenance window must not
+      // silently collide with jobs already planned on this printer.
+      const candidate = { startsAt: input.startsAt, endsAt: input.endsAt }
+      const scheduledJobs = await prisma.printerJob.findMany({
+        where: {
+          printerId: printer.id,
+          plannedStartAt: { not: null },
+          plannedEndAt: { not: null },
+          status: { notIn: ['shipped'] },
+        },
+        include: { order: { select: { orderNumber: true } } },
+      })
+      const jobConflicts = findOverlaps(candidate, scheduledJobs.map((j) => ({
+        startsAt: j.plannedStartAt as Date,
+        endsAt: j.plannedEndAt as Date,
+        jobId: j.id,
+        orderNumber: j.order.orderNumber,
+      })))
+      if (jobConflicts.length > 0 && !input.force) {
+        throw conflict('Scheduling conflict on this printer', { jobs: jobConflicts })
+      }
+
       const window = await prisma.maintenanceWindow.create({
         data: {
           printerId: printer.id,

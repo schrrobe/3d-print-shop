@@ -121,7 +121,7 @@ adminShipmentsRouter.get('/:id/packing-list.pdf', requirePermission('shipments:r
   try {
     const shipment = await prisma.shipment.findUnique({ where: { id: String(req.params.id) } })
     if (!shipment) throw notFound('Shipment not found')
-    const filePath = await generatePackingListPdf(shipment.id)
+    const filePath = shipment.packingListPdfPath ?? (await generatePackingListPdf(shipment.id))
     res.download(filePath, `${shipment.shipmentNumber}-packliste.pdf`)
   } catch (err) {
     next(err)
@@ -133,7 +133,7 @@ adminShipmentsRouter.get('/:id/delivery-note.pdf', requirePermission('shipments:
   try {
     const shipment = await prisma.shipment.findUnique({ where: { id: String(req.params.id) } })
     if (!shipment) throw notFound('Shipment not found')
-    const filePath = await generateDeliveryNotePdf(shipment.id)
+    const filePath = shipment.deliveryNotePdfPath ?? (await generateDeliveryNotePdf(shipment.id))
     res.download(filePath, `${shipment.shipmentNumber}-lieferschein.pdf`)
   } catch (err) {
     next(err)

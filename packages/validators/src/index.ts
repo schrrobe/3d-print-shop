@@ -434,6 +434,8 @@ export const maintenanceWindowSchema = z
     startsAt: z.string().datetime({ offset: true }),
     endsAt: z.string().datetime({ offset: true }),
     notes: z.string().trim().max(2000).nullable().optional(),
+    /** true = book despite conflicts with scheduled jobs (audited) */
+    force: z.boolean().default(false),
   })
   .refine((v) => new Date(v.endsAt) > new Date(v.startsAt), {
     message: 'endsAt must be after startsAt',

@@ -105,6 +105,12 @@ export async function transitionShipment(
 ): Promise<Shipment> {
   const shipment = await prisma.shipment.findUnique({ where: { id: shipmentId } })
   if (!shipment) throw notFound('Shipment not found')
+  // `shipped` is owned by shipShipment() (single-writer rule — it also writes
+  // carrier/tracking/shippedAt, syncs the Order and jobs, and emails the customer).
+  // Reject it here so the generic status endpoint can't bypass that flow.
+  if (toStatus === 'shipped') {
+    throw conflict('Use the ship action (carrier + tracking) to mark a shipment as shipped')
+  }
   assertShipmentTransition(shipment.status, toStatus)
 
   if (shipment.status === 'waiting_for_qc' && toStatus === 'ready_for_shipping') {

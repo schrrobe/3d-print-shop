@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { formatInvoiceNumber, nextInvoiceSequence } from '@print-shop/utils'
+import type { ComplaintStatus } from '@print-shop/types'
 import { assertComplaintTransition } from '@print-shop/utils'
 import {
   complaintDecisionSchema,
@@ -15,6 +15,7 @@ import { randomToken } from '../../lib/tokens.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { sendComplaintUpdatedEmail } from '../../services/complaints.js'
+import { allocateTicketNumber } from '../../services/ticket.js'
 
 export const adminComplaintsRouter = Router()
 
@@ -130,22 +131,27 @@ adminComplaintsRouter.post('/:id/decision', requirePermission('complaints:decide
       throw conflict('Decisions are only possible while the complaint is in review or approved')
     }
 
-    const nextStatus =
-      input.resolution === 'replacement_print'
-        ? ('replacement_planned' as const)
-        : input.resolution === 'refund'
-          ? ('refund_planned' as const)
-          : input.resolution === 'rejection'
-            ? ('rejected' as const)
-            : input.resolution === 'voucher'
-              ? ('approved' as const)
-              : ('in_review' as const)
+    const RESOLUTION_STATUS = {
+      replacement_print: 'replacement_planned',
+      refund: 'refund_planned',
+      rejection: 'rejected',
+      voucher: 'approved',
+      further_review: 'in_review',
+    } as const
+    const nextStatus = RESOLUTION_STATUS[input.resolution]
+
+    // Build the transition path and assert each hop through the status machine.
+    // Approving resolutions taken from `in_review` route via the `approved` hop
+    // first; rejection and staying in review skip it.
+    const hops: ComplaintStatus[] = []
     if (complaint.status === 'in_review' && nextStatus !== 'in_review' && nextStatus !== 'rejected') {
-      // in_review → approved → (replacement|refund)_planned: validate both hops
-      assertComplaintTransition(complaint.status, 'approved')
-      if (nextStatus !== 'approved') assertComplaintTransition('approved', nextStatus)
-    } else if (nextStatus !== complaint.status && nextStatus !== 'in_review') {
-      assertComplaintTransition(complaint.status, nextStatus)
+      hops.push('approved')
+    }
+    if (nextStatus !== 'in_review') hops.push(nextStatus)
+    let from: ComplaintStatus = complaint.status
+    for (const to of hops) {
+      if (to !== from) assertComplaintTransition(from, to)
+      from = to
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -210,17 +216,9 @@ adminComplaintsRouter.post('/:id/ticket', requirePermission('complaints:write'),
       if (ticket.complaint != null) throw conflict('Ticket is already linked to another complaint')
     } else {
       const ticket = await prisma.$transaction(async (tx) => {
-        const year = new Date().getFullYear()
-        const existing = await tx.ticketCounter.findUnique({ where: { year } })
-        const nextSeq = nextInvoiceSequence(existing, year)
-        await tx.ticketCounter.upsert({
-          where: { year: nextSeq.year },
-          create: { year: nextSeq.year, lastSequence: nextSeq.sequence },
-          update: { lastSequence: nextSeq.sequence },
-        })
         return tx.ticket.create({
           data: {
-            ticketNumber: formatInvoiceNumber('TIC', nextSeq.year, nextSeq.sequence),
+            ticketNumber: await allocateTicketNumber(tx),
             accessToken: randomToken(32),
             subject: `Reklamation ${complaint.complaintNumber}`,
             category: 'order',
