@@ -38,6 +38,9 @@
     "all": "Alle Produkte",
     "configure": "Farben konfigurieren",
     "addToCart": "In den Warenkorb",
+    "gallery": {
+      "placeholder": "Kein Foto vorhanden"
+    },
     "added": "Zum Warenkorb hinzugefügt",
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen",
@@ -359,6 +362,7 @@
     "shareError": "Link konnte nicht erstellt werden"
   },
   "configurator": {
+    "title": "Konfigurator",
     "popular": "Beliebte Kombinationen",
     "reset": "Auf Standard zurücksetzen",
     "share": "Konfiguration teilen",

@@ -38,6 +38,9 @@
     "all": "Tous les produits",
     "configure": "Configurer les couleurs",
     "addToCart": "Ajouter au panier",
+    "gallery": {
+      "placeholder": "Aucune photo disponible"
+    },
     "added": "Ajouté au panier",
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer",
@@ -359,6 +362,7 @@
     "shareError": "Impossible de créer le lien"
   },
   "configurator": {
+    "title": "Configurateur",
     "popular": "Combinaisons populaires",
     "reset": "Réinitialiser",
     "share": "Partager la configuration",

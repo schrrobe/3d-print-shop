@@ -38,6 +38,9 @@
     "all": "All products",
     "configure": "Configure colors",
     "addToCart": "Add to cart",
+    "gallery": {
+      "placeholder": "No photo available"
+    },
     "added": "Added to cart",
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom",
@@ -359,6 +362,7 @@
     "shareError": "Could not create link"
   },
   "configurator": {
+    "title": "Configurator",
     "popular": "Popular combinations",
     "reset": "Reset to default",
     "share": "Share configuration",

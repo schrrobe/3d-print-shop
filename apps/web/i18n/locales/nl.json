@@ -38,6 +38,9 @@
     "all": "Alle producten",
     "configure": "Kleuren configureren",
     "addToCart": "In winkelwagen",
+    "gallery": {
+      "placeholder": "Geen foto beschikbaar"
+    },
     "added": "Toegevoegd aan winkelwagen",
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen",
@@ -359,6 +362,7 @@
     "shareError": "Link kon niet worden aangemaakt"
   },
   "configurator": {
+    "title": "Configurator",
     "popular": "Populaire combinaties",
     "reset": "Standaard herstellen",
     "share": "Configuratie delen",

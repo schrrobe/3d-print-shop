@@ -249,6 +249,23 @@ async function seedProducts() {
       },
       { type: 'glb_preview' as const, url: `/models/${p.slug}.glb`, alt: null, sortOrder: 1 },
     ]
+    // Extra photos on the flagship product so the storefront gallery shows a thumbnail strip.
+    if (p.slug === 'spiral-vase') {
+      assets.push(
+        {
+          type: 'image' as const,
+          url: '/images/products/desk-organizer.svg',
+          alt: `${p.en.name} – Detail`,
+          sortOrder: 2,
+        },
+        {
+          type: 'image' as const,
+          url: '/images/products/wall-hook-set.svg',
+          alt: `${p.en.name} – Seite`,
+          sortOrder: 3,
+        },
+      )
+    }
 
     const existing = await prisma.product.findUnique({ where: { slug: p.slug } })
     if (existing) {
@@ -290,7 +307,6 @@ async function seedPrinters() {
     await prisma.printer.upsert({ where: { name: p.name }, create: p, update: {} })
   }
 
-  const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
   const colors = await prisma.color.findMany({ where: { amsSlot: { not: null } } })
   const existingSpools = await prisma.filamentSpool.count()
   if (existingSpools === 0) {

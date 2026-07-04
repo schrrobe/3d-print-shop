@@ -60,6 +60,12 @@ export function productImage(product: ApiProduct): string | null {
   return product.assets.find((a) => a.type === 'image')?.url ?? null
 }
 
+export function productImages(product: ApiProduct): { url: string; alt: string | null }[] {
+  return product.assets
+    .filter((a) => a.type === 'image')
+    .map((a) => ({ url: a.url, alt: a.alt }))
+}
+
 export function productGlb(product: ApiProduct): string | null {
   return product.assets.find((a) => a.type === 'glb_preview')?.url ?? null
 }

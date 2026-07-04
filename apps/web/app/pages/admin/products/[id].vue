@@ -196,6 +196,46 @@ async function uploadModel(files: File[]) {
   }
 }
 
+const MAX_PRODUCT_IMAGES = 4
+const imageAssets = computed(() => product.value?.assets.filter((a) => a.type === 'image') ?? [])
+
+async function uploadImages(files: File[]) {
+  const remaining = MAX_PRODUCT_IMAGES - imageAssets.value.length
+  if (remaining <= 0) {
+    toast.show(`Maximal ${MAX_PRODUCT_IMAGES} Fotos`, { variant: 'error' })
+    return
+  }
+  if (files.length > remaining) {
+    toast.show(`Nur noch ${remaining} Foto(s) möglich`, { variant: 'error' })
+  }
+  const body = new FormData()
+  for (const file of files.slice(0, remaining)) body.append('files', file)
+  try {
+    await $fetch(`/api/admin/products/${productId}/images`, {
+      method: 'POST',
+      credentials: 'include',
+      body,
+    })
+    toast.show('Fotos hochgeladen', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Upload fehlgeschlagen', { variant: 'error' })
+  }
+}
+
+async function deleteAsset(assetId: string) {
+  try {
+    await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    toast.show('Foto entfernt', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Entfernen fehlgeschlagen', { variant: 'error' })
+  }
+}
+
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
@@ -319,6 +359,58 @@ async function deleteProduct() {
           />
         </div>
       </div>
+    </PsCard>
+
+    <PsCard>
+      <h3 class="text-label-medium">Produktfotos (max. 4)</h3>
+      <p class="mt-xs text-caption text-secondary">
+        Werden oben auf der Produktseite und im Shop-Listing angezeigt. JPG, PNG oder WebP, je max. 10 MB.
+      </p>
+      <div
+        v-if="imageAssets.length"
+        class="mt-md grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-md"
+        data-testid="product-photos"
+      >
+        <div
+          v-for="asset in imageAssets"
+          :key="asset.id"
+          class="flex flex-col gap-xs"
+          data-testid="product-photo"
+        >
+          <img
+            :src="asset.url"
+            :alt="asset.alt ?? ''"
+            class="aspect-square w-full rounded-card border border-subtle object-cover"
+          />
+          <PsButton
+            v-if="auth.can('assets:write')"
+            variant="ghost"
+            data-testid="delete-photo"
+            @click="deleteAsset(asset.id)"
+          >
+            Entfernen
+          </PsButton>
+        </div>
+      </div>
+      <p v-else class="mt-sm text-body-regular text-secondary" data-testid="product-photos-empty">
+        Noch keine Fotos — der Shop zeigt einen Platzhalter.
+      </p>
+      <div
+        v-if="auth.can('assets:write') && imageAssets.length < MAX_PRODUCT_IMAGES"
+        class="mt-md"
+        data-testid="photo-upload"
+      >
+        <PsUploadDropzone
+          accept=".jpg,.jpeg,.png,.webp"
+          :multiple="true"
+          :max-size-bytes="10485760"
+          @files="uploadImages"
+          @error="(msg: string) => toast.show(msg, { variant: 'error' })"
+        />
+      </div>
+      <p v-else-if="auth.can('assets:write')" class="mt-md text-caption text-secondary">
+        Maximum von {{ MAX_PRODUCT_IMAGES }} Fotos erreicht.
+      </p>
     </PsCard>
 
     <PsCard>

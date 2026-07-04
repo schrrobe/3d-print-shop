@@ -4,6 +4,7 @@ import {
   PsConfigurationPreview,
   PsPillButton,
   PsPrice,
+  PsProductGallery,
   PsRatingStars,
   PsReviewCard,
   PsSection,
@@ -34,6 +35,7 @@ if (error.value) {
 const product = computed(() => data.value!.product)
 const translation = computed(() => pickTranslation(product.value, locale.value))
 const colors = computed(() => colorData.value?.colors ?? [])
+const galleryImages = computed(() => productImages(product.value))
 
 // ---- Configuration state ----
 const selection = ref<Record<string, string>>({})
@@ -255,24 +257,13 @@ useHead({
 <template>
   <PsSection>
     <div class="grid gap-2xl lg:grid-cols-2" data-testid="product-detail">
-      <div>
-        <ClientOnly>
-          <ModelViewer :src="productGlb(product)" :color-hex-by-zone="colorHexByZone" />
-          <template #fallback>
-            <div
-              class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated"
-            />
-          </template>
-        </ClientOnly>
-        <p class="mt-sm text-center text-caption text-secondary">{{ t('products.viewer.hint') }}</p>
-        <div v-if="product.colorSlots.length" class="mt-md">
-          <PsConfigurationPreview
-            :zones="previewZones"
-            :unavailable-label="t('configurator.unavailableShort')"
-          />
-        </div>
-      </div>
+      <!-- Product photos -->
+      <PsProductGallery
+        :images="galleryImages"
+        :placeholder-label="t('products.gallery.placeholder')"
+      />
 
+      <!-- Product info + purchase -->
       <div class="flex flex-col gap-lg">
         <div class="flex items-start justify-between gap-md">
           <div>
@@ -288,76 +279,6 @@ useHead({
           />
         </div>
         <p class="text-body-regular text-secondary">{{ translation.description }}</p>
-
-        <!-- Popular combinations -->
-        <div v-if="popular.length" data-testid="popular-combos">
-          <h2 class="mb-sm text-label-medium">{{ t('configurator.popular') }}</h2>
-          <div class="flex flex-wrap gap-sm">
-            <button
-              v-for="(combo, i) in popular"
-              :key="i"
-              type="button"
-              class="flex items-center gap-xs rounded-card border border-subtle bg-surface-elevated px-sm py-xs hover:border-brand"
-              :class="{ 'opacity-50': !combo.available }"
-              data-testid="popular-combo"
-              @click="applyCombo(combo)"
-            >
-              <span
-                v-for="sw in combo.swatches"
-                :key="sw.slot"
-                class="inline-block h-4 w-4 rounded-full border border-subtle"
-                :style="{ backgroundColor: sw.hex }"
-                :title="sw.name"
-              />
-              <span class="text-caption text-secondary">×{{ combo.count }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="product.colorSlots.length > 0">
-          <h2 class="mb-md text-label-medium">{{ t('products.configure') }}</h2>
-          <PsColorPicker
-            v-model="selection"
-            :zones="product.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
-            :colors="colors"
-          />
-          <div class="mt-md flex flex-wrap gap-sm">
-            <button
-              type="button"
-              class="text-caption text-secondary hover:text-primary"
-              data-testid="config-reset"
-              @click="resetToDefaults"
-            >
-              ↺ {{ t('configurator.reset') }}
-            </button>
-            <button
-              type="button"
-              class="text-caption text-brand hover:underline"
-              data-testid="config-share"
-              @click="shareConfig"
-            >
-              🔗 {{ t('configurator.share') }}
-            </button>
-          </div>
-
-          <!-- Unavailable-color warnings -->
-          <p
-            v-for="warn in configWarning"
-            :key="warn"
-            class="mt-sm text-caption text-amber-500"
-            data-testid="config-warning"
-          >
-            ⚠️ {{ warn }}
-          </p>
-          <p
-            v-for="zone in unavailableZones"
-            :key="zone.slot"
-            class="mt-sm text-caption text-amber-500"
-            data-testid="config-unavailable"
-          >
-            ⚠️ {{ t('configurator.unavailableZone', { zone: zone.label, color: zone.colorName }) }}
-          </p>
-        </div>
 
         <div class="flex items-center gap-md">
           <label class="flex items-center gap-sm text-caption text-secondary">
@@ -384,6 +305,104 @@ useHead({
         </NuxtLink>
       </div>
     </div>
+
+    <!-- Configurator: 3D preview + colour selection (moved below the photos) -->
+    <section v-if="product.colorSlots.length > 0" class="mt-3xl" data-testid="configurator">
+      <h2 class="mb-lg text-heading-small">{{ t('configurator.title') }}</h2>
+      <div class="grid gap-2xl lg:grid-cols-2">
+        <div>
+          <ClientOnly>
+            <ModelViewer :src="productGlb(product)" :color-hex-by-zone="colorHexByZone" />
+            <template #fallback>
+              <div
+                class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated"
+              />
+            </template>
+          </ClientOnly>
+          <p class="mt-sm text-center text-caption text-secondary">
+            {{ t('products.viewer.hint') }}
+          </p>
+          <div class="mt-md">
+            <PsConfigurationPreview
+              :zones="previewZones"
+              :unavailable-label="t('configurator.unavailableShort')"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-lg">
+          <!-- Popular combinations -->
+          <div v-if="popular.length" data-testid="popular-combos">
+            <h3 class="mb-sm text-label-medium">{{ t('configurator.popular') }}</h3>
+            <div class="flex flex-wrap gap-sm">
+              <button
+                v-for="(combo, i) in popular"
+                :key="i"
+                type="button"
+                class="flex items-center gap-xs rounded-card border border-subtle bg-surface-elevated px-sm py-xs hover:border-brand"
+                :class="{ 'opacity-50': !combo.available }"
+                data-testid="popular-combo"
+                @click="applyCombo(combo)"
+              >
+                <span
+                  v-for="sw in combo.swatches"
+                  :key="sw.slot"
+                  class="inline-block h-4 w-4 rounded-full border border-subtle"
+                  :style="{ backgroundColor: sw.hex }"
+                  :title="sw.name"
+                />
+                <span class="text-caption text-secondary">×{{ combo.count }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="mb-md text-label-medium">{{ t('products.configure') }}</h3>
+            <PsColorPicker
+              v-model="selection"
+              :zones="product.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
+              :colors="colors"
+            />
+            <div class="mt-md flex flex-wrap gap-sm">
+              <button
+                type="button"
+                class="text-caption text-secondary hover:text-primary"
+                data-testid="config-reset"
+                @click="resetToDefaults"
+              >
+                ↺ {{ t('configurator.reset') }}
+              </button>
+              <button
+                type="button"
+                class="text-caption text-brand hover:underline"
+                data-testid="config-share"
+                @click="shareConfig"
+              >
+                🔗 {{ t('configurator.share') }}
+              </button>
+            </div>
+
+            <!-- Unavailable-color warnings -->
+            <p
+              v-for="warn in configWarning"
+              :key="warn"
+              class="mt-sm text-caption text-amber-500"
+              data-testid="config-warning"
+            >
+              ⚠️ {{ warn }}
+            </p>
+            <p
+              v-for="zone in unavailableZones"
+              :key="zone.slot"
+              class="mt-sm text-caption text-amber-500"
+              data-testid="config-unavailable"
+            >
+              ⚠️ {{ t('configurator.unavailableZone', { zone: zone.label, color: zone.colorName }) }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Reviews -->
     <section class="mx-auto mt-3xl max-w-[52rem]" data-testid="product-reviews">

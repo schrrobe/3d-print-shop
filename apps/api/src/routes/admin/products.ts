@@ -8,6 +8,11 @@ import multer from 'multer'
 import { z } from 'zod'
 import { env } from '../../env.js'
 import { audit } from '../../lib/audit.js'
+import {
+  cleanupUploadedFiles,
+  createImageUpload,
+  validateUploadedImages,
+} from '../../lib/image-upload.js'
 import { prisma } from '../../lib/prisma.js'
 import { randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
@@ -40,6 +45,13 @@ const modelUpload = multer({
     }
     cb(null, true)
   },
+})
+
+const MAX_PRODUCT_IMAGES = 4
+const productImagesDir = path.resolve(env.UPLOAD_DIR, 'products')
+const productImageUpload = createImageUpload('products', {
+  maxFiles: MAX_PRODUCT_IMAGES,
+  maxBytes: 10 * 1024 * 1024,
 })
 
 adminProductsRouter.get('/', requirePermission('products:read'), async (_req, res, next) => {
@@ -181,6 +193,88 @@ adminProductsRouter.post(
         { filename: file.filename, sizeBytes: file.size },
       )
       res.status(201).json({ asset })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// Upload 1–4 product photos. Stored privately in UPLOAD_DIR/products and served
+// publicly (product photos are public) via GET /api/product-images/:filename.
+adminProductsRouter.post(
+  '/:id/images',
+  requirePermission('assets:write'),
+  productImageUpload.array('files', MAX_PRODUCT_IMAGES),
+  async (req, res, next) => {
+    const files = (req.files as Express.Multer.File[] | undefined) ?? []
+    try {
+      if (files.length === 0) {
+        throw badRequest('At least one image file is required (field "files")')
+      }
+      // reject anything whose bytes are not a real JPEG/PNG/WebP (cleans up on failure)
+      await validateUploadedImages(files)
+      const product = await prisma.product.findUnique({
+        where: { id: String(req.params.id) },
+        include: { assets: { where: { type: 'image' } } },
+      })
+      if (!product) {
+        await cleanupUploadedFiles(files)
+        throw notFound('Product not found')
+      }
+      if (product.assets.length + files.length > MAX_PRODUCT_IMAGES) {
+        await cleanupUploadedFiles(files)
+        throw badRequest(
+          `Max ${MAX_PRODUCT_IMAGES} photos per product (already ${product.assets.length})`,
+        )
+      }
+      const maxSort = product.assets.reduce((max, a) => Math.max(max, a.sortOrder), 0)
+      const assets = await prisma.$transaction(
+        files.map((file, i) =>
+          prisma.productAsset.create({
+            data: {
+              productId: product.id,
+              type: 'image',
+              url: `/api/product-images/${file.filename}`,
+              alt: null,
+              sortOrder: maxSort + i + 1,
+            },
+          }),
+        ),
+      )
+      await audit(
+        req,
+        'product.images.upload',
+        { type: 'product', id: product.id },
+        { count: assets.length },
+      )
+      res.status(201).json({ assets })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// Delete a single asset (used for product photos; unlinks the uploaded file).
+adminProductsRouter.delete(
+  '/:id/assets/:assetId',
+  requirePermission('assets:write'),
+  async (req, res, next) => {
+    try {
+      const asset = await prisma.productAsset.findFirst({
+        where: { id: String(req.params.assetId), productId: String(req.params.id) },
+      })
+      if (!asset) throw notFound('Asset not found')
+      if (asset.url.startsWith('/api/product-images/')) {
+        await unlink(path.join(productImagesDir, path.basename(asset.url))).catch(() => {})
+      }
+      await prisma.productAsset.delete({ where: { id: asset.id } })
+      await audit(
+        req,
+        'product.asset.delete',
+        { type: 'product', id: asset.productId },
+        { assetId: asset.id, assetType: asset.type },
+      )
+      res.json({ ok: true })
     } catch (err) {
       next(err)
     }

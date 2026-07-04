@@ -38,6 +38,9 @@
     "all": "Všechny produkty",
     "configure": "Konfigurovat barvy",
     "addToCart": "Do košíku",
+    "gallery": {
+      "placeholder": "Fotografie není k dispozici"
+    },
     "added": "Přidáno do košíku",
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit",
@@ -359,6 +362,7 @@
     "shareError": "Odkaz se nepodařilo vytvořit"
   },
   "configurator": {
+    "title": "Konfigurátor",
     "popular": "Oblíbené kombinace",
     "reset": "Obnovit výchozí",
     "share": "Sdílet konfiguraci",
