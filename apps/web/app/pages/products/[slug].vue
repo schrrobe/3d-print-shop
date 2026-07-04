@@ -259,12 +259,17 @@ useHead({
         <ClientOnly>
           <ModelViewer :src="productGlb(product)" :color-hex-by-zone="colorHexByZone" />
           <template #fallback>
-            <div class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated" />
+            <div
+              class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated"
+            />
           </template>
         </ClientOnly>
         <p class="mt-sm text-center text-caption text-secondary">{{ t('products.viewer.hint') }}</p>
         <div v-if="product.colorSlots.length" class="mt-md">
-          <PsConfigurationPreview :zones="previewZones" :unavailable-label="t('configurator.unavailableShort')" />
+          <PsConfigurationPreview
+            :zones="previewZones"
+            :unavailable-label="t('configurator.unavailableShort')"
+          />
         </div>
       </div>
 
@@ -317,10 +322,20 @@ useHead({
             :colors="colors"
           />
           <div class="mt-md flex flex-wrap gap-sm">
-            <button type="button" class="text-caption text-secondary hover:text-primary" data-testid="config-reset" @click="resetToDefaults">
+            <button
+              type="button"
+              class="text-caption text-secondary hover:text-primary"
+              data-testid="config-reset"
+              @click="resetToDefaults"
+            >
               ↺ {{ t('configurator.reset') }}
             </button>
-            <button type="button" class="text-caption text-brand hover:underline" data-testid="config-share" @click="shareConfig">
+            <button
+              type="button"
+              class="text-caption text-brand hover:underline"
+              data-testid="config-share"
+              @click="shareConfig"
+            >
               🔗 {{ t('configurator.share') }}
             </button>
           </div>
@@ -361,7 +376,10 @@ useHead({
           </PsPillButton>
         </div>
 
-        <NuxtLink :to="localePath('/products')" class="text-caption text-secondary hover:text-primary">
+        <NuxtLink
+          :to="localePath('/products')"
+          class="text-caption text-secondary hover:text-primary"
+        >
           ← {{ t('common.back') }}
         </NuxtLink>
       </div>
@@ -394,6 +412,7 @@ useHead({
           :body="review.body"
           :display-name="review.displayName"
           :photo-url="review.photoUrl"
+          :photo-alt-label="t('reviews.photoAlt', { name: review.displayName })"
           :date-label="new Date(review.createdAt).toLocaleDateString(locale)"
           :rating-aria-label="t('reviews.ratingLabel', { rating: review.rating })"
         />

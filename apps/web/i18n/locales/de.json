@@ -272,6 +272,7 @@
       "orderNumber": "Bestellnummer (optional)",
       "submit": "Zugangslink anfordern",
       "confirmation": "Wenn zu dieser E-Mail Bestellungen existieren, haben wir einen Zugangslink gesendet.",
+      "error": "Der Zugangslink konnte nicht angefordert werden. Bitte versuche es erneut.",
       "privacy": "Der Link ist 30 Tage gültig und wird nur an die angegebene E-Mail-Adresse gesendet."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Bewertungen",
     "empty": "Noch keine Bewertungen.",
     "count": "{count} Bewertungen",
-    "ratingLabel": "{rating} von 5 Sternen"
+    "ratingLabel": "{rating} von 5 Sternen",
+    "photoAlt": "Bewertungsfoto von {name}"
   }
 }

@@ -1,4 +1,5 @@
 import { canonicalColorSelection, type ColorSelection } from '@print-shop/utils'
+import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 
 /** Only real purchases count towards popularity. */
@@ -90,7 +91,7 @@ export async function popularConfigurationsForProduct(
       where: {
         productId,
         order: { status: { in: [...COUNTED_ORDER_STATUSES] } },
-        colorSelection: { not: { equals: null } },
+        colorSelection: { not: Prisma.JsonNull },
       },
       select: { colorSelection: true },
     }),

@@ -16,6 +16,7 @@ import { SocialPublishError } from './publisher.js'
  */
 
 const GRAPH_BASE = 'https://graph.facebook.com'
+const GRAPH_TIMEOUT_MS = 10_000
 
 interface MetaErrorBody {
   error?: { message?: string; code?: number; error_subcode?: number; type?: string }
@@ -27,22 +28,36 @@ export function mapMetaError(httpStatus: number, body: unknown): SocialPublishEr
   const message = err?.message ?? `Meta Graph API request failed (HTTP ${httpStatus})`
   const code = err?.code
 
-  if (code === 190) return new SocialPublishError(`Access token invalid or expired: ${message}`, 'meta_invalid_token', false)
+  if (code === 190)
+    return new SocialPublishError(
+      `Access token invalid or expired: ${message}`,
+      'meta_invalid_token',
+      false,
+    )
   if (code === 10 || code === 200 || code === 203) {
     return new SocialPublishError(`Missing permission: ${message}`, 'meta_permission_denied', false)
   }
   if (code === 4 || code === 17 || code === 32 || code === 613) {
     return new SocialPublishError(`Rate limit reached: ${message}`, 'meta_rate_limited', true)
   }
-  if (code === 100) return new SocialPublishError(`Invalid parameter: ${message}`, 'meta_invalid_parameter', false)
+  if (code === 100)
+    return new SocialPublishError(`Invalid parameter: ${message}`, 'meta_invalid_parameter', false)
   if (code === 9007 || code === 2207026) {
-    return new SocialPublishError(`Media not accepted by Instagram: ${message}`, 'meta_media_error', false)
+    return new SocialPublishError(
+      `Media not accepted by Instagram: ${message}`,
+      'meta_media_error',
+      false,
+    )
   }
-  if (httpStatus >= 500) return new SocialPublishError(`Meta server error: ${message}`, 'meta_server_error', true)
+  if (httpStatus >= 500)
+    return new SocialPublishError(`Meta server error: ${message}`, 'meta_server_error', true)
   return new SocialPublishError(message, 'meta_unknown_error', false)
 }
 
-async function graphPost(path: string, params: Record<string, string>): Promise<Record<string, unknown>> {
+async function graphPost(
+  path: string,
+  params: Record<string, string>,
+): Promise<Record<string, unknown>> {
   const url = `${GRAPH_BASE}/${env.META_GRAPH_API_VERSION}/${path}`
   let response: Response
   try {
@@ -50,9 +65,14 @@ async function graphPost(path: string, params: Record<string, string>): Promise<
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(params).toString(),
+      signal: AbortSignal.timeout(GRAPH_TIMEOUT_MS),
     })
   } catch (err) {
-    throw new SocialPublishError(`Network error calling Meta Graph API: ${String(err)}`, 'meta_network_error', true)
+    throw new SocialPublishError(
+      `Network error calling Meta Graph API: ${String(err)}`,
+      'meta_network_error',
+      true,
+    )
   }
   const body = (await response.json().catch(() => null)) as Record<string, unknown> | null
   if (!response.ok) throw mapMetaError(response.status, body)
@@ -87,7 +107,11 @@ export class FacebookPagePublisher implements SocialMediaPublisher {
         })
     const externalPostId = String(body.post_id ?? body.id ?? '')
     if (!externalPostId) {
-      throw new SocialPublishError('Meta response contained no post id', 'meta_missing_post_id', false)
+      throw new SocialPublishError(
+        'Meta response contained no post id',
+        'meta_missing_post_id',
+        false,
+      )
     }
     return { externalPostId }
   }
@@ -110,7 +134,11 @@ export class InstagramPublisher implements SocialMediaPublisher {
   async publish(input: SocialPublishInput): Promise<SocialPublishResult> {
     const imageUrl = input.mediaUrls[0]
     if (!imageUrl) {
-      throw new SocialPublishError('Instagram feed posts require an image', 'meta_media_required', false)
+      throw new SocialPublishError(
+        'Instagram feed posts require an image',
+        'meta_media_required',
+        false,
+      )
     }
     const container = await graphPost(`${this.igUserId}/media`, {
       image_url: imageUrl,
@@ -119,7 +147,11 @@ export class InstagramPublisher implements SocialMediaPublisher {
     })
     const creationId = String(container.id ?? '')
     if (!creationId) {
-      throw new SocialPublishError('Instagram media container creation failed', 'meta_container_failed', false)
+      throw new SocialPublishError(
+        'Instagram media container creation failed',
+        'meta_container_failed',
+        false,
+      )
     }
     const published = await graphPost(`${this.igUserId}/media_publish`, {
       creation_id: creationId,
@@ -127,7 +159,11 @@ export class InstagramPublisher implements SocialMediaPublisher {
     })
     const externalPostId = String(published.id ?? '')
     if (!externalPostId) {
-      throw new SocialPublishError('Instagram media_publish returned no id', 'meta_missing_post_id', false)
+      throw new SocialPublishError(
+        'Instagram media_publish returned no id',
+        'meta_missing_post_id',
+        false,
+      )
     }
     return { externalPostId }
   }

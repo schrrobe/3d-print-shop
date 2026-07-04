@@ -10,6 +10,7 @@ defineProps<{
   displayName: string
   dateLabel?: string
   photoUrl?: string | null
+  photoAltLabel?: string
   /** Label for the verified-purchase badge, e.g. 'Verifizierter Kauf' (i18n via prop). */
   verifiedLabel?: string
   /** Accessible label for the star rating, e.g. '4 von 5 Sternen' (i18n via prop). */
@@ -28,7 +29,7 @@ defineProps<{
       <img
         v-if="photoUrl"
         :src="photoUrl"
-        alt=""
+        :alt="photoAltLabel ?? title ?? displayName"
         class="size-20 rounded-card border border-subtle object-cover"
         loading="lazy"
       />

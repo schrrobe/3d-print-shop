@@ -2,7 +2,11 @@ import path from 'node:path'
 import { renderReviewSubmitted } from '@print-shop/emails'
 import { reviewCreateSchema } from '@print-shop/validators'
 import { Router } from 'express'
-import { createImageUpload } from '../../lib/image-upload.js'
+import {
+  cleanupUploadedFiles,
+  createImageUpload,
+  validateUploadedImages,
+} from '../../lib/image-upload.js'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest, conflict, notFound, unauthorized } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
@@ -19,18 +23,23 @@ const photoUpload = createImageUpload('reviews', { maxFiles: 1, maxBytes: 5 * 10
  * or a portal magic-link token (Authorization: Bearer) whose email must match
  * the order — reviews are only possible with a real order reference.
  */
-async function orderForReview(req: {
-  headers: Record<string, unknown>
-  query: Record<string, unknown>
-  body?: Record<string, unknown>
-}, orderNumber: string) {
+async function orderForReview(
+  req: {
+    headers: Record<string, unknown>
+    query: Record<string, unknown>
+    body?: Record<string, unknown>
+  },
+  orderNumber: string,
+) {
   const order = await prisma.order.findUnique({
     where: { orderNumber },
     include: { items: true },
   })
   if (!order) throw notFound('Order not found')
 
-  const token = String((req.body as Record<string, string> | undefined)?.token ?? req.query.token ?? '')
+  const token = String(
+    (req.body as Record<string, string> | undefined)?.token ?? req.query.token ?? '',
+  )
   if (token && token === order.accessToken) return order
 
   const header = String(req.headers.authorization ?? '')
@@ -84,6 +93,7 @@ reviewsRouter.post('/', sensitiveLimiter, photoUpload.single('photo'), async (re
     const orderItem = order.items.find((i) => i.id === input.orderItemId)
     if (!orderItem) throw badRequest('Order item does not belong to this order')
     if (!orderItem.productId) throw badRequest('Only catalog products can be reviewed')
+    await validateUploadedImages(req.file)
 
     const existing = await prisma.review.findUnique({ where: { orderItemId: orderItem.id } })
     if (existing) throw conflict('This item has already been reviewed')
@@ -105,11 +115,15 @@ reviewsRouter.post('/', sensitiveLimiter, photoUpload.single('photo'), async (re
     await sendEmail(
       order.email,
       'review_submitted',
-      renderReviewSubmitted({ firstName: order.firstName, productName: orderItem.name }, order.locale),
+      renderReviewSubmitted(
+        { firstName: order.firstName, productName: orderItem.name },
+        order.locale,
+      ),
     )
 
     res.status(201).json({ ok: true, reviewId: review.id, status: review.status })
   } catch (err) {
+    await cleanupUploadedFiles(req.file)
     next(err)
   }
 })

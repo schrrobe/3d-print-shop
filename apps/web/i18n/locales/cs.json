@@ -272,6 +272,7 @@
       "orderNumber": "Číslo objednávky (nepovinné)",
       "submit": "Požádat o přístupový odkaz",
       "confirmation": "Pokud pro tento e-mail existují objednávky, odeslali jsme přístupový odkaz.",
+      "error": "Přístupový odkaz se nepodařilo vyžádat. Zkuste to prosím znovu.",
       "privacy": "Odkaz je platný 30 dní a odesílá se pouze na zadanou adresu."
     },
     "expired": {
@@ -375,6 +376,7 @@
     "title": "Recenze",
     "empty": "Zatím žádné recenze.",
     "count": "Počet recenzí: {count}",
-    "ratingLabel": "{rating} z 5 hvězdiček"
+    "ratingLabel": "{rating} z 5 hvězdiček",
+    "photoAlt": "Fotka recenze od {name}"
   }
 }

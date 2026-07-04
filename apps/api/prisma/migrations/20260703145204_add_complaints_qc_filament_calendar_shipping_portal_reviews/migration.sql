@@ -35,6 +35,10 @@ ADD COLUMN     "reorder" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "storageLocation" TEXT,
 ADD COLUMN     "totalGrams" INTEGER;
 
+-- Drop deprecated AMS assignment columns; AmsSlot.spoolId is the single source of truth.
+ALTER TABLE "FilamentSpool" DROP COLUMN IF EXISTS "printerId",
+DROP COLUMN IF EXISTS "amsSlot";
+
 -- AlterTable
 ALTER TABLE "PrinterJob" ADD COLUMN     "plannedEndAt" TIMESTAMP(3),
 ADD COLUMN     "plannedStartAt" TIMESTAMP(3);
@@ -381,7 +385,10 @@ CREATE INDEX "Review_productId_status_idx" ON "Review"("productId", "status");
 CREATE INDEX "Review_status_idx" ON "Review"("status");
 
 -- CreateIndex
-CREATE INDEX "PrinterJob_printerId_plannedStartAt_idx" ON "PrinterJob"("printerId", "plannedStartAt");
+CREATE INDEX CONCURRENTLY "PrinterJob_printerId_plannedStartAt_idx" ON "PrinterJob"("printerId", "plannedStartAt");
+
+-- Only one open QC record may exist per print job.
+CREATE UNIQUE INDEX "QcRecord_one_open_per_job_idx" ON "QcRecord"("printerJobId") WHERE "status" = 'open';
 
 -- AddForeignKey
 ALTER TABLE "AmsUnit" ADD CONSTRAINT "AmsUnit_printerId_fkey" FOREIGN KEY ("printerId") REFERENCES "Printer"("id") ON DELETE CASCADE ON UPDATE CASCADE;

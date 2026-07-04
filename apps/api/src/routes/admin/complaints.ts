@@ -19,6 +19,12 @@ import { sendComplaintUpdatedEmail } from '../../services/complaints.js'
 export const adminComplaintsRouter = Router()
 
 const photoUpload = createImageUpload('complaints', { maxFiles: 5, maxBytes: 10 * 1024 * 1024 })
+const DECISION_ONLY_STATUSES = new Set([
+  'approved',
+  'replacement_planned',
+  'refund_planned',
+  'rejected',
+])
 
 const complaintInclude = {
   order: {
@@ -32,7 +38,9 @@ const complaintInclude = {
       invoice: { select: { id: true, number: true } },
     },
   },
-  items: { include: { orderItem: { include: { product: { select: { slug: true, customMade: true } } } } } },
+  items: {
+    include: { orderItem: { include: { product: { select: { slug: true, customMade: true } } } } },
+  },
   attachments: true,
   decisions: {
     orderBy: { decidedAt: 'asc' as const },
@@ -74,43 +82,61 @@ adminComplaintsRouter.get('/:id', requirePermission('complaints:read'), async (r
 })
 
 /** Status transition (validated by the complaint status machine) + customer email. */
-adminComplaintsRouter.post('/:id/status', requirePermission('complaints:write'), async (req, res, next) => {
-  try {
-    const { status } = complaintStatusSchema.parse(req.body)
-    const complaint = await prisma.complaint.findUnique({
-      where: { id: String(req.params.id) },
-      include: { order: true },
-    })
-    if (!complaint) throw notFound('Complaint not found')
-    assertComplaintTransition(complaint.status, status)
-    const updated = await prisma.complaint.update({
-      where: { id: complaint.id },
-      data: { status, closedAt: status === 'closed' ? new Date() : complaint.closedAt },
-    })
-    await sendComplaintUpdatedEmail(updated, complaint.order)
-    await audit(req, 'complaint.status', { type: 'complaint', id: complaint.id }, { from: complaint.status, to: status })
-    res.json({ complaint: updated })
-  } catch (err) {
-    next(err)
-  }
-})
+adminComplaintsRouter.post(
+  '/:id/status',
+  requirePermission('complaints:write'),
+  async (req, res, next) => {
+    try {
+      const { status } = complaintStatusSchema.parse(req.body)
+      const complaint = await prisma.complaint.findUnique({
+        where: { id: String(req.params.id) },
+        include: { order: true },
+      })
+      if (!complaint) throw notFound('Complaint not found')
+      if (DECISION_ONLY_STATUSES.has(status)) {
+        throw conflict(
+          'Use the complaint decision endpoint for approval, rejection, replacement or refund outcomes',
+        )
+      }
+      assertComplaintTransition(complaint.status, status)
+      const updated = await prisma.complaint.update({
+        where: { id: complaint.id },
+        data: { status, closedAt: status === 'closed' ? new Date() : complaint.closedAt },
+      })
+      await sendComplaintUpdatedEmail(updated, complaint.order)
+      await audit(
+        req,
+        'complaint.status',
+        { type: 'complaint', id: complaint.id },
+        { from: complaint.status, to: status },
+      )
+      res.json({ complaint: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /** Internal note (staff only, never exposed to the customer). */
-adminComplaintsRouter.patch('/:id', requirePermission('complaints:write'), async (req, res, next) => {
-  try {
-    const input = complaintUpdateSchema.parse(req.body)
-    const complaint = await prisma.complaint.findUnique({ where: { id: String(req.params.id) } })
-    if (!complaint) throw notFound('Complaint not found')
-    const updated = await prisma.complaint.update({
-      where: { id: complaint.id },
-      data: { internalNote: input.internalNote },
-    })
-    await audit(req, 'complaint.update', { type: 'complaint', id: complaint.id })
-    res.json({ complaint: updated })
-  } catch (err) {
-    next(err)
-  }
-})
+adminComplaintsRouter.patch(
+  '/:id',
+  requirePermission('complaints:write'),
+  async (req, res, next) => {
+    try {
+      const input = complaintUpdateSchema.parse(req.body)
+      const complaint = await prisma.complaint.findUnique({ where: { id: String(req.params.id) } })
+      if (!complaint) throw notFound('Complaint not found')
+      const updated = await prisma.complaint.update({
+        where: { id: complaint.id },
+        data: { internalNote: input.internalNote },
+      })
+      await audit(req, 'complaint.update', { type: 'complaint', id: complaint.id })
+      res.json({ complaint: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /**
  * Decision (complaints:decide — admin only). `replacement_print` creates one
@@ -118,136 +144,161 @@ adminComplaintsRouter.patch('/:id', requirePermission('complaints:write'), async
  * moves the complaint to replacement_planned; refund → refund_planned;
  * rejection → rejected; further_review keeps the case in review.
  */
-adminComplaintsRouter.post('/:id/decision', requirePermission('complaints:decide'), async (req, res, next) => {
-  try {
-    const input = complaintDecisionSchema.parse(req.body)
-    const complaint = await prisma.complaint.findUnique({
-      where: { id: String(req.params.id) },
-      include: { order: true, items: { include: { orderItem: true } } },
-    })
-    if (!complaint) throw notFound('Complaint not found')
-    if (complaint.status !== 'in_review' && complaint.status !== 'approved') {
-      throw conflict('Decisions are only possible while the complaint is in review or approved')
-    }
-
-    const nextStatus =
-      input.resolution === 'replacement_print'
-        ? ('replacement_planned' as const)
-        : input.resolution === 'refund'
-          ? ('refund_planned' as const)
-          : input.resolution === 'rejection'
-            ? ('rejected' as const)
-            : input.resolution === 'voucher'
-              ? ('approved' as const)
-              : ('in_review' as const)
-    if (complaint.status === 'in_review' && nextStatus !== 'in_review' && nextStatus !== 'rejected') {
-      // in_review → approved → (replacement|refund)_planned: validate both hops
-      assertComplaintTransition(complaint.status, 'approved')
-      if (nextStatus !== 'approved') assertComplaintTransition('approved', nextStatus)
-    } else if (nextStatus !== complaint.status && nextStatus !== 'in_review') {
-      assertComplaintTransition(complaint.status, nextStatus)
-    }
-
-    const result = await prisma.$transaction(async (tx) => {
-      let reprintJobId: string | null = null
-      if (input.resolution === 'replacement_print') {
-        for (const item of complaint.items) {
-          const job = await tx.printerJob.create({
-            data: {
-              orderId: complaint.orderId,
-              orderItemId: item.orderItemId,
-              status: 'waiting',
-              notes: `Ersatzdruck aus Reklamation ${complaint.complaintNumber}`,
-            },
-          })
-          reprintJobId = reprintJobId ?? job.id
-        }
+adminComplaintsRouter.post(
+  '/:id/decision',
+  requirePermission('complaints:decide'),
+  async (req, res, next) => {
+    try {
+      const input = complaintDecisionSchema.parse(req.body)
+      const complaint = await prisma.complaint.findUnique({
+        where: { id: String(req.params.id) },
+        include: { order: true, items: { include: { orderItem: true } } },
+      })
+      if (!complaint) throw notFound('Complaint not found')
+      if (complaint.status !== 'in_review' && complaint.status !== 'approved') {
+        throw conflict('Decisions are only possible while the complaint is in review or approved')
       }
-      const decision = await tx.complaintDecision.create({
-        data: {
-          complaintId: complaint.id,
-          resolution: input.resolution,
-          note: input.note ?? null,
-          refundAmountCents: input.refundAmountCents ?? null,
-          voucherCode: input.voucherCode ?? null,
-          reprintJobId,
-          decidedById: req.user?.id ?? null,
-        },
-      })
-      const updated = await tx.complaint.update({
-        where: { id: complaint.id },
-        data: { status: nextStatus },
-      })
-      return { decision, updated }
-    })
 
-    await sendComplaintUpdatedEmail(result.updated, complaint.order, input.note ?? undefined)
-    await audit(req, 'complaint.decision', { type: 'complaint', id: complaint.id }, { resolution: input.resolution })
-    res.status(201).json({ complaint: result.updated, decision: result.decision })
-  } catch (err) {
-    next(err)
-  }
-})
+      const nextStatus =
+        input.resolution === 'replacement_print'
+          ? ('replacement_planned' as const)
+          : input.resolution === 'refund'
+            ? ('refund_planned' as const)
+            : input.resolution === 'rejection'
+              ? ('rejected' as const)
+              : input.resolution === 'voucher'
+                ? ('approved' as const)
+                : ('in_review' as const)
+      if (
+        complaint.status === 'in_review' &&
+        nextStatus !== 'in_review' &&
+        nextStatus !== 'rejected'
+      ) {
+        // in_review → approved → (replacement|refund)_planned: validate both hops
+        assertComplaintTransition(complaint.status, 'approved')
+        if (nextStatus !== 'approved') assertComplaintTransition('approved', nextStatus)
+      } else if (nextStatus !== complaint.status && nextStatus !== 'in_review') {
+        assertComplaintTransition(complaint.status, nextStatus)
+      }
 
-/** Create a support ticket from the complaint or link an existing one. */
-adminComplaintsRouter.post('/:id/ticket', requirePermission('complaints:write'), async (req, res, next) => {
-  try {
-    const input = complaintTicketSchema.parse(req.body ?? {})
-    const complaint = await prisma.complaint.findUnique({
-      where: { id: String(req.params.id) },
-      include: { order: true },
-    })
-    if (!complaint) throw notFound('Complaint not found')
-    if (complaint.ticketId) throw conflict('Complaint is already linked to a ticket')
-
-    let ticketId = input.ticketId ?? null
-    if (ticketId) {
-      const ticket = await prisma.ticket.findUnique({
-        where: { id: ticketId },
-        include: { complaint: { select: { id: true } } },
-      })
-      if (!ticket) throw notFound('Ticket not found')
-      if (ticket.complaint != null) throw conflict('Ticket is already linked to another complaint')
-    } else {
-      const ticket = await prisma.$transaction(async (tx) => {
-        const year = new Date().getFullYear()
-        const existing = await tx.ticketCounter.findUnique({ where: { year } })
-        const nextSeq = nextInvoiceSequence(existing, year)
-        await tx.ticketCounter.upsert({
-          where: { year: nextSeq.year },
-          create: { year: nextSeq.year, lastSequence: nextSeq.sequence },
-          update: { lastSequence: nextSeq.sequence },
-        })
-        return tx.ticket.create({
+      const result = await prisma.$transaction(async (tx) => {
+        let reprintJobId: string | null = null
+        if (input.resolution === 'replacement_print') {
+          for (const item of complaint.items) {
+            const job = await tx.printerJob.create({
+              data: {
+                orderId: complaint.orderId,
+                orderItemId: item.orderItemId,
+                status: 'waiting',
+                notes: `Ersatzdruck aus Reklamation ${complaint.complaintNumber}`,
+              },
+            })
+            reprintJobId = reprintJobId ?? job.id
+          }
+        }
+        const decision = await tx.complaintDecision.create({
           data: {
-            ticketNumber: formatInvoiceNumber('TIC', nextSeq.year, nextSeq.sequence),
-            accessToken: randomToken(32),
-            subject: `Reklamation ${complaint.complaintNumber}`,
-            category: 'order',
-            name: `${complaint.order.firstName} ${complaint.order.lastName}`,
-            email: complaint.order.email,
-            locale: complaint.order.locale,
-            orderId: complaint.orderId,
-            messages: {
-              create: [{ authorType: 'customer', body: complaint.description }],
-            },
+            complaintId: complaint.id,
+            resolution: input.resolution,
+            note: input.note ?? null,
+            refundAmountCents: input.refundAmountCents ?? null,
+            voucherCode: input.voucherCode ?? null,
+            reprintJobId,
+            decidedById: req.user?.id ?? null,
           },
         })
+        const updated = await tx.complaint.update({
+          where: { id: complaint.id },
+          data: { status: nextStatus },
+        })
+        return { decision, updated }
       })
-      ticketId = ticket.id
-    }
 
-    const updated = await prisma.complaint.update({
-      where: { id: complaint.id },
-      data: { ticketId },
-      include: { ticket: { select: { id: true, ticketNumber: true, status: true, subject: true } } },
-    })
-    await audit(req, 'complaint.ticket_link', { type: 'complaint', id: complaint.id }, { ticketId })
-    res.status(201).json({ complaint: updated })
-  } catch (err) {
-    next(err)
-  }
-})
+      await sendComplaintUpdatedEmail(result.updated, complaint.order, input.note ?? undefined)
+      await audit(
+        req,
+        'complaint.decision',
+        { type: 'complaint', id: complaint.id },
+        { resolution: input.resolution },
+      )
+      res.status(201).json({ complaint: result.updated, decision: result.decision })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Create a support ticket from the complaint or link an existing one. */
+adminComplaintsRouter.post(
+  '/:id/ticket',
+  requirePermission('complaints:write'),
+  async (req, res, next) => {
+    try {
+      const input = complaintTicketSchema.parse(req.body ?? {})
+      const complaint = await prisma.complaint.findUnique({
+        where: { id: String(req.params.id) },
+        include: { order: true },
+      })
+      if (!complaint) throw notFound('Complaint not found')
+      if (complaint.ticketId) throw conflict('Complaint is already linked to a ticket')
+
+      let ticketId = input.ticketId ?? null
+      if (ticketId) {
+        const ticket = await prisma.ticket.findUnique({
+          where: { id: ticketId },
+          include: { complaint: { select: { id: true } } },
+        })
+        if (!ticket) throw notFound('Ticket not found')
+        if (ticket.complaint != null)
+          throw conflict('Ticket is already linked to another complaint')
+      } else {
+        const ticket = await prisma.$transaction(async (tx) => {
+          const year = new Date().getFullYear()
+          const existing = await tx.ticketCounter.findUnique({ where: { year } })
+          const nextSeq = nextInvoiceSequence(existing, year)
+          await tx.ticketCounter.upsert({
+            where: { year: nextSeq.year },
+            create: { year: nextSeq.year, lastSequence: nextSeq.sequence },
+            update: { lastSequence: nextSeq.sequence },
+          })
+          return tx.ticket.create({
+            data: {
+              ticketNumber: formatInvoiceNumber('TIC', nextSeq.year, nextSeq.sequence),
+              accessToken: randomToken(32),
+              subject: `Reklamation ${complaint.complaintNumber}`,
+              category: 'order',
+              name: `${complaint.order.firstName} ${complaint.order.lastName}`,
+              email: complaint.order.email,
+              locale: complaint.order.locale,
+              orderId: complaint.orderId,
+              messages: {
+                create: [{ authorType: 'customer', body: complaint.description }],
+              },
+            },
+          })
+        })
+        ticketId = ticket.id
+      }
+
+      const updated = await prisma.complaint.update({
+        where: { id: complaint.id },
+        data: { ticketId },
+        include: {
+          ticket: { select: { id: true, ticketNumber: true, status: true, subject: true } },
+        },
+      })
+      await audit(
+        req,
+        'complaint.ticket_link',
+        { type: 'complaint', id: complaint.id },
+        { ticketId },
+      )
+      res.status(201).json({ complaint: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /** Staff photo upload to a complaint. */
 adminComplaintsRouter.post(
@@ -270,7 +321,12 @@ adminComplaintsRouter.post(
           uploadedBy: 'staff' as const,
         })),
       })
-      await audit(req, 'complaint.photo_upload', { type: 'complaint', id: complaint.id }, { count: files.length })
+      await audit(
+        req,
+        'complaint.photo_upload',
+        { type: 'complaint', id: complaint.id },
+        { count: files.length },
+      )
       res.status(201).json({ ok: true })
     } catch (err) {
       next(err)
