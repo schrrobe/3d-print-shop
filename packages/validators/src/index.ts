@@ -1,9 +1,17 @@
 import {
+  AMS_SLOT_STATUSES,
   CARRIERS,
   COLOR_ZONE_SLOTS,
+  COMPLAINT_REASONS,
+  COMPLAINT_RESOLUTIONS,
+  COMPLAINT_STATUSES,
   CONSENT_CATEGORIES,
   LOCALES,
   PAYMENT_METHODS,
+  QC_STATUSES,
+  REVIEW_STATUSES,
+  SHIPMENT_STATUSES,
+  SOCIAL_PLATFORMS,
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
   TICKET_STATUSES,
@@ -224,3 +232,273 @@ export type TicketUpdateInput = z.infer<typeof ticketUpdateSchema>
 export const ticketStatusSchema = z.object({
   status: z.enum(TICKET_STATUSES),
 })
+
+// ---------- Social media planner ----------
+
+/** Instagram caps captions at 2200 characters — the stricter of both platforms. */
+export const SOCIAL_CAPTION_MAX_LENGTH = 2200
+
+export const socialPlatformSchema = z.enum(SOCIAL_PLATFORMS)
+
+/** 1–2 distinct platform targets per editor submission (each becomes its own post row). */
+export const socialPostPlatformsSchema = z
+  .array(socialPlatformSchema)
+  .min(1, 'At least one platform is required')
+  .max(SOCIAL_PLATFORMS.length)
+  .refine((platforms) => new Set(platforms).size === platforms.length, 'Duplicate platform')
+
+export const socialMediaUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(500)
+  .refine(
+    (url) => url.startsWith('/') || /^https?:\/\//.test(url),
+    'Media URL must be absolute (http/https) or app-relative (/…)',
+  )
+
+export const socialPostCreateSchema = z.object({
+  platforms: socialPostPlatformsSchema,
+  caption: z.string().trim().min(1).max(SOCIAL_CAPTION_MAX_LENGTH),
+  mediaUrls: z.array(socialMediaUrlSchema).max(10).default([]),
+  productId: cuidSchema.nullable().optional(),
+  /** ISO-8601 UTC. Editor converts from the admin's local timezone before submitting. */
+  scheduledAt: z.string().datetime({ offset: true }).nullable().optional(),
+  /** true = direkt planen (Status scheduled), false/absent = Entwurf */
+  schedule: z.boolean().default(false),
+})
+export type SocialPostCreateInput = z.infer<typeof socialPostCreateSchema>
+
+export const socialPostUpdateSchema = z.object({
+  caption: z.string().trim().min(1).max(SOCIAL_CAPTION_MAX_LENGTH).optional(),
+  mediaUrls: z.array(socialMediaUrlSchema).max(10).optional(),
+  productId: cuidSchema.nullable().optional(),
+  scheduledAt: z.string().datetime({ offset: true }).nullable().optional(),
+})
+export type SocialPostUpdateInput = z.infer<typeof socialPostUpdateSchema>
+
+export const socialPostScheduleSchema = z.object({
+  /** Past values are allowed: the next worker tick publishes immediately. */
+  scheduledAt: z.string().datetime({ offset: true }),
+})
+export type SocialPostScheduleInput = z.infer<typeof socialPostScheduleSchema>
+
+/**
+ * Platform readiness for scheduling: Instagram feed posts require at least
+ * one image; Facebook page posts may be text-only.
+ */
+export function validateSocialPostReadyToSchedule(post: {
+  platform: (typeof SOCIAL_PLATFORMS)[number]
+  mediaUrls: string[]
+}): { ok: true } | { ok: false; error: string } {
+  if (post.platform === 'instagram' && post.mediaUrls.length === 0) {
+    return { ok: false, error: 'Instagram posts require at least one image' }
+  }
+  return { ok: true }
+}
+
+// ---------- Complaints (Reklamationen) ----------
+
+export const complaintItemInputSchema = z.object({
+  orderItemId: cuidSchema,
+  quantity: z.number().int().min(1).max(99).default(1),
+  note: z.string().trim().max(1000).optional(),
+})
+
+/** Customer opens a complaint on their order (auth: orderNumber + order accessToken). */
+export const complaintCreateSchema = z.object({
+  orderNumber: z.string().trim().min(4).max(40),
+  token: z.string().min(16).max(128),
+  reason: z.enum(COMPLAINT_REASONS),
+  description: z.string().trim().min(10).max(4000),
+  items: z.array(complaintItemInputSchema).min(1).max(50),
+  locale: localeSchema.default('de'),
+})
+export type ComplaintCreateInput = z.infer<typeof complaintCreateSchema>
+
+export const complaintReplySchema = z.object({
+  message: z.string().trim().min(1).max(4000),
+})
+
+export const complaintStatusSchema = z.object({
+  status: z.enum(COMPLAINT_STATUSES),
+})
+
+export const complaintUpdateSchema = z.object({
+  internalNote: z.string().trim().max(4000).nullable().optional(),
+})
+
+export const complaintDecisionSchema = z
+  .object({
+    resolution: z.enum(COMPLAINT_RESOLUTIONS),
+    note: z.string().trim().max(4000).optional(),
+    refundAmountCents: priceCentsSchema.nullable().optional(),
+    voucherCode: z.string().trim().max(100).nullable().optional(),
+  })
+  .refine(
+    (d) => d.resolution !== 'refund' || (d.refundAmountCents != null && d.refundAmountCents > 0),
+    { message: 'refundAmountCents is required for refund decisions', path: ['refundAmountCents'] },
+  )
+export type ComplaintDecisionInput = z.infer<typeof complaintDecisionSchema>
+
+/** Empty ticketId = create a new ticket from the complaint; set = link an existing one. */
+export const complaintTicketSchema = z.object({
+  ticketId: cuidSchema.nullable().optional(),
+})
+
+// ---------- Quality control ----------
+
+export const qcCreateSchema = z.object({
+  printerJobId: cuidSchema,
+})
+
+export const qcChecklistSchema = z.object({
+  colorOk: z.boolean().optional(),
+  surfaceOk: z.boolean().optional(),
+  dimensionsOk: z.boolean().optional(),
+  stabilityOk: z.boolean().optional(),
+  completenessOk: z.boolean().optional(),
+  packagingOk: z.boolean().optional(),
+  note: z.string().trim().max(4000).nullable().optional(),
+})
+
+export const qcStatusSchema = z.object({
+  status: z.enum(QC_STATUSES),
+})
+
+export const qcOverrideSchema = z.object({
+  overrideReason: z
+    .string()
+    .trim()
+    .min(10, 'Override reason must explain the conscious decision (min 10 chars)')
+    .max(2000),
+})
+
+// ---------- Filament & AMS ----------
+
+export const spoolCreateSchema = z.object({
+  colorId: cuidSchema.nullable().optional(),
+  material: z.string().trim().min(1).max(100),
+  manufacturer: z.string().trim().max(100).nullable().optional(),
+  label: z.string().trim().max(150).nullable().optional(),
+  totalGrams: z.number().int().min(0).max(100_000).nullable().optional(),
+  remainingGrams: z.number().int().min(0).max(100_000).nullable().optional(),
+  minRemainingGrams: z.number().int().min(0).max(100_000).nullable().optional(),
+  storageLocation: z.string().trim().max(150).nullable().optional(),
+  active: z.boolean().default(true),
+  reorder: z.boolean().default(false),
+  notes: z.string().trim().max(2000).nullable().optional(),
+})
+
+export const spoolUpdateSchema = spoolCreateSchema.partial()
+
+export const amsUnitSchema = z.object({
+  printerId: cuidSchema,
+  name: z.string().trim().min(1).max(100),
+  position: z.number().int().min(1).max(4).default(1),
+  notes: z.string().trim().max(2000).nullable().optional(),
+})
+
+export const amsSlotUpdateSchema = z.object({
+  spoolId: cuidSchema.nullable().optional(),
+  status: z.enum(AMS_SLOT_STATUSES).optional(),
+  notes: z.string().trim().max(2000).nullable().optional(),
+})
+
+export const colorAvailabilitySchema = z.object({
+  active: z.boolean().optional(),
+  outOfStock: z.boolean().optional(),
+  minStockGrams: z.number().int().min(0).max(1_000_000).nullable().optional(),
+})
+
+// ---------- Production calendar ----------
+
+export const jobScheduleSchema = z
+  .object({
+    printerId: cuidSchema.nullable().optional(),
+    /** UTC ISO-8601 — admin UI converts from local timezone. */
+    plannedStartAt: z.string().datetime({ offset: true }),
+    plannedEndAt: z.string().datetime({ offset: true }),
+    /** true = book despite conflicts (audited) */
+    force: z.boolean().default(false),
+  })
+  .refine((v) => new Date(v.plannedEndAt) > new Date(v.plannedStartAt), {
+    message: 'plannedEndAt must be after plannedStartAt',
+    path: ['plannedEndAt'],
+  })
+export type JobScheduleInput = z.infer<typeof jobScheduleSchema>
+
+export const maintenanceWindowSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    startsAt: z.string().datetime({ offset: true }),
+    endsAt: z.string().datetime({ offset: true }),
+    notes: z.string().trim().max(2000).nullable().optional(),
+  })
+  .refine((v) => new Date(v.endsAt) > new Date(v.startsAt), {
+    message: 'endsAt must be after startsAt',
+    path: ['endsAt'],
+  })
+
+// ---------- Shipments ----------
+
+export const shipmentItemInputSchema = z.object({
+  orderItemId: cuidSchema,
+  quantity: z.number().int().min(1).max(99),
+})
+
+export const shipmentCreateSchema = z.object({
+  orderId: cuidSchema,
+  items: z.array(shipmentItemInputSchema).min(1).max(50),
+  weightGrams: z.number().int().min(1).max(100_000).nullable().optional(),
+  notes: z.string().trim().max(2000).nullable().optional(),
+})
+
+export const shipmentStatusSchema = z.object({
+  status: z.enum(SHIPMENT_STATUSES),
+  note: z.string().trim().max(1000).optional(),
+})
+
+export const shipmentShipSchema = z.object({
+  carrier: z.enum(CARRIERS),
+  trackingNumber: z.string().trim().min(4).max(64),
+})
+
+// ---------- Customer portal (magic link) ----------
+
+export const portalLinkRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(254),
+  orderNumber: z.string().trim().max(40).optional(),
+  locale: localeSchema.default('de'),
+})
+export type PortalLinkRequestInput = z.infer<typeof portalLinkRequestSchema>
+
+// ---------- Saved configurations (configurator) ----------
+
+export const savedConfigurationSchema = z.object({
+  productId: cuidSchema,
+  selectedColors: z
+    .record(colorZoneSlotSchema, cuidSchema)
+    .refine((sel) => Object.keys(sel).length > 0, 'At least one color zone is required'),
+})
+export type SavedConfigurationInput = z.infer<typeof savedConfigurationSchema>
+
+// ---------- Reviews ----------
+
+export const reviewCreateSchema = z.object({
+  orderNumber: z.string().trim().min(4).max(40),
+  orderItemId: cuidSchema,
+  rating: z.coerce.number().int().min(1).max(5),
+  title: z.string().trim().max(120).optional(),
+  body: z.string().trim().min(10).max(2000),
+  displayName: z.string().trim().min(2).max(40),
+  locale: localeSchema.default('de'),
+})
+export type ReviewCreateInput = z.infer<typeof reviewCreateSchema>
+
+export const reviewModerateSchema = z.object({
+  status: z.enum(REVIEW_STATUSES).optional(),
+  internalNote: z.string().trim().max(4000).nullable().optional(),
+  flaggedAbuse: z.boolean().optional(),
+})
+export type ReviewModerateInput = z.infer<typeof reviewModerateSchema>

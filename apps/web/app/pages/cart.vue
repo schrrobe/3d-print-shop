@@ -52,6 +52,13 @@ useSeo({
             @change="cart.setQuantity(item.key, Number(($event.target as HTMLInputElement).value))"
           />
           <PsPrice :cents="item.unitPriceCents * item.quantity" :locale="locale as Locale" />
+          <NuxtLink
+            :to="localePath(`/products/${item.slug}`) + `?edit=${encodeURIComponent(item.key)}`"
+            class="text-caption text-brand hover:underline"
+            data-testid="cart-edit"
+          >
+            {{ t('cart.edit') }}
+          </NuxtLink>
           <PsButton variant="ghost" size="sm" data-testid="cart-remove" @click="cart.remove(item.key)">
             ✕ <span class="sr-only">{{ t('cart.remove') }}</span>
           </PsButton>

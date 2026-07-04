@@ -55,7 +55,10 @@
     "shippingFree": "Kostenlos",
     "freeShippingHint": "Noch {amount} bis zum kostenlosen Versand",
     "total": "Gesamt",
-    "checkout": "Zur Kasse"
+    "checkout": "Zur Kasse",
+    "updated": "Warenkorb aktualisiert",
+    "saveChanges": "Änderungen speichern",
+    "edit": "Bearbeiten"
   },
   "checkout": {
     "title": "Kasse",
@@ -251,5 +254,129 @@
       "generic": "Etwas ist schiefgelaufen",
       "back": "Zur Startseite"
     }
+  },
+  "portal": {
+    "title": "Mein Kundenbereich",
+    "orders": "Bestellungen",
+    "noOrders": "Für diese E-Mail liegen keine Bestellungen vor.",
+    "quotes": "Angebote",
+    "quote": "Angebot",
+    "configurations": "Gespeicherte Farbkombinationen",
+    "complaintsOnOrder": "Reklamationen",
+    "requestNew": "Neuen Zugangslink anfordern",
+    "invalid": "Dieser Zugangslink ist ungültig.",
+    "request": {
+      "title": "Zugang zu deinen Bestellungen",
+      "intro": "Gib deine E-Mail-Adresse ein. Wir senden dir einen sicheren Zugangslink zu deinen Bestellungen.",
+      "email": "E-Mail-Adresse",
+      "orderNumber": "Bestellnummer (optional)",
+      "submit": "Zugangslink anfordern",
+      "confirmation": "Wenn zu dieser E-Mail Bestellungen existieren, haben wir einen Zugangslink gesendet.",
+      "error": "Der Zugangslink konnte nicht angefordert werden. Bitte versuche es erneut.",
+      "privacy": "Der Link ist 30 Tage gültig und wird nur an die angegebene E-Mail-Adresse gesendet."
+    },
+    "expired": {
+      "title": "Zugangslink abgelaufen",
+      "intro": "Dieser Link ist abgelaufen. Fordere einen neuen an.",
+      "renew": "Neuen Link anfordern"
+    },
+    "production": {
+      "none": "Noch keine Produktion",
+      "progress": "{done}/{total} in Produktion abgeschlossen"
+    },
+    "actions": {
+      "details": "Details",
+      "invoice": "Rechnung herunterladen",
+      "complaint": "Reklamation eröffnen",
+      "open": "Öffnen"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Beschädigt",
+      "wrong_item": "Falscher Artikel",
+      "quality_issue": "Qualitätsmangel",
+      "missing_parts": "Fehlende Teile",
+      "color_mismatch": "Farbabweichung",
+      "other": "Sonstiges"
+    },
+    "status": {
+      "submitted": "Eingegangen",
+      "in_review": "In Prüfung",
+      "info_needed": "Info benötigt",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "replacement_planned": "Ersatzdruck geplant",
+      "refund_planned": "Erstattung geplant",
+      "closed": "Geschlossen"
+    },
+    "resolution": {
+      "replacement_print": "Ersatzdruck",
+      "refund": "Erstattung",
+      "voucher": "Gutschein",
+      "rejection": "Ablehnung",
+      "further_review": "Weitere Prüfung"
+    },
+    "form": {
+      "title": "Reklamation eröffnen",
+      "missingContext": "Kein gültiger Bestellbezug. Bitte öffne die Reklamation über deinen Kundenbereich.",
+      "goToPortal": "Zum Kundenbereich",
+      "customMadeNote": "Hinweis: Personalisierte Sonderanfertigungen sind vom Widerruf ausgeschlossen. Reklamationen bei Mängeln oder Kulanzfälle sind selbstverständlich möglich.",
+      "selectItems": "Betroffene Positionen",
+      "quantity": "Menge",
+      "reason": "Grund",
+      "description": "Beschreibung",
+      "photos": "Fotos (optional)",
+      "photosHint": "Bis zu 5 Bilder (JPG, PNG, WebP).",
+      "submit": "Reklamation absenden",
+      "noItems": "Bitte wähle mindestens eine Position.",
+      "descriptionTooShort": "Bitte beschreibe das Problem (mindestens 10 Zeichen).",
+      "submitError": "Die Reklamation konnte nicht gesendet werden."
+    },
+    "view": {
+      "order": "Bestellung",
+      "description": "Beschreibung",
+      "items": "Positionen",
+      "photos": "Fotos",
+      "decisions": "Entscheidungen",
+      "replyTitle": "Weitere Informationen benötigt",
+      "replyIntro": "Wir benötigen weitere Angaben. Bitte antworte unten.",
+      "replyLabel": "Deine Antwort",
+      "replySubmit": "Antwort senden"
+    }
+  },
+  "wishlist": {
+    "title": "Wunschliste",
+    "empty": "Deine Wunschliste ist leer.",
+    "toCart": "In den Warenkorb",
+    "share": "Teilen",
+    "add": "Zur Wunschliste hinzufügen",
+    "remove": "Von der Wunschliste entfernen",
+    "added": "Zur Wunschliste hinzugefügt",
+    "removed": "Von der Wunschliste entfernt",
+    "movedToCart": "In den Warenkorb verschoben",
+    "shareCopied": "Link kopiert",
+    "shareError": "Link konnte nicht erstellt werden"
+  },
+  "configurator": {
+    "popular": "Beliebte Kombinationen",
+    "reset": "Auf Standard zurücksetzen",
+    "share": "Konfiguration teilen",
+    "shareCopied": "Konfigurations-Link kopiert",
+    "shareError": "Link konnte nicht erstellt werden",
+    "loadError": "Konfiguration konnte nicht geladen werden",
+    "unavailableShort": "nicht verfügbar",
+    "unavailableZone": "{zone}: {color} ist aktuell nicht verfügbar",
+    "availability": {
+      "unavailable": "{zone}: die gewählte Farbe ist nicht mehr verfügbar",
+      "out_of_stock": "{zone}: die gewählte Farbe ist aktuell ausverkauft"
+    }
+  },
+  "reviews": {
+    "title": "Bewertungen",
+    "empty": "Noch keine Bewertungen.",
+    "count": "{count} Bewertungen",
+    "ratingLabel": "{rating} von 5 Sternen",
+    "photoAlt": "Bewertungsfoto von {name}"
   }
 }

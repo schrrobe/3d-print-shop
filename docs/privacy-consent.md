@@ -30,6 +30,15 @@ Sprache, Theme) laufen ohne Einwilligungspflicht (berechtigtes Interesse / Vertr
 - Logik (`canLoadGa4`, `canLoadMetaPixel`, Parsing) unit-getestet
   (`packages/utils/test/consent.test.ts`), E2E in `consent-tracking.spec.ts`.
 
+## Abgrenzung: Social Media Planner
+
+Der [Social Media Planner](social-media-planner.md) veröffentlicht **ausgehende**
+Marketing-Posts der Shop-Betreiber auf eigenen Kanälen (Facebook-Seite,
+Instagram-Business) über die offiziellen Meta-APIs. Dabei fließen **keine Kunden- oder
+Besucherdaten** an Meta — übertragen werden nur Post-Inhalte (Caption, Produktbilder,
+Produktlinks). Er ist damit unabhängig vom Meta **Pixel** (Kategorie „marketing",
+Opt-in-pflichtig). Access Tokens liegen ausschließlich serverseitig.
+
 ## Weitere DSGVO-Punkte
 
 - Gastbestellung: nur vertragsnotwendige Daten, kein Konto.

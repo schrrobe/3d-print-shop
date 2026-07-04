@@ -41,12 +41,14 @@ describe('RBAC', () => {
     expect(hasPermission('shipping', 'printers:write')).toBe(false)
   })
 
-  it('support is read-only except for tickets', () => {
+  it('support is read-only except for tickets and complaint handling', () => {
     expect(hasPermission('support', 'orders:read')).toBe(true)
     expect(hasPermission('support', 'quotes:read')).toBe(true)
     expect(hasPermission('support', 'payments:read')).toBe(true)
     for (const permission of PERMISSIONS.filter(
-      (p) => (p.endsWith(':write') && p !== 'tickets:write') || p === 'orders:ship',
+      (p) =>
+        (p.endsWith(':write') && p !== 'tickets:write' && p !== 'complaints:write') ||
+        p === 'orders:ship',
     )) {
       expect(hasPermission('support', permission)).toBe(false)
     }

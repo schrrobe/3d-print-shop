@@ -4,6 +4,11 @@ import type { PluginOption } from 'vite'
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-01',
   devtools: { enabled: false },
+  experimental: {
+    // chokidar is the default watcher; the actual sandbox file-watching workaround
+    // is the Vite polling config below (vite.server.watch.usePolling).
+    watcher: 'chokidar',
+  },
 
   modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode'],
 
@@ -13,6 +18,23 @@ export default defineNuxtConfig({
     // Cast: @tailwindcss/vite may resolve against a second vite instance in CI,
     // which makes the Plugin type nominally incompatible
     plugins: [tailwindcss() as unknown as PluginOption],
+    server: {
+      watch: {
+        usePolling: true,
+        interval: 500,
+        ignored: [
+          '**/.git/**',
+          '**/.nuxt/**',
+          '**/.output/**',
+          '**/.turbo/**',
+          '**/.tokensave/**',
+          '**/.serena/**',
+          '**/coverage/**',
+          '**/dist/**',
+          '**/node_modules/**',
+        ],
+      },
+    },
   },
 
   build: {

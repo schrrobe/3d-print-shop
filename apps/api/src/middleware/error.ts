@@ -20,7 +20,8 @@ export const badRequest = (message: string, details?: unknown) =>
   new ApiError(400, message, 'bad_request', details)
 export const unauthorized = (message = 'Unauthorized') => new ApiError(401, message, 'unauthorized')
 export const forbidden = (message = 'Forbidden') => new ApiError(403, message, 'forbidden')
-export const conflict = (message: string) => new ApiError(409, message, 'conflict')
+export const conflict = (message: string, details?: unknown) =>
+  new ApiError(409, message, 'conflict', details)
 
 export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof ApiError) {

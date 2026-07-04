@@ -24,7 +24,7 @@ pnpm install
 cp .env.example .env          # Platzhalter — niemals echte Secrets committen
 cp .env.example apps/api/.env
 
-pnpm db:up                    # PostgreSQL (Docker, Port 5432)
+pnpm db:up                    # PostgreSQL (Docker, Port 15433)
 pnpm db:migrate               # Prisma-Migrationen
 pnpm db:seed                  # Beispieldaten (Produkte, Farben, Drucker, Bestellungen)
 
@@ -57,17 +57,21 @@ Consent-Opt-in) · `UPLOAD_DIR`/`INVOICE_DIR`.
 
 ## Storybook
 
-`pnpm storybook` → alle 35 UI-Komponenten, Shop-/Admin-Komponenten sowie Showcases
+`pnpm storybook` → alle 54 UI-Komponenten, Shop-/Admin-Komponenten sowie Showcases
 (Typografie-Skala, Farbpalette, Spacing, Radius, Animationen, Dark/Light-Preview).
 Theme-Umschalter in der Toolbar.
 
 ## Tests
 
-- **Unit (Vitest):** Preis-/Versandlogik (6,99 € / frei ab 150 €), Statusmaschinen,
-  Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung, RBAC, Consent, Farbmapping.
-- **E2E (Playwright, 20 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
-  Admin-, Produktions-, Consent-, i18n-, Theme- und Accessibility-Flow.
-  Details: [docs/testing.md](docs/testing.md)
+- **Unit (Vitest):** Preis-/Versandlogik (6,99 € / frei ab 150 €), Statusmaschinen
+  (Bestellung, Produktion, Reklamation, QC, Versand, Review, Social Posts),
+  Kalender-Overlap, Filament-Bestand, Magic-Link-Token (nur Hash), Review-Eligibility,
+  Popular-Configs, Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung,
+  RBAC, Consent, Farbmapping, Social-Scheduler-Idempotenz und Meta-Error-Mapping.
+- **E2E (Playwright, 31 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
+  Reklamations-, QC-, Filament/AMS-, Produktionskalender-, Versand-, Kundenbereich-,
+  Wunschlisten-, Konfigurator-, Review-, Admin-, Produktions-, Social-Planner-, Consent-,
+  i18n-, Theme- und Accessibility-Flow. Details: [docs/testing.md](docs/testing.md)
 
 ## GitHub-Repo einrichten (falls nicht geschehen)
 
@@ -90,12 +94,16 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
   ein prozedurales Fallback-Modell mit denselben Zonen. STL eignet sich nicht für die farbige
   Web-Vorschau.
 - **Resend (E-Mails):** ohne `RESEND_API_KEY` werden Mails im Dev-Modus geloggt
-  (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 10 Templates in
+  (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
   `packages/emails`; Absenderdomain bei Resend verifizieren, dann Key in `.env` setzen.
 - **Stripe:** ohne Keys Mock-Modus (Success-Seite mit „Zahlung simulieren"). Live-Betrieb:
   Keys setzen + Webhook registrieren — [docs/payments.md](docs/payments.md).
 - **Bitcoin:** eigene Wallet, bezahlt ab 2 Blockbestätigungen. MVP nutzt einen Mock-Provider;
   Anbindung einer echten Blockchain-API: [docs/payments.md](docs/payments.md).
+- **Social Media Planner:** Posts für Facebook-Seite & Instagram-Business direkt aus dem
+  Admin planen (`/admin/social`). Ohne Meta-Credentials läuft der Mock-Provider; echtes
+  Publishing über die offiziellen Graph APIs per `SOCIAL_PUBLISHING_PROVIDER=meta` +
+  `META_*`-Env-Vars — [docs/social-media-planner.md](docs/social-media-planner.md).
 - **DSGVO/Consent:** Tracking lädt ausschließlich nach Opt-in —
   [docs/privacy-consent.md](docs/privacy-consent.md).
 - **SEO:** `NUXT_PUBLIC_SITE_URL` auf die Produktions-Domain setzen — steuert Canonical,
@@ -110,5 +118,9 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 [architecture](docs/architecture.md) · [design-system](docs/design-system.md) ·
 [database](docs/database.md) · [api](docs/api.md) · [testing](docs/testing.md) ·
 [payments](docs/payments.md) · [production-workflow](docs/production-workflow.md) ·
+[quality-control](docs/quality-control.md) · [filament-ams](docs/filament-ams.md) ·
+[shipping](docs/shipping.md) · [complaints](docs/complaints.md) ·
+[customer-portal](docs/customer-portal.md) · [reviews](docs/reviews.md) ·
 [support](docs/support.md) · [privacy-consent](docs/privacy-consent.md) ·
+[social-media-planner](docs/social-media-planner.md) ·
 [deployment-hostinger](docs/deployment-hostinger.md)
