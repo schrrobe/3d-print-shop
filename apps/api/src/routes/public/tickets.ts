@@ -1,5 +1,4 @@
 import { renderTicketCreated } from '@print-shop/emails'
-import { formatInvoiceNumber, nextInvoiceSequence } from '@print-shop/utils'
 import { ticketCreateSchema, ticketMessageSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { env } from '../../env.js'
@@ -8,7 +7,7 @@ import { randomToken } from '../../lib/tokens.js'
 import { conflict, notFound } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { sendEmail } from '../../services/email.js'
-import { addCustomerReply, ticketReplyToAddress } from '../../services/ticket.js'
+import { addCustomerReply, allocateTicketNumber, ticketReplyToAddress } from '../../services/ticket.js'
 
 export const ticketsRouter = Router()
 
@@ -34,17 +33,9 @@ ticketsRouter.post('/', sensitiveLimiter, async (req, res, next) => {
 
     const accessToken = randomToken(32)
     const ticket = await prisma.$transaction(async (tx) => {
-      const year = new Date().getFullYear()
-      const existing = await tx.ticketCounter.findUnique({ where: { year } })
-      const nextSeq = nextInvoiceSequence(existing, year)
-      await tx.ticketCounter.upsert({
-        where: { year: nextSeq.year },
-        create: { year: nextSeq.year, lastSequence: nextSeq.sequence },
-        update: { lastSequence: nextSeq.sequence },
-      })
       return tx.ticket.create({
         data: {
-          ticketNumber: formatInvoiceNumber('TIC', nextSeq.year, nextSeq.sequence),
+          ticketNumber: await allocateTicketNumber(tx),
           accessToken,
           subject: input.subject,
           category: input.category,

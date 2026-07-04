@@ -104,9 +104,16 @@ adminFilamentRouter.get('/alerts', requirePermission('filament:read'), async (_r
       prisma.color.findMany({ where: { active: true } }),
     ])
     const lowSpools = spools.filter((s) => spoolBelowMinimum(s))
+    const spoolsByColor = new Map<string, typeof spools>()
+    for (const s of spools) {
+      if (!s.colorId) continue
+      const list = spoolsByColor.get(s.colorId) ?? []
+      list.push(s)
+      spoolsByColor.set(s.colorId, list)
+    }
     const lowColors = colors
       .map((color) => {
-        const colorSpools = spools.filter((s) => s.colorId === color.id)
+        const colorSpools = spoolsByColor.get(color.id) ?? []
         return {
           color,
           status: colorStockStatus(
