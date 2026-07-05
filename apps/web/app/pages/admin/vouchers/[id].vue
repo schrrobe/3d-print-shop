@@ -76,8 +76,9 @@ async function save() {
         type: form.type,
         value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
         minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
-        validFrom: form.validFrom ? new Date(form.validFrom).toISOString() : null,
-        validUntil: form.validUntil ? new Date(`${form.validUntil}T23:59:59`).toISOString() : null,
+        // UTC-anchored so the window matches the picked calendar days regardless of timezone.
+        validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
+        validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
         maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
         note: form.note || null,
       },
@@ -92,14 +93,24 @@ async function save() {
   }
 }
 
+const togglingActive = ref(false)
+
 async function toggleActive() {
-  if (!data.value) return
-  await $fetch(`/api/admin/vouchers/${voucherId}`, {
-    method: 'PATCH',
-    credentials: 'include',
-    body: { active: !data.value.voucher.active },
-  })
-  await refresh()
+  if (!data.value || togglingActive.value) return
+  togglingActive.value = true
+  try {
+    await $fetch(`/api/admin/vouchers/${voucherId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { active: !data.value.voucher.active },
+    })
+    await refresh()
+  } catch (err) {
+    const message = (err as { data?: { message?: string } })?.data?.message
+    toast.show(message ?? 'Statuswechsel fehlgeschlagen', { variant: 'error' })
+  } finally {
+    togglingActive.value = false
+  }
 }
 
 const orderColumns = [
@@ -125,6 +136,7 @@ const orderColumns = [
         v-if="auth.can('vouchers:write')"
         variant="ghost"
         size="sm"
+        :disabled="togglingActive"
         data-testid="toggle-voucher"
         @click="toggleActive"
       >
@@ -153,6 +165,7 @@ const orderColumns = [
         v-model="form.value"
         :label="form.type === 'percent' ? 'Wert (%)' : 'Wert (€)'"
         type="number"
+        :max="form.type === 'percent' ? 100 : undefined"
         required
         data-testid="voucher-value"
       />

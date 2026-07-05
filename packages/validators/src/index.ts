@@ -95,16 +95,19 @@ const voucherBaseSchema = z.object({
 const percentValueCheck = (v: { type?: string; value?: number }) =>
   v.type !== 'percent' || v.value == null || v.value <= 100
 
-export const voucherCreateSchema = voucherBaseSchema.refine(percentValueCheck, {
-  message: 'Percent vouchers allow at most 100',
-  path: ['value'],
-})
+/** A window with both ends set must not be reversed (else it's never redeemable). */
+const validRangeCheck = (v: { validFrom?: string | null; validUntil?: string | null }) =>
+  !v.validFrom || !v.validUntil || new Date(v.validFrom) < new Date(v.validUntil)
+
+export const voucherCreateSchema = voucherBaseSchema
+  .refine(percentValueCheck, { message: 'Percent vouchers allow at most 100', path: ['value'] })
+  .refine(validRangeCheck, { message: 'validFrom must be before validUntil', path: ['validUntil'] })
 export type VoucherCreateInput = z.infer<typeof voucherCreateSchema>
 
-export const voucherUpdateSchema = voucherBaseSchema.partial().refine(percentValueCheck, {
-  message: 'Percent vouchers allow at most 100',
-  path: ['value'],
-})
+export const voucherUpdateSchema = voucherBaseSchema
+  .partial()
+  .refine(percentValueCheck, { message: 'Percent vouchers allow at most 100', path: ['value'] })
+  .refine(validRangeCheck, { message: 'validFrom must be before validUntil', path: ['validUntil'] })
 export type VoucherUpdateInput = z.infer<typeof voucherUpdateSchema>
 
 // ---------- Upload / quote request ----------

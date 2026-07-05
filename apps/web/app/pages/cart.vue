@@ -10,6 +10,8 @@ const cart = useCartStore()
 onMounted(() => cart.hydrate())
 
 const missingForFree = computed(() => centsUntilFreeShipping(cart.totals.subtotalCents))
+/** A voucher can be applied yet contribute nothing (cart dropped below its min order). */
+const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents > 0)
 
 const voucherCode = ref('')
 const voucherError = ref('')
@@ -100,9 +102,9 @@ useSeo({
             <dt class="text-secondary">{{ t('cart.subtotal') }}</dt>
             <dd><PsPrice :cents="cart.totals.subtotalCents" :locale="locale as Locale" /></dd>
           </div>
-          <div v-if="cart.voucher" class="flex justify-between" data-testid="voucher-row">
+          <div v-if="voucherActive" class="flex justify-between" data-testid="voucher-row">
             <dt class="text-secondary">
-              {{ t('cart.voucherLabel', { code: cart.voucher.code }) }}
+              {{ t('cart.voucherLabel', { code: cart.voucher!.code }) }}
               <button
                 type="button"
                 class="ml-xs text-caption text-brand hover:underline"
@@ -115,6 +117,28 @@ useSeo({
             <dd class="text-brand" data-testid="cart-discount">
               −{{ formatCents(cart.totals.discountCents, locale as Locale) }}
             </dd>
+          </div>
+          <div
+            v-else-if="cart.voucher"
+            class="flex flex-col gap-xs"
+            data-testid="voucher-inactive"
+          >
+            <div class="flex justify-between">
+              <dt class="text-secondary">
+                {{ t('cart.voucherLabel', { code: cart.voucher.code }) }}
+                <button
+                  type="button"
+                  class="ml-xs text-caption text-brand hover:underline"
+                  data-testid="voucher-remove"
+                  @click="removeVoucher"
+                >
+                  {{ t('cart.voucherRemove') }}
+                </button>
+              </dt>
+            </div>
+            <p class="text-caption text-red-500" role="alert" data-testid="voucher-inactive-hint">
+              {{ t('cart.voucherReason.min_order_not_met', { amount: formatCents(cart.voucher.minOrderCents, locale as Locale) }) }}
+            </p>
           </div>
           <div class="flex justify-between">
             <dt class="text-secondary">{{ t('cart.shipping') }}</dt>

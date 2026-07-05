@@ -19,7 +19,7 @@ interface AdminVoucher {
 }
 
 const auth = useAdminAuthStore()
-const { data } = await useFetch<{ vouchers: AdminVoucher[] }>('/api/admin/vouchers', {
+const { data, error } = await useFetch<{ vouchers: AdminVoucher[] }>('/api/admin/vouchers', {
   credentials: 'include',
   server: false,
 })
@@ -45,6 +45,9 @@ const columns = [
 
 <template>
   <div data-testid="admin-vouchers">
+    <p v-if="error" class="mb-md text-body-regular text-red-500" role="alert" data-testid="vouchers-error">
+      Gutscheine konnten nicht geladen werden.
+    </p>
     <div v-if="auth.can('vouchers:write')" class="mb-lg">
       <NuxtLink to="/admin/vouchers/new">
         <PsButton data-testid="new-voucher">Neuer Gutschein</PsButton>

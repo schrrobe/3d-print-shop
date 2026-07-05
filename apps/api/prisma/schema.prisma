@@ -460,6 +460,8 @@ model Order {
   complaints  Complaint[]
   shipments   Shipment[]
   reviews     Review[]
+
+  @@index([voucherId])
 }
 
 model OrderItem {

@@ -6,6 +6,7 @@ definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const toast = useToast()
 const router = useRouter()
+const auth = useAdminAuthStore()
 
 const form = reactive({
   code: '',
@@ -32,9 +33,10 @@ async function create() {
         value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
         active: true,
         minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
-        validFrom: form.validFrom ? new Date(form.validFrom).toISOString() : null,
-        // Until end of the selected day
-        validUntil: form.validUntil ? new Date(`${form.validUntil}T23:59:59`).toISOString() : null,
+        // Both ends anchored to UTC so the window matches the picked calendar days
+        // regardless of the admin's timezone (validFrom = start-of-day, validUntil = end-of-day).
+        validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
+        validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
         maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
         note: form.note || null,
       },
@@ -52,7 +54,10 @@ async function create() {
 
 <template>
   <div class="max-w-[36rem]" data-testid="admin-voucher-new">
-    <form class="flex flex-col gap-md" data-testid="voucher-form" @submit.prevent="create">
+    <p v-if="!auth.can('vouchers:write')" class="text-body-regular text-secondary" data-testid="voucher-no-access">
+      Keine Berechtigung zum Anlegen von Gutscheinen.
+    </p>
+    <form v-else class="flex flex-col gap-md" data-testid="voucher-form" @submit.prevent="create">
       <PsInput v-model="form.code" label="Code" required placeholder="SOMMER10" data-testid="voucher-code" />
 
       <fieldset class="flex gap-lg" role="radiogroup" aria-label="Typ">
@@ -70,6 +75,7 @@ async function create() {
         v-model="form.value"
         :label="form.type === 'percent' ? 'Wert (%)' : 'Wert (€)'"
         type="number"
+        :max="form.type === 'percent' ? 100 : undefined"
         required
         data-testid="voucher-value"
       />

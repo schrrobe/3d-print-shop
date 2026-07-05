@@ -44,7 +44,7 @@ adminVouchersRouter.get('/:id', requirePermission('vouchers:read'), async (req, 
         },
       },
     })
-    if (!voucher) throw notFound('Voucher not found')
+    if (!voucher) throw notFound('Gutschein nicht gefunden')
     res.json({ voucher })
   } catch (err) {
     next(err)
@@ -82,13 +82,13 @@ adminVouchersRouter.patch('/:id', requirePermission('vouchers:write'), async (re
   try {
     const input = voucherUpdateSchema.parse(req.body)
     const voucher = await prisma.voucher.findUnique({ where: { id: String(req.params.id) } })
-    if (!voucher) throw notFound('Voucher not found')
+    if (!voucher) throw notFound('Gutschein nicht gefunden')
 
     // The partial schema only validates provided fields — recheck the merged state.
     const type = input.type ?? voucher.type
     const value = input.value ?? voucher.value
     if (type === 'percent' && value > 100) {
-      throw badRequest('Percent vouchers allow at most 100')
+      throw badRequest('Prozent-Gutscheine erlauben höchstens 100')
     }
 
     const updated = await prisma.voucher.update({
@@ -127,7 +127,7 @@ adminVouchersRouter.delete('/:id', requirePermission('vouchers:write'), async (r
       where: { id: String(req.params.id) },
       include: { _count: { select: { orders: true } } },
     })
-    if (!voucher) throw notFound('Voucher not found')
+    if (!voucher) throw notFound('Gutschein nicht gefunden')
     if (voucher.redemptionCount > 0 || voucher._count.orders > 0) {
       throw conflict('Eingelöste Gutscheine können nicht gelöscht werden — stattdessen deaktivieren')
     }

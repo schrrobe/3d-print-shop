@@ -95,7 +95,7 @@ export async function generateInvoicePdf(
   if (invoice.discountCents > 0) {
     const codeSuffix = order.voucherCode ? ` (${order.voucherCode})` : ''
     doc.text(
-      t('Gutschein', 'Voucher') + codeSuffix + `: −${formatCents(invoice.discountCents, invoice.locale)}`,
+      t('Gutschein', 'Voucher') + codeSuffix + `: -${formatCents(invoice.discountCents, invoice.locale)}`,
     )
   }
   doc.text(t('Versandkosten', 'Shipping') + `: ${formatCents(invoice.shippingCents, invoice.locale)}`)
