@@ -42,6 +42,12 @@
       "placeholder": "No photo available"
     },
     "added": "Added to cart",
+    "manufacturingNotice": {
+      "title": "Manufacturing note",
+      "imagesTitle": "Note on product images",
+      "production": "Each ammunition box is manufactured using the 3D printing process. Slight layer lines or minimal surface variations are production-related and typical of additive manufacturing. They do not constitute a defect and have no effect on function, stability, or durability.",
+      "ammunition": "The ammunition shown in the product images is for illustration purposes only and is not included in the offer."
+    },
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom",
       "fallback": "3D preview"

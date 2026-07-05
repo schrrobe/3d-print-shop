@@ -372,6 +372,22 @@ useHead({
       </div>
     </div>
 
+    <ProductNoticeBox
+      class="mt-xl"
+      data-testid="product-manufacturing-notice"
+      icon="production"
+      :title="t('products.manufacturingNotice.title')"
+      :text="t('products.manufacturingNotice.production')"
+    />
+
+    <ProductNoticeBox
+      class="mt-md"
+      data-testid="product-ammunition-notice"
+      icon="images"
+      :title="t('products.manufacturingNotice.imagesTitle')"
+      :text="t('products.manufacturingNotice.ammunition')"
+    />
+
     <!-- Configurator: 3D preview + colour selection (moved below the photos) -->
     <section
       v-if="product.colorSlots.length > 0"

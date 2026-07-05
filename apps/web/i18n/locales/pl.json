@@ -42,6 +42,12 @@
       "placeholder": "Brak zdjęcia"
     },
     "added": "Dodano do koszyka",
+    "manufacturingNotice": {
+      "title": "Informacja o produkcji",
+      "imagesTitle": "Informacja o zdjęciach produktu",
+      "production": "Każde pudełko na amunicję jest wykonywane metodą druku 3D. Delikatne linie warstw lub minimalne różnice powierzchni wynikają z procesu produkcji i są typowe dla wytwarzania addytywnego. Nie stanowią wady i nie mają wpływu na funkcję, stabilność ani trwałość.",
+      "ammunition": "Amunicja pokazana na zdjęciach produktu służy wyłącznie do celów ilustracyjnych i nie jest częścią oferty."
+    },
     "viewer": {
       "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć",
       "fallback": "Podgląd 3D"

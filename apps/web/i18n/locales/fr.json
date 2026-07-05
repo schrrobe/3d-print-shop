@@ -42,6 +42,12 @@
       "placeholder": "Aucune photo disponible"
     },
     "added": "Ajouté au panier",
+    "manufacturingNotice": {
+      "title": "Remarque sur la fabrication",
+      "imagesTitle": "Remarque sur les photos du produit",
+      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De légères lignes de couche ou de minimes variations de surface sont liées à la production et typiques de la fabrication additive. Elles ne constituent pas un défaut et n'ont aucune incidence sur la fonction, la stabilité ou la durabilité.",
+      "ammunition": "Les munitions présentées sur les photos du produit servent uniquement d'illustration et ne font pas partie de l'offre."
+    },
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer",
       "fallback": "Aperçu 3D"
