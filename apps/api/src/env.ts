@@ -67,6 +67,34 @@ const envSchema = z
     META_INSTAGRAM_ACCESS_TOKEN: z.string().optional().default(''),
   })
   .superRefine((val, ctx) => {
+    if (val.NODE_ENV === 'production') {
+      // These identity/bank fields are printed on legally-binding invoices
+      // (§14 UStG mandatory details) and encoded into the GiroCode. Fail fast
+      // at boot rather than let placeholder defaults reach a real invoice.
+      const placeholders: Record<string, string> = {
+        COMPANY_NAME: 'Print Shop GmbH',
+        COMPANY_STREET: 'Musterstraße 1',
+        COMPANY_ZIP: '12345',
+        COMPANY_CITY: 'Berlin',
+        COMPANY_EMAIL: 'info@example.com',
+        COMPANY_PHONE: '+49 30 0000000',
+        COMPANY_WEBSITE: 'www.example.com',
+        COMPANY_TAX_NUMBER: '12/345/67890',
+        COMPANY_OWNER: 'Max Mustermann',
+        BANK_ACCOUNT_HOLDER: 'Print Shop GmbH',
+        BANK_IBAN: 'DE00 0000 0000 0000 0000 00',
+        BANK_BIC: 'XXXXDEXXXXX',
+      }
+      for (const [key, placeholder] of Object.entries(placeholders)) {
+        if (val[key as keyof typeof val] === placeholder) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `${key} must be set to a real value in production (still the placeholder default)`,
+          })
+        }
+      }
+    }
     if (val.SOCIAL_PUBLISHING_PROVIDER !== 'meta') return
     for (const key of [
       'META_APP_ID',

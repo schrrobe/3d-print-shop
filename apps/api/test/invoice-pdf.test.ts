@@ -81,8 +81,10 @@ function makeOrder(over: Record<string, unknown> = {}): OrderForInvoice {
   } as unknown as OrderForInvoice
 }
 
-async function renderToBuffer(data: InvoicePdfData): Promise<Buffer> {
-  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true })
+async function renderToBuffer(data: InvoicePdfData, opts: { compress?: boolean } = {}): Promise<Buffer> {
+  // compress:false keeps Helvetica text as literal strings in the content
+  // stream so tests can grep for rendered labels (e.g. repeated table headers).
+  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true, compress: opts.compress ?? true })
   const chunks: Buffer[] = []
   doc.on('data', (c: Buffer) => chunks.push(c))
   const done = new Promise<Buffer>((resolve, reject) => {
@@ -96,6 +98,24 @@ async function renderToBuffer(data: InvoicePdfData): Promise<Buffer> {
 
 function pageCount(pdf: Buffer): number {
   return (pdf.toString('latin1').match(/\/Type \/Page(?![a-zA-Z])/g) ?? []).length
+}
+
+/**
+ * Reconstructs the visible text of an uncompressed PDF (render with
+ * `{ compress: false }`). PDFKit writes Helvetica text as hex-encoded chunks in
+ * `TJ` arrays, split by kerning, so a plain substring grep misses words that
+ * span a kern pair (e.g. "Beschreib" + "ung"). Concatenating the hex chunks in
+ * document order rejoins them.
+ */
+function extractText(pdf: Buffer): string {
+  let out = ''
+  for (const token of pdf.toString('latin1').match(/<[0-9A-Fa-f]+>/g) ?? []) {
+    const hex = token.slice(1, -1)
+    for (let i = 0; i + 1 < hex.length; i += 2) {
+      out += String.fromCharCode(Number.parseInt(hex.slice(i, i + 2), 16))
+    }
+  }
+  return out
 }
 
 describe('buildEpcQrPayload', () => {
@@ -164,6 +184,8 @@ describe('payment state helpers', () => {
     expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, [{ status: 'paid' }])).toBe(false)
     expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, undefined)).toBe(false)
     expect(shouldShowGiroCode({ paymentMethod: 'stripe' }, [{ status: 'pending' }])).toBe(false)
+    // [] (known, no payments) is not "paid" and not undefined → still eligible
+    expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, [])).toBe(true)
   })
 })
 
@@ -190,12 +212,16 @@ describe('renderInvoicePdf', () => {
   })
 
   it('paginates long item lists with repeated table headers', async () => {
-    const pdf = await renderToBuffer({
-      invoice: makeInvoice(),
-      order: makeOrder({ items: makeItems(60) }),
-      company,
-    })
-    expect(pageCount(pdf)).toBeGreaterThanOrEqual(2)
+    const pdf = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder({ items: makeItems(60) }), company },
+      { compress: false },
+    )
+    const pages = pageCount(pdf)
+    expect(pages).toBeGreaterThanOrEqual(2)
+    // The 'Beschreibung' column header is redrawn at the top of every page, so
+    // it must appear once per page — proving the header actually repeats.
+    const headerCount = (extractText(pdf).match(/Beschreibung/g) ?? []).length
+    expect(headerCount).toBe(pages)
   })
 
   it('renders the unpaid bank-transfer variant with a GiroCode', async () => {
