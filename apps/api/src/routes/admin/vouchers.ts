@@ -91,6 +91,23 @@ adminVouchersRouter.patch('/:id', requirePermission('vouchers:write'), async (re
       throw badRequest('Prozent-Gutscheine erlauben höchstens 100')
     }
 
+    // Same for the date window: patching only one end must not persist a reversed range.
+    const nextValidFrom =
+      input.validFrom !== undefined
+        ? input.validFrom
+          ? new Date(input.validFrom)
+          : null
+        : voucher.validFrom
+    const nextValidUntil =
+      input.validUntil !== undefined
+        ? input.validUntil
+          ? new Date(input.validUntil)
+          : null
+        : voucher.validUntil
+    if (nextValidFrom && nextValidUntil && nextValidFrom >= nextValidUntil) {
+      throw badRequest('Gültig-von muss vor Gültig-bis liegen')
+    }
+
     const updated = await prisma.voucher.update({
       where: { id: voucher.id },
       data: {

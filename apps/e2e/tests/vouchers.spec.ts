@@ -85,7 +85,7 @@ test.describe('vouchers — shop', () => {
     await shop.applyVoucher('TEST10')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
-    await gotoHydrated(page, '/checkout')
+    await shop.gotoCheckout()
     // Checkout summary reflects the voucher.
     await expect(page.getByTestId('checkout-discount')).toContainText('2,50')
 
@@ -188,7 +188,7 @@ test.describe('vouchers — admin', () => {
     await shop.applyVoucher('ONCE1')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
-    await gotoHydrated(page, '/checkout')
+    await shop.gotoCheckout()
     await shop.fillCheckoutAddress('once-e2e@example.com')
     await page.getByTestId('payment-bank_transfer').click()
     await page.getByTestId('submit-order').click()
