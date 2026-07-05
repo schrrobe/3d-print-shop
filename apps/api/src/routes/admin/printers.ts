@@ -97,7 +97,8 @@ adminPrintersRouter.post('/:id/spools', requirePermission('printers:write'), asy
       data: input,
       include: { color: true },
     })
-    await audit(req, 'printer.spool.create', { type: 'printer', id: printer.id }, input)
+    // Spools no longer link to a printer; audit against the spool, keep printer as context.
+    await audit(req, 'printer.spool.create', { type: 'spool', id: spool.id }, { ...input, printerId: printer.id })
     res.status(201).json({ spool })
   } catch (err) {
     next(err)

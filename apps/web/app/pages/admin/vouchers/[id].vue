@@ -165,11 +165,12 @@ const orderColumns = [
         v-model="form.value"
         :label="form.type === 'percent' ? 'Wert (%)' : 'Wert (€)'"
         type="number"
+        min="0"
         :max="form.type === 'percent' ? 100 : undefined"
         required
         data-testid="voucher-value"
       />
-      <PsInput v-model="form.minOrderEuros" label="Mindestbestellwert (€)" type="number" />
+      <PsInput v-model="form.minOrderEuros" label="Mindestbestellwert (€)" type="number" min="0" />
       <div class="grid gap-md sm:grid-cols-2">
         <PsInput v-model="form.validFrom" label="Gültig von" type="date" />
         <PsInput v-model="form.validUntil" label="Gültig bis" type="date" />
@@ -178,6 +179,7 @@ const orderColumns = [
         v-model="form.maxRedemptions"
         label="Max. Einlösungen (leer = unbegrenzt)"
         type="number"
+        min="0"
       />
       <PsTextarea v-model="form.note" label="Interne Notiz" :rows="3" />
 

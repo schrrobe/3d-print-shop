@@ -75,6 +75,7 @@ async function create() {
         v-model="form.value"
         :label="form.type === 'percent' ? 'Wert (%)' : 'Wert (€)'"
         type="number"
+        min="0"
         :max="form.type === 'percent' ? 100 : undefined"
         required
         data-testid="voucher-value"
@@ -83,6 +84,7 @@ async function create() {
         v-model="form.minOrderEuros"
         label="Mindestbestellwert (€)"
         type="number"
+        min="0"
         data-testid="voucher-min-order"
       />
       <div class="grid gap-md sm:grid-cols-2">
@@ -93,6 +95,7 @@ async function create() {
         v-model="form.maxRedemptions"
         label="Max. Einlösungen (leer = unbegrenzt)"
         type="number"
+        min="0"
         data-testid="voucher-max-redemptions"
       />
       <PsTextarea v-model="form.note" label="Interne Notiz" :rows="3" />
