@@ -4,6 +4,9 @@ import { computed, ref } from 'vue'
 export interface PsProductGalleryImage {
   url: string
   alt?: string | null
+  srcset?: string
+  sizes?: string
+  thumbUrl?: string
 }
 
 const props = withDefaults(
@@ -29,8 +32,11 @@ const activeImage = computed(() => props.images[safeIndex.value] ?? null)
       <img
         v-if="activeImage"
         :src="activeImage.url"
+        :srcset="activeImage.srcset"
+        :sizes="activeImage.sizes"
         :alt="activeImage.alt ?? ''"
         class="size-full object-cover"
+        fetchpriority="high"
         data-testid="product-gallery-main"
       />
       <div
@@ -73,7 +79,12 @@ const activeImage = computed(() => props.images[safeIndex.value] ?? null)
         data-testid="product-gallery-thumb"
         @click="activeIndex = index"
       >
-        <img :src="image.url" :alt="image.alt ?? ''" class="size-full object-cover" loading="lazy" />
+        <img
+          :src="image.thumbUrl ?? image.url"
+          :alt="image.alt ?? ''"
+          class="size-full object-cover"
+          loading="lazy"
+        />
       </button>
     </div>
   </div>

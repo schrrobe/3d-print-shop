@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  PsAccordion,
   PsColorPicker,
   PsConfigurationPreview,
   PsPillButton,
@@ -20,6 +21,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
+const config = useRuntimeConfig()
 const cart = useCartStore()
 const toast = useToast()
 const { store: wishlist, shareConfiguration, loadConfiguration } = useWishlist()
@@ -36,6 +38,20 @@ const product = computed(() => data.value!.product)
 const translation = computed(() => pickTranslation(product.value, locale.value))
 const colors = computed(() => colorData.value?.colors ?? [])
 const galleryImages = computed(() => productImages(product.value))
+const CONFIGURATOR_ACCORDION_VALUE = 'configurator'
+const configuratorAccordionValue = ref<string | undefined>(CONFIGURATOR_ACCORDION_VALUE)
+const configuratorSection = ref<HTMLElement | null>(null)
+const configuratorAccordionItems = computed(() => [
+  { value: CONFIGURATOR_ACCORDION_VALUE, title: t('configurator.title'), content: '' },
+])
+const siteUrl = config.public.siteUrl.replace(/\/$/, '')
+const absoluteUrl = (url: string) => (url.startsWith('http') ? url : `${siteUrl}${url}`)
+const seoImage = computed(() => productImage(product.value, 1200))
+const jsonLdImages = computed(() => galleryImages.value.map((image) => absoluteUrl(image.url)))
+const breadcrumbItems = computed(() => [
+  { name: t('products.title'), url: absoluteUrl(localePath('/products')) },
+  { name: translation.value.name, url: absoluteUrl(localePath(`/products/${slug}`)) },
+])
 
 // ---- Configuration state ----
 const selection = ref<Record<string, string>>({})
@@ -115,6 +131,12 @@ onMounted(() => {
 
 const quantity = ref(1)
 
+async function openConfigurator() {
+  configuratorAccordionValue.value = CONFIGURATOR_ACCORDION_VALUE
+  await nextTick()
+  configuratorSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 function buildLine(qty: number) {
   return {
     productId: product.value.id,
@@ -124,7 +146,7 @@ function buildLine(qty: number) {
     quantity: qty,
     colorSelection: { ...selection.value },
     colorNames: selectedColorNames.value,
-    imageUrl: productImage(product.value),
+    imageUrl: productImage(product.value, 320),
   }
 }
 
@@ -151,7 +173,7 @@ function toggleWishlist() {
     unitPriceCents: product.value.priceCents,
     colorSelection: { ...selection.value },
     colorNames: selectedColorNames.value,
-    imageUrl: productImage(product.value),
+    imageUrl: productImage(product.value, 320),
   })
   toast.show(added ? t('wishlist.added') : t('wishlist.removed'), { variant: 'success' })
 }
@@ -162,7 +184,7 @@ async function shareConfig() {
     const res = await shareConfiguration({
       productId: product.value.id,
       selectedColors: selection.value,
-      previewImage: productImage(product.value),
+      previewImage: productImage(product.value, 320),
     })
     const url = `${window.location.origin}${localePath(`/products/${slug}`)}?config=${res.shareToken}`
     await navigator.clipboard.writeText(url)
@@ -218,7 +240,7 @@ useSeo({
   fullTitle: Boolean(translation.value.seoTitle),
   description: () =>
     translation.value.seoDescription ?? translation.value.description.slice(0, 155),
-  image: () => productImage(product.value),
+  image: () => seoImage.value,
   type: 'product',
 })
 
@@ -232,7 +254,7 @@ useHead({
           '@type': 'Product',
           name: translation.value.name,
           description: translation.value.description,
-          image: productImage(product.value) ?? undefined,
+          image: jsonLdImages.value.length > 0 ? jsonLdImages.value : undefined,
           offers: {
             '@type': 'Offer',
             price: (product.value.priceCents / 100).toFixed(2),
@@ -250,12 +272,38 @@ useHead({
         return JSON.stringify(jsonLd)
       }),
     },
+    {
+      type: 'application/ld+json',
+      innerHTML: computed(() =>
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: breadcrumbItems.value.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: item.name,
+            item: item.url,
+          })),
+        }),
+      ),
+    },
   ],
 })
 </script>
 
 <template>
   <PsSection>
+    <nav
+      class="mb-lg flex flex-wrap items-center gap-xs text-caption text-secondary"
+      aria-label="Breadcrumb"
+      data-testid="product-breadcrumbs"
+    >
+      <NuxtLink :to="localePath('/products')" class="hover:text-primary">
+        {{ t('products.title') }}
+      </NuxtLink>
+      <span aria-hidden="true">/</span>
+      <span class="text-primary">{{ translation.name }}</span>
+    </nav>
     <div class="grid gap-2xl lg:grid-cols-2" data-testid="product-detail">
       <!-- Product photos -->
       <PsProductGallery
@@ -268,7 +316,6 @@ useHead({
         <div class="flex items-start justify-between gap-md">
           <div>
             <h1 class="text-heading-large" data-testid="product-name">{{ translation.name }}</h1>
-            <PsPrice :cents="product.priceCents" size="lg" class="mt-sm block text-brand" />
           </div>
           <PsWishlistButton
             :active="inWishlist"
@@ -280,21 +327,40 @@ useHead({
         </div>
         <p class="text-body-regular text-secondary">{{ translation.description }}</p>
 
-        <div class="flex items-center gap-md">
-          <label class="flex items-center gap-sm text-caption text-secondary">
-            {{ t('cart.quantity') }}
-            <input
-              v-model.number="quantity"
-              type="number"
-              min="1"
-              max="99"
-              class="w-20 rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular text-primary"
-              data-testid="quantity-input"
+        <div
+          class="flex flex-col gap-md rounded-card border border-subtle bg-surface-elevated p-md"
+          data-testid="purchase-panel"
+        >
+          <PsPrice :cents="product.priceCents" size="lg" class="block text-brand" />
+          <button
+            v-if="product.colorSlots.length > 0"
+            type="button"
+            class="rounded-card border border-transparent p-sm text-left transition-colors hover:border-brand hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+            :aria-label="t('configurator.title')"
+            data-testid="purchase-configuration-summary"
+            @click="openConfigurator"
+          >
+            <PsConfigurationPreview
+              :zones="previewZones"
+              :unavailable-label="t('configurator.unavailableShort')"
             />
-          </label>
-          <PsPillButton size="lg" data-testid="add-to-cart" @click="addToCart">
-            {{ editKey ? t('cart.saveChanges') : t('products.addToCart') }}
-          </PsPillButton>
+          </button>
+          <div class="flex flex-wrap items-center gap-md">
+            <label class="flex items-center gap-sm text-caption text-secondary">
+              {{ t('cart.quantity') }}
+              <input
+                v-model.number="quantity"
+                type="number"
+                min="1"
+                max="99"
+                class="w-20 rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular text-primary"
+                data-testid="quantity-input"
+              />
+            </label>
+            <PsPillButton size="lg" data-testid="add-to-cart" @click="addToCart">
+              {{ editKey ? t('cart.saveChanges') : t('products.addToCart') }}
+            </PsPillButton>
+          </div>
         </div>
 
         <NuxtLink
@@ -307,101 +373,117 @@ useHead({
     </div>
 
     <!-- Configurator: 3D preview + colour selection (moved below the photos) -->
-    <section v-if="product.colorSlots.length > 0" class="mt-3xl" data-testid="configurator">
-      <h2 class="mb-lg text-heading-small">{{ t('configurator.title') }}</h2>
-      <div class="grid gap-2xl lg:grid-cols-2">
-        <div>
-          <ClientOnly>
-            <ModelViewer :src="productGlb(product)" :color-hex-by-zone="colorHexByZone" />
-            <template #fallback>
-              <div
-                class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated"
-              />
-            </template>
-          </ClientOnly>
-          <p class="mt-sm text-center text-caption text-secondary">
-            {{ t('products.viewer.hint') }}
-          </p>
-          <div class="mt-md">
-            <PsConfigurationPreview
-              :zones="previewZones"
-              :unavailable-label="t('configurator.unavailableShort')"
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-lg">
-          <!-- Popular combinations -->
-          <div v-if="popular.length" data-testid="popular-combos">
-            <h3 class="mb-sm text-label-medium">{{ t('configurator.popular') }}</h3>
-            <div class="flex flex-wrap gap-sm">
-              <button
-                v-for="(combo, i) in popular"
-                :key="i"
-                type="button"
-                class="flex items-center gap-xs rounded-card border border-subtle bg-surface-elevated px-sm py-xs hover:border-brand"
-                :class="{ 'opacity-50': !combo.available }"
-                data-testid="popular-combo"
-                @click="applyCombo(combo)"
-              >
-                <span
-                  v-for="sw in combo.swatches"
-                  :key="sw.slot"
-                  class="inline-block h-4 w-4 rounded-full border border-subtle"
-                  :style="{ backgroundColor: sw.hex }"
-                  :title="sw.name"
+    <section
+      v-if="product.colorSlots.length > 0"
+      ref="configuratorSection"
+      class="mt-3xl scroll-mt-xl"
+      data-testid="configurator"
+    >
+      <PsAccordion
+        v-model="configuratorAccordionValue"
+        :items="configuratorAccordionItems"
+        default-value="configurator"
+        data-testid="configurator-accordion"
+      >
+        <template #configurator>
+          <div class="grid gap-2xl text-primary lg:grid-cols-2">
+            <div>
+              <ClientOnly>
+                <ModelViewer :src="productGlb(product)" :color-hex-by-zone="colorHexByZone" />
+                <template #fallback>
+                  <div
+                    class="aspect-square w-full rounded-card border border-subtle bg-surface-elevated"
+                  />
+                </template>
+              </ClientOnly>
+              <p class="mt-sm text-center text-caption text-secondary">
+                {{ t('products.viewer.hint') }}
+              </p>
+              <div class="mt-md">
+                <PsConfigurationPreview
+                  :zones="previewZones"
+                  :unavailable-label="t('configurator.unavailableShort')"
                 />
-                <span class="text-caption text-secondary">×{{ combo.count }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 class="mb-md text-label-medium">{{ t('products.configure') }}</h3>
-            <PsColorPicker
-              v-model="selection"
-              :zones="product.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
-              :colors="colors"
-            />
-            <div class="mt-md flex flex-wrap gap-sm">
-              <button
-                type="button"
-                class="text-caption text-secondary hover:text-primary"
-                data-testid="config-reset"
-                @click="resetToDefaults"
-              >
-                ↺ {{ t('configurator.reset') }}
-              </button>
-              <button
-                type="button"
-                class="text-caption text-brand hover:underline"
-                data-testid="config-share"
-                @click="shareConfig"
-              >
-                🔗 {{ t('configurator.share') }}
-              </button>
+              </div>
             </div>
 
-            <!-- Unavailable-color warnings -->
-            <p
-              v-for="warn in configWarning"
-              :key="warn"
-              class="mt-sm text-caption text-amber-500"
-              data-testid="config-warning"
-            >
-              ⚠️ {{ warn }}
-            </p>
-            <p
-              v-for="zone in unavailableZones"
-              :key="zone.slot"
-              class="mt-sm text-caption text-amber-500"
-              data-testid="config-unavailable"
-            >
-              ⚠️ {{ t('configurator.unavailableZone', { zone: zone.label, color: zone.colorName }) }}
-            </p>
+            <div class="flex flex-col gap-lg">
+              <!-- Popular combinations -->
+              <div v-if="popular.length" data-testid="popular-combos">
+                <h3 class="mb-sm text-label-medium">{{ t('configurator.popular') }}</h3>
+                <div class="flex flex-wrap gap-sm">
+                  <button
+                    v-for="(combo, i) in popular"
+                    :key="i"
+                    type="button"
+                    class="flex items-center gap-xs rounded-card border border-subtle bg-surface-elevated px-sm py-xs hover:border-brand"
+                    :class="{ 'opacity-50': !combo.available }"
+                    data-testid="popular-combo"
+                    @click="applyCombo(combo)"
+                  >
+                    <span
+                      v-for="sw in combo.swatches"
+                      :key="sw.slot"
+                      class="inline-block h-4 w-4 rounded-full border border-subtle"
+                      :style="{ backgroundColor: sw.hex }"
+                      :title="sw.name"
+                    />
+                    <span class="text-caption text-secondary">×{{ combo.count }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mb-md text-label-medium">{{ t('products.configure') }}</h3>
+                <PsColorPicker
+                  v-model="selection"
+                  :zones="product.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
+                  :colors="colors"
+                />
+                <div class="mt-md flex flex-wrap gap-sm">
+                  <button
+                    type="button"
+                    class="text-caption text-secondary hover:text-primary"
+                    data-testid="config-reset"
+                    @click="resetToDefaults"
+                  >
+                    ↺ {{ t('configurator.reset') }}
+                  </button>
+                  <button
+                    type="button"
+                    class="text-caption text-brand hover:underline"
+                    data-testid="config-share"
+                    @click="shareConfig"
+                  >
+                    🔗 {{ t('configurator.share') }}
+                  </button>
+                </div>
+
+                <!-- Unavailable-color warnings -->
+                <p
+                  v-for="warn in configWarning"
+                  :key="warn"
+                  class="mt-sm text-caption text-amber-500"
+                  data-testid="config-warning"
+                >
+                  ⚠️ {{ warn }}
+                </p>
+                <p
+                  v-for="zone in unavailableZones"
+                  :key="zone.slot"
+                  class="mt-sm text-caption text-amber-500"
+                  data-testid="config-unavailable"
+                >
+                  ⚠️
+                  {{
+                    t('configurator.unavailableZone', { zone: zone.label, color: zone.colorName })
+                  }}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </template>
+      </PsAccordion>
     </section>
 
     <!-- Reviews -->

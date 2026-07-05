@@ -13,6 +13,7 @@ export interface ApiAsset {
   type: 'image' | 'glb_preview' | 'production_file'
   url: string
   alt: string | null
+  sortOrder?: number
 }
 
 export interface ApiColorSlot {
@@ -56,14 +57,40 @@ export function pickTranslation(product: ApiProduct, locale: string): ApiTransla
   )
 }
 
-export function productImage(product: ApiProduct): string | null {
-  return product.assets.find((a) => a.type === 'image')?.url ?? null
+const PRODUCT_IMAGE_WIDTHS = [320, 640, 960, 1200]
+
+function imageVariantUrl(url: string, width: number): string {
+  if (!url.startsWith('/api/product-images/')) return url
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}w=${width}`
 }
 
-export function productImages(product: ApiProduct): { url: string; alt: string | null }[] {
+function imageSrcset(url: string): string | undefined {
+  if (!url.startsWith('/api/product-images/')) return undefined
+  return PRODUCT_IMAGE_WIDTHS.map((width) => `${imageVariantUrl(url, width)} ${width}w`).join(', ')
+}
+
+export function productImage(product: ApiProduct, width = 640): string | null {
+  const url = product.assets.find((a) => a.type === 'image')?.url
+  return url ? imageVariantUrl(url, width) : null
+}
+
+export function productImages(product: ApiProduct): {
+  url: string
+  alt: string | null
+  srcset?: string
+  sizes?: string
+  thumbUrl?: string
+}[] {
   return product.assets
     .filter((a) => a.type === 'image')
-    .map((a) => ({ url: a.url, alt: a.alt }))
+    .map((a) => ({
+      url: imageVariantUrl(a.url, 960),
+      alt: a.alt,
+      srcset: imageSrcset(a.url),
+      sizes: '(min-width: 1024px) 50vw, 100vw',
+      thumbUrl: imageVariantUrl(a.url, 160),
+    }))
 }
 
 export function productGlb(product: ApiProduct): string | null {
