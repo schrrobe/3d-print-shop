@@ -12,6 +12,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@analytics/google-analytics": "^1.1.0",
+    "@analytics/google-tag-manager": "^0.6.0",
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/i18n": "^9.5.5",
     "@pinia/nuxt": "^0.11.0",
@@ -20,6 +22,7 @@
     "@print-shop/ui": "workspace:*",
     "@print-shop/utils": "workspace:*",
     "@print-shop/validators": "workspace:*",
+    "analytics": "^0.8.19",
     "gsap": "^3.13.0",
     "nuxt": "^4.0.0",
     "pinia": "^3.0.3",

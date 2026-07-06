@@ -803,6 +803,19 @@ model ConsentLog {
   createdAt   DateTime @default(now())
 }
 
+// ---------- Shop settings ----------
+
+/// Singleton row (id = "singleton"). Tracking IDs are public in page source by
+/// nature, but only loaded client-side after the matching consent category.
+model ShopSettings {
+  id               String   @id @default("singleton")
+  metaPixelId      String?
+  ga4MeasurementId String?
+  gtmContainerId   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 // ---------- Social media planner ----------
 
 /// Ein Post pro Plattform-Ziel: "beide Plattformen" erzeugt zwei Zeilen.

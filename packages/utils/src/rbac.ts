@@ -41,6 +41,8 @@ export const PERMISSIONS = [
   'shipments:write',
   'reviews:read',
   'reviews:moderate',
+  'settings:read',
+  'settings:write',
 ] as const
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -56,6 +58,7 @@ export type Permission = (typeof PERMISSIONS)[number]
  * Filament/AMS: production manages stock, product_manager reads.
  * Shipments: shipping owns the flow, production/support read.
  * Reviews: product_manager & support moderate.
+ * Settings: shop-wide config incl. tracking IDs (GDPR-relevant) — admin only.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   admin: PERMISSIONS,
