@@ -100,7 +100,7 @@ const unscheduled = computed(() => props.posts.filter((p) => !p.scheduledAt))
     </div>
 
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[48rem] border-collapse">
+      <table class="w-full min-w-[48rem] border-collapse" :aria-label="`Beitragskalender ${monthLabel}`">
         <thead>
           <tr>
             <th v-for="day in WEEKDAYS" :key="day" scope="col" class="px-sm py-sm text-caption uppercase text-secondary">

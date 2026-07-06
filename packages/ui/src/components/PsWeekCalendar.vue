@@ -74,21 +74,23 @@ function cellEvents(resourceId: string, date: string): WeekCalendarEvent[] {
 
     <div v-else class="overflow-x-auto">
       <div class="grid min-w-[48rem] gap-px rounded-card border border-subtle bg-surface" :style="gridStyle" role="grid" aria-label="Produktionskalender">
-        <!-- Header row -->
-        <div class="bg-surface-elevated px-sm py-sm text-caption uppercase text-secondary" role="columnheader">
-          Drucker
-        </div>
-        <div
-          v-for="day in days"
-          :key="day.date"
-          class="bg-surface-elevated px-sm py-sm text-center text-caption uppercase text-secondary"
-          role="columnheader"
-        >
-          {{ day.label }}
+        <!-- Header row (display: contents keeps the CSS grid flat while giving axe the required grid > row > cell structure) -->
+        <div class="contents" role="row">
+          <div class="bg-surface-elevated px-sm py-sm text-caption uppercase text-secondary" role="columnheader">
+            Drucker
+          </div>
+          <div
+            v-for="day in days"
+            :key="day.date"
+            class="bg-surface-elevated px-sm py-sm text-center text-caption uppercase text-secondary"
+            role="columnheader"
+          >
+            {{ day.label }}
+          </div>
         </div>
 
         <!-- Resource rows -->
-        <template v-for="resource in resources" :key="resource.id">
+        <div v-for="resource in resources" :key="resource.id" class="contents" role="row">
           <div class="flex items-start bg-surface-elevated px-sm py-sm text-label-medium text-primary" role="rowheader">
             {{ resource.name }}
           </div>
@@ -130,7 +132,7 @@ function cellEvents(resourceId: string, date: string): WeekCalendarEvent[] {
               </button>
             </div>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>
