@@ -34,7 +34,9 @@ export function signSession(user: SessionUser): string {
 export function sessionCookieOptions() {
   return {
     httpOnly: true,
-    sameSite: 'lax' as const,
+    // strict is safe here: admin pages load their data client-side, so the
+    // cookie is never needed on a cross-site top-level navigation.
+    sameSite: 'strict' as const,
     secure: env.COOKIE_SECURE,
     maxAge: SESSION_TTL_SECONDS * 1000,
     path: '/',
@@ -57,6 +59,15 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       include: { role: true },
     })
     if (!user || !user.active) throw unauthorized('User inactive or deleted')
+    // Second-granularity comparison (JWT iat is in seconds) so a login in the
+    // same second as a logout is not rejected.
+    if (
+      user.sessionsInvalidatedAt &&
+      typeof payload.iat === 'number' &&
+      payload.iat < Math.floor(user.sessionsInvalidatedAt.getTime() / 1000)
+    ) {
+      throw unauthorized('Session was invalidated, please log in again')
+    }
     req.user = { id: user.id, email: user.email, name: user.name, role: user.role.name as UserRole }
     next()
   } catch (err) {

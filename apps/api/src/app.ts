@@ -4,6 +4,7 @@ import express, { type Express } from 'express'
 import helmet from 'helmet'
 import { devEndpointsEnabled, env } from './env.js'
 import { requireAuth } from './middleware/auth.js'
+import { adminMutationLimiter } from './middleware/rate-limit.js'
 import { errorHandler, notFound } from './middleware/error.js'
 import { adminAuditRouter } from './routes/admin/audit.js'
 import { adminAuthRouter } from './routes/admin/auth.js'
@@ -91,6 +92,7 @@ export function createApp(): Express {
   app.use('/api/tracking-settings', trackingSettingsRouter)
 
   // Admin API (session cookie + RBAC per route)
+  app.use('/api/admin', adminMutationLimiter)
   app.use('/api/admin/auth', adminAuthRouter)
   app.use('/api/admin/dashboard', requireAuth, adminDashboardRouter)
   app.use('/api/admin/products', requireAuth, adminProductsRouter)

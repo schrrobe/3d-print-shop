@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { env } from '../../env.js'
+import { env, isProduction } from '../../env.js'
 import { randomToken } from '../../lib/tokens.js'
 
 /**
@@ -84,5 +84,8 @@ export function constructStripeWebhookEvent(rawBody: Buffer, signature: string |
     if (!signature) throw new Error('Missing stripe-signature header')
     return stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET)
   }
+  // env validation already requires the webhook secret alongside a live key in
+  // production; this guard keeps unsigned events out even if that changes.
+  if (isProduction) throw new Error('Refusing to accept unsigned Stripe webhook event in production')
   return JSON.parse(rawBody.toString('utf8')) as Stripe.Event
 }
