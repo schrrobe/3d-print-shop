@@ -23,6 +23,18 @@ export class ShopPage {
     return this.page.getByTestId('cart-count')
   }
 
+  /** Add a product, then open the (hydrated) cart page. */
+  async addAndGotoCart(slug: string): Promise<void> {
+    await this.addProductToCart(slug)
+    await gotoHydrated(this.page, '/cart')
+  }
+
+  /** Fill the voucher input on the cart page and submit it. */
+  async applyVoucher(code: string): Promise<void> {
+    await this.page.getByTestId('voucher-input').fill(code)
+    await this.page.getByTestId('voucher-apply').click()
+  }
+
   async gotoCheckout(): Promise<void> {
     await gotoHydrated(this.page, '/checkout')
   }

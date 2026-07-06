@@ -67,7 +67,19 @@
     "checkout": "Checkout",
     "updated": "Cart updated",
     "saveChanges": "Save changes",
-    "edit": "Edit"
+    "edit": "Edit",
+    "voucherLabel": "Voucher ({code})",
+    "voucherPlaceholder": "Voucher code",
+    "voucherApply": "Redeem",
+    "voucherRemove": "Remove",
+    "voucherReason": {
+      "not_found": "Voucher code not found",
+      "inactive": "This voucher is not active",
+      "not_yet_valid": "This voucher is not valid yet",
+      "expired": "This voucher has expired",
+      "exhausted": "This voucher has already been fully redeemed",
+      "min_order_not_met": "Minimum order value {amount} not reached"
+    }
   },
   "checkout": {
     "title": "Checkout",

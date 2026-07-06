@@ -3,6 +3,7 @@ import {
   CONSENT_STORAGE_KEY,
   CONSENT_VERSION,
   canLoadGa4,
+  canLoadGtm,
   canLoadMetaPixel,
   createConsent,
   parseStoredConsent,
@@ -27,6 +28,7 @@ export const useConsentStore = defineStore('consent', () => {
   const bannerVisible = computed(() => hydrated.value && consent.value === null)
   const ga4Allowed = computed(() => canLoadGa4(consent.value))
   const metaPixelAllowed = computed(() => canLoadMetaPixel(consent.value))
+  const gtmAllowed = computed(() => canLoadGtm(consent.value))
 
   async function persist(state: ConsentState, locale: string) {
     consent.value = state
@@ -63,11 +65,13 @@ export const useConsentStore = defineStore('consent', () => {
 
   return {
     consent,
+    hydrated,
     hydrate,
     bannerVisible,
     settingsOpen,
     ga4Allowed,
     metaPixelAllowed,
+    gtmAllowed,
     acceptAll,
     rejectAll,
     saveCustom,

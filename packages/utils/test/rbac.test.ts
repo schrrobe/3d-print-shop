@@ -63,6 +63,14 @@ describe('RBAC', () => {
     }
   })
 
+  it('only admin manages vouchers; support may read them', () => {
+    expect(hasPermission('admin', 'vouchers:write')).toBe(true)
+    expect(hasPermission('support', 'vouchers:read')).toBe(true)
+    for (const role of ['product_manager', 'production', 'shipping', 'support'] as const) {
+      expect(hasPermission(role, 'vouchers:write')).toBe(false)
+    }
+  })
+
   it('permissionsForRole returns the role matrix', () => {
     expect(permissionsForRole('shipping')).toEqual(ROLE_PERMISSIONS.shipping)
   })

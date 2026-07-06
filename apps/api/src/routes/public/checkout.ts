@@ -1,12 +1,18 @@
+import type { Voucher } from '@prisma/client'
 import { renderAdminNotification } from '@print-shop/emails'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
-import { calcCartTotals, resolveColorSelection } from '@print-shop/utils'
+import {
+  calcCartTotalsWithVoucher,
+  checkVoucher,
+  normalizeVoucherCode,
+  resolveColorSelection,
+} from '@print-shop/utils'
 import { checkoutSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
-import { badRequest } from '../../middleware/error.js'
+import { badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
@@ -69,34 +75,72 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       })
     }
 
-    const totals = calcCartTotals(orderItems)
+    // Hard revalidation of the voucher — the cart's validate result may be stale.
+    let voucher: Voucher | null = null
+    if (input.voucherCode) {
+      voucher = await prisma.voucher.findUnique({
+        where: { code: normalizeVoucherCode(input.voucherCode) },
+      })
+      const subtotalCents = orderItems.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
+      const check = checkVoucher(voucher, subtotalCents)
+      if (!check.ok) {
+        if (check.reason === 'exhausted') {
+          throw conflict('Gutschein ist nicht mehr verfügbar', { voucherRejection: check.reason })
+        }
+        throw badRequest('Gutschein ist nicht einlösbar', { voucherRejection: check.reason })
+      }
+    }
+
+    const totals = calcCartTotalsWithVoucher(orderItems, voucher)
     const orderNumber = generateOrderNumber()
     const accessToken = randomToken()
     const initialStatus =
       input.paymentMethod === 'bank_transfer' ? 'awaiting_bank_transfer' : 'awaiting_payment'
 
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        accessToken,
-        status: initialStatus,
-        locale: input.locale,
-        email: input.address.email,
-        firstName: input.address.firstName,
-        lastName: input.address.lastName,
-        company: input.address.company,
-        street: input.address.street,
-        zip: input.address.zip,
-        city: input.address.city,
-        country: input.address.country,
-        phone: input.address.phone,
-        note: input.note,
-        subtotalCents: totals.subtotalCents,
-        shippingCents: totals.shippingCents,
-        totalCents: totals.totalCents,
-        items: { create: orderItems },
-      },
-      include: { items: true },
+    const order = await prisma.$transaction(async (tx) => {
+      if (voucher) {
+        // Conditional increment guards the redemption race: the row only
+        // updates while redemptionCount is still below maxRedemptions.
+        const redeemed = await tx.voucher.updateMany({
+          where: {
+            id: voucher.id,
+            active: true,
+            ...(voucher.maxRedemptions != null
+              ? { redemptionCount: { lt: voucher.maxRedemptions } }
+              : {}),
+          },
+          data: { redemptionCount: { increment: 1 } },
+        })
+        if (redeemed.count === 0) {
+          throw conflict('Gutschein ist nicht mehr verfügbar', { voucherRejection: 'exhausted' })
+        }
+      }
+      return tx.order.create({
+        data: {
+          orderNumber,
+          accessToken,
+          status: initialStatus,
+          locale: input.locale,
+          email: input.address.email,
+          firstName: input.address.firstName,
+          lastName: input.address.lastName,
+          company: input.address.company,
+          street: input.address.street,
+          zip: input.address.zip,
+          city: input.address.city,
+          country: input.address.country,
+          phone: input.address.phone,
+          note: input.note,
+          subtotalCents: totals.subtotalCents,
+          shippingCents: totals.shippingCents,
+          discountCents: totals.discountCents,
+          totalCents: totals.totalCents,
+          voucherId: voucher?.id,
+          voucherCode: voucher?.code,
+          items: { create: orderItems },
+        },
+        include: { items: true },
+      })
     })
 
     let paymentResponse: Record<string, unknown>

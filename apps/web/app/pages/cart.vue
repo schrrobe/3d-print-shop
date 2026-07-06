@@ -10,6 +10,37 @@ const cart = useCartStore()
 onMounted(() => cart.hydrate())
 
 const missingForFree = computed(() => centsUntilFreeShipping(cart.totals.subtotalCents))
+/** A voucher can be applied yet contribute nothing (cart dropped below its min order). */
+const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents > 0)
+
+const voucherCode = ref('')
+const voucherError = ref('')
+const voucherPending = ref(false)
+
+async function applyVoucher() {
+  if (!voucherCode.value.trim()) return
+  voucherPending.value = true
+  voucherError.value = ''
+  try {
+    const result = await cart.applyVoucher(voucherCode.value)
+    if (result.valid) {
+      voucherCode.value = ''
+    } else {
+      voucherError.value = t(`cart.voucherReason.${result.reason}`, {
+        amount: formatCents(result.minOrderCents ?? 0, locale.value as Locale),
+      })
+    }
+  } catch {
+    voucherError.value = t('common.error')
+  } finally {
+    voucherPending.value = false
+  }
+}
+
+function removeVoucher() {
+  cart.removeVoucher()
+  voucherError.value = ''
+}
 
 useSeo({
   title: () => t('seo.cart.title'),
@@ -71,6 +102,44 @@ useSeo({
             <dt class="text-secondary">{{ t('cart.subtotal') }}</dt>
             <dd><PsPrice :cents="cart.totals.subtotalCents" :locale="locale as Locale" /></dd>
           </div>
+          <div v-if="voucherActive" class="flex justify-between" data-testid="voucher-row">
+            <dt class="text-secondary">
+              {{ t('cart.voucherLabel', { code: cart.voucher!.code }) }}
+              <button
+                type="button"
+                class="ml-xs text-caption text-brand hover:underline"
+                data-testid="voucher-remove"
+                @click="removeVoucher"
+              >
+                {{ t('cart.voucherRemove') }}
+              </button>
+            </dt>
+            <dd class="text-brand" data-testid="cart-discount">
+              −{{ formatCents(cart.totals.discountCents, locale as Locale) }}
+            </dd>
+          </div>
+          <div
+            v-else-if="cart.voucher"
+            class="flex flex-col gap-xs"
+            data-testid="voucher-inactive"
+          >
+            <div class="flex justify-between">
+              <dt class="text-secondary">
+                {{ t('cart.voucherLabel', { code: cart.voucher.code }) }}
+                <button
+                  type="button"
+                  class="ml-xs text-caption text-brand hover:underline"
+                  data-testid="voucher-remove"
+                  @click="removeVoucher"
+                >
+                  {{ t('cart.voucherRemove') }}
+                </button>
+              </dt>
+            </div>
+            <p class="text-caption text-red-500" role="alert" data-testid="voucher-inactive-hint">
+              {{ t('cart.voucherReason.min_order_not_met', { amount: formatCents(cart.voucher.minOrderCents, locale as Locale) }) }}
+            </p>
+          </div>
           <div class="flex justify-between">
             <dt class="text-secondary">{{ t('cart.shipping') }}</dt>
             <dd data-testid="cart-shipping">
@@ -85,6 +154,22 @@ useSeo({
         </dl>
         <p v-if="missingForFree > 0" class="mt-md text-caption text-secondary" data-testid="free-shipping-hint">
           {{ t('cart.freeShippingHint', { amount: formatCents(missingForFree, locale as Locale) }) }}
+        </p>
+        <form v-if="!cart.voucher" class="mt-md flex gap-sm" @submit.prevent="applyVoucher">
+          <input
+            v-model="voucherCode"
+            type="text"
+            :placeholder="t('cart.voucherPlaceholder')"
+            :aria-label="t('cart.voucherPlaceholder')"
+            class="min-w-0 flex-1 rounded-card border border-subtle bg-surface px-sm py-xs text-body-regular uppercase"
+            data-testid="voucher-input"
+          />
+          <PsButton type="submit" variant="secondary" size="sm" :disabled="voucherPending" data-testid="voucher-apply">
+            {{ t('cart.voucherApply') }}
+          </PsButton>
+        </form>
+        <p v-if="voucherError" class="mt-sm text-caption text-red-500" role="alert" data-testid="voucher-error">
+          {{ voucherError }}
         </p>
         <NuxtLink :to="localePath('/checkout')" class="mt-lg block">
           <PsPillButton size="lg" class="w-full" data-testid="to-checkout">

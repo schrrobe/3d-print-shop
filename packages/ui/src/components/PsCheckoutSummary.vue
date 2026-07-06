@@ -10,8 +10,10 @@ withDefaults(
     totalCents: number
     locale?: Locale
     freeShippingApplied?: boolean
+    discountCents?: number
+    discountLabel?: string
   }>(),
-  { locale: 'de', freeShippingApplied: false },
+  { locale: 'de', freeShippingApplied: false, discountCents: 0, discountLabel: 'Gutschein' },
 )
 </script>
 
@@ -31,6 +33,14 @@ withDefaults(
     <div class="flex items-center justify-between gap-md text-body-regular text-secondary">
       <span>Zwischensumme</span>
       <PsPrice :cents="subtotalCents" :locale="locale" size="sm" />
+    </div>
+    <div
+      v-if="discountCents > 0"
+      class="flex items-center justify-between gap-md text-body-regular text-secondary"
+      data-testid="checkout-discount"
+    >
+      <span>{{ discountLabel }}</span>
+      <span class="text-brand">−<PsPrice :cents="discountCents" :locale="locale" size="sm" /></span>
     </div>
     <div class="flex items-center justify-between gap-md text-body-regular text-secondary">
       <span>Versandkosten</span>

@@ -33,10 +33,12 @@ const navItems = computed(() => {
     { key: 'production', label: 'Produktionsqueue', href: '/admin/production', icon: '⚙️', permission: 'print-jobs:read' as const },
     { key: 'calendar', label: 'Produktionskalender', href: '/admin/production/calendar', icon: '📅', permission: 'print-jobs:read' as const },
     { key: 'qc', label: 'Qualitätsprüfung', href: '/admin/qc', icon: '✅', permission: 'qc:read' as const },
+    { key: 'vouchers', label: 'Gutscheine', href: '/admin/vouchers', icon: '🎟️', permission: 'vouchers:read' as const },
     { key: 'payments', label: 'Zahlungen', href: '/admin/payments', icon: '💶', permission: 'payments:read' as const },
     { key: 'invoices', label: 'Rechnungen', href: '/admin/invoices', icon: '📄', permission: 'invoices:read' as const },
     { key: 'users', label: 'Benutzer', href: '/admin/users', icon: '👥', permission: 'users:read' as const },
     { key: 'audit', label: 'Audit-Log', href: '/admin/audit', icon: '🔍', permission: 'audit:read' as const },
+    { key: 'settings', label: 'Einstellungen', href: '/admin/settings', icon: '⚙️', permission: 'settings:read' as const },
   ]
   return items
     .filter((item) => auth.can(item.permission))

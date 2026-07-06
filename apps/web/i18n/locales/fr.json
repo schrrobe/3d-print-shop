@@ -67,7 +67,19 @@
     "checkout": "Commander",
     "updated": "Panier mis à jour",
     "saveChanges": "Enregistrer les modifications",
-    "edit": "Modifier"
+    "edit": "Modifier",
+    "voucherLabel": "Bon de réduction ({code})",
+    "voucherPlaceholder": "Code de réduction",
+    "voucherApply": "Utiliser",
+    "voucherRemove": "Retirer",
+    "voucherReason": {
+      "not_found": "Code de réduction introuvable",
+      "inactive": "Ce bon n'est pas actif",
+      "not_yet_valid": "Ce bon n'est pas encore valable",
+      "expired": "Ce bon a expiré",
+      "exhausted": "Ce bon a déjà été entièrement utilisé",
+      "min_order_not_met": "Montant minimum de commande {amount} non atteint"
+    }
   },
   "checkout": {
     "title": "Paiement",

@@ -37,6 +37,7 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
         locale: order.locale,
         subtotalCents: order.subtotalCents,
         shippingCents: order.shippingCents,
+        discountCents: order.discountCents,
         totalCents: order.totalCents,
         paymentMethod: paidPayment.method,
       },
@@ -91,6 +92,12 @@ export async function generateInvoicePdf(
   }
   doc.moveDown()
   doc.text(t('Zwischensumme', 'Subtotal') + `: ${formatCents(invoice.subtotalCents, invoice.locale)}`)
+  if (invoice.discountCents > 0) {
+    const codeSuffix = order.voucherCode ? ` (${order.voucherCode})` : ''
+    doc.text(
+      t('Gutschein', 'Voucher') + codeSuffix + `: -${formatCents(invoice.discountCents, invoice.locale)}`,
+    )
+  }
   doc.text(t('Versandkosten', 'Shipping') + `: ${formatCents(invoice.shippingCents, invoice.locale)}`)
   doc
     .fontSize(12)

@@ -193,6 +193,21 @@ export type ShipmentStatus = (typeof SHIPMENT_STATUSES)[number]
 export const REVIEW_STATUSES = ['pending', 'approved', 'rejected', 'hidden'] as const
 export type ReviewStatus = (typeof REVIEW_STATUSES)[number]
 
+/** Gutschein-Typ: prozentual (value = 1–100) oder Festbetrag (value = Cents) */
+export const VOUCHER_TYPES = ['percent', 'fixed'] as const
+export type VoucherType = (typeof VOUCHER_TYPES)[number]
+
+/** Warum ein Gutschein nicht einlösbar ist (Public-Validate & Checkout). */
+export const VOUCHER_REJECTIONS = [
+  'not_found',
+  'inactive',
+  'not_yet_valid',
+  'expired',
+  'exhausted',
+  'min_order_not_met',
+] as const
+export type VoucherRejection = (typeof VOUCHER_REJECTIONS)[number]
+
 // ---------- DTOs shared between web and api ----------
 
 export interface ColorDto {
@@ -255,6 +270,19 @@ export interface CartTotalsDto {
   shippingCents: number
   totalCents: number
   freeShippingApplied: boolean
+}
+
+/** Totals including a redeemed voucher (discount 0 when none applies). */
+export interface CartTotalsWithVoucherDto extends CartTotalsDto {
+  discountCents: number
+}
+
+/** Public shape of a redeemable voucher (validate response / cart storage). */
+export interface VoucherDto {
+  code: string
+  type: VoucherType
+  value: number
+  minOrderCents: number
 }
 
 export interface AddressDto {

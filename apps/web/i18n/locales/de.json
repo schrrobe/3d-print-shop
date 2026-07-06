@@ -67,7 +67,19 @@
     "checkout": "Zur Kasse",
     "updated": "Warenkorb aktualisiert",
     "saveChanges": "Änderungen speichern",
-    "edit": "Bearbeiten"
+    "edit": "Bearbeiten",
+    "voucherLabel": "Gutschein ({code})",
+    "voucherPlaceholder": "Gutscheincode",
+    "voucherApply": "Einlösen",
+    "voucherRemove": "Entfernen",
+    "voucherReason": {
+      "not_found": "Gutscheincode nicht gefunden",
+      "inactive": "Dieser Gutschein ist nicht aktiv",
+      "not_yet_valid": "Dieser Gutschein ist noch nicht gültig",
+      "expired": "Dieser Gutschein ist abgelaufen",
+      "exhausted": "Dieser Gutschein wurde bereits vollständig eingelöst",
+      "min_order_not_met": "Mindestbestellwert {amount} nicht erreicht"
+    }
   },
   "checkout": {
     "title": "Kasse",
