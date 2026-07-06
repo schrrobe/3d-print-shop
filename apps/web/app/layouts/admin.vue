@@ -38,6 +38,7 @@ const navItems = computed(() => {
     { key: 'invoices', label: 'Rechnungen', href: '/admin/invoices', icon: '📄', permission: 'invoices:read' as const },
     { key: 'users', label: 'Benutzer', href: '/admin/users', icon: '👥', permission: 'users:read' as const },
     { key: 'audit', label: 'Audit-Log', href: '/admin/audit', icon: '🔍', permission: 'audit:read' as const },
+    { key: 'settings', label: 'Einstellungen', href: '/admin/settings', icon: '⚙️', permission: 'settings:read' as const },
   ]
   return items
     .filter((item) => auth.can(item.permission))

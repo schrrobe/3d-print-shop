@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   acceptAllConsent,
   canLoadGa4,
+  canLoadGtm,
   canLoadMetaPixel,
   canLoadTracker,
   CONSENT_VERSION,
@@ -31,6 +32,14 @@ describe('consent logic (GDPR opt-in)', () => {
     const marketingOnly = createConsent({ statistics: false, marketing: true })
     expect(canLoadGa4(marketingOnly)).toBe(false)
     expect(canLoadMetaPixel(marketingOnly)).toBe(true)
+  })
+
+  it('GTM requires BOTH statistics and marketing opt-in', () => {
+    expect(canLoadGtm(null)).toBe(false)
+    expect(canLoadGtm(rejectAllConsent())).toBe(false)
+    expect(canLoadGtm(createConsent({ statistics: true, marketing: false }))).toBe(false)
+    expect(canLoadGtm(createConsent({ statistics: false, marketing: true }))).toBe(false)
+    expect(canLoadGtm(acceptAllConsent())).toBe(true)
   })
 
   it('accept all / reject all', () => {

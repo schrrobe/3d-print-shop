@@ -247,6 +247,34 @@ export type ConsentLogInput = z.infer<typeof consentLogSchema>
 
 export const consentCategorySchema = z.enum(CONSENT_CATEGORIES)
 
+// ---------- Admin: tracking settings ----------
+
+// Real-world formats: GA4 "G-" + 10 alnum, GTM "GTM-" + 6-8 alnum, Meta Pixel 15-16 digits.
+// Bounds are slightly loosened to survive vendor format drift while rejecting garbage.
+export const GA4_MEASUREMENT_ID_REGEX = /^G-[A-Z0-9]{4,14}$/
+export const GTM_CONTAINER_ID_REGEX = /^GTM-[A-Z0-9]{4,10}$/
+export const META_PIXEL_ID_REGEX = /^\d{5,20}$/
+
+/** Empty string or null clears the value; stored as null. Trims whitespace. */
+const optionalTrackingId = (regex: RegExp, message: string) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? (v.trim() === '' ? null : v.trim()) : v),
+    z.string().regex(regex, message).nullable(),
+  )
+
+export const trackingSettingsSchema = z.object({
+  metaPixelId: optionalTrackingId(META_PIXEL_ID_REGEX, 'Meta Pixel ID must be 5-20 digits'),
+  ga4MeasurementId: optionalTrackingId(
+    GA4_MEASUREMENT_ID_REGEX,
+    'GA4 Measurement ID must match G-XXXXXXXXXX',
+  ),
+  gtmContainerId: optionalTrackingId(
+    GTM_CONTAINER_ID_REGEX,
+    'GTM Container ID must match GTM-XXXXXXX',
+  ),
+})
+export type TrackingSettingsInput = z.infer<typeof trackingSettingsSchema>
+
 // ---------- Payments ----------
 
 export const markPaidSchema = z.object({

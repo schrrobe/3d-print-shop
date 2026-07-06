@@ -1,0 +1,31 @@
+import { canLoadGa4, canLoadGtm, canLoadMetaPixel, type ConsentState } from './consent.js'
+
+/** Tracking IDs as stored in shop settings; null = not configured. */
+export interface TrackingSettings {
+  metaPixelId: string | null
+  ga4MeasurementId: string | null
+  gtmContainerId: string | null
+}
+
+export interface TrackingProvider {
+  /** analytics-lib plugin name */
+  name: 'google-analytics' | 'google-tag-manager' | 'meta-pixel'
+  settingKey: keyof TrackingSettings
+  allowed: (state: ConsentState | null) => boolean
+}
+
+export const TRACKING_PROVIDERS: readonly TrackingProvider[] = [
+  { name: 'google-analytics', settingKey: 'ga4MeasurementId', allowed: canLoadGa4 },
+  { name: 'google-tag-manager', settingKey: 'gtmContainerId', allowed: canLoadGtm },
+  { name: 'meta-pixel', settingKey: 'metaPixelId', allowed: canLoadMetaPixel },
+] as const
+
+/** Providers that have an ID configured, regardless of consent. */
+export const configuredProviders = (settings: TrackingSettings): TrackingProvider[] =>
+  TRACKING_PROVIDERS.filter((p) => Boolean(settings[p.settingKey]))
+
+/** Providers that are configured AND covered by the given consent state. */
+export const allowedProviders = (
+  settings: TrackingSettings,
+  state: ConsentState | null,
+): TrackingProvider[] => configuredProviders(settings).filter((p) => p.allowed(state))
