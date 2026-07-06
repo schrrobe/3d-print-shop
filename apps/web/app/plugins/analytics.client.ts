@@ -79,9 +79,15 @@ export default defineNuxtPlugin(() => {
             import('@analytics/google-tag-manager'),
             import('~/utils/analytics/meta-pixel-plugin'),
           ])
+        // Consent may have changed during the async import window above. A
+        // re-entrant syncProviders() triggered by that change bails out on the
+        // `initializing` guard, so re-read consent here — otherwise a withdrawal
+        // mid-load would be lost and we'd enable providers (and fire the initial
+        // pageview) against a stale snapshot.
+        const allowedNow = new Set(allowedProviders(s, consent.consent).map((p) => p.name))
         const plugins: AnalyticsPlugin[] = []
         for (const provider of configured) {
-          const enabled = allowed.has(provider.name)
+          const enabled = allowedNow.has(provider.name)
           enabledState.set(provider.name, enabled)
           if (provider.name === 'google-analytics') {
             plugins.push(
