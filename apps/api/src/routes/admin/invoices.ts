@@ -24,7 +24,7 @@ adminInvoicesRouter.get('/:id/pdf', requirePermission('invoices:read'), async (r
   try {
     const invoice = await prisma.invoice.findUnique({
       where: { id: String(req.params.id) },
-      include: { order: { include: { items: true } } },
+      include: { order: { include: { items: true, payments: true } } },
     })
     if (!invoice) throw notFound('Invoice not found')
     const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, invoice.order))

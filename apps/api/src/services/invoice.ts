@@ -1,11 +1,19 @@
 import { createWriteStream } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import type { Invoice, Order, OrderItem } from '@prisma/client'
-import { formatCents, formatInvoiceNumber } from '@print-shop/utils'
+import type { Invoice } from '@prisma/client'
+import { formatInvoiceNumber } from '@print-shop/utils'
 import PDFDocument from 'pdfkit'
+import QRCode from 'qrcode'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import {
+  buildEpcQrPayload,
+  renderInvoicePdf,
+  shouldShowGiroCode,
+  type CompanyInfo,
+  type OrderForInvoice,
+} from './invoice-pdf.js'
 
 /**
  * Creates the invoice row with a sequential, per-year invoice number.
@@ -45,79 +53,55 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
   })
 }
 
-const PAYMENT_METHOD_LABELS: Record<string, { de: string; en: string }> = {
-  stripe: { de: 'Kartenzahlung (Stripe)', en: 'Card payment (Stripe)' },
-  stripe_payment_link: { de: 'Zahlungslink (Stripe)', en: 'Payment link (Stripe)' },
-  bank_transfer: { de: 'Banküberweisung', en: 'Bank transfer' },
-  bitcoin: { de: 'Bitcoin', en: 'Bitcoin' },
+function companyFromEnv(): CompanyInfo {
+  return {
+    name: env.COMPANY_NAME,
+    street: env.COMPANY_STREET,
+    zip: env.COMPANY_ZIP,
+    city: env.COMPANY_CITY,
+    email: env.COMPANY_EMAIL,
+    phone: env.COMPANY_PHONE,
+    website: env.COMPANY_WEBSITE,
+    taxNumber: env.COMPANY_TAX_NUMBER,
+    owner: env.COMPANY_OWNER,
+    logoPath: env.INVOICE_LOGO_PATH,
+    iban: env.BANK_IBAN,
+    bic: env.BANK_BIC,
+    accountHolder: env.BANK_ACCOUNT_HOLDER,
+    paymentTermsDays: env.PAYMENT_TERMS_DAYS,
+    vatExempt: env.COMPANY_VAT_EXEMPT,
+  }
 }
 
-/** Renders the invoice PDF to INVOICE_DIR and stores the path on the invoice. */
-export async function generateInvoicePdf(
-  invoice: Invoice,
-  order: Order & { items: OrderItem[] },
-): Promise<string> {
+/** Renders the DIN 5008 invoice PDF into INVOICE_DIR and stores the path. */
+export async function generateInvoicePdf(invoice: Invoice, order: OrderForInvoice): Promise<string> {
   await mkdir(env.INVOICE_DIR, { recursive: true })
   const filePath = path.join(env.INVOICE_DIR, `${invoice.number}.pdf`)
-  const de = invoice.locale === 'de'
-  const t = (deText: string, enText: string) => (de ? deText : enText)
+  const company = companyFromEnv()
 
-  const doc = new PDFDocument({ size: 'A4', margin: 50 })
+  let qrPng: Buffer | undefined
+  if (shouldShowGiroCode(invoice, order.payments)) {
+    try {
+      qrPng = await QRCode.toBuffer(
+        buildEpcQrPayload({
+          bic: company.bic,
+          name: company.accountHolder,
+          iban: company.iban,
+          amountCents: invoice.totalCents,
+          reference: invoice.number,
+        }),
+        // EPC quick-response codes require error correction level M
+        { type: 'png', errorCorrectionLevel: 'M', margin: 0, scale: 4 },
+      )
+    } catch (err) {
+      console.warn(`GiroCode generation failed for invoice ${invoice.number}, rendering without QR:`, err)
+    }
+  }
+
+  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true })
   const stream = createWriteStream(filePath)
   doc.pipe(stream)
-
-  doc.fontSize(18).text('Print Shop', { continued: false })
-  doc.fontSize(9).fillColor('#5e5e5e').text('Print Shop GmbH · Musterstraße 1 · 12345 Berlin')
-  doc.moveDown(2)
-
-  doc.fillColor('#000000').fontSize(14).text(t('Rechnung', 'Invoice') + ` ${invoice.number}`)
-  doc.fontSize(10)
-  doc.text(t('Rechnungsdatum', 'Invoice date') + `: ${invoice.issuedAt.toISOString().slice(0, 10)}`)
-  doc.text(t('Bestellnummer', 'Order number') + `: ${order.orderNumber}`)
-  doc.moveDown()
-
-  doc.text(`${order.firstName} ${order.lastName}`)
-  if (order.company) doc.text(order.company)
-  doc.text(order.street)
-  doc.text(`${order.zip} ${order.city}, ${order.country}`)
-  doc.moveDown(2)
-
-  doc.fontSize(11).text(t('Positionen', 'Line items'), { underline: true })
-  doc.moveDown(0.5)
-  doc.fontSize(10)
-  for (const item of order.items) {
-    doc.text(
-      `${item.quantity}× ${item.name} — ${formatCents(item.unitPriceCents * item.quantity, invoice.locale)}`,
-    )
-  }
-  doc.moveDown()
-  doc.text(t('Zwischensumme', 'Subtotal') + `: ${formatCents(invoice.subtotalCents, invoice.locale)}`)
-  if (invoice.discountCents > 0) {
-    const codeSuffix = order.voucherCode ? ` (${order.voucherCode})` : ''
-    doc.text(
-      t('Gutschein', 'Voucher') + codeSuffix + `: -${formatCents(invoice.discountCents, invoice.locale)}`,
-    )
-  }
-  doc.text(t('Versandkosten', 'Shipping') + `: ${formatCents(invoice.shippingCents, invoice.locale)}`)
-  doc
-    .fontSize(12)
-    .text(t('Gesamtbetrag', 'Total') + `: ${formatCents(invoice.totalCents, invoice.locale)}`, {
-      // bold not available without extra font — size is the emphasis
-    })
-  doc.moveDown()
-  const methodLabel = PAYMENT_METHOD_LABELS[invoice.paymentMethod] ?? { de: invoice.paymentMethod, en: invoice.paymentMethod }
-  doc.fontSize(10).text(t('Zahlungsart', 'Payment method') + `: ${de ? methodLabel.de : methodLabel.en}`)
-  doc.moveDown(2)
-  doc
-    .fontSize(8)
-    .fillColor('#5e5e5e')
-    .text(
-      t(
-        'Hinweis: Umsatzsteuerangaben sind Platzhalter und vor dem Produktivbetrieb zu ergänzen.',
-        'Note: VAT details are placeholders and must be completed before going live.',
-      ),
-    )
-
+  renderInvoicePdf(doc, { invoice, order, company, qrPng })
   doc.end()
   await new Promise<void>((resolve, reject) => {
     stream.on('finish', () => resolve())

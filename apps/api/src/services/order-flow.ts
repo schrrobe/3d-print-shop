@@ -45,9 +45,14 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   if (order.status === 'paid') return // idempotent (webhook retries)
   assertOrderTransition(order.status, 'paid')
 
+  // With no explicit paymentId, pick the most recent non-failed payment: an
+  // order can carry a stale abandoned "pending" alongside the one that just
+  // succeeded, and "first non-failed" would flip the wrong row to paid.
   const payment = paymentId
     ? order.payments.find((p) => p.id === paymentId)
-    : order.payments.find((p) => p.status !== 'failed')
+    : [...order.payments]
+        .filter((p) => p.status !== 'failed')
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
   await prisma.$transaction([
@@ -72,7 +77,14 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   // Invoice: number, PDF, email with attachment
   if (!order.invoice) {
     const invoice = await createInvoiceForOrder(order.id)
-    const pdfPath = await generateInvoicePdf(invoice, order)
+    // order was loaded before the transaction above — patch the just-paid
+    // payment so the PDF renders the "already paid" variant, not a stale one
+    const pdfPath = await generateInvoicePdf(invoice, {
+      ...order,
+      payments: order.payments.map((p) =>
+        p.id === payment.id ? { ...p, status: 'paid' as const, paidAt: p.paidAt ?? new Date() } : p,
+      ),
+    })
     const pdf = await readFile(pdfPath)
     await sendEmail(
       order.email,

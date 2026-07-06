@@ -7,12 +7,16 @@ import {
   AccordionTrigger,
 } from 'radix-vue'
 
-defineProps<{
+const props = defineProps<{
   items: { value: string; title: string; content: string }[]
   defaultValue?: string
 }>()
 
 const model = defineModel<string | undefined>()
+
+if (model.value === undefined) {
+  model.value = props.defaultValue
+}
 </script>
 
 <template>
@@ -21,7 +25,6 @@ const model = defineModel<string | undefined>()
     type="single"
     collapsible
     class="w-full"
-    :default-value="defaultValue"
   >
     <AccordionItem
       v-for="item in items"
