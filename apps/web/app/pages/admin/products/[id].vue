@@ -11,7 +11,7 @@ import {
   PsUploadDropzone,
   useToast,
 } from '@print-shop/ui'
-import { COLOR_ZONE_SLOTS, LOCALES } from '@print-shop/types'
+import { COLOR_ZONE_SLOTS, LOCALES, MAX_PRODUCT_IMAGES } from '@print-shop/types'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -58,7 +58,12 @@ const glbAsset = computed(() => product.value?.assets.find((a) => a.type === 'gl
 
 const form = reactive({ slug: '', priceEuros: '', active: false })
 
-type TranslationForm = { name: string; description: string; seoTitle: string; seoDescription: string }
+type TranslationForm = {
+  name: string
+  description: string
+  seoTitle: string
+  seoDescription: string
+}
 const emptyTranslation = (): TranslationForm => ({
   name: '',
   description: '',
@@ -66,7 +71,10 @@ const emptyTranslation = (): TranslationForm => ({
   seoDescription: '',
 })
 const translations = reactive(
-  Object.fromEntries(LOCALES.map((l) => [l, emptyTranslation()])) as Record<Locale, TranslationForm>,
+  Object.fromEntries(LOCALES.map((l) => [l, emptyTranslation()])) as Record<
+    Locale,
+    TranslationForm
+  >,
 )
 
 const ZONE_DEFAULT_LABELS: Record<ColorZoneSlot, string> = {
@@ -80,7 +88,10 @@ type SlotForm = { enabled: boolean; label: string; defaultColorId: string }
 const NO_DEFAULT_COLOR = 'none'
 const slots = reactive(
   Object.fromEntries(
-    COLOR_ZONE_SLOTS.map((s) => [s, { enabled: false, label: '', defaultColorId: NO_DEFAULT_COLOR }]),
+    COLOR_ZONE_SLOTS.map((s) => [
+      s,
+      { enabled: false, label: '', defaultColorId: NO_DEFAULT_COLOR },
+    ]),
   ) as Record<ColorZoneSlot, SlotForm>,
 )
 
@@ -158,8 +169,7 @@ async function save() {
     colorSlots: COLOR_ZONE_SLOTS.filter((z) => slots[z].enabled).map((z) => ({
       slot: z,
       label: slots[z].label.trim() || ZONE_DEFAULT_LABELS[z],
-      defaultColorId:
-        slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
+      defaultColorId: slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
     })),
   }
   saving.value = true
@@ -196,6 +206,108 @@ async function uploadModel(files: File[]) {
   }
 }
 
+type ProductImageAsset = AdminProductDetail['assets'][number]
+const imageAssets = computed<ProductImageAsset[]>(() =>
+  [...(product.value?.assets.filter((a) => a.type === 'image') ?? [])].sort(
+    (a, b) => a.sortOrder - b.sortOrder,
+  ),
+)
+
+async function uploadImages(files: File[]) {
+  const remaining = MAX_PRODUCT_IMAGES - imageAssets.value.length
+  if (remaining <= 0) {
+    toast.show(`Maximal ${MAX_PRODUCT_IMAGES} Fotos`, { variant: 'error' })
+    return
+  }
+  if (files.length > remaining) {
+    toast.show(`Nur noch ${remaining} Foto(s) möglich`, { variant: 'error' })
+  }
+  const body = new FormData()
+  for (const file of files.slice(0, remaining)) body.append('files', file)
+  try {
+    await $fetch(`/api/admin/products/${productId}/images`, {
+      method: 'POST',
+      credentials: 'include',
+      body,
+    })
+    toast.show('Fotos hochgeladen', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Upload fehlgeschlagen', { variant: 'error' })
+  }
+}
+
+async function saveAssetAlt(asset: ProductImageAsset) {
+  try {
+    await $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { alt: asset.alt?.trim() || null },
+    })
+    toast.show('Alt-Text gespeichert', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Alt-Text speichern fehlgeschlagen', { variant: 'error' })
+  }
+}
+
+async function reorderImages(assetIds: string[]) {
+  try {
+    await $fetch(`/api/admin/products/${productId}/images/order`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { assetIds },
+    })
+    toast.show('Bildreihenfolge gespeichert', { variant: 'success' })
+    await refresh()
+  } catch {
+    toast.show('Bildreihenfolge speichern fehlgeschlagen', { variant: 'error' })
+  }
+}
+
+async function setCoverPhoto(assetId: string) {
+  await reorderImages([
+    assetId,
+    ...imageAssets.value.filter((asset) => asset.id !== assetId).map((asset) => asset.id),
+  ])
+}
+
+async function movePhoto(assetId: string, direction: -1 | 1) {
+  const ids = imageAssets.value.map((asset) => asset.id)
+  const index = ids.indexOf(assetId)
+  const nextIndex = index + direction
+  if (index < 0 || nextIndex < 0 || nextIndex >= ids.length) return
+  const current = ids[index]
+  const next = ids[nextIndex]
+  if (!current || !next) return
+  ids[index] = next
+  ids[nextIndex] = current
+  await reorderImages(ids)
+}
+
+function imagePreviewUrl(url: string): string {
+  return url.startsWith('/api/product-images/') ? `${url}?w=320` : url
+}
+
+// Confirm before deleting a photo — the DELETE also unlinks the file server-side.
+const pendingDeleteAssetId = ref<string | null>(null)
+
+async function deleteAsset() {
+  const assetId = pendingDeleteAssetId.value
+  if (!assetId) return
+  try {
+    await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    toast.show('Foto entfernt', { variant: 'success' })
+    pendingDeleteAssetId.value = null
+    await refresh()
+  } catch {
+    toast.show('Entfernen fehlgeschlagen', { variant: 'error' })
+  }
+}
+
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
@@ -228,13 +340,28 @@ async function deleteProduct() {
       <h3 class="text-label-medium">Stammdaten</h3>
       <div class="mt-md grid gap-md sm:grid-cols-2">
         <div>
-          <PsInput v-model="form.slug" label="Slug (kebab-case)" name="slug" :disabled="!auth.can('products:write')" />
+          <PsInput
+            v-model="form.slug"
+            label="Slug (kebab-case)"
+            name="slug"
+            :disabled="!auth.can('products:write')"
+          />
           <p class="mt-xs text-caption text-secondary">Achtung: ändert die öffentliche URL.</p>
         </div>
-        <PsInput v-model="form.priceEuros" label="Preis (EUR)" name="priceEuros" :disabled="!auth.can('products:write')" />
+        <PsInput
+          v-model="form.priceEuros"
+          label="Preis (EUR)"
+          name="priceEuros"
+          :disabled="!auth.can('products:write')"
+        />
       </div>
       <label class="mt-md flex items-center gap-sm text-body-regular">
-        <input v-model="form.active" type="checkbox" :disabled="!auth.can('products:write')" data-testid="product-active" />
+        <input
+          v-model="form.active"
+          type="checkbox"
+          :disabled="!auth.can('products:write')"
+          data-testid="product-active"
+        />
         Im Shop sichtbar
       </label>
     </PsCard>
@@ -322,6 +449,105 @@ async function deleteProduct() {
     </PsCard>
 
     <PsCard>
+      <h3 class="text-label-medium">Produktfotos (max. 4)</h3>
+      <p class="mt-xs text-caption text-secondary">
+        Werden oben auf der Produktseite und im Shop-Listing angezeigt. JPG, PNG oder WebP, je max.
+        10 MB.
+      </p>
+      <div
+        v-if="imageAssets.length"
+        class="mt-md grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-md"
+        data-testid="product-photos"
+      >
+        <div
+          v-for="(asset, index) in imageAssets"
+          :key="asset.id"
+          class="flex flex-col gap-xs"
+          data-testid="product-photo"
+        >
+          <PsBadge v-if="index === 0" variant="brand">Cover</PsBadge>
+          <img
+            :src="imagePreviewUrl(asset.url)"
+            :alt="asset.alt ?? ''"
+            class="aspect-square w-full rounded-card border border-subtle object-cover"
+          />
+          <PsInput
+            :model-value="asset.alt ?? ''"
+            label="Alt-Text"
+            :name="`photo-alt-${asset.id}`"
+            data-testid="photo-alt"
+            :disabled="!auth.can('assets:write')"
+            @update:model-value="(value: string) => (asset.alt = value)"
+          />
+          <div v-if="auth.can('assets:write')" class="grid grid-cols-3 gap-xs">
+            <PsButton
+              variant="ghost"
+              size="sm"
+              data-testid="set-cover-photo"
+              :disabled="index === 0"
+              @click="setCoverPhoto(asset.id)"
+            >
+              Cover
+            </PsButton>
+            <PsButton
+              variant="ghost"
+              size="sm"
+              data-testid="move-photo-up"
+              :disabled="index === 0"
+              @click="movePhoto(asset.id, -1)"
+            >
+              Hoch
+            </PsButton>
+            <PsButton
+              variant="ghost"
+              size="sm"
+              data-testid="move-photo-down"
+              :disabled="index === imageAssets.length - 1"
+              @click="movePhoto(asset.id, 1)"
+            >
+              Runter
+            </PsButton>
+          </div>
+          <PsButton
+            v-if="auth.can('assets:write')"
+            variant="ghost"
+            data-testid="save-photo-alt"
+            @click="saveAssetAlt(asset)"
+          >
+            Alt-Text speichern
+          </PsButton>
+          <PsButton
+            v-if="auth.can('assets:write')"
+            variant="ghost"
+            data-testid="delete-photo"
+            @click="pendingDeleteAssetId = asset.id"
+          >
+            Entfernen
+          </PsButton>
+        </div>
+      </div>
+      <p v-else class="mt-sm text-body-regular text-secondary" data-testid="product-photos-empty">
+        Noch keine Fotos — der Shop zeigt einen Platzhalter.
+      </p>
+      <div
+        v-if="auth.can('assets:write') && imageAssets.length < MAX_PRODUCT_IMAGES"
+        class="mt-md"
+        data-testid="photo-upload"
+      >
+        <PsUploadDropzone
+          accept=".jpg,.jpeg,.png,.webp"
+          :multiple="true"
+          :max-size-bytes="10485760"
+          @files="uploadImages"
+          @error="(msg: string) => toast.show(msg, { variant: 'error' })"
+        />
+      </div>
+      <p v-else-if="auth.can('assets:write')" class="mt-md text-caption text-secondary">
+        Maximum von {{ MAX_PRODUCT_IMAGES }} Fotos erreicht.
+      </p>
+    </PsCard>
+
+    <PsCard>
       <h3 class="text-label-medium">3D-Modell (GLB)</h3>
       <p v-if="glbAsset" class="mt-sm text-body-regular" data-testid="model-asset-url">
         Aktuelles Modell: <code class="text-caption">{{ glbAsset.url }}</code>
@@ -339,7 +565,10 @@ async function deleteProduct() {
       </div>
     </PsCard>
 
-    <div v-if="auth.can('products:write')" class="flex flex-wrap items-center justify-between gap-md">
+    <div
+      v-if="auth.can('products:write')"
+      class="flex flex-wrap items-center justify-between gap-md"
+    >
       <PsButton data-testid="save-product-detail" :disabled="saving" @click="save">
         Speichern
       </PsButton>
@@ -350,12 +579,24 @@ async function deleteProduct() {
 
     <PsDialog v-model:open="deleteDialogOpen" title="Produkt löschen">
       <p class="text-body-regular">
-        „{{ translations.de.name || product.slug }}“ endgültig löschen? Bestellungen behalten
-        ihren Namens-Snapshot, offene Warenkörbe verlieren die Position.
+        „{{ translations.de.name || product.slug }}“ endgültig löschen? Bestellungen behalten ihren
+        Namens-Snapshot, offene Warenkörbe verlieren die Position.
       </p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>
         <PsButton data-testid="confirm-delete-product" @click="deleteProduct">Löschen</PsButton>
+      </div>
+    </PsDialog>
+
+    <PsDialog
+      :open="pendingDeleteAssetId !== null"
+      title="Foto entfernen"
+      @update:open="(open: boolean) => { if (!open) pendingDeleteAssetId = null }"
+    >
+      <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
+      <div class="mt-lg flex justify-end gap-md">
+        <PsButton variant="ghost" @click="pendingDeleteAssetId = null">Abbrechen</PsButton>
+        <PsButton data-testid="confirm-delete-photo" @click="deleteAsset">Entfernen</PsButton>
       </div>
     </PsDialog>
   </div>

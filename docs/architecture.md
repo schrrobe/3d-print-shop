@@ -55,5 +55,8 @@ In Produktion übernimmt ein Reverse Proxy (siehe `deployment-hostinger.md`) die
 - **3D-Viewer-Fallback**: Da keine GLB-Binärdateien im Repo liegen, rendert der Viewer ein
   prozedurales Modell mit denselben Farbzonen-Namen (`zone_1_main` …). Echte GLBs unter
   `apps/web/public/models/<slug>.glb` werden automatisch geladen.
+- **Produktfotos**: 1–4 pro Produkt als `ProductAsset(type=image)`, hochgeladen nach
+  `UPLOAD_DIR/products/`, öffentlich via `GET /api/product-images/:filename`. Storefront:
+  Galerie oben, Konfigurator darunter. Siehe [product-photos.md](product-photos.md).
 - **Dev-Endpunkte** (`/api/dev/*`: Stripe-Mock abschließen, Bitcoin-Confirmations simulieren,
   EmailLog einsehen) sind nur außerhalb von `NODE_ENV=production` gemountet.

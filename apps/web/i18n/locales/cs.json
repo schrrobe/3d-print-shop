@@ -38,7 +38,16 @@
     "all": "Všechny produkty",
     "configure": "Konfigurovat barvy",
     "addToCart": "Do košíku",
+    "gallery": {
+      "placeholder": "Fotografie není k dispozici"
+    },
     "added": "Přidáno do košíku",
+    "manufacturingNotice": {
+      "title": "Upozornění k výrobě",
+      "imagesTitle": "Upozornění k produktovým fotografiím",
+      "production": "Každý box na munici je vyráběn metodou 3D tisku. Jemné vrstvy nebo minimální povrchové odchylky jsou dány výrobním procesem a jsou typické pro aditivní výrobu. Nepředstavují vadu a nemají vliv na funkci, stabilitu ani životnost.",
+      "ammunition": "Munice zobrazená na produktových fotografiích slouží pouze k ilustraci a není součástí nabídky."
+    },
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit",
       "fallback": "3D náhled"
@@ -371,6 +380,7 @@
     "shareError": "Odkaz se nepodařilo vytvořit"
   },
   "configurator": {
+    "title": "Konfigurátor",
     "popular": "Oblíbené kombinace",
     "reset": "Obnovit výchozí",
     "share": "Sdílet konfiguraci",

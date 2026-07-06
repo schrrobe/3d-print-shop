@@ -1,13 +1,20 @@
 import { mkdirSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import path from 'node:path'
+import { MAX_PRODUCT_IMAGES } from '@print-shop/types'
 import { getFileExtension } from '@print-shop/utils'
 import { productCreateSchema, productUpdateSchema } from '@print-shop/validators'
+import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import multer from 'multer'
 import { z } from 'zod'
 import { env } from '../../env.js'
 import { audit } from '../../lib/audit.js'
+import {
+  cleanupUploadedFiles,
+  createImageUpload,
+  validateUploadedImages,
+} from '../../lib/image-upload.js'
 import { prisma } from '../../lib/prisma.js'
 import { randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
@@ -41,6 +48,34 @@ const modelUpload = multer({
     cb(null, true)
   },
 })
+
+const productImagesDir = path.resolve(env.UPLOAD_DIR, 'products')
+const productImageUpload = createImageUpload('products', {
+  maxFiles: MAX_PRODUCT_IMAGES,
+  maxBytes: 10 * 1024 * 1024,
+})
+
+function productImageFilePath(url: string): string | null {
+  const [cleanUrl = ''] = url.split('?')
+  if (!cleanUrl.startsWith('/api/product-images/')) return null
+  return path.join(productImagesDir, path.basename(cleanUrl))
+}
+
+async function unlinkProductImage(url: string): Promise<void> {
+  const filePath = productImageFilePath(url)
+  if (filePath) await unlink(filePath).catch(() => {})
+}
+
+function productDisplayName(product: {
+  slug: string
+  translations: { locale: string; name: string }[]
+}): string {
+  return (
+    product.translations.find((translation) => translation.locale === 'de')?.name ??
+    product.translations[0]?.name ??
+    product.slug
+  )
+}
 
 adminProductsRouter.get('/', requirePermission('products:read'), async (_req, res, next) => {
   try {
@@ -126,20 +161,104 @@ const assetSchema = z.object({
   sortOrder: z.number().int().default(0),
 })
 
-adminProductsRouter.post('/:id/assets', requirePermission('assets:write'), async (req, res, next) => {
-  try {
-    const input = assetSchema.parse(req.body)
-    const product = await prisma.product.findUnique({ where: { id: String(req.params.id) } })
-    if (!product) throw notFound('Product not found')
-    const asset = await prisma.productAsset.create({
-      data: { ...input, productId: product.id },
-    })
-    await audit(req, 'product.asset.create', { type: 'product', id: product.id }, input)
-    res.status(201).json({ asset })
-  } catch (err) {
-    next(err)
-  }
+const assetUpdateSchema = z.object({
+  alt: z.string().max(200).nullable().optional(),
+  sortOrder: z.number().int().min(0).optional(),
 })
+
+const imageOrderSchema = z.object({
+  assetIds: z.array(z.string().min(1)).min(1).max(MAX_PRODUCT_IMAGES),
+})
+
+adminProductsRouter.post(
+  '/:id/assets',
+  requirePermission('assets:write'),
+  async (req, res, next) => {
+    try {
+      const input = assetSchema.parse(req.body)
+      const product = await prisma.product.findUnique({ where: { id: String(req.params.id) } })
+      if (!product) throw notFound('Product not found')
+      const asset = await prisma.productAsset.create({
+        data: { ...input, productId: product.id },
+      })
+      await audit(req, 'product.asset.create', { type: 'product', id: product.id }, input)
+      res.status(201).json({ asset })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+adminProductsRouter.patch(
+  '/:id/assets/:assetId',
+  requirePermission('assets:write'),
+  async (req, res, next) => {
+    try {
+      const input = assetUpdateSchema.parse(req.body)
+      const asset = await prisma.productAsset.findFirst({
+        where: { id: String(req.params.assetId), productId: String(req.params.id) },
+      })
+      if (!asset) throw notFound('Asset not found')
+      const updated = await prisma.productAsset.update({
+        where: { id: asset.id },
+        data: {
+          alt: input.alt === undefined ? undefined : input.alt?.trim() || null,
+          sortOrder: input.sortOrder,
+        },
+      })
+      await audit(
+        req,
+        'product.asset.update',
+        { type: 'product', id: asset.productId },
+        { assetId: asset.id, alt: updated.alt, sortOrder: updated.sortOrder },
+      )
+      res.json({ asset: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+adminProductsRouter.patch(
+  '/:id/images/order',
+  requirePermission('assets:write'),
+  async (req, res, next) => {
+    try {
+      const input = imageOrderSchema.parse(req.body)
+      const productId = String(req.params.id)
+      const assets = await prisma.productAsset.findMany({
+        where: { productId, type: 'image' },
+        orderBy: { sortOrder: 'asc' },
+      })
+      if (assets.length !== input.assetIds.length)
+        throw badRequest('Image order does not match product images')
+      if (new Set(input.assetIds).size !== input.assetIds.length) {
+        throw badRequest('Image order contains duplicate assets')
+      }
+      const knownIds = new Set(assets.map((asset) => asset.id))
+      if (input.assetIds.some((id) => !knownIds.has(id)))
+        throw badRequest('Image order contains unknown assets')
+
+      const reordered = await prisma.$transaction(
+        input.assetIds.map((assetId, index) =>
+          prisma.productAsset.update({
+            where: { id: assetId },
+            data: { sortOrder: index + 1 },
+          }),
+        ),
+      )
+      await audit(
+        req,
+        'product.images.reorder',
+        { type: 'product', id: productId },
+        { assetIds: input.assetIds },
+      )
+      res.json({ assets: reordered })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 adminProductsRouter.post(
   '/:id/model',
@@ -187,16 +306,119 @@ adminProductsRouter.post(
   },
 )
 
+// Upload 1–4 product photos. Stored privately in UPLOAD_DIR/products and served
+// publicly (product photos are public) via GET /api/product-images/:filename.
+adminProductsRouter.post(
+  '/:id/images',
+  requirePermission('assets:write'),
+  productImageUpload.array('files', MAX_PRODUCT_IMAGES),
+  async (req, res, next) => {
+    const files = (req.files as Express.Multer.File[] | undefined) ?? []
+    try {
+      if (files.length === 0) {
+        throw badRequest('At least one image file is required (field "files")')
+      }
+      // reject anything whose bytes are not a real JPEG/PNG/WebP (cleans up on failure)
+      await validateUploadedImages(files)
+      const product = await prisma.product.findUnique({
+        where: { id: String(req.params.id) },
+        include: { translations: true },
+      })
+      if (!product) {
+        throw notFound('Product not found')
+      }
+      const altBase = productDisplayName(product)
+      // Re-read the image count, enforce the cap, and derive sortOrder inside a
+      // Serializable transaction so concurrent uploads can't both pass the cap or
+      // assign duplicate sortOrder values (conflicting txns fail rather than racing).
+      const assets = await prisma.$transaction(
+        async (tx) => {
+          const existing = await tx.productAsset.findMany({
+            where: { productId: product.id, type: 'image' },
+            orderBy: { sortOrder: 'asc' },
+          })
+          if (existing.length + files.length > MAX_PRODUCT_IMAGES) {
+            throw badRequest(
+              `Max ${MAX_PRODUCT_IMAGES} photos per product (already ${existing.length})`,
+            )
+          }
+          const maxSort = existing.reduce((max, a) => Math.max(max, a.sortOrder), 0)
+          return Promise.all(
+            files.map((file, i) =>
+              tx.productAsset.create({
+                data: {
+                  productId: product.id,
+                  type: 'image',
+                  url: `/api/product-images/${file.filename}`,
+                  alt: `${altBase} Bild ${maxSort + i + 1}`,
+                  sortOrder: maxSort + i + 1,
+                },
+              }),
+            ),
+          )
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+      await audit(
+        req,
+        'product.images.upload',
+        { type: 'product', id: product.id },
+        { count: assets.length },
+      )
+      res.status(201).json({ assets })
+    } catch (err) {
+      // Remove any multer-saved uploads on any failure (validation, not-found, cap, DB write).
+      await cleanupUploadedFiles(files)
+      next(err)
+    }
+  },
+)
+
+// Delete a single asset (used for product photos; unlinks the uploaded file).
+adminProductsRouter.delete(
+  '/:id/assets/:assetId',
+  requirePermission('assets:write'),
+  async (req, res, next) => {
+    try {
+      const asset = await prisma.productAsset.findFirst({
+        where: { id: String(req.params.assetId), productId: String(req.params.id), type: 'image' },
+      })
+      if (!asset) throw notFound('Asset not found')
+      await unlinkProductImage(asset.url)
+      await prisma.productAsset.delete({ where: { id: asset.id } })
+      await audit(
+        req,
+        'product.asset.delete',
+        { type: 'product', id: asset.productId },
+        { assetId: asset.id, assetType: asset.type },
+      )
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
 adminProductsRouter.delete('/:id', requirePermission('products:write'), async (req, res, next) => {
   try {
-    const existing = await prisma.product.findUnique({ where: { id: String(req.params.id) } })
+    const existing = await prisma.product.findUnique({
+      where: { id: String(req.params.id) },
+      include: { assets: { where: { type: 'image' } } },
+    })
     if (!existing) throw notFound('Product not found')
+    const imageUrls = existing.assets.map((asset) => asset.url)
     // CartItem.product has a Restrict FK — clear ephemeral cart lines first
     await prisma.$transaction([
       prisma.cartItem.deleteMany({ where: { productId: existing.id } }),
       prisma.product.delete({ where: { id: existing.id } }),
     ])
-    await audit(req, 'product.delete', { type: 'product', id: existing.id }, { slug: existing.slug })
+    await Promise.allSettled(imageUrls.map((url) => unlinkProductImage(url)))
+    await audit(
+      req,
+      'product.delete',
+      { type: 'product', id: existing.id },
+      { slug: existing.slug },
+    )
     res.json({ ok: true })
   } catch (err) {
     next(err)

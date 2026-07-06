@@ -9,11 +9,20 @@ import {
 
 defineProps<{
   items: { value: string; title: string; content: string }[]
+  defaultValue?: string
 }>()
+
+const model = defineModel<string | undefined>()
 </script>
 
 <template>
-  <AccordionRoot type="single" collapsible class="w-full">
+  <AccordionRoot
+    v-model="model"
+    type="single"
+    collapsible
+    class="w-full"
+    :default-value="defaultValue"
+  >
     <AccordionItem
       v-for="item in items"
       :key="item.value"
@@ -22,14 +31,25 @@ defineProps<{
     >
       <AccordionHeader class="flex">
         <AccordionTrigger
-          class="group flex flex-1 cursor-pointer items-center justify-between gap-md py-md text-left text-label-medium text-primary transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
+          class="group flex min-h-14 flex-1 cursor-pointer items-center justify-between gap-md rounded-card px-md py-lg text-left text-heading-small text-primary transition-colors hover:bg-surface-elevated hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
         >
           {{ item.title }}
-          <span
-            class="text-secondary transition-transform duration-200 group-data-[state=open]:rotate-180"
+          <div
+            class="grid size-8 place-items-center rounded-full border border-subtle bg-surface-elevated text-secondary transition-transform duration-200 group-data-[state=open]:rotate-180"
             aria-hidden="true"
-            >▾</span
           >
+            <svg
+              class="size-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </div>
         </AccordionTrigger>
       </AccordionHeader>
       <AccordionContent class="overflow-hidden pb-md text-body-regular text-secondary">

@@ -68,7 +68,7 @@ Theme-Umschalter in der Toolbar.
   Kalender-Overlap, Filament-Bestand, Magic-Link-Token (nur Hash), Review-Eligibility,
   Popular-Configs, Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung,
   RBAC, Consent, Farbmapping, Social-Scheduler-Idempotenz und Meta-Error-Mapping.
-- **E2E (Playwright, 31 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
+- **E2E (Playwright, 32 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
   Reklamations-, QC-, Filament/AMS-, Produktionskalender-, Versand-, Kundenbereich-,
   Wunschlisten-, Konfigurator-, Review-, Admin-, Produktions-, Social-Planner-, Consent-,
   i18n-, Theme- und Accessibility-Flow. Details: [docs/testing.md](docs/testing.md)
@@ -93,6 +93,10 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
   `zone_1_main`, `zone_2_accent`, `zone_3_detail`, `zone_4_text`. Ohne GLB rendert der Viewer
   ein prozedurales Fallback-Modell mit denselben Zonen. STL eignet sich nicht für die farbige
   Web-Vorschau.
+- **Produktfotos:** 1–4 Fotos je Produkt im Admin (`/admin/products/<id>` → „Produktfotos“) —
+  Ablage unter `UPLOAD_DIR/products/`, öffentlich über `GET /api/product-images/:filename`.
+  Auf der Produktseite oben als Galerie, der Konfigurator (3D-Modell + Farben) rückt eine
+  Sektion tiefer. Ohne Fotos zeigt der Shop einen Platzhalter — [docs/product-photos.md](docs/product-photos.md).
 - **Resend (E-Mails):** ohne `RESEND_API_KEY` werden Mails im Dev-Modus geloggt
   (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
   `packages/emails`; Absenderdomain bei Resend verifizieren, dann Key in `.env` setzen.
@@ -116,7 +120,7 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 ## Dokumentation
 
 [architecture](docs/architecture.md) · [design-system](docs/design-system.md) ·
-[database](docs/database.md) · [api](docs/api.md) · [testing](docs/testing.md) ·
+[database](docs/database.md) · [api](docs/api.md) · [product-photos](docs/product-photos.md) · [testing](docs/testing.md) ·
 [payments](docs/payments.md) · [production-workflow](docs/production-workflow.md) ·
 [quality-control](docs/quality-control.md) · [filament-ams](docs/filament-ams.md) ·
 [shipping](docs/shipping.md) · [complaints](docs/complaints.md) ·
