@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TicketCategory, TicketPriority, TicketStatus } from '@print-shop/types'
 import { TICKET_PRIORITIES, TICKET_STATUSES } from '@print-shop/types'
-import { PsAdminTable, PsBadge } from '@print-shop/ui'
+import { PsAdminTable, PsTicketPriorityBadge, PsTicketStatusBadge } from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -36,20 +36,6 @@ const { data, refresh } = await useFetch<{ tickets: AdminTicketRow[] }>('/api/ad
   })),
 })
 watch([statusFilter, priorityFilter, onlyMine], () => refresh())
-
-const statusVariant: Record<TicketStatus, 'default' | 'brand' | 'warning' | 'info'> = {
-  open: 'warning',
-  in_progress: 'info',
-  waiting_customer: 'warning',
-  resolved: 'brand',
-  closed: 'default',
-}
-const priorityVariant: Record<TicketPriority, 'default' | 'warning' | 'danger'> = {
-  low: 'default',
-  normal: 'default',
-  high: 'warning',
-  urgent: 'danger',
-}
 
 const columns = [
   { key: 'ticketNumber', label: 'Ticket' },
@@ -101,14 +87,10 @@ const columns = [
         </div>
       </template>
       <template #cell-priority="{ row }">
-        <PsBadge :variant="priorityVariant[(row as unknown as AdminTicketRow).priority]">
-          {{ (row as unknown as AdminTicketRow).priority }}
-        </PsBadge>
+        <PsTicketPriorityBadge :priority="(row as unknown as AdminTicketRow).priority" />
       </template>
       <template #cell-status="{ row }">
-        <PsBadge :variant="statusVariant[(row as unknown as AdminTicketRow).status]">
-          {{ (row as unknown as AdminTicketRow).status }}
-        </PsBadge>
+        <PsTicketStatusBadge :status="(row as unknown as AdminTicketRow).status" />
       </template>
       <template #cell-assignedTo="{ row }">
         <span class="text-body-regular text-secondary">

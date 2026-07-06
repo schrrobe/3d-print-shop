@@ -7,7 +7,6 @@ import {
   PsDialog,
   PsSelect,
   PsTextarea,
-  useToast,
 } from '@print-shop/ui'
 import { COMPLAINT_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { ComplaintStatus } from '@print-shop/types'
@@ -15,7 +14,6 @@ import type { ComplaintStatus } from '@print-shop/types'
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const route = useRoute()
-const toast = useToast()
 const auth = useAdminAuthStore()
 const id = String(route.params.id)
 
@@ -93,18 +91,18 @@ const decisionAllowed = computed(
   () => complaint.value?.status === 'in_review' || complaint.value?.status === 'approved',
 )
 
-async function setStatus(status: ComplaintStatus) {
-  try {
-    await $fetch(`/api/admin/complaints/${id}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`Status → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+const { run } = useAdminAction({ refresh })
+
+function setStatus(status: ComplaintStatus) {
+  return run(
+    () =>
+      $fetch(`/api/admin/complaints/${id}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      }),
+    { success: `Status → ${status}`, error: 'Fehler' },
+  )
 }
 
 // Internal note
@@ -112,18 +110,16 @@ const note = ref('')
 watchEffect(() => {
   note.value = complaint.value?.internalNote ?? ''
 })
-async function saveNote() {
-  try {
-    await $fetch(`/api/admin/complaints/${id}`, {
-      method: 'PATCH',
-      body: { internalNote: note.value },
-      credentials: 'include',
-    })
-    toast.show('Notiz gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen', { variant: 'error' })
-  }
+function saveNote() {
+  return run(
+    () =>
+      $fetch(`/api/admin/complaints/${id}`, {
+        method: 'PATCH',
+        body: { internalNote: note.value },
+        credentials: 'include',
+      }),
+    { success: 'Notiz gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
 }
 
 // Decision dialog
@@ -136,38 +132,34 @@ const refundAmount = ref<number | null>(null)
 const voucherCode = ref('')
 
 async function submitDecision() {
-  try {
-    await $fetch(`/api/admin/complaints/${id}/decision`, {
-      method: 'POST',
-      body: {
-        resolution: resolution.value,
-        note: decisionNote.value || undefined,
-        refundAmountCents:
-          resolution.value === 'refund' && refundAmount.value ? Math.round(refundAmount.value * 100) : undefined,
-        voucherCode: resolution.value === 'voucher' ? voucherCode.value || undefined : undefined,
-      },
-      credentials: 'include',
-    })
-    toast.show('Entscheidung gespeichert', { variant: 'success' })
-    decisionOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/complaints/${id}/decision`, {
+        method: 'POST',
+        body: {
+          resolution: resolution.value,
+          note: decisionNote.value || undefined,
+          refundAmountCents:
+            resolution.value === 'refund' && refundAmount.value ? Math.round(refundAmount.value * 100) : undefined,
+          voucherCode: resolution.value === 'voucher' ? voucherCode.value || undefined : undefined,
+        },
+        credentials: 'include',
+      }),
+    { success: 'Entscheidung gespeichert', error: 'Fehler' },
+  )
+  if (ok) decisionOpen.value = false
 }
 
-async function createTicket() {
-  try {
-    await $fetch(`/api/admin/complaints/${id}/ticket`, {
-      method: 'POST',
-      body: {},
-      credentials: 'include',
-    })
-    toast.show('Ticket erstellt', { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+function createTicket() {
+  return run(
+    () =>
+      $fetch(`/api/admin/complaints/${id}/ticket`, {
+        method: 'POST',
+        body: {},
+        credentials: 'include',
+      }),
+    { success: 'Ticket erstellt', error: 'Fehler' },
+  )
 }
 </script>
 

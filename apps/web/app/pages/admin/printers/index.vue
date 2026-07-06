@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsDialog, PsInput, PsPrinterStatusCard, PsSelect, useToast } from '@print-shop/ui'
+import { PsButton, PsCard, PsDialog, PsInput, PsPrinterStatusCard, PsSelect } from '@print-shop/ui'
 import { PRINTER_STATUSES, type PrinterStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -14,7 +14,6 @@ interface AdminPrinter {
   jobs: { id: string; order: { orderNumber: string } }[]
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 const { data, refresh } = await useFetch<{ printers: AdminPrinter[] }>('/api/admin/printers', {
   credentials: 'include',
@@ -23,29 +22,29 @@ const { data, refresh } = await useFetch<{ printers: AdminPrinter[] }>('/api/adm
 
 const dialogOpen = ref(false)
 const form = reactive({ name: '', model: '', notes: '' })
+const { run } = useAdminAction({ refresh })
 
 async function createPrinter() {
-  try {
-    await $fetch('/api/admin/printers', {
-      method: 'POST',
-      credentials: 'include',
-      body: { name: form.name, model: form.model, notes: form.notes || undefined },
-    })
-    toast.show('Drucker angelegt', { variant: 'success' })
-    dialogOpen.value = false
-    await refresh()
-  } catch {
-    toast.show('Anlegen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/printers', {
+        method: 'POST',
+        credentials: 'include',
+        body: { name: form.name, model: form.model, notes: form.notes || undefined },
+      }),
+    { success: 'Drucker angelegt', error: 'Anlegen fehlgeschlagen' },
+  )
+  if (ok) dialogOpen.value = false
 }
 
-async function setStatus(printer: AdminPrinter, status: string) {
-  await $fetch(`/api/admin/printers/${printer.id}/status`, {
-    method: 'POST',
-    credentials: 'include',
-    body: { status },
-  })
-  await refresh()
+function setStatus(printer: AdminPrinter, status: string) {
+  return run(() =>
+    $fetch(`/api/admin/printers/${printer.id}/status`, {
+      method: 'POST',
+      credentials: 'include',
+      body: { status },
+    }),
+  )
 }
 
 const statusOptions = PRINTER_STATUSES.map((s) => ({ value: s, label: s }))

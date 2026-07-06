@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { PsAdminTable, PsButton, PsDialog, PsSelect, PsShipmentStatusBadge, useToast } from '@print-shop/ui'
+import { PsAdminTable, PsButton, PsDialog, PsSelect, PsShipmentStatusBadge } from '@print-shop/ui'
 import { SHIPMENT_STATUSES } from '@print-shop/types'
 import type { ShipmentStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
-
-const toast = useToast()
 
 interface AdminShipment {
   id: string
@@ -54,24 +52,24 @@ watch(selectedOrder, (order) => {
   for (const item of order?.items ?? []) itemQuantities[item.id] = item.quantity
 })
 
+const { run } = useAdminAction({ refresh })
+
 async function createShipment() {
   const order = selectedOrder.value
   if (!order) return
-  try {
-    await $fetch('/api/admin/shipments', {
-      method: 'POST',
-      body: {
-        orderId: order.id,
-        items: order.items.map((i) => ({ orderItemId: i.id, quantity: itemQuantities[i.id] ?? i.quantity })),
-      },
-      credentials: 'include',
-    })
-    toast.show('Sendung angelegt', { variant: 'success' })
-    createOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/shipments', {
+        method: 'POST',
+        body: {
+          orderId: order.id,
+          items: order.items.map((i) => ({ orderItemId: i.id, quantity: itemQuantities[i.id] ?? i.quantity })),
+        },
+        credentials: 'include',
+      }),
+    { success: 'Sendung angelegt', error: 'Fehler' },
+  )
+  if (ok) createOpen.value = false
 }
 </script>
 

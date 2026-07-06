@@ -6,7 +6,6 @@ import {
   PsOrderStatusBadge,
   PsPrice,
   PsSelect,
-  useToast,
 } from '@print-shop/ui'
 import { ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { OrderStatus } from '@print-shop/types'
@@ -14,7 +13,6 @@ import type { OrderStatus } from '@print-shop/types'
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const route = useRoute()
-const toast = useToast()
 const auth = useAdminAuthStore()
 const orderId = String(route.params.id)
 
@@ -51,38 +49,42 @@ const nextStatuses = computed(() =>
 const carrier = ref('dhl')
 const trackingNumber = ref('')
 
-async function setStatus(status: OrderStatus) {
-  try {
-    await $fetch(`/api/admin/orders/${orderId}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`Status → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Statuswechsel fehlgeschlagen', { variant: 'error' })
-  }
+const { run } = useAdminAction({ refresh })
+
+function setStatus(status: OrderStatus) {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      }),
+    { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
+  )
 }
 
-async function markPaid() {
-  await $fetch(`/api/admin/orders/${orderId}/mark-paid`, {
-    method: 'POST',
-    body: {},
-    credentials: 'include',
-  })
-  toast.show('Als bezahlt markiert', { variant: 'success' })
-  await refresh()
+function markPaid() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/mark-paid`, {
+        method: 'POST',
+        body: {},
+        credentials: 'include',
+      }),
+    { success: 'Als bezahlt markiert', error: 'Aktion fehlgeschlagen' },
+  )
 }
 
-async function ship() {
-  await $fetch(`/api/admin/orders/${orderId}/shipping`, {
-    method: 'POST',
-    body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
-    credentials: 'include',
-  })
-  toast.show('Versand bestätigt', { variant: 'success' })
-  await refresh()
+function ship() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/shipping`, {
+        method: 'POST',
+        body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
+        credentials: 'include',
+      }),
+    { success: 'Versand bestätigt', error: 'Versand fehlgeschlagen' },
+  )
 }
 </script>
 

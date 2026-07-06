@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsButton, PsDialog, PsInput, PsSelect, useToast } from '@print-shop/ui'
+import { PsAdminTable, PsBadge, PsButton, PsDialog, PsInput, PsSelect } from '@print-shop/ui'
 import { USER_ROLES } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -12,7 +12,6 @@ interface AdminUserRow {
   role: { name: string }
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 const { data, refresh } = await useFetch<{ users: AdminUserRow[] }>('/api/admin/users', {
   credentials: 'include',
@@ -21,30 +20,32 @@ const { data, refresh } = await useFetch<{ users: AdminUserRow[] }>('/api/admin/
 
 const dialogOpen = ref(false)
 const form = reactive({ name: '', email: '', password: '', role: 'support' })
+const { run } = useAdminAction({ refresh })
 
 async function createUser() {
-  try {
-    await $fetch('/api/admin/users', {
-      method: 'POST',
-      credentials: 'include',
-      body: { ...form },
-    })
-    toast.show('Benutzer angelegt', { variant: 'success' })
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/users', {
+        method: 'POST',
+        credentials: 'include',
+        body: { ...form },
+      }),
+    { success: 'Benutzer angelegt', error: 'Anlegen fehlgeschlagen (Passwort min. 12 Zeichen?)' },
+  )
+  if (ok) {
     dialogOpen.value = false
     Object.assign(form, { name: '', email: '', password: '', role: 'support' })
-    await refresh()
-  } catch {
-    toast.show('Anlegen fehlgeschlagen (Passwort min. 12 Zeichen?)', { variant: 'error' })
   }
 }
 
-async function toggleActive(user: AdminUserRow) {
-  await $fetch(`/api/admin/users/${user.id}`, {
-    method: 'PATCH',
-    credentials: 'include',
-    body: { active: !user.active },
-  })
-  await refresh()
+function toggleActive(user: AdminUserRow) {
+  return run(() =>
+    $fetch(`/api/admin/users/${user.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { active: !user.active },
+    }),
+  )
 }
 
 const columns = [

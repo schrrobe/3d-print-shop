@@ -7,7 +7,6 @@ import {
   PsSelect,
   PsShipmentStatusBadge,
   PsTimeline,
-  useToast,
 } from '@print-shop/ui'
 import { SHIPMENT_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { ShipmentStatus } from '@print-shop/types'
@@ -15,7 +14,6 @@ import type { ShipmentStatus } from '@print-shop/types'
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const route = useRoute()
-const toast = useToast()
 const config = useRuntimeConfig()
 const id = String(route.params.id)
 
@@ -86,18 +84,18 @@ const timelineEntries = computed(() =>
   })),
 )
 
-async function setStatus(status: ShipmentStatus) {
-  try {
-    await $fetch(`/api/admin/shipments/${id}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`Status → ${statusLabels[status]}`, { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+const { run } = useAdminAction({ refresh })
+
+function setStatus(status: ShipmentStatus) {
+  return run(
+    () =>
+      $fetch(`/api/admin/shipments/${id}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      }),
+    { success: `Status → ${statusLabels[status]}`, error: 'Fehler' },
+  )
 }
 
 // Ship dialog
@@ -105,18 +103,16 @@ const shipOpen = ref(false)
 const carrier = ref<'dhl' | 'hermes'>('dhl')
 const trackingNumber = ref('')
 async function submitShip() {
-  try {
-    await $fetch(`/api/admin/shipments/${id}/ship`, {
-      method: 'POST',
-      body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
-      credentials: 'include',
-    })
-    toast.show('Sendung versendet', { variant: 'success' })
-    shipOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/shipments/${id}/ship`, {
+        method: 'POST',
+        body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
+        credentials: 'include',
+      }),
+    { success: 'Sendung versendet', error: 'Fehler' },
+  )
+  if (ok) shipOpen.value = false
 }
 
 const pdfBase = `${config.public.apiBase}/admin/shipments/${id}`

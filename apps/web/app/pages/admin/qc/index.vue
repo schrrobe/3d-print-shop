@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsDialog, PsQcChecklist, PsQualityCheckCard, PsTextarea, useToast } from '@print-shop/ui'
+import { PsButton, PsCard, PsDialog, PsQcChecklist, PsQualityCheckCard, PsTextarea } from '@print-shop/ui'
 import { QC_STATUSES } from '@print-shop/types'
 import type { QcStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 
 interface Checklist {
@@ -101,44 +100,40 @@ function draftComplete(recordId: string): boolean {
   return draft ? checkedCount(draft) === 6 : false
 }
 
-async function startCheck(jobId: string) {
-  try {
-    await $fetch('/api/admin/qc', { method: 'POST', body: { printerJobId: jobId }, credentials: 'include' })
-    toast.show('Prüfung gestartet', { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+const { run } = useAdminAction({ refresh })
+
+function startCheck(jobId: string) {
+  return run(
+    () => $fetch('/api/admin/qc', { method: 'POST', body: { printerJobId: jobId }, credentials: 'include' }),
+    { success: 'Prüfung gestartet', error: 'Fehler' },
+  )
 }
 
-async function saveChecklist(record: QcRecord) {
-  try {
-    await $fetch(`/api/admin/qc/${record.id}`, {
-      method: 'PATCH',
-      body: draftFor(record),
-      credentials: 'include',
-    })
-    toast.show('Checkliste gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen', { variant: 'error' })
-  }
+function saveChecklist(record: QcRecord) {
+  return run(
+    () =>
+      $fetch(`/api/admin/qc/${record.id}`, {
+        method: 'PATCH',
+        body: draftFor(record),
+        credentials: 'include',
+      }),
+    { success: 'Checkliste gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
 }
 
-async function setStatus(record: QcRecord, status: 'passed' | 'failed' | 'reprint_required') {
-  try {
-    // Persist the checklist first so "passed" sees the ticked boxes
-    if (status === 'passed') await saveChecklistSilent(record)
-    await $fetch(`/api/admin/qc/${record.id}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`QC → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+function setStatus(record: QcRecord, status: 'passed' | 'failed' | 'reprint_required') {
+  return run(
+    async () => {
+      // Persist the checklist first so "passed" sees the ticked boxes
+      if (status === 'passed') await saveChecklistSilent(record)
+      await $fetch(`/api/admin/qc/${record.id}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      })
+    },
+    { success: `QC → ${status}`, error: 'Fehler' },
+  )
 }
 async function saveChecklistSilent(record: QcRecord) {
   await $fetch(`/api/admin/qc/${record.id}`, {
@@ -153,13 +148,10 @@ async function uploadPhoto(record: QcRecord, event: Event) {
   if (!input.files?.length) return
   const form = new FormData()
   for (const file of Array.from(input.files).slice(0, 5)) form.append('photos', file)
-  try {
-    await $fetch(`/api/admin/qc/${record.id}/photos`, { method: 'POST', body: form, credentials: 'include' })
-    toast.show('Foto hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await run(
+    () => $fetch(`/api/admin/qc/${record.id}/photos`, { method: 'POST', body: form, credentials: 'include' }),
+    { success: 'Foto hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
 // Override dialog
@@ -172,18 +164,16 @@ function openOverride(recordId: string) {
   overrideOpen.value = true
 }
 async function submitOverride() {
-  try {
-    await $fetch(`/api/admin/qc/${overrideRecordId.value}/override`, {
-      method: 'POST',
-      body: { overrideReason: overrideReason.value },
-      credentials: 'include',
-    })
-    toast.show('QC überschrieben', { variant: 'success' })
-    overrideOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/qc/${overrideRecordId.value}/override`, {
+        method: 'POST',
+        body: { overrideReason: overrideReason.value },
+        credentials: 'include',
+      }),
+    { success: 'QC überschrieben', error: 'Fehler' },
+  )
+  if (ok) overrideOpen.value = false
 }
 </script>
 

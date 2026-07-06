@@ -142,7 +142,7 @@ const colorOptions = computed(() => [
   ...(colorData.value?.colors ?? []).map((c) => ({ value: c.id, label: c.name })),
 ])
 
-const saving = ref(false)
+const { run, pending: saving } = useAdminAction({ refresh })
 
 async function save() {
   if (!translations.de.name.trim()) {
@@ -172,20 +172,15 @@ async function save() {
       defaultColorId: slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
     })),
   }
-  saving.value = true
-  try {
-    await $fetch(`/api/admin/products/${productId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: payload,
-    })
-    toast.show('Gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen (Slug bereits vergeben?)', { variant: 'error' })
-  } finally {
-    saving.value = false
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: payload,
+      }),
+    { success: 'Gespeichert', error: 'Speichern fehlgeschlagen (Slug bereits vergeben?)' },
+  )
 }
 
 async function uploadModel(files: File[]) {
@@ -193,17 +188,15 @@ async function uploadModel(files: File[]) {
   if (!file) return
   const body = new FormData()
   body.append('file', file)
-  try {
-    await $fetch(`/api/admin/products/${productId}/model`, {
-      method: 'POST',
-      credentials: 'include',
-      body,
-    })
-    toast.show('3D-Modell hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}/model`, {
+        method: 'POST',
+        credentials: 'include',
+        body,
+      }),
+    { success: '3D-Modell hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
 type ProductImageAsset = AdminProductDetail['assets'][number]
@@ -224,45 +217,39 @@ async function uploadImages(files: File[]) {
   }
   const body = new FormData()
   for (const file of files.slice(0, remaining)) body.append('files', file)
-  try {
-    await $fetch(`/api/admin/products/${productId}/images`, {
-      method: 'POST',
-      credentials: 'include',
-      body,
-    })
-    toast.show('Fotos hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}/images`, {
+        method: 'POST',
+        credentials: 'include',
+        body,
+      }),
+    { success: 'Fotos hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
 async function saveAssetAlt(asset: ProductImageAsset) {
-  try {
-    await $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: { alt: asset.alt?.trim() || null },
-    })
-    toast.show('Alt-Text gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Alt-Text speichern fehlgeschlagen', { variant: 'error' })
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: { alt: asset.alt?.trim() || null },
+      }),
+    { success: 'Alt-Text gespeichert', error: 'Alt-Text speichern fehlgeschlagen' },
+  )
 }
 
 async function reorderImages(assetIds: string[]) {
-  try {
-    await $fetch(`/api/admin/products/${productId}/images/order`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: { assetIds },
-    })
-    toast.show('Bildreihenfolge gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Bildreihenfolge speichern fehlgeschlagen', { variant: 'error' })
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}/images/order`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: { assetIds },
+      }),
+    { success: 'Bildreihenfolge gespeichert', error: 'Bildreihenfolge speichern fehlgeschlagen' },
+  )
 }
 
 async function setCoverPhoto(assetId: string) {
@@ -295,35 +282,33 @@ const pendingDeleteAssetId = ref<string | null>(null)
 async function deleteAsset() {
   const assetId = pendingDeleteAssetId.value
   if (!assetId) return
-  try {
-    await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Foto entfernt', { variant: 'success' })
-    pendingDeleteAssetId.value = null
-    await refresh()
-  } catch {
-    toast.show('Entfernen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Foto entfernt', error: 'Entfernen fehlgeschlagen' },
+  )
+  if (ok) pendingDeleteAssetId.value = null
 }
 
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
-  try {
-    await $fetch(`/api/admin/products/${productId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Produkt gelöscht', { variant: 'success' })
-    // close the modal before navigating — the Radix portal otherwise outlives the page
-    deleteDialogOpen.value = false
-    await nextTick()
-    await navigateTo('/admin/products')
-  } catch {
-    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Produkt gelöscht', error: 'Löschen fehlgeschlagen', refresh: false },
+  )
+  if (!ok) return
+  // close the modal before navigating — the Radix portal otherwise outlives the page
+  deleteDialogOpen.value = false
+  await nextTick()
+  await navigateTo('/admin/products')
 }
 </script>
 

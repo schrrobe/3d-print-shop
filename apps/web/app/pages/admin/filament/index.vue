@@ -7,13 +7,10 @@ import {
   PsFilamentSpoolCard,
   PsInput,
   PsSelect,
-  useToast,
 } from '@print-shop/ui'
 import type { AmsSlotStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
-
-const toast = useToast()
 
 interface Color {
   id: string
@@ -101,6 +98,10 @@ async function refreshAll() {
   await Promise.all([refreshSpools(), refreshAms(), refreshAlerts(), refreshShopping()])
 }
 
+const { run } = useAdminAction({ refresh: refreshAll })
+const { run: runAms } = useAdminAction({ refresh: refreshAms })
+const { run: runAlerts } = useAdminAction({ refresh: refreshAlerts })
+
 // ---- Spool create/edit ----
 const spoolOpen = ref(false)
 const editingSpoolId = ref<string | null>(null)
@@ -161,27 +162,20 @@ async function saveSpool() {
     active: spoolForm.active,
     reorder: spoolForm.reorder,
   }
-  try {
-    if (editingSpoolId.value) {
-      await $fetch(`/api/admin/filament/spools/${editingSpoolId.value}`, { method: 'PATCH', body, credentials: 'include' })
-    } else {
-      await $fetch('/api/admin/filament/spools', { method: 'POST', body, credentials: 'include' })
-    }
-    toast.show('Spule gespeichert', { variant: 'success' })
-    spoolOpen.value = false
-    await refreshAll()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      editingSpoolId.value
+        ? $fetch(`/api/admin/filament/spools/${editingSpoolId.value}`, { method: 'PATCH', body, credentials: 'include' })
+        : $fetch('/api/admin/filament/spools', { method: 'POST', body, credentials: 'include' }),
+    { success: 'Spule gespeichert', error: 'Fehler' },
+  )
+  if (ok) spoolOpen.value = false
 }
-async function deleteSpool(id: string) {
-  try {
-    await $fetch(`/api/admin/filament/spools/${id}`, { method: 'DELETE', credentials: 'include' })
-    toast.show('Spule gelöscht', { variant: 'success' })
-    await refreshAll()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+function deleteSpool(id: string) {
+  return run(
+    () => $fetch(`/api/admin/filament/spools/${id}`, { method: 'DELETE', credentials: 'include' }),
+    { success: 'Spule gelöscht', error: 'Fehler' },
+  )
 }
 
 // ---- AMS slot assignment ----
@@ -202,61 +196,53 @@ function openSlot(slot: Slot) {
   slotOpen.value = true
 }
 async function saveSlot() {
-  if (!editingSlot.value) return
-  try {
-    await $fetch(`/api/admin/filament/ams-slots/${editingSlot.value.id}`, {
-      method: 'PATCH',
-      body: { spoolId: slotSpoolId.value || null, status: slotStatus.value },
-      credentials: 'include',
-    })
-    toast.show('Slot aktualisiert', { variant: 'success' })
-    slotOpen.value = false
-    await refreshAll()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const slot = editingSlot.value
+  if (!slot) return
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/filament/ams-slots/${slot.id}`, {
+        method: 'PATCH',
+        body: { spoolId: slotSpoolId.value || null, status: slotStatus.value },
+        credentials: 'include',
+      }),
+    { success: 'Slot aktualisiert', error: 'Fehler' },
+  )
+  if (ok) slotOpen.value = false
 }
 
 // ---- AMS unit create ----
 const unitOpen = ref(false)
 const unitForm = reactive({ printerId: '', name: 'AMS 2 Pro', position: 1 })
 async function createUnit() {
-  try {
-    await $fetch('/api/admin/filament/ams-units', {
-      method: 'POST',
-      body: { printerId: unitForm.printerId, name: unitForm.name, position: unitForm.position },
-      credentials: 'include',
-    })
-    toast.show('AMS-Einheit angelegt', { variant: 'success' })
-    unitOpen.value = false
-    await refreshAms()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await runAms(
+    () =>
+      $fetch('/api/admin/filament/ams-units', {
+        method: 'POST',
+        body: { printerId: unitForm.printerId, name: unitForm.name, position: unitForm.position },
+        credentials: 'include',
+      }),
+    { success: 'AMS-Einheit angelegt', error: 'Fehler' },
+  )
+  if (ok) unitOpen.value = false
 }
-async function deleteUnit(id: string) {
-  try {
-    await $fetch(`/api/admin/filament/ams-units/${id}`, { method: 'DELETE', credentials: 'include' })
-    toast.show('AMS-Einheit gelöscht', { variant: 'success' })
-    await refreshAms()
-  } catch {
-    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
-  }
+function deleteUnit(id: string) {
+  return runAms(
+    () => $fetch(`/api/admin/filament/ams-units/${id}`, { method: 'DELETE', credentials: 'include' }),
+    { success: 'AMS-Einheit gelöscht', error: 'Löschen fehlgeschlagen' },
+  )
 }
 
 // ---- Color availability ----
-async function setColorAvailability(colorId: string, patch: { active?: boolean; outOfStock?: boolean }) {
-  try {
-    await $fetch(`/api/admin/filament/colors/${colorId}/availability`, {
-      method: 'POST',
-      body: patch,
-      credentials: 'include',
-    })
-    toast.show('Farbverfügbarkeit aktualisiert', { variant: 'success' })
-    await refreshAlerts()
-  } catch {
-    toast.show('Aktualisierung fehlgeschlagen', { variant: 'error' })
-  }
+function setColorAvailability(colorId: string, patch: { active?: boolean; outOfStock?: boolean }) {
+  return runAlerts(
+    () =>
+      $fetch(`/api/admin/filament/colors/${colorId}/availability`, {
+        method: 'POST',
+        body: patch,
+        credentials: 'include',
+      }),
+    { success: 'Farbverfügbarkeit aktualisiert', error: 'Aktualisierung fehlgeschlagen' },
+  )
 }
 
 const tabs = [

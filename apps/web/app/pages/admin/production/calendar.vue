@@ -56,6 +56,8 @@ const { data, refresh } = await useFetch<CalendarResponse>('/api/admin/productio
 })
 watch(weekStart, () => refresh())
 
+const { run } = useAdminAction({ refresh })
+
 function localDate(iso: string): string {
   const d = new Date(iso)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -166,45 +168,37 @@ async function submitSchedule(force = false) {
   }
 }
 async function removeFromCalendar() {
-  try {
-    await $fetch(`/api/admin/production/${scheduleJobId.value}/schedule`, { method: 'DELETE', credentials: 'include' })
-    toast.show('Aus Kalender entfernt', { variant: 'success' })
-    scheduleOpen.value = false
-    await refresh()
-  } catch {
-    toast.show('Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () => $fetch(`/api/admin/production/${scheduleJobId.value}/schedule`, { method: 'DELETE', credentials: 'include' }),
+    { success: 'Aus Kalender entfernt', error: 'Fehler' },
+  )
+  if (ok) scheduleOpen.value = false
 }
 
 // ---- Maintenance dialog ----
 const maintOpen = ref(false)
 const maintForm = reactive({ printerId: '', title: '', startsAt: '', endsAt: '' })
 async function createMaintenance() {
-  try {
-    await $fetch(`/api/admin/production/printers/${maintForm.printerId}/maintenance`, {
-      method: 'POST',
-      body: {
-        title: maintForm.title,
-        startsAt: new Date(maintForm.startsAt).toISOString(),
-        endsAt: new Date(maintForm.endsAt).toISOString(),
-      },
-      credentials: 'include',
-    })
-    toast.show('Wartungsfenster angelegt', { variant: 'success' })
-    maintOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/production/printers/${maintForm.printerId}/maintenance`, {
+        method: 'POST',
+        body: {
+          title: maintForm.title,
+          startsAt: new Date(maintForm.startsAt).toISOString(),
+          endsAt: new Date(maintForm.endsAt).toISOString(),
+        },
+        credentials: 'include',
+      }),
+    { success: 'Wartungsfenster angelegt', error: 'Fehler' },
+  )
+  if (ok) maintOpen.value = false
 }
-async function deleteMaintenance(id: string) {
-  try {
-    await $fetch(`/api/admin/production/maintenance/${id}`, { method: 'DELETE', credentials: 'include' })
-    toast.show('Wartungsfenster gelöscht', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Fehler', { variant: 'error' })
-  }
+function deleteMaintenance(id: string) {
+  return run(
+    () => $fetch(`/api/admin/production/maintenance/${id}`, { method: 'DELETE', credentials: 'include' }),
+    { success: 'Wartungsfenster gelöscht', error: 'Fehler' },
+  )
 }
 </script>
 

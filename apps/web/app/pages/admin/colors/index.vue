@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsButton, PsColorSwatch, PsDialog, PsInput, useToast } from '@print-shop/ui'
+import { PsAdminTable, PsBadge, PsButton, PsColorSwatch, PsDialog, PsInput } from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -14,7 +14,6 @@ interface AdminColor {
   amsSlot: number | null
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 const { data, refresh } = await useFetch<{ colors: AdminColor[] }>('/api/admin/colors', {
   credentials: 'include',
@@ -23,29 +22,29 @@ const { data, refresh } = await useFetch<{ colors: AdminColor[] }>('/api/admin/c
 
 const dialogOpen = ref(false)
 const form = reactive({ name: '', hex: '#31a871', material: 'PLA', manufacturer: 'Bambu Lab' })
+const { run } = useAdminAction({ refresh })
 
 async function createColor() {
-  try {
-    await $fetch('/api/admin/colors', {
-      method: 'POST',
-      credentials: 'include',
-      body: { ...form, active: true },
-    })
-    toast.show('Farbe angelegt', { variant: 'success' })
-    dialogOpen.value = false
-    await refresh()
-  } catch {
-    toast.show('Anlegen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/colors', {
+        method: 'POST',
+        credentials: 'include',
+        body: { ...form, active: true },
+      }),
+    { success: 'Farbe angelegt', error: 'Anlegen fehlgeschlagen' },
+  )
+  if (ok) dialogOpen.value = false
 }
 
-async function toggleActive(color: AdminColor) {
-  await $fetch(`/api/admin/colors/${color.id}`, {
-    method: 'PATCH',
-    credentials: 'include',
-    body: { active: !color.active },
-  })
-  await refresh()
+function toggleActive(color: AdminColor) {
+  return run(() =>
+    $fetch(`/api/admin/colors/${color.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { active: !color.active },
+    }),
+  )
 }
 
 const columns = [
