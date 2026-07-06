@@ -42,6 +42,10 @@ export function canLoadTracker(category: ConsentCategory, state: ConsentState | 
 export const canLoadGa4 = (state: ConsentState | null): boolean => canLoadTracker('statistics', state)
 export const canLoadMetaPixel = (state: ConsentState | null): boolean => canLoadTracker('marketing', state)
 
+/** GTM containers can fire arbitrary tags (analytics AND marketing) — require BOTH categories. */
+export const canLoadGtm = (state: ConsentState | null): boolean =>
+  canLoadTracker('statistics', state) && canLoadTracker('marketing', state)
+
 export function parseStoredConsent(raw: string | null): ConsentState | null {
   if (!raw) return null
   try {

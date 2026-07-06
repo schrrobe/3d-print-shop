@@ -3,10 +3,18 @@ import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('gdpr consent', () => {
   test('banner shows on first visit, nothing tracked before opt-in', async ({ page }) => {
+    // Collect any request to a third-party tracker domain
+    const trackerRequests: string[] = []
+    page.on('request', (req) => {
+      if (/googletagmanager\.com|google-analytics\.com|connect\.facebook\.net/.test(req.url())) {
+        trackerRequests.push(req.url())
+      }
+    })
     await gotoHydrated(page, '/')
     await expect(page.getByTestId('consent-banner')).toBeVisible()
-    // No tracking scripts in the document before consent
-    expect(await page.locator('script[data-tracker]').count()).toBe(0)
+    // No tracking scripts in the document and no tracker requests before consent
+    expect(await page.locator('script[src*="googletagmanager"], script[src*="facebook"]').count()).toBe(0)
+    expect(trackerRequests).toEqual([])
   })
 
   test('reject all hides banner and persists', async ({ page }) => {
