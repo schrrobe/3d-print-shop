@@ -54,9 +54,9 @@ const envSchema = z
     // §19 UStG small-business VAT-exemption note. Default true reflects the current
     // small-business status; flip to 'false' once VAT-liable (no code change needed).
     COMPANY_VAT_EXEMPT: z
-      .string()
+      .enum(['true', 'false'])
       .default('true')
-      .transform((v) => v !== 'false'),
+      .transform((v) => v === 'true'),
     // --- Social media publishing (Meta Graph API; "mock" needs no credentials) ---
     SOCIAL_PUBLISHING_PROVIDER: z.enum(['mock', 'meta']).default('mock'),
     SOCIAL_PUBLISHING_CRON_ENABLED: z
