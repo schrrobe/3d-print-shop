@@ -8,79 +8,38 @@ import {
   PsInput,
   PsSelect,
 } from '@print-shop/ui'
-import type { AmsSlotStatus } from '@print-shop/types'
+import type {
+  AdminAmsSlotDto,
+  AdminAmsUnitDto,
+  AdminColorDto,
+  AdminFilamentAlertsDto,
+  AdminFilamentShoppingRowDto,
+  AdminFilamentSpoolDto,
+  AmsSlotStatus,
+} from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
-interface Color {
-  id: string
-  name: string
-  hex: string
-}
-interface Spool {
-  id: string
-  material: string
-  manufacturer: string | null
-  label: string | null
-  colorId: string | null
-  color: Color | null
-  remainingGrams: number | null
-  totalGrams: number | null
-  minRemainingGrams: number | null
-  storageLocation: string | null
-  active: boolean
-  reorder: boolean
-  amsSlotAssignment: { id: string; slotIndex: number; amsUnit: { name: string; printer: { name: string } } } | null
-}
-interface Slot {
-  id: string
-  slotIndex: number
-  status: AmsSlotStatus
-  notes: string | null
-  spool: (Spool & { color: Color | null }) | null
-}
-interface AmsUnit {
-  id: string
-  name: string
-  position: number
-  printer: { id: string; name: string; status: string }
-  slots: Slot[]
-}
-interface Alerts {
-  lowSpools: Spool[]
-  lowColors: { color: Color & { minStockGrams: number | null }; status: string; totalRemainingGrams: number }[]
-}
-interface ShoppingRow {
-  spoolId: string
-  label: string | null
-  material: string
-  manufacturer: string | null
-  colorName: string | null
-  colorHex: string | null
-  remainingGrams: number | null
-  minRemainingGrams: number | null
-  reorderFlag: boolean
-}
-
 const tab = ref<'spulen' | 'ams' | 'warnungen' | 'einkaufsliste'>('spulen')
 
-const { data: spoolData, refresh: refreshSpools } = await useFetch<{ spools: Spool[] }>(
-  '/api/admin/filament/spools',
-  { credentials: 'include', server: false },
-)
-const { data: amsData, refresh: refreshAms } = await useFetch<{ units: AmsUnit[] }>(
+const { data: spoolData, refresh: refreshSpools } = await useFetch<{
+  spools: AdminFilamentSpoolDto[]
+}>('/api/admin/filament/spools', { credentials: 'include', server: false })
+const { data: amsData, refresh: refreshAms } = await useFetch<{ units: AdminAmsUnitDto[] }>(
   '/api/admin/filament/ams-units',
   { credentials: 'include', server: false },
 )
-const { data: alertData, refresh: refreshAlerts } = await useFetch<Alerts>('/api/admin/filament/alerts', {
-  credentials: 'include',
-  server: false,
-})
-const { data: shoppingData, refresh: refreshShopping } = await useFetch<{ shoppingList: ShoppingRow[] }>(
-  '/api/admin/filament/shopping-list',
-  { credentials: 'include', server: false },
+const { data: alertData, refresh: refreshAlerts } = await useFetch<AdminFilamentAlertsDto>(
+  '/api/admin/filament/alerts',
+  {
+    credentials: 'include',
+    server: false,
+  },
 )
-const { data: colorData } = await useFetch<{ colors: Color[] }>('/api/admin/colors', {
+const { data: shoppingData, refresh: refreshShopping } = await useFetch<{
+  shoppingList: AdminFilamentShoppingRowDto[]
+}>('/api/admin/filament/shopping-list', { credentials: 'include', server: false })
+const { data: colorData } = await useFetch<{ colors: AdminColorDto[] }>('/api/admin/colors', {
   credentials: 'include',
   server: false,
 })
@@ -133,7 +92,7 @@ function openCreate() {
   })
   spoolOpen.value = true
 }
-function openEdit(spool: Spool) {
+function openEdit(spool: AdminFilamentSpoolDto) {
   editingSpoolId.value = spool.id
   Object.assign(spoolForm, {
     material: spool.material,
@@ -165,7 +124,11 @@ async function saveSpool() {
   const ok = await run(
     () =>
       editingSpoolId.value
-        ? $fetch(`/api/admin/filament/spools/${editingSpoolId.value}`, { method: 'PATCH', body, credentials: 'include' })
+        ? $fetch(`/api/admin/filament/spools/${editingSpoolId.value}`, {
+            method: 'PATCH',
+            body,
+            credentials: 'include',
+          })
         : $fetch('/api/admin/filament/spools', { method: 'POST', body, credentials: 'include' }),
     { success: 'Spule gespeichert', error: 'Fehler' },
   )
@@ -180,16 +143,19 @@ function deleteSpool(id: string) {
 
 // ---- AMS slot assignment ----
 const slotOpen = ref(false)
-const editingSlot = ref<Slot | null>(null)
+const editingSlot = ref<AdminAmsSlotDto | null>(null)
 const slotSpoolId = ref('')
 const slotStatus = ref<AmsSlotStatus>('loaded')
 const spoolOptions = computed(() => [
   { value: '', label: '— Leer —' },
   ...(spoolData.value?.spools ?? [])
     .filter((s) => s.active)
-    .map((s) => ({ value: s.id, label: `${s.label ?? s.material} ${s.color ? `(${s.color.name})` : ''}` })),
+    .map((s) => ({
+      value: s.id,
+      label: `${s.label ?? s.material} ${s.color ? `(${s.color.name})` : ''}`,
+    })),
 ])
-function openSlot(slot: Slot) {
+function openSlot(slot: AdminAmsSlotDto) {
   editingSlot.value = slot
   slotSpoolId.value = slot.spool?.id ?? ''
   slotStatus.value = slot.status
@@ -227,7 +193,8 @@ async function createUnit() {
 }
 function deleteUnit(id: string) {
   return runAms(
-    () => $fetch(`/api/admin/filament/ams-units/${id}`, { method: 'DELETE', credentials: 'include' }),
+    () =>
+      $fetch(`/api/admin/filament/ams-units/${id}`, { method: 'DELETE', credentials: 'include' }),
     { success: 'AMS-Einheit gelöscht', error: 'Löschen fehlgeschlagen' },
   )
 }
@@ -261,7 +228,9 @@ const tabs = [
         :key="tabItem.key"
         type="button"
         class="border-b-2 px-md py-sm text-body-regular"
-        :class="tab === tabItem.key ? 'border-brand text-primary' : 'border-transparent text-secondary'"
+        :class="
+          tab === tabItem.key ? 'border-brand text-primary' : 'border-transparent text-secondary'
+        "
         :data-testid="`filament-tab-${tabItem.key}`"
         @click="tab = tabItem.key"
       >
@@ -271,7 +240,9 @@ const tabs = [
 
     <!-- Spulen -->
     <section v-if="tab === 'spulen'">
-      <PsButton size="sm" class="mb-md" data-testid="spool-create" @click="openCreate">Spule anlegen</PsButton>
+      <PsButton size="sm" class="mb-md" data-testid="spool-create" @click="openCreate"
+        >Spule anlegen</PsButton
+      >
       <div class="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
         <PsFilamentSpoolCard
           v-for="spool in spoolData?.spools ?? []"
@@ -287,12 +258,24 @@ const tabs = [
           :storage-location="spool.storageLocation"
           :active="spool.active"
           :reorder="spool.reorder"
-          :ams-location-label="spool.amsSlotAssignment ? `${spool.amsSlotAssignment.amsUnit.name} · Slot ${spool.amsSlotAssignment.slotIndex}` : null"
+          :ams-location-label="
+            spool.amsSlotAssignment
+              ? `${spool.amsSlotAssignment.amsUnit.name} · Slot ${spool.amsSlotAssignment.slotIndex}`
+              : null
+          "
           data-testid="spool-card"
         >
           <template #actions>
-            <PsButton variant="ghost" size="sm" data-testid="spool-edit" @click="openEdit(spool)">Bearbeiten</PsButton>
-            <PsButton variant="ghost" size="sm" data-testid="spool-delete" @click="deleteSpool(spool.id)">Löschen</PsButton>
+            <PsButton variant="ghost" size="sm" data-testid="spool-edit" @click="openEdit(spool)"
+              >Bearbeiten</PsButton
+            >
+            <PsButton
+              variant="ghost"
+              size="sm"
+              data-testid="spool-delete"
+              @click="deleteSpool(spool.id)"
+              >Löschen</PsButton
+            >
           </template>
         </PsFilamentSpoolCard>
       </div>
@@ -300,7 +283,9 @@ const tabs = [
 
     <!-- AMS -->
     <section v-else-if="tab === 'ams'">
-      <PsButton size="sm" class="mb-md" data-testid="ams-unit-create" @click="unitOpen = true">AMS-Einheit anlegen</PsButton>
+      <PsButton size="sm" class="mb-md" data-testid="ams-unit-create" @click="unitOpen = true"
+        >AMS-Einheit anlegen</PsButton
+      >
       <div class="flex flex-col gap-lg">
         <PsCard v-for="unit in amsData?.units ?? []" :key="unit.id">
           <div class="flex items-center justify-between">
@@ -320,7 +305,13 @@ const tabs = [
               :notes="slot.notes"
             >
               <template #actions>
-                <PsButton variant="ghost" size="sm" data-testid="ams-slot-edit" @click="openSlot(slot)">Belegen</PsButton>
+                <PsButton
+                  variant="ghost"
+                  size="sm"
+                  data-testid="ams-slot-edit"
+                  @click="openSlot(slot)"
+                  >Belegen</PsButton
+                >
               </template>
             </PsAmsSlotCard>
           </div>
@@ -332,10 +323,18 @@ const tabs = [
     <section v-else-if="tab === 'warnungen'" class="flex flex-col gap-lg">
       <PsCard>
         <h3 class="text-label-medium">Spulen unter Mindestbestand</h3>
-        <p v-if="!alertData?.lowSpools.length" class="mt-sm text-body-regular text-secondary">Keine Warnungen.</p>
+        <p v-if="!alertData?.lowSpools.length" class="mt-sm text-body-regular text-secondary">
+          Keine Warnungen.
+        </p>
         <ul class="mt-sm flex flex-col gap-sm">
-          <li v-for="s in alertData?.lowSpools ?? []" :key="s.id" class="text-body-regular" data-testid="low-spool">
-            {{ s.label ?? s.material }} — {{ s.remainingGrams }} g / min. {{ s.minRemainingGrams }} g
+          <li
+            v-for="s in alertData?.lowSpools ?? []"
+            :key="s.id"
+            class="text-body-regular"
+            data-testid="low-spool"
+          >
+            {{ s.label ?? s.material }} — {{ s.remainingGrams }} g / min.
+            {{ s.minRemainingGrams }} g
           </li>
         </ul>
       </PsCard>
@@ -349,14 +348,27 @@ const tabs = [
             data-testid="low-color"
           >
             <span class="text-body-regular">
-              <span class="mr-sm inline-block h-3 w-3 rounded-full align-middle" :style="{ backgroundColor: entry.color.hex }" />
+              <span
+                class="mr-sm inline-block h-3 w-3 rounded-full align-middle"
+                :style="{ backgroundColor: entry.color.hex }"
+              />
               {{ entry.color.name }} — {{ entry.totalRemainingGrams }} g
             </span>
             <span class="flex gap-sm">
-              <PsButton variant="secondary" size="sm" data-testid="color-set-out-of-stock" @click="setColorAvailability(entry.color.id, { outOfStock: true })">
+              <PsButton
+                variant="secondary"
+                size="sm"
+                data-testid="color-set-out-of-stock"
+                @click="setColorAvailability(entry.color.id, { outOfStock: true })"
+              >
                 Als nicht verfügbar markieren
               </PsButton>
-              <PsButton variant="ghost" size="sm" data-testid="color-deactivate" @click="setColorAvailability(entry.color.id, { active: false })">
+              <PsButton
+                variant="ghost"
+                size="sm"
+                data-testid="color-deactivate"
+                @click="setColorAvailability(entry.color.id, { active: false })"
+              >
                 Im Shop deaktivieren
               </PsButton>
             </span>
@@ -367,7 +379,9 @@ const tabs = [
 
     <!-- Einkaufsliste -->
     <section v-else class="flex flex-col gap-sm">
-      <p v-if="!shoppingData?.shoppingList.length" class="text-body-regular text-secondary">Einkaufsliste leer.</p>
+      <p v-if="!shoppingData?.shoppingList.length" class="text-body-regular text-secondary">
+        Einkaufsliste leer.
+      </p>
       <div
         v-for="row in shoppingData?.shoppingList ?? []"
         :key="row.spoolId"
@@ -385,21 +399,44 @@ const tabs = [
     </section>
 
     <!-- Spool dialog -->
-    <PsDialog v-model:open="spoolOpen" :title="editingSpoolId ? 'Spule bearbeiten' : 'Spule anlegen'">
+    <PsDialog
+      v-model:open="spoolOpen"
+      :title="editingSpoolId ? 'Spule bearbeiten' : 'Spule anlegen'"
+    >
       <div class="flex flex-col gap-md">
-        <PsInput v-model="spoolForm.material" label="Material" name="material" data-testid="spool-form-material" />
+        <PsInput
+          v-model="spoolForm.material"
+          label="Material"
+          name="material"
+          data-testid="spool-form-material"
+        />
         <PsInput v-model="spoolForm.manufacturer" label="Hersteller" name="manufacturer" />
         <PsInput v-model="spoolForm.label" label="Bezeichnung" name="label" />
         <PsSelect v-model="spoolForm.colorId" label="Farbe" :options="colorOptions" />
         <div class="grid grid-cols-3 gap-sm">
-          <label class="flex flex-col gap-xs text-caption">Gesamt (g)
-            <input v-model.number="spoolForm.totalGrams" type="number" class="rounded-card border border-subtle bg-surface px-sm py-xs" />
+          <label class="flex flex-col gap-xs text-caption"
+            >Gesamt (g)
+            <input
+              v-model.number="spoolForm.totalGrams"
+              type="number"
+              class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            />
           </label>
-          <label class="flex flex-col gap-xs text-caption">Rest (g)
-            <input v-model.number="spoolForm.remainingGrams" type="number" class="rounded-card border border-subtle bg-surface px-sm py-xs" />
+          <label class="flex flex-col gap-xs text-caption"
+            >Rest (g)
+            <input
+              v-model.number="spoolForm.remainingGrams"
+              type="number"
+              class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            />
           </label>
-          <label class="flex flex-col gap-xs text-caption">Minimum (g)
-            <input v-model.number="spoolForm.minRemainingGrams" type="number" class="rounded-card border border-subtle bg-surface px-sm py-xs" />
+          <label class="flex flex-col gap-xs text-caption"
+            >Minimum (g)
+            <input
+              v-model.number="spoolForm.minRemainingGrams"
+              type="number"
+              class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            />
           </label>
         </div>
         <PsInput v-model="spoolForm.storageLocation" label="Lagerort" name="storageLocation" />
@@ -416,7 +453,12 @@ const tabs = [
     <!-- Slot dialog -->
     <PsDialog v-model:open="slotOpen" title="AMS-Slot belegen">
       <div class="flex flex-col gap-md">
-        <PsSelect v-model="slotSpoolId" label="Spule" :options="spoolOptions" data-testid="ams-slot-spool" />
+        <PsSelect
+          v-model="slotSpoolId"
+          label="Spule"
+          :options="spoolOptions"
+          data-testid="ams-slot-spool"
+        />
         <PsSelect
           v-model="slotStatus"
           label="Status"
@@ -442,8 +484,15 @@ const tabs = [
           data-testid="ams-unit-printer"
         />
         <PsInput v-model="unitForm.name" label="Name" name="unitName" />
-        <label class="flex flex-col gap-xs text-caption">Position
-          <input v-model.number="unitForm.position" type="number" min="1" max="4" class="rounded-card border border-subtle bg-surface px-sm py-xs" />
+        <label class="flex flex-col gap-xs text-caption"
+          >Position
+          <input
+            v-model.number="unitForm.position"
+            type="number"
+            min="1"
+            max="4"
+            class="rounded-card border border-subtle bg-surface px-sm py-xs"
+          />
         </label>
         <PsButton data-testid="ams-unit-save" @click="createUnit">Anlegen</PsButton>
       </div>

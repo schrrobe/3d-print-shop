@@ -12,43 +12,20 @@ import {
   useToast,
 } from '@print-shop/ui'
 import { COLOR_ZONE_SLOTS, LOCALES, MAX_PRODUCT_IMAGES } from '@print-shop/types'
-import type { ColorZoneSlot, Locale } from '@print-shop/types'
+import type { AdminColorDto, AdminProductDetailDto, ColorZoneSlot, Locale } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
-
-interface AdminProductDetail {
-  id: string
-  slug: string
-  priceCents: number
-  active: boolean
-  translations: {
-    locale: Locale
-    name: string
-    description: string
-    seoTitle: string | null
-    seoDescription: string | null
-  }[]
-  assets: { id: string; type: string; url: string; alt: string | null; sortOrder: number }[]
-  colorSlots: { slot: ColorZoneSlot; label: string; defaultColorId: string | null }[]
-}
-
-interface AdminColor {
-  id: string
-  name: string
-  hex: string
-  active: boolean
-}
 
 const route = useRoute()
 const toast = useToast()
 const auth = useAdminAuthStore()
 const productId = String(route.params.id)
 
-const { data, refresh } = await useFetch<{ product: AdminProductDetail }>(
+const { data, refresh } = await useFetch<{ product: AdminProductDetailDto }>(
   `/api/admin/products/${productId}`,
   { credentials: 'include', server: false },
 )
-const { data: colorData } = await useFetch<{ colors: AdminColor[] }>('/api/admin/colors', {
+const { data: colorData } = await useFetch<{ colors: AdminColorDto[] }>('/api/admin/colors', {
   credentials: 'include',
   server: false,
 })
@@ -199,7 +176,7 @@ async function uploadModel(files: File[]) {
   )
 }
 
-type ProductImageAsset = AdminProductDetail['assets'][number]
+type ProductImageAsset = AdminProductDetailDto['assets'][number]
 const imageAssets = computed<ProductImageAsset[]>(() =>
   [...(product.value?.assets.filter((a) => a.type === 'image') ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder,
@@ -576,7 +553,11 @@ async function deleteProduct() {
     <PsDialog
       :open="pendingDeleteAssetId !== null"
       title="Foto entfernen"
-      @update:open="(open: boolean) => { if (!open) pendingDeleteAssetId = null }"
+      @update:open="
+        (open: boolean) => {
+          if (!open) pendingDeleteAssetId = null
+        }
+      "
     >
       <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
       <div class="mt-lg flex justify-end gap-md">
