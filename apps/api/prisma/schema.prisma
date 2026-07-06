@@ -391,6 +391,33 @@ model CartItem {
   colorSelection Json
 }
 
+// ---------- Vouchers ----------
+
+enum VoucherType {
+  percent
+  fixed
+}
+
+model Voucher {
+  id              String      @id @default(cuid())
+  /// Stored uppercase; lookups normalize input to uppercase
+  code            String      @unique
+  type            VoucherType
+  /// percent: 1-100, fixed: cents
+  value           Int
+  active          Boolean     @default(true)
+  validFrom       DateTime?
+  validUntil      DateTime?
+  maxRedemptions  Int?
+  redemptionCount Int         @default(0)
+  minOrderCents   Int         @default(0)
+  note            String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  orders Order[]
+}
+
 // ---------- Orders ----------
 
 model Order {
@@ -412,7 +439,12 @@ model Order {
   note           String?
   subtotalCents  Int
   shippingCents  Int
+  discountCents  Int         @default(0)
   totalCents     Int
+  /// Snapshot of the redeemed voucher code (kept even if the voucher is deleted)
+  voucherCode    String?
+  voucherId      String?
+  voucher        Voucher?    @relation(fields: [voucherId], references: [id])
   carrier        Carrier?
   trackingNumber String?
   shippedAt      DateTime?
@@ -428,6 +460,8 @@ model Order {
   complaints  Complaint[]
   shipments   Shipment[]
   reviews     Review[]
+
+  @@index([voucherId])
 }
 
 model OrderItem {
@@ -707,6 +741,7 @@ model Invoice {
   locale        Locale        @default(de)
   subtotalCents Int
   shippingCents Int
+  discountCents Int           @default(0)
   totalCents    Int
   paymentMethod PaymentMethod
   pdfPath       String?

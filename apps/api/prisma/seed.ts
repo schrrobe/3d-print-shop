@@ -290,7 +290,8 @@ async function seedPrinters() {
     await prisma.printer.upsert({ where: { name: p.name }, create: p, update: {} })
   }
 
-  const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
+  // Assert the seeded main printer exists before wiring spools to it below
+  await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
   const colors = await prisma.color.findMany({ where: { amsSlot: { not: null } } })
   const existingSpools = await prisma.filamentSpool.count()
   if (existingSpools === 0) {
@@ -1024,6 +1025,29 @@ async function seedReviews() {
   })
 }
 
+async function seedVouchers() {
+  if ((await prisma.voucher.count()) > 0) return
+  await prisma.voucher.create({
+    data: {
+      code: 'TEST10',
+      type: 'percent',
+      value: 10,
+      active: true,
+      note: 'Demo-Gutschein: 10 % auf alles',
+    },
+  })
+  await prisma.voucher.create({
+    data: {
+      code: 'WELCOME5',
+      type: 'fixed',
+      value: 500,
+      active: true,
+      minOrderCents: 2500,
+      note: 'Demo-Gutschein: 5 € ab 25 € Bestellwert',
+    },
+  })
+}
+
 async function main() {
   console.log('Seeding roles & permissions …')
   await seedRoles()
@@ -1059,6 +1083,8 @@ async function main() {
   await seedSavedConfigurations()
   console.log('Seeding reviews …')
   await seedReviews()
+  console.log('Seeding vouchers …')
+  await seedVouchers()
   console.log(`Done. Admin login: ${DEV_ADMIN_EMAIL} / ${DEV_ADMIN_PASSWORD}`)
 }
 

@@ -75,8 +75,10 @@ adminPrintersRouter.post('/:id/status', requirePermission('printers:write'), asy
   }
 })
 
+// AMS slot assignment lives on AmsSlot since the filament refactor, not on the
+// spool. z.object() strips any stray `amsSlot` in the payload on both create and
+// PATCH, so it never reaches Prisma (FilamentSpool has no such column).
 const spoolSchema = z.object({
-  amsSlot: z.number().int().min(1).max(16).nullable().optional(),
   colorId: z.string().nullable().optional(),
   material: z.string().min(1).max(100),
   remainingGrams: z.number().int().min(0).nullable().optional(),
@@ -89,11 +91,14 @@ adminPrintersRouter.post('/:id/spools', requirePermission('printers:write'), asy
     const input = spoolSchema.parse(req.body)
     const printer = await prisma.printer.findUnique({ where: { id: String(req.params.id) } })
     if (!printer) throw notFound('Printer not found')
+    // Since the filament refactor spools live independently of printers;
+    // AMS slot assignment is modeled via AmsSlot, not on the spool itself.
     const spool = await prisma.filamentSpool.create({
-      data: { ...input, printerId: printer.id },
+      data: input,
       include: { color: true },
     })
-    await audit(req, 'printer.spool.create', { type: 'printer', id: printer.id }, input)
+    // Spools no longer link to a printer; audit against the spool, keep printer as context.
+    await audit(req, 'printer.spool.create', { type: 'spool', id: spool.id }, { ...input, printerId: printer.id })
     res.status(201).json({ spool })
   } catch (err) {
     next(err)

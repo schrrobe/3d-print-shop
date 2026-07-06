@@ -16,6 +16,7 @@ import {
   TICKET_PRIORITIES,
   TICKET_STATUSES,
   USER_ROLES,
+  VOUCHER_TYPES,
 } from '@print-shop/types'
 import { ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_BYTES } from '@print-shop/utils'
 import { z } from 'zod'
@@ -52,14 +53,62 @@ export const cartItemInputSchema = z.object({
   colorSelection: colorSelectionSchema,
 })
 
+/** Raw customer input — the API normalizes to uppercase before lookup. */
+export const voucherCodeInputSchema = z.string().trim().min(1).max(40)
+
 export const checkoutSchema = z.object({
   items: z.array(cartItemInputSchema).min(1).max(50),
   address: addressSchema,
   paymentMethod: z.enum(PAYMENT_METHODS),
   locale: localeSchema.default('de'),
   note: z.string().trim().max(1000).optional(),
+  voucherCode: voucherCodeInputSchema.optional(),
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
+
+// ---------- Vouchers ----------
+
+export const voucherValidateSchema = z.object({
+  code: voucherCodeInputSchema,
+  items: z.array(cartItemInputSchema).min(1).max(50),
+})
+export type VoucherValidateInput = z.infer<typeof voucherValidateSchema>
+
+const voucherBaseSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(3)
+    .max(40)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Only letters, digits, - and _'),
+  type: z.enum(VOUCHER_TYPES),
+  /** percent: 1-100, fixed: cents */
+  value: z.number().int().min(1).max(100_000_000),
+  active: z.boolean().default(true),
+  validFrom: z.string().datetime({ offset: true }).nullable().optional(),
+  validUntil: z.string().datetime({ offset: true }).nullable().optional(),
+  maxRedemptions: z.number().int().min(1).max(1_000_000).nullable().optional(),
+  minOrderCents: priceCentsSchema.default(0),
+  note: z.string().trim().max(2000).nullable().optional(),
+})
+
+const percentValueCheck = (v: { type?: string; value?: number }) =>
+  v.type !== 'percent' || v.value == null || v.value <= 100
+
+/** A window with both ends set must not be reversed (else it's never redeemable). */
+const validRangeCheck = (v: { validFrom?: string | null; validUntil?: string | null }) =>
+  !v.validFrom || !v.validUntil || new Date(v.validFrom) < new Date(v.validUntil)
+
+export const voucherCreateSchema = voucherBaseSchema
+  .refine(percentValueCheck, { message: 'Percent vouchers allow at most 100', path: ['value'] })
+  .refine(validRangeCheck, { message: 'validFrom must be before validUntil', path: ['validUntil'] })
+export type VoucherCreateInput = z.infer<typeof voucherCreateSchema>
+
+export const voucherUpdateSchema = voucherBaseSchema
+  .partial()
+  .refine(percentValueCheck, { message: 'Percent vouchers allow at most 100', path: ['value'] })
+  .refine(validRangeCheck, { message: 'validFrom must be before validUntil', path: ['validUntil'] })
+export type VoucherUpdateInput = z.infer<typeof voucherUpdateSchema>
 
 // ---------- Upload / quote request ----------
 
