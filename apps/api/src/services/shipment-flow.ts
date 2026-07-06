@@ -5,25 +5,19 @@ import {
   assertOrderTransition,
   assertShipmentTransition,
   canTransitionProduction,
-  formatInvoiceNumber,
 } from '@print-shop/utils'
 import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { notifyShipped } from './order-flow.js'
 import { allJobsQcCleared } from './qc.js'
 
 /** Sequential per-year shipment number (VER-2026-00001). */
 export async function nextShipmentNumber(): Promise<string> {
-  const year = new Date().getFullYear()
-  const counter = await prisma.shipmentCounter.upsert({
-    where: { year },
-    create: { year, lastSequence: 1 },
-    update: { lastSequence: { increment: 1 } },
-  })
-  return formatInvoiceNumber('VER', year, counter.lastSequence)
+  return (await nextSequentialNumber(prisma.shipmentCounter, 'VER')).number
 }
 
 /** Jobs whose QC clearance gates this shipment = jobs of the shipped order items. */
