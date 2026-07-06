@@ -21,11 +21,11 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.9.0",
     "@print-shop/emails": "workspace:*",
     "@print-shop/types": "workspace:*",
     "@print-shop/utils": "workspace:*",
     "@print-shop/validators": "workspace:*",
+    "@prisma/client": "^6.9.0",
     "argon2": "^0.43.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -37,6 +37,7 @@
     "pdfkit": "^0.17.1",
     "qrcode": "^1.5.4",
     "resend": "^6.16.0",
+    "sharp": "^0.35.3",
     "stripe": "^18.2.1",
     "zod": "^3.25.64"
   },

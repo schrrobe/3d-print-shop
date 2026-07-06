@@ -37,6 +37,7 @@ import { modelsRouter } from './routes/public/models.js'
 import { ordersRouter } from './routes/public/orders.js'
 import { paymentsRouter } from './routes/public/payments.js'
 import { portalRouter } from './routes/public/portal.js'
+import { productImagesRouter } from './routes/public/product-images.js'
 import { productsRouter } from './routes/public/products.js'
 import { quotesRouter } from './routes/public/quotes.js'
 import { reviewsRouter } from './routes/public/reviews.js'
@@ -80,6 +81,7 @@ export function createApp(): Express {
   app.use('/api/payments', paymentsRouter)
   app.use('/api/tickets', ticketsRouter)
   app.use('/api/models', modelsRouter)
+  app.use('/api/product-images', productImagesRouter)
   app.use('/api/complaints', complaintsRouter)
   app.use('/api/portal', portalRouter)
   app.use('/api/configurations', configurationsRouter)

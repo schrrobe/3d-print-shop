@@ -25,12 +25,20 @@ test.describe('seo & social previews', () => {
     expect(html).toContain('application/ld+json')
   })
 
-  test('product page has product og:type, db seo title and Product JSON-LD', async ({ request }) => {
+  test('product page has product og:type, db seo title and Product JSON-LD', async ({
+    request,
+  }) => {
     const { html } = await ssrHead(request, '/products/spiral-vase')
     expect(html).toContain('property="og:type" content="product"')
     expect(html).toContain('<title>Spiralvase — 3D-Druck</title>')
     expect(html).toContain('"@type":"Product"')
     expect(html).toContain('"priceCurrency":"EUR"')
+    expect(html).toContain('data-testid="product-breadcrumbs"')
+    expect(html).toContain('"@type":"BreadcrumbList"')
+    expect(html).toContain('"item":"http://localhost:3000/products/spiral-vase"')
+    expect(html).toContain(
+      '"image":["http://localhost:3000/images/products/spiral-vase.svg","http://localhost:3000/images/products/desk-organizer.svg"',
+    )
     // SVG product images must not leak into og:image (crawlers cannot render them)
     expect(html).not.toMatch(/og:image" content="[^"]*\.svg/)
     // english variant carries its own translation and locale
@@ -68,7 +76,12 @@ test.describe('seo & social previews', () => {
   })
 
   test('admin, checkout and token pages are noindex', async ({ request }) => {
-    for (const path of ['/admin', '/checkout', '/order/some-number', '/support/ticket/some-token']) {
+    for (const path of [
+      '/admin',
+      '/checkout',
+      '/order/some-number',
+      '/support/ticket/some-token',
+    ]) {
       const { html } = await ssrHead(request, path)
       expect(html, path).toContain('name="robots" content="noindex')
     }

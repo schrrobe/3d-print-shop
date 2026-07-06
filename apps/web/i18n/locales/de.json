@@ -38,7 +38,16 @@
     "all": "Alle Produkte",
     "configure": "Farben konfigurieren",
     "addToCart": "In den Warenkorb",
+    "gallery": {
+      "placeholder": "Kein Foto vorhanden"
+    },
     "added": "Zum Warenkorb hinzugefügt",
+    "manufacturingNotice": {
+      "title": "Hinweis zur Herstellung",
+      "imagesTitle": "Hinweis zu den Produktbildern",
+      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Leichte Schichtlinien oder minimale Oberflächenabweichungen sind produktionsbedingt und typisch für die additive Fertigung. Sie stellen keinen Mangel dar und haben keinen Einfluss auf Funktion, Stabilität oder Haltbarkeit.",
+      "ammunition": "Die auf den Produktbildern gezeigte Munition dient ausschließlich der Veranschaulichung und ist nicht Bestandteil des Angebots."
+    },
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen",
       "fallback": "3D-Vorschau"
@@ -371,6 +380,7 @@
     "shareError": "Link konnte nicht erstellt werden"
   },
   "configurator": {
+    "title": "Konfigurator",
     "popular": "Beliebte Kombinationen",
     "reset": "Auf Standard zurücksetzen",
     "share": "Konfiguration teilen",

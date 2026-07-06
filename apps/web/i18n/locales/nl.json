@@ -38,7 +38,16 @@
     "all": "Alle producten",
     "configure": "Kleuren configureren",
     "addToCart": "In winkelwagen",
+    "gallery": {
+      "placeholder": "Geen foto beschikbaar"
+    },
     "added": "Toegevoegd aan winkelwagen",
+    "manufacturingNotice": {
+      "title": "Productie-informatie",
+      "imagesTitle": "Opmerking over de productafbeeldingen",
+      "production": "Elke munitiekist wordt met 3D-printtechnologie vervaardigd. Lichte laaglijnen of minimale oppervlakteafwijkingen zijn productiegebonden en typisch voor additieve productie. Ze vormen geen gebrek en hebben geen invloed op functie, stabiliteit of duurzaamheid.",
+      "ammunition": "De munitie die op de productafbeeldingen wordt getoond, dient uitsluitend ter illustratie en maakt geen deel uit van het aanbod."
+    },
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen",
       "fallback": "3D-voorbeeld"
@@ -371,6 +380,7 @@
     "shareError": "Link kon niet worden aangemaakt"
   },
   "configurator": {
+    "title": "Configurator",
     "popular": "Populaire combinaties",
     "reset": "Standaard herstellen",
     "share": "Configuratie delen",
