@@ -4,6 +4,7 @@ import path from 'node:path'
 import { MAX_PRODUCT_IMAGES } from '@print-shop/types'
 import { getFileExtension } from '@print-shop/utils'
 import { productCreateSchema, productUpdateSchema } from '@print-shop/validators'
+import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import multer from 'multer'
 import { z } from 'zod'
@@ -321,33 +322,42 @@ adminProductsRouter.post(
       await validateUploadedImages(files)
       const product = await prisma.product.findUnique({
         where: { id: String(req.params.id) },
-        include: {
-          assets: { where: { type: 'image' }, orderBy: { sortOrder: 'asc' } },
-          translations: true,
-        },
+        include: { translations: true },
       })
       if (!product) {
         throw notFound('Product not found')
       }
-      if (product.assets.length + files.length > MAX_PRODUCT_IMAGES) {
-        throw badRequest(
-          `Max ${MAX_PRODUCT_IMAGES} photos per product (already ${product.assets.length})`,
-        )
-      }
-      const maxSort = product.assets.reduce((max, a) => Math.max(max, a.sortOrder), 0)
       const altBase = productDisplayName(product)
+      // Re-read the image count, enforce the cap, and derive sortOrder inside a
+      // Serializable transaction so concurrent uploads can't both pass the cap or
+      // assign duplicate sortOrder values (conflicting txns fail rather than racing).
       const assets = await prisma.$transaction(
-        files.map((file, i) =>
-          prisma.productAsset.create({
-            data: {
-              productId: product.id,
-              type: 'image',
-              url: `/api/product-images/${file.filename}`,
-              alt: `${altBase} Bild ${maxSort + i + 1}`,
-              sortOrder: maxSort + i + 1,
-            },
-          }),
-        ),
+        async (tx) => {
+          const existing = await tx.productAsset.findMany({
+            where: { productId: product.id, type: 'image' },
+            orderBy: { sortOrder: 'asc' },
+          })
+          if (existing.length + files.length > MAX_PRODUCT_IMAGES) {
+            throw badRequest(
+              `Max ${MAX_PRODUCT_IMAGES} photos per product (already ${existing.length})`,
+            )
+          }
+          const maxSort = existing.reduce((max, a) => Math.max(max, a.sortOrder), 0)
+          return Promise.all(
+            files.map((file, i) =>
+              tx.productAsset.create({
+                data: {
+                  productId: product.id,
+                  type: 'image',
+                  url: `/api/product-images/${file.filename}`,
+                  alt: `${altBase} Bild ${maxSort + i + 1}`,
+                  sortOrder: maxSort + i + 1,
+                },
+              }),
+            ),
+          )
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
       await audit(
         req,
