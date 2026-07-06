@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PsCheckoutSummary, PsInput, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
+import { formatCents } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 
 /**
@@ -166,6 +167,14 @@ const paymentOptions = computed(() => [
           :free-shipping-applied="cart.totals.freeShippingApplied"
           :locale="locale as Locale"
         />
+        <p
+          v-if="cart.voucher && cart.totals.discountCents === 0"
+          class="text-caption text-red-500"
+          role="alert"
+          data-testid="checkout-voucher-inactive-hint"
+        >
+          {{ t('cart.voucherReason.min_order_not_met', { amount: formatCents(cart.voucher.minOrderCents, locale as Locale) }) }}
+        </p>
         <p v-if="errorMessage" class="text-caption text-red-500" role="alert" data-testid="checkout-error">
           {{ errorMessage }}
         </p>

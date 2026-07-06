@@ -67,6 +67,30 @@ test.describe('vouchers — shop', () => {
     await expect(page.getByTestId('cart-discount')).toContainText('5,00')
   })
 
+  test('surfaces an inactive voucher on cart and checkout when the cart drops below the minimum', async ({
+    page,
+  }) => {
+    const shop = new ShopPage(page)
+    // Two vases (49,98) clear the 25 € threshold → WELCOME5 applies.
+    await shop.addAndGotoCart('spiral-vase')
+    await page.getByTestId('cart-quantity').fill('2')
+    await page.getByTestId('cart-quantity').dispatchEvent('change')
+    await shop.applyVoucher('WELCOME5')
+    await expect(page.getByTestId('cart-discount')).toContainText('5,00')
+
+    // Dropping back to one vase (24,99) falls below the minimum: the voucher is
+    // kept but contributes nothing, so the cart surfaces a min-order hint.
+    await page.getByTestId('cart-quantity').fill('1')
+    await page.getByTestId('cart-quantity').dispatchEvent('change')
+    await expect(page.getByTestId('voucher-row')).toBeHidden()
+    await expect(page.getByTestId('voucher-inactive-hint')).toContainText('25,00')
+
+    // The same state is surfaced consistently on the checkout page.
+    await shop.gotoCheckout()
+    await expect(page.getByTestId('checkout-discount')).toBeHidden()
+    await expect(page.getByTestId('checkout-voucher-inactive-hint')).toContainText('25,00')
+  })
+
   test('voucher survives a reload (localStorage)', async ({ page }) => {
     const shop = new ShopPage(page)
     await shop.addAndGotoCart('spiral-vase')
