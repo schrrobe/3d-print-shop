@@ -45,6 +45,7 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
         locale: order.locale,
         subtotalCents: order.subtotalCents,
         shippingCents: order.shippingCents,
+        discountCents: order.discountCents,
         totalCents: order.totalCents,
         paymentMethod: paidPayment.method,
       },

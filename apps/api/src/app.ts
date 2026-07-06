@@ -20,11 +20,14 @@ import { adminProductsRouter } from './routes/admin/products.js'
 import { adminQcRouter } from './routes/admin/qc.js'
 import { adminQuoteRequestsRouter } from './routes/admin/quote-requests.js'
 import { adminReviewsRouter } from './routes/admin/reviews.js'
+import { adminSettingsRouter } from './routes/admin/settings.js'
 import { adminShipmentsRouter } from './routes/admin/shipments.js'
 import { adminSocialPostsRouter } from './routes/admin/social-posts.js'
 import { adminTicketsRouter } from './routes/admin/tickets.js'
 import { adminUsersRouter } from './routes/admin/users.js'
+import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { checkoutRouter } from './routes/public/checkout.js'
+import { trackingSettingsRouter } from './routes/public/tracking-settings.js'
 import { colorsRouter } from './routes/public/colors.js'
 import { complaintsRouter } from './routes/public/complaints.js'
 import { configurationsRouter } from './routes/public/configurations.js'
@@ -40,6 +43,7 @@ import { reviewsRouter } from './routes/public/reviews.js'
 import { socialMediaRouter } from './routes/public/social-media.js'
 import { ticketsRouter } from './routes/public/tickets.js'
 import { uploadsRouter } from './routes/public/uploads.js'
+import { vouchersRouter } from './routes/public/vouchers.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
 export function createApp(): Express {
@@ -68,6 +72,7 @@ export function createApp(): Express {
   app.use('/api/products', productsRouter)
   app.use('/api/colors', colorsRouter)
   app.use('/api/checkout', checkoutRouter)
+  app.use('/api/vouchers', vouchersRouter)
   app.use('/api/orders', ordersRouter)
   app.use('/api/upload-requests', uploadsRouter)
   app.use('/api/quotes', quotesRouter)
@@ -81,6 +86,7 @@ export function createApp(): Express {
   app.use('/api/reviews', reviewsRouter)
   // Social post media must be public: Meta fetches images by URL at publish time
   app.use('/api/social-media', socialMediaRouter)
+  app.use('/api/tracking-settings', trackingSettingsRouter)
 
   // Admin API (session cookie + RBAC per route)
   app.use('/api/admin/auth', adminAuthRouter)
@@ -94,6 +100,7 @@ export function createApp(): Express {
   app.use('/api/admin/printers', requireAuth, adminPrintersRouter)
   app.use('/api/admin/production', requireAuth, adminProductionRouter)
   app.use('/api/admin/users', requireAuth, adminUsersRouter)
+  app.use('/api/admin/settings', requireAuth, adminSettingsRouter)
   app.use('/api/admin/tickets', requireAuth, adminTicketsRouter)
   app.use('/api/admin/social-posts', requireAuth, adminSocialPostsRouter)
   app.use('/api/admin/complaints', requireAuth, adminComplaintsRouter)
@@ -101,6 +108,7 @@ export function createApp(): Express {
   app.use('/api/admin/filament', requireAuth, adminFilamentRouter)
   app.use('/api/admin/shipments', requireAuth, adminShipmentsRouter)
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)
+  app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
 
   // Dev-only simulation endpoints (mock payments, email log)

@@ -10,6 +10,8 @@ defineProps<{
   disabled?: boolean
   autocomplete?: string
   name?: string
+  min?: number | string
+  max?: number | string
 }>()
 
 const model = defineModel<string>({ default: '' })
@@ -29,6 +31,8 @@ const id = useId()
       :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
+      :min="min"
+      :max="max"
       :autocomplete="autocomplete"
       :aria-invalid="error ? 'true' : undefined"
       :aria-describedby="error ? `${id}-error` : undefined"

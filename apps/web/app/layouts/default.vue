@@ -10,7 +10,6 @@ import { PsToastProvider } from '@print-shop/ui'
     </main>
     <SiteFooter />
     <ConsentBanner />
-    <TrackingScripts />
     <PsToastProvider />
   </div>
 </template>
