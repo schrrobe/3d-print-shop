@@ -51,6 +51,12 @@ const envSchema = z
     /// Optional PNG/JPEG letterhead logo; empty = company name rendered as text
     INVOICE_LOGO_PATH: z.string().optional().default(''),
     PAYMENT_TERMS_DAYS: z.coerce.number().int().min(0).default(14),
+    // §19 UStG small-business VAT-exemption note. Default true reflects the current
+    // small-business status; flip to 'false' once VAT-liable (no code change needed).
+    COMPANY_VAT_EXEMPT: z
+      .string()
+      .default('true')
+      .transform((v) => v !== 'false'),
     // --- Social media publishing (Meta Graph API; "mock" needs no credentials) ---
     SOCIAL_PUBLISHING_PROVIDER: z.enum(['mock', 'meta']).default('mock'),
     SOCIAL_PUBLISHING_CRON_ENABLED: z

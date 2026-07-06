@@ -93,6 +93,8 @@ export interface CompanyInfo {
   bic: string
   accountHolder: string
   paymentTermsDays: number
+  /** §19 UStG small-business: print the "no VAT charged" note on invoices. */
+  vatExempt: boolean
 }
 
 export type OrderForInvoice = Order & { items: OrderItem[]; payments?: Payment[] }
@@ -458,10 +460,12 @@ function drawTotalsAndNotes(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Tr
   const valueX = mm(162)
   const valueW = LAYOUT.right - valueX
 
-  const taxNote = t(
-    'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.',
-    'In accordance with Section 19 of the German VAT Act (UStG), no VAT is charged.',
-  )
+  const taxNote = data.company.vatExempt
+    ? t(
+        'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.',
+        'In accordance with Section 19 of the German VAT Act (UStG), no VAT is charged.',
+      )
+    : null
   const serviceNote = order.shippedAt
     ? null
     : t('Das Leistungsdatum entspricht dem Rechnungsdatum.', 'The service date corresponds to the invoice date.')
@@ -473,8 +477,8 @@ function drawTotalsAndNotes(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Tr
   const totalRowH = doc.currentLineHeight() + mm(1)
   doc.font(FONT).fontSize(SIZE.info)
   const notesH =
-    doc.heightOfString(taxNote, { width: LAYOUT.contentWidth }) +
-    (serviceNote ? doc.heightOfString(serviceNote, { width: LAYOUT.contentWidth }) + mm(1) : 0)
+    (taxNote ? doc.heightOfString(taxNote, { width: LAYOUT.contentWidth }) : 0) +
+    (serviceNote ? doc.heightOfString(serviceNote, { width: LAYOUT.contentWidth }) + (taxNote ? mm(1) : 0) : 0)
   const blockH = 2 * rowH + mm(2) + totalRowH + mm(5) + notesH
   ensureSpace(doc, data, t, cur, blockH)
 
@@ -500,10 +504,12 @@ function drawTotalsAndNotes(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Tr
   cur.y += totalRowH + mm(5)
 
   doc.font(FONT).fontSize(SIZE.info).fillColor('#000000')
-  doc.text(taxNote, LAYOUT.left, cur.y, { width: LAYOUT.contentWidth })
-  cur.y += doc.heightOfString(taxNote, { width: LAYOUT.contentWidth })
+  if (taxNote) {
+    doc.text(taxNote, LAYOUT.left, cur.y, { width: LAYOUT.contentWidth })
+    cur.y += doc.heightOfString(taxNote, { width: LAYOUT.contentWidth })
+  }
   if (serviceNote) {
-    cur.y += mm(1)
+    if (taxNote) cur.y += mm(1)
     doc.text(serviceNote, LAYOUT.left, cur.y, { width: LAYOUT.contentWidth })
     cur.y += doc.heightOfString(serviceNote, { width: LAYOUT.contentWidth })
   }

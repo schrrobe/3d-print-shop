@@ -29,6 +29,7 @@ const company: CompanyInfo = {
   bic: 'XXXXDEXXXXX',
   accountHolder: 'Print Shop GmbH',
   paymentTermsDays: 14,
+  vatExempt: true,
 }
 
 function makeInvoice(over: Partial<Invoice> = {}): Invoice {
@@ -209,6 +210,19 @@ describe('renderInvoicePdf', () => {
     const pdf = await renderToBuffer({ invoice: makeInvoice(), order: makeOrder(), company })
     expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
     expect(pageCount(pdf)).toBe(1)
+  })
+
+  it('prints the §19 UStG note only when vatExempt', async () => {
+    const exempt = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder(), company: { ...company, vatExempt: true } },
+      { compress: false },
+    )
+    const liable = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder(), company: { ...company, vatExempt: false } },
+      { compress: false },
+    )
+    expect(extractText(exempt)).toMatch(/§\s*19 UStG/)
+    expect(extractText(liable)).not.toMatch(/§\s*19 UStG/)
   })
 
   it('paginates long item lists with repeated table headers', async () => {

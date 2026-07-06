@@ -68,6 +68,7 @@ function companyFromEnv(): CompanyInfo {
     bic: env.BANK_BIC,
     accountHolder: env.BANK_ACCOUNT_HOLDER,
     paymentTermsDays: env.PAYMENT_TERMS_DAYS,
+    vatExempt: env.COMPANY_VAT_EXEMPT,
   }
 }
 
