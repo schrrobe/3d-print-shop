@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import path from 'node:path'
+import { MAX_PRODUCT_IMAGES } from '@print-shop/types'
 import { getFileExtension } from '@print-shop/utils'
 import { productCreateSchema, productUpdateSchema } from '@print-shop/validators'
 import { Router } from 'express'
@@ -47,7 +48,6 @@ const modelUpload = multer({
   },
 })
 
-const MAX_PRODUCT_IMAGES = 4
 const productImagesDir = path.resolve(env.UPLOAD_DIR, 'products')
 const productImageUpload = createImageUpload('products', {
   maxFiles: MAX_PRODUCT_IMAGES,
@@ -327,11 +327,9 @@ adminProductsRouter.post(
         },
       })
       if (!product) {
-        await cleanupUploadedFiles(files)
         throw notFound('Product not found')
       }
       if (product.assets.length + files.length > MAX_PRODUCT_IMAGES) {
-        await cleanupUploadedFiles(files)
         throw badRequest(
           `Max ${MAX_PRODUCT_IMAGES} photos per product (already ${product.assets.length})`,
         )
@@ -359,6 +357,8 @@ adminProductsRouter.post(
       )
       res.status(201).json({ assets })
     } catch (err) {
+      // Remove any multer-saved uploads on any failure (validation, not-found, cap, DB write).
+      await cleanupUploadedFiles(files)
       next(err)
     }
   },
@@ -371,7 +371,7 @@ adminProductsRouter.delete(
   async (req, res, next) => {
     try {
       const asset = await prisma.productAsset.findFirst({
-        where: { id: String(req.params.assetId), productId: String(req.params.id) },
+        where: { id: String(req.params.assetId), productId: String(req.params.id), type: 'image' },
       })
       if (!asset) throw notFound('Asset not found')
       await unlinkProductImage(asset.url)

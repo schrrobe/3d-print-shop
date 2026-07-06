@@ -120,6 +120,9 @@ export const COLOR_ZONE_SLOTS = ['zone_1_main', 'zone_2_accent', 'zone_3_detail'
 export type ColorZoneSlot = (typeof COLOR_ZONE_SLOTS)[number]
 export const MAX_COLOR_ZONES = 4
 
+/** Max product gallery photos per product (enforced client- and server-side). */
+export const MAX_PRODUCT_IMAGES = 4
+
 /** Social-Media-Plattformen für den Post-Planner (Meta Graph API). */
 export const SOCIAL_PLATFORMS = ['instagram', 'facebook'] as const
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]

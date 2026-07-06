@@ -21,7 +21,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
-const config = useRuntimeConfig()
+const runtimeConfig = useRuntimeConfig()
 const cart = useCartStore()
 const toast = useToast()
 const { store: wishlist, shareConfiguration, loadConfiguration } = useWishlist()
@@ -44,7 +44,7 @@ const configuratorSection = ref<HTMLElement | null>(null)
 const configuratorAccordionItems = computed(() => [
   { value: CONFIGURATOR_ACCORDION_VALUE, title: t('configurator.title'), content: '' },
 ])
-const siteUrl = config.public.siteUrl.replace(/\/$/, '')
+const siteUrl = runtimeConfig.public.siteUrl.replace(/\/$/, '')
 const absoluteUrl = (url: string) => (url.startsWith('http') ? url : `${siteUrl}${url}`)
 const seoImage = computed(() => productImage(product.value, 1200))
 const jsonLdImages = computed(() => galleryImages.value.map((image) => absoluteUrl(image.url)))
@@ -398,7 +398,7 @@ useHead({
       <PsAccordion
         v-model="configuratorAccordionValue"
         :items="configuratorAccordionItems"
-        default-value="configurator"
+        :default-value="CONFIGURATOR_ACCORDION_VALUE"
         data-testid="configurator-accordion"
       >
         <template #configurator>

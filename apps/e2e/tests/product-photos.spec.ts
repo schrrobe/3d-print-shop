@@ -119,6 +119,7 @@ test.describe('product photos', () => {
     await page.getByTestId('photo-upload').locator('input[type="file"]').setInputFiles(photo)
     await expect(page.getByTestId('product-photo')).toHaveCount(1)
     await page.getByTestId('delete-photo').first().click()
+    await page.getByTestId('confirm-delete-photo').click()
     await expect(page.getByTestId('product-photos-empty')).toBeVisible()
     await expect(page.getByTestId('product-photo')).toHaveCount(0)
   })

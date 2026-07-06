@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export interface PsProductGalleryImage {
   url: string
@@ -21,6 +21,15 @@ const activeIndex = ref(0)
 // Clamp so the main image stays valid if `images` shrinks (e.g. after a delete).
 const safeIndex = computed(() => Math.min(activeIndex.value, Math.max(props.images.length - 1, 0)))
 const activeImage = computed(() => props.images[safeIndex.value] ?? null)
+
+// Reset to the first photo when the image list is swapped (e.g. navigating between
+// products, where Nuxt reuses the same page component instance).
+watch(
+  () => props.images,
+  () => {
+    activeIndex.value = 0
+  },
+)
 </script>
 
 <template>

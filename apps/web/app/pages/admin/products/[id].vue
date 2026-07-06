@@ -11,7 +11,7 @@ import {
   PsUploadDropzone,
   useToast,
 } from '@print-shop/ui'
-import { COLOR_ZONE_SLOTS, LOCALES } from '@print-shop/types'
+import { COLOR_ZONE_SLOTS, LOCALES, MAX_PRODUCT_IMAGES } from '@print-shop/types'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -206,7 +206,6 @@ async function uploadModel(files: File[]) {
   }
 }
 
-const MAX_PRODUCT_IMAGES = 4
 type ProductImageAsset = AdminProductDetail['assets'][number]
 const imageAssets = computed<ProductImageAsset[]>(() =>
   [...(product.value?.assets.filter((a) => a.type === 'image') ?? [])].sort(
@@ -290,13 +289,19 @@ function imagePreviewUrl(url: string): string {
   return url.startsWith('/api/product-images/') ? `${url}?w=320` : url
 }
 
-async function deleteAsset(assetId: string) {
+// Confirm before deleting a photo — the DELETE also unlinks the file server-side.
+const pendingDeleteAssetId = ref<string | null>(null)
+
+async function deleteAsset() {
+  const assetId = pendingDeleteAssetId.value
+  if (!assetId) return
   try {
     await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
       method: 'DELETE',
       credentials: 'include',
     })
     toast.show('Foto entfernt', { variant: 'success' })
+    pendingDeleteAssetId.value = null
     await refresh()
   } catch {
     toast.show('Entfernen fehlgeschlagen', { variant: 'error' })
@@ -515,7 +520,7 @@ async function deleteProduct() {
             v-if="auth.can('assets:write')"
             variant="ghost"
             data-testid="delete-photo"
-            @click="deleteAsset(asset.id)"
+            @click="pendingDeleteAssetId = asset.id"
           >
             Entfernen
           </PsButton>
@@ -580,6 +585,18 @@ async function deleteProduct() {
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>
         <PsButton data-testid="confirm-delete-product" @click="deleteProduct">Löschen</PsButton>
+      </div>
+    </PsDialog>
+
+    <PsDialog
+      :open="pendingDeleteAssetId !== null"
+      title="Foto entfernen"
+      @update:open="(open: boolean) => { if (!open) pendingDeleteAssetId = null }"
+    >
+      <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
+      <div class="mt-lg flex justify-end gap-md">
+        <PsButton variant="ghost" @click="pendingDeleteAssetId = null">Abbrechen</PsButton>
+        <PsButton data-testid="confirm-delete-photo" @click="deleteAsset">Entfernen</PsButton>
       </div>
     </PsDialog>
   </div>
