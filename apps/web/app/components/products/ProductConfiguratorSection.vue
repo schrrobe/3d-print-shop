@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { PsAccordion, PsColorPicker, PsConfigurationPreview } from '@print-shop/ui'
 import type { ConfigurationZone } from '@print-shop/ui'
+import type { ColorSelection } from '@print-shop/types'
 import type { ApiColor, ApiProduct } from '~/composables/useShop'
 import type { PopularCombo } from '~/composables/useProductConfiguration'
 
 defineProps<{
   product: ApiProduct
   colors: ApiColor[]
-  selection: Record<string, string>
+  selection: ColorSelection
   previewZones: ConfigurationZone[]
   colorHexByZone: Record<string, string>
   popular: PopularCombo[]
@@ -26,7 +27,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:selection': [selection: Record<string, string>]
+  'update:selection': [selection: ColorSelection]
   'update:accordion-value': [value: string | undefined]
   reset: []
   share: []
@@ -71,7 +72,8 @@ const emit = defineEmits<{
                   :key="i"
                   type="button"
                   class="flex items-center gap-xs rounded-card border border-subtle bg-surface-elevated px-sm py-xs hover:border-brand"
-                  :class="{ 'opacity-50': !combo.available }"
+                  :class="{ 'cursor-not-allowed opacity-50': !combo.available }"
+                  :disabled="!combo.available"
                   data-testid="popular-combo"
                   @click="emit('apply-combo', combo)"
                 >

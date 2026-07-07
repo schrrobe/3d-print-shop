@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PsProductGallery, PsSection, PsWishlistButton, useToast } from '@print-shop/ui'
-import type { ColorSelection } from '@print-shop/types'
 import type { CartLine } from '~/stores/cart'
 import type { ApiProduct } from '~/composables/useShop'
 import type { PublicReview } from '~/composables/useReviews'
@@ -73,16 +72,14 @@ onMounted(() => {
   cart.hydrate()
   wishlist.hydrate()
 
-  if (route.query.config) {
-    applyConfigToken(String(route.query.config))
-  }
-
   if (editKey.value) {
     const line = cart.items.find((i) => i.key === editKey.value)
     if (line) {
       selection.value = { ...selection.value, ...line.colorSelection }
       quantity.value = line.quantity
     }
+  } else if (route.query.config) {
+    applyConfigToken(String(route.query.config))
   }
 })
 
@@ -98,7 +95,7 @@ function buildLine(lineQuantity: number): Omit<CartLine, 'key'> {
     name: translation.value.name,
     unitPriceCents: product.value.priceCents,
     quantity: lineQuantity,
-    colorSelection: { ...selection.value } as ColorSelection,
+    colorSelection: { ...selection.value },
     colorNames: selectedColorNames.value,
     imageUrl: productImage(product.value, 320),
   }
@@ -118,7 +115,7 @@ function addToCart() {
   toast.show(t('products.added'), { variant: 'success' })
 }
 
-const inWishlist = computed(() => wishlist.has(product.value.id, selection.value as ColorSelection))
+const inWishlist = computed(() => wishlist.has(product.value.id, selection.value))
 
 function toggleWishlist() {
   const added = wishlist.toggle({
@@ -126,7 +123,7 @@ function toggleWishlist() {
     slug: product.value.slug,
     name: translation.value.name,
     unitPriceCents: product.value.priceCents,
-    colorSelection: { ...selection.value } as ColorSelection,
+    colorSelection: { ...selection.value },
     colorNames: selectedColorNames.value,
     imageUrl: productImage(product.value, 320),
   })
@@ -137,7 +134,7 @@ async function shareConfig() {
   try {
     const res = await shareConfiguration({
       productId: product.value.id,
-      selectedColors: selection.value as ColorSelection,
+      selectedColors: selection.value,
       previewImage: productImage(product.value, 320),
     })
     const url = `${window.location.origin}${localePath(`/products/${slug}`)}?config=${res.shareToken}`

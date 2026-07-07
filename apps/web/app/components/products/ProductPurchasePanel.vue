@@ -20,6 +20,12 @@ const emit = defineEmits<{
   'open-configurator': []
   'add-to-cart': []
 }>()
+
+function normalizeQuantity(value: string) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return 1
+  return Math.min(99, Math.max(1, parsed))
+}
 </script>
 
 <template>
@@ -48,7 +54,7 @@ const emit = defineEmits<{
           max="99"
           class="w-20 rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular text-primary"
           data-testid="quantity-input"
-          @input="emit('update:quantity', Number(($event.target as HTMLInputElement).value))"
+          @input="emit('update:quantity', normalizeQuantity(($event.target as HTMLInputElement).value))"
         />
       </label>
       <PsPillButton size="lg" data-testid="add-to-cart" @click="emit('add-to-cart')">

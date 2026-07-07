@@ -1,11 +1,12 @@
 import type { ConfigurationZone } from '@print-shop/ui'
+import type { ColorSelection } from '@print-shop/types'
 import type { Ref } from 'vue'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { ApiColor, ApiProduct } from '~/composables/useShop'
 import type { LoadedConfiguration } from '~/composables/useWishlist'
 
 export interface PopularCombo {
-  selectedColors: Record<string, string>
+  selectedColors: ColorSelection
   count: number
   swatches: { slot: string; colorId: string; hex: string; name: string }[]
   available: boolean
@@ -20,23 +21,29 @@ interface UseProductConfigurationOptions {
 }
 
 export function useProductConfiguration(options: UseProductConfigurationOptions) {
-  const selection = ref<Record<string, string>>({})
+  const selection = ref<ColorSelection>({})
   const configWarning = ref<string[]>([])
 
-  watchEffect(() => {
-    for (const zone of options.product.value.colorSlots) {
-      if (!selection.value[zone.slot] && zone.defaultColorId) {
-        selection.value[zone.slot] = zone.defaultColorId
-      }
-    }
-  })
-
-  function resetToDefaults() {
-    const next: Record<string, string> = {}
-    for (const zone of options.product.value.colorSlots) {
+  function defaultSelectionForProduct(product: ApiProduct) {
+    const next: ColorSelection = {}
+    for (const zone of product.colorSlots) {
       if (zone.defaultColorId) next[zone.slot] = zone.defaultColorId
     }
-    selection.value = next
+    return next
+  }
+
+  watch(
+    () => options.product.value.id,
+    () => {
+      selection.value = defaultSelectionForProduct(options.product.value)
+      configWarning.value = []
+    },
+    { immediate: true },
+  )
+
+  function resetToDefaults() {
+    selection.value = defaultSelectionForProduct(options.product.value)
+    configWarning.value = []
   }
 
   const colorHexByZone = computed(() => {
@@ -54,11 +61,15 @@ export function useProductConfiguration(options: UseProductConfigurationOptions)
       .filter((name): name is string => Boolean(name)),
   )
 
+  function isColorUnavailable(color: ApiColor | undefined) {
+    return color ? color.outOfStock === true || color.active === false : false
+  }
+
   const unavailableZones = computed(() =>
     options.product.value.colorSlots
       .map((zone) => {
         const color = options.colors.value.find((c) => c.id === selection.value[zone.slot])
-        const unavailable = color ? color.outOfStock === true || color.active === false : false
+        const unavailable = isColorUnavailable(color)
         return { slot: zone.slot, label: zone.label, colorName: color?.name ?? '', unavailable }
       })
       .filter((z) => z.unavailable),
@@ -72,7 +83,7 @@ export function useProductConfiguration(options: UseProductConfigurationOptions)
         label: zone.label,
         colorName: color?.name ?? '',
         hex: color?.hex ?? '#000000',
-        unavailable: color ? color.outOfStock === true || color.active === false : false,
+        unavailable: isColorUnavailable(color),
       }
     }),
   )
@@ -94,6 +105,7 @@ export function useProductConfiguration(options: UseProductConfigurationOptions)
 
   function applyCombo(combo: PopularCombo) {
     selection.value = { ...selection.value, ...combo.selectedColors }
+    configWarning.value = []
   }
 
   return {
