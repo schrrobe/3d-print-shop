@@ -117,8 +117,10 @@ async function deletePost() {
       }),
     { success: 'Post gelöscht', error: 'Löschen fehlgeschlagen' },
   )
-  deleteDialogOpen.value = false
-  if (ok) await router.push('/admin/social')
+  if (ok) {
+    deleteDialogOpen.value = false
+    await router.push('/admin/social')
+  }
 }
 </script>
 

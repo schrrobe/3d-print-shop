@@ -20,7 +20,7 @@ const { data, refresh } = await useFetch<{ users: AdminUserRow[] }>('/api/admin/
 
 const dialogOpen = ref(false)
 const form = reactive({ name: '', email: '', password: '', role: 'support' })
-const { run } = useAdminAction({ refresh })
+const { run, pending } = useAdminAction({ refresh })
 
 async function createUser() {
   const ok = await run(
@@ -68,7 +68,9 @@ const columns = [
         <PsBadge variant="info">{{ (row as unknown as AdminUserRow).role.name }}</PsBadge>
       </template>
       <template #cell-active="{ value }">
-        <PsBadge :variant="value ? 'brand' : 'danger'">{{ value ? 'aktiv' : 'deaktiviert' }}</PsBadge>
+        <PsBadge :variant="value ? 'brand' : 'danger'">{{
+          value ? 'aktiv' : 'deaktiviert'
+        }}</PsBadge>
       </template>
       <template #cell-actions="{ row }">
         <PsButton
@@ -87,13 +89,18 @@ const columns = [
       <form class="flex flex-col gap-md" data-testid="user-form" @submit.prevent="createUser">
         <PsInput v-model="form.name" label="Name" required />
         <PsInput v-model="form.email" label="E-Mail" type="email" required />
-        <PsInput v-model="form.password" label="Passwort (min. 12 Zeichen)" type="password" required />
+        <PsInput
+          v-model="form.password"
+          label="Passwort (min. 12 Zeichen)"
+          type="password"
+          required
+        />
         <PsSelect
           v-model="form.role"
           label="Rolle"
           :options="USER_ROLES.map((r) => ({ value: r, label: r }))"
         />
-        <PsButton type="submit" data-testid="save-user">Anlegen</PsButton>
+        <PsButton type="submit" :disabled="pending" data-testid="save-user">Anlegen</PsButton>
       </form>
     </PsDialog>
   </div>

@@ -1,4 +1,4 @@
-import { formatInvoiceNumber } from '@print-shop/utils'
+import { formatInvoiceNumber as formatSequentialNumber } from '@print-shop/utils'
 
 /**
  * Structural shape of the per-year counter delegates (InvoiceCounter,
@@ -35,5 +35,9 @@ export async function nextSequentialNumber(
     create: { year, lastSequence: 1 },
     update: { lastSequence: { increment: 1 } },
   })
-  return { number: formatInvoiceNumber(prefix, year, row.lastSequence), year, sequence: row.lastSequence }
+  return {
+    number: formatSequentialNumber(prefix, year, row.lastSequence),
+    year,
+    sequence: row.lastSequence,
+  }
 }

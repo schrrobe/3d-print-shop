@@ -45,14 +45,16 @@ const { data: orderData } = await useFetch<{ orders: OrderOption[] }>('/api/admi
   server: false,
   query: { status: 'ready_to_ship' },
 })
-const selectedOrder = computed(() => orderData.value?.orders.find((o) => o.id === selectedOrderId.value))
+const selectedOrder = computed(() =>
+  orderData.value?.orders.find((o) => o.id === selectedOrderId.value),
+)
 const itemQuantities = reactive<Record<string, number>>({})
 watch(selectedOrder, (order) => {
   for (const key of Object.keys(itemQuantities)) delete itemQuantities[key]
   for (const item of order?.items ?? []) itemQuantities[item.id] = item.quantity
 })
 
-const { run } = useAdminAction({ refresh })
+const { run, pending: creating } = useAdminAction({ refresh })
 
 async function createShipment() {
   const order = selectedOrder.value
@@ -63,7 +65,10 @@ async function createShipment() {
         method: 'POST',
         body: {
           orderId: order.id,
-          items: order.items.map((i) => ({ orderItemId: i.id, quantity: itemQuantities[i.id] ?? i.quantity })),
+          items: order.items.map((i) => ({
+            orderItemId: i.id,
+            quantity: itemQuantities[i.id] ?? i.quantity,
+          })),
         },
         credentials: 'include',
       }),
@@ -84,7 +89,9 @@ async function createShipment() {
         <option value="">Alle Status</option>
         <option v-for="s in SHIPMENT_STATUSES" :key="s" :value="s">{{ s }}</option>
       </select>
-      <PsButton size="sm" data-testid="shipment-create" @click="createOpen = true">Sendung anlegen</PsButton>
+      <PsButton size="sm" data-testid="shipment-create" @click="createOpen = true"
+        >Sendung anlegen</PsButton
+      >
     </div>
 
     <PsAdminTable :columns="columns" :rows="data?.shipments ?? []" empty="Keine Sendungen">
@@ -136,7 +143,11 @@ async function createShipment() {
             />
           </label>
         </div>
-        <PsButton :disabled="!selectedOrder" data-testid="shipment-create-save" @click="createShipment">
+        <PsButton
+          :disabled="creating || !selectedOrder"
+          data-testid="shipment-create-save"
+          @click="createShipment"
+        >
           Anlegen
         </PsButton>
       </div>

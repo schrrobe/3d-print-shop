@@ -31,7 +31,7 @@ export const sensitiveLimiter = rateLimit({
  */
 export const adminMutationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: isProduction ? 300 : 5000,
+  limit: isProduction ? 1500 : 5000,
   skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
   standardHeaders: 'draft-8',
   legacyHeaders: false,

@@ -32,17 +32,19 @@ export const Disabled: Story = {
   },
 }
 
-const onClick = fn()
 export const ClickInteraction: Story = {
-  render: () => ({
+  args: {
+    onClick: fn(),
+  } as never,
+  render: (args) => ({
     components: { PsButton },
-    setup: () => ({ onClick }),
-    template: '<PsButton @click="onClick">In den Warenkorb</PsButton>',
+    setup: () => ({ args }),
+    template: '<PsButton v-bind="args">In den Warenkorb</PsButton>',
   }),
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(canvas.getByRole('button', { name: 'In den Warenkorb' }))
-    await expect(onClick).toHaveBeenCalled()
+    await expect((args as { onClick: ReturnType<typeof fn> }).onClick).toHaveBeenCalled()
   },
 }
 

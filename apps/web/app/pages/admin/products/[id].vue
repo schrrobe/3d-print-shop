@@ -120,6 +120,9 @@ const colorOptions = computed(() => [
 ])
 
 const { run, pending: saving } = useAdminAction({ refresh })
+const { run: runModelAction } = useAdminAction({ refresh })
+const { run: runImageAction, pending: imagePending } = useAdminAction({ refresh })
+const { run: runDeleteAction, pending: deletePending } = useAdminAction({ refresh })
 
 async function save() {
   if (!translations.de.name.trim()) {
@@ -165,7 +168,7 @@ async function uploadModel(files: File[]) {
   if (!file) return
   const body = new FormData()
   body.append('file', file)
-  await run(
+  await runModelAction(
     () =>
       $fetch(`/api/admin/products/${productId}/model`, {
         method: 'POST',
@@ -194,7 +197,7 @@ async function uploadImages(files: File[]) {
   }
   const body = new FormData()
   for (const file of files.slice(0, remaining)) body.append('files', file)
-  await run(
+  await runImageAction(
     () =>
       $fetch(`/api/admin/products/${productId}/images`, {
         method: 'POST',
@@ -206,7 +209,7 @@ async function uploadImages(files: File[]) {
 }
 
 async function saveAssetAlt(asset: ProductImageAsset) {
-  await run(
+  await runImageAction(
     () =>
       $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
         method: 'PATCH',
@@ -218,7 +221,7 @@ async function saveAssetAlt(asset: ProductImageAsset) {
 }
 
 async function reorderImages(assetIds: string[]) {
-  await run(
+  await runImageAction(
     () =>
       $fetch(`/api/admin/products/${productId}/images/order`, {
         method: 'PATCH',
@@ -259,7 +262,7 @@ const pendingDeleteAssetId = ref<string | null>(null)
 async function deleteAsset() {
   const assetId = pendingDeleteAssetId.value
   if (!assetId) return
-  const ok = await run(
+  const ok = await runImageAction(
     () =>
       $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
         method: 'DELETE',
@@ -273,7 +276,7 @@ async function deleteAsset() {
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
-  const ok = await run(
+  const ok = await runDeleteAction(
     () =>
       $fetch(`/api/admin/products/${productId}`, {
         method: 'DELETE',
@@ -446,7 +449,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="set-cover-photo"
-              :disabled="index === 0"
+              :disabled="imagePending || index === 0"
               @click="setCoverPhoto(asset.id)"
             >
               Cover
@@ -455,7 +458,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="move-photo-up"
-              :disabled="index === 0"
+              :disabled="imagePending || index === 0"
               @click="movePhoto(asset.id, -1)"
             >
               Hoch
@@ -464,7 +467,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="move-photo-down"
-              :disabled="index === imageAssets.length - 1"
+              :disabled="imagePending || index === imageAssets.length - 1"
               @click="movePhoto(asset.id, 1)"
             >
               Runter
@@ -474,6 +477,7 @@ async function deleteProduct() {
             v-if="auth.can('assets:write')"
             variant="ghost"
             data-testid="save-photo-alt"
+            :disabled="imagePending"
             @click="saveAssetAlt(asset)"
           >
             Alt-Text speichern
@@ -482,6 +486,7 @@ async function deleteProduct() {
             v-if="auth.can('assets:write')"
             variant="ghost"
             data-testid="delete-photo"
+            :disabled="imagePending"
             @click="pendingDeleteAssetId = asset.id"
           >
             Entfernen
@@ -546,7 +551,12 @@ async function deleteProduct() {
       </p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>
-        <PsButton data-testid="confirm-delete-product" @click="deleteProduct">Löschen</PsButton>
+        <PsButton
+          data-testid="confirm-delete-product"
+          :disabled="deletePending"
+          @click="deleteProduct"
+          >Löschen</PsButton
+        >
       </div>
     </PsDialog>
 
@@ -562,7 +572,9 @@ async function deleteProduct() {
       <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="pendingDeleteAssetId = null">Abbrechen</PsButton>
-        <PsButton data-testid="confirm-delete-photo" @click="deleteAsset">Entfernen</PsButton>
+        <PsButton data-testid="confirm-delete-photo" :disabled="imagePending" @click="deleteAsset"
+          >Entfernen</PsButton
+        >
       </div>
     </PsDialog>
   </div>
