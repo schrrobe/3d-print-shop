@@ -18,6 +18,9 @@ const meta: Meta<typeof PsButton> = {
 }
 export default meta
 type Story = StoryObj<typeof PsButton>
+type ClickInteractionArgs = Partial<InstanceType<typeof PsButton>['$props']> & {
+  onClick: ReturnType<typeof fn>
+}
 
 export const Primary: Story = {}
 export const Secondary: Story = { args: { variant: 'secondary' } }
@@ -32,19 +35,24 @@ export const Disabled: Story = {
   },
 }
 
-export const ClickInteraction: Story = {
+export const ClickInteraction: StoryObj<ClickInteractionArgs> = {
   args: {
+    variant: 'primary',
+    size: 'md',
+    disabled: false,
+    loading: false,
     onClick: fn(),
-  } as never,
+  },
   render: (args) => ({
     components: { PsButton },
     setup: () => ({ args }),
-    template: '<PsButton v-bind="args">In den Warenkorb</PsButton>',
+    template:
+      '<PsButton :variant="args.variant" :size="args.size" :disabled="args.disabled" :loading="args.loading" @click="args.onClick">In den Warenkorb</PsButton>',
   }),
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(canvas.getByRole('button', { name: 'In den Warenkorb' }))
-    await expect((args as { onClick: ReturnType<typeof fn> }).onClick).toHaveBeenCalled()
+    await expect(args.onClick).toHaveBeenCalled()
   },
 }
 
