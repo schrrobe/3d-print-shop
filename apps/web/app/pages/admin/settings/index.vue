@@ -11,6 +11,7 @@ definePageMeta({
   middleware: [
     'admin-auth',
     () => {
+      if (import.meta.server) return
       const auth = useAdminAuthStore()
       if (!auth.can('settings:read')) return navigateTo('/admin')
     },
