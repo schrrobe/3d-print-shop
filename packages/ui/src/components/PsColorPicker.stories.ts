@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { ColorSelection, ColorZoneSlot } from '@print-shop/types'
 import { ref } from 'vue'
 import PsColorPicker from './PsColorPicker.vue'
 
-const zones = [
+const zones: { slot: ColorZoneSlot; label: string }[] = [
   { slot: 'zone_1_main', label: 'Hauptfarbe' },
   { slot: 'zone_2_accent', label: 'Akzentfarbe' },
   { slot: 'zone_3_detail', label: 'Detailfarbe' },
@@ -23,7 +24,7 @@ const meta: Meta<typeof PsColorPicker> = {
   render: (args) => ({
     components: { PsColorPicker },
     setup: () => {
-      const selection = ref<Record<string, string>>({ zone_1_main: 'green' })
+      const selection = ref<ColorSelection>({ zone_1_main: 'green' })
       return { args, selection }
     },
     template: `

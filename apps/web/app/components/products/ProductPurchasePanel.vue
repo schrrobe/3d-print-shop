@@ -24,7 +24,7 @@ const emit = defineEmits<{
 function normalizeQuantity(value: string) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return 1
-  return Math.min(99, Math.max(1, parsed))
+  return Math.min(99, Math.max(1, Math.round(parsed)))
 }
 </script>
 
