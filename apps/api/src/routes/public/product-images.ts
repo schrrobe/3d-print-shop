@@ -20,7 +20,10 @@ productImagesRouter.get('/:filename', (req, res, next) => {
     return
   }
   res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
   res.sendFile(resolved, (err) => {
-    if (err) next(notFound('Image not found'))
+    if (!err) return
+    if (res.headersSent) return next(err)
+    next(notFound('Image not found'))
   })
 })

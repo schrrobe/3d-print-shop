@@ -212,12 +212,17 @@ async function uploadModel(files: File[]) {
 
 async function uploadImages(files: File[]) {
   if (files.length === 0) return
-  if (files.length > remainingImageSlots.value) {
+  const remaining = remainingImageSlots.value
+  if (remaining <= 0) {
     toast.show(`Maximal ${MAX_PRODUCT_IMAGES} Fotos pro Produkt`, { variant: 'error' })
     return
   }
+  const filesToUpload = files.slice(0, remaining)
+  if (files.length > remaining) {
+    toast.show(`Nur noch ${remaining} Foto(s) möglich`, { variant: 'error' })
+  }
   const body = new FormData()
-  for (const file of files) body.append('files', file)
+  for (const file of filesToUpload) body.append('files', file)
   try {
     await $fetch(`/api/admin/products/${productId}/images`, {
       method: 'POST',

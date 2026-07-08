@@ -20,9 +20,9 @@ const props = withDefaults(
 const activeIndex = ref(0)
 
 watch(
-  () => props.images,
-  (images) => {
-    if (activeIndex.value >= images.length) activeIndex.value = 0
+  () => props.images.map((image) => image.id).join('\u0000'),
+  () => {
+    activeIndex.value = 0
   },
 )
 </script>
