@@ -6,7 +6,17 @@ import {
   META_PIXEL_ID_REGEX,
 } from '@print-shop/validators'
 
-definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
+definePageMeta({
+  layout: 'admin',
+  middleware: [
+    'admin-auth',
+    () => {
+      if (import.meta.server) return
+      const auth = useAdminAuthStore()
+      if (!auth.can('settings:read')) return navigateTo('/admin')
+    },
+  ],
+})
 
 interface TrackingSettingsDto {
   metaPixelId: string | null
@@ -16,6 +26,7 @@ interface TrackingSettingsDto {
 
 const toast = useToast()
 const auth = useAdminAuthStore()
+
 const { data, refresh } = await useFetch<{ settings: TrackingSettingsDto }>(
   '/api/admin/settings/tracking',
   { credentials: 'include', server: false },
