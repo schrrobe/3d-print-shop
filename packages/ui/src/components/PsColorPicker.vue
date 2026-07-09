@@ -1,14 +1,15 @@
 <script setup lang="ts">
+import type { ColorSelection, ColorZoneSlot } from '@print-shop/types'
 import PsColorSwatch from './PsColorSwatch.vue'
 
 defineProps<{
-  zones: { slot: string; label: string }[]
+  zones: { slot: ColorZoneSlot; label: string }[]
   colors: { id: string; name: string; hex: string }[]
 }>()
 
-const model = defineModel<Record<string, string>>({ default: () => ({}) })
+const model = defineModel<ColorSelection>({ default: () => ({}) })
 
-function selectColor(zoneSlot: string, colorId: string): void {
+function selectColor(zoneSlot: ColorZoneSlot, colorId: string): void {
   model.value = { ...model.value, [zoneSlot]: colorId }
 }
 </script>
