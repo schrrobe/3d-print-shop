@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { expect, screen, userEvent, within } from 'storybook/test'
 import PsButton from './PsButton.vue'
 import PsDialog from './PsDialog.vue'
 import PsPillButton from './PsPillButton.vue'
@@ -32,4 +33,16 @@ type Story = StoryObj<typeof PsDialog>
 export const Default: Story = {}
 export const WithoutDescription: Story = {
   args: { title: 'Hinweis', description: undefined },
+}
+
+export const OpensViaTrigger: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole('button', { name: 'Dialog öffnen' }))
+    // Radix renders the dialog into a portal outside the canvas element.
+    const dialog = await screen.findByRole('dialog')
+    await expect(dialog).toHaveTextContent('Artikel entfernen?')
+    await userEvent.keyboard('{Escape}')
+    await expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  },
 }

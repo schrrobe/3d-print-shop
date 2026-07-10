@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsButton, PsDialog, PsInput, PsPrice, PsTextarea, useToast } from '@print-shop/ui'
+import { PsAdminTable, PsBadge, PsButton, PsDialog, PsInput, PsPrice, PsTextarea } from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -11,7 +11,6 @@ interface AdminProduct {
   translations: { locale: string; name: string; description: string }[]
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 const { data, refresh } = await useFetch<{ products: AdminProduct[] }>('/api/admin/products', {
   credentials: 'include',
@@ -20,40 +19,42 @@ const { data, refresh } = await useFetch<{ products: AdminProduct[] }>('/api/adm
 
 const dialogOpen = ref(false)
 const form = reactive({ slug: '', name: '', description: '', priceEuros: '' })
+const { run } = useAdminAction({ refresh })
 
 async function createProduct() {
   const priceCents = Math.round(Number(form.priceEuros.replace(',', '.')) * 100)
-  try {
-    await $fetch('/api/admin/products', {
-      method: 'POST',
-      credentials: 'include',
-      body: {
-        slug: form.slug,
-        priceCents,
-        active: true,
-        translations: [
-          { locale: 'de', name: form.name, description: form.description },
-          { locale: 'en', name: form.name, description: form.description },
-        ],
-        colorSlots: [{ slot: 'zone_1_main', label: 'Hauptfarbe' }],
-      },
-    })
-    toast.show('Produkt angelegt', { variant: 'success' })
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/products', {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          slug: form.slug,
+          priceCents,
+          active: true,
+          translations: [
+            { locale: 'de', name: form.name, description: form.description },
+            { locale: 'en', name: form.name, description: form.description },
+          ],
+          colorSlots: [{ slot: 'zone_1_main', label: 'Hauptfarbe' }],
+        },
+      }),
+    { success: 'Produkt angelegt', error: 'Anlegen fehlgeschlagen (Slug bereits vergeben?)' },
+  )
+  if (ok) {
     dialogOpen.value = false
     Object.assign(form, { slug: '', name: '', description: '', priceEuros: '' })
-    await refresh()
-  } catch {
-    toast.show('Anlegen fehlgeschlagen (Slug bereits vergeben?)', { variant: 'error' })
   }
 }
 
-async function toggleActive(product: AdminProduct) {
-  await $fetch(`/api/admin/products/${product.id}`, {
-    method: 'PATCH',
-    credentials: 'include',
-    body: { active: !product.active },
-  })
-  await refresh()
+function toggleActive(product: AdminProduct) {
+  return run(() =>
+    $fetch(`/api/admin/products/${product.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { active: !product.active },
+    }),
+  )
 }
 
 const columns = [

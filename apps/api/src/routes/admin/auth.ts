@@ -5,6 +5,7 @@ import { permissionsForRole } from '@print-shop/utils'
 import { loginSchema, passwordResetRequestSchema } from '@print-shop/validators'
 import argon2 from 'argon2'
 import { Router } from 'express'
+import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { env } from '../../env.js'
 import { audit } from '../../lib/audit.js'
@@ -45,7 +46,21 @@ adminAuthRouter.post('/login', authLimiter, async (req, res, next) => {
   }
 })
 
-adminAuthRouter.post('/logout', (req, res) => {
+adminAuthRouter.post('/logout', async (req, res) => {
+  // Best effort: JWTs cannot be revoked client-side, so mark all of the
+  // user's sessions as invalidated (requireAuth rejects older tokens).
+  const token = (req.cookies as Record<string, string> | undefined)?.[SESSION_COOKIE]
+  if (token) {
+    try {
+      const payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload
+      await prisma.user.update({
+        where: { id: String(payload.sub) },
+        data: { sessionsInvalidatedAt: new Date() },
+      })
+    } catch {
+      // Invalid/expired token or unknown user — nothing to invalidate.
+    }
+  }
   res.clearCookie(SESSION_COOKIE, { path: '/' })
   res.json({ ok: true })
 })

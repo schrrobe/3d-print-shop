@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { PsButton, PsInput, PsTextarea, useToast } from '@print-shop/ui'
+import { PsButton, PsInput, PsTextarea } from '@print-shop/ui'
 import { eurosToCents } from '@print-shop/utils'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
-const toast = useToast()
 const router = useRouter()
 const auth = useAdminAuthStore()
 
@@ -19,36 +18,31 @@ const form = reactive({
   maxRedemptions: '',
   note: '',
 })
-const submitting = ref(false)
+const { run, pending: submitting } = useAdminAction()
 
 async function create() {
-  submitting.value = true
-  try {
-    await $fetch('/api/admin/vouchers', {
-      method: 'POST',
-      credentials: 'include',
-      body: {
-        code: form.code,
-        type: form.type,
-        value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
-        active: true,
-        minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
-        // Both ends anchored to UTC so the window matches the picked calendar days
-        // regardless of the admin's timezone (validFrom = start-of-day, validUntil = end-of-day).
-        validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
-        validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
-        maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
-        note: form.note || null,
-      },
-    })
-    toast.show('Gutschein angelegt', { variant: 'success' })
-    await router.push('/admin/vouchers')
-  } catch (err) {
-    const message = (err as { data?: { message?: string } })?.data?.message
-    toast.show(message ?? 'Anlegen fehlgeschlagen', { variant: 'error' })
-  } finally {
-    submitting.value = false
-  }
+  const ok = await run(
+    () =>
+      $fetch('/api/admin/vouchers', {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          code: form.code,
+          type: form.type,
+          value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
+          active: true,
+          minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
+          // Both ends anchored to UTC so the window matches the picked calendar days
+          // regardless of the admin's timezone (validFrom = start-of-day, validUntil = end-of-day).
+          validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
+          validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
+          maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
+          note: form.note || null,
+        },
+      }),
+    { success: 'Gutschein angelegt', error: 'Anlegen fehlgeschlagen' },
+  )
+  if (ok) await router.push('/admin/vouchers')
 }
 </script>
 

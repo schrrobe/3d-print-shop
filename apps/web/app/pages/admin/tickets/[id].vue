@@ -2,12 +2,18 @@
 import type { TicketCategory, TicketPriority, TicketStatus } from '@print-shop/types'
 import { TICKET_CATEGORIES, TICKET_PRIORITIES } from '@print-shop/types'
 import { TICKET_STATUS_TRANSITIONS } from '@print-shop/utils'
-import { PsBadge, PsButton, PsCard, PsSelect, PsTextarea, useToast } from '@print-shop/ui'
+import {
+  PsButton,
+  PsCard,
+  PsSelect,
+  PsTextarea,
+  PsTicketPriorityBadge,
+  PsTicketStatusBadge,
+} from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const route = useRoute()
-const toast = useToast()
 const auth = useAdminAuthStore()
 const ticketId = String(route.params.id)
 
@@ -51,61 +57,44 @@ const assigneeOptions = computed(() => [
   ...(assigneeData.value?.users ?? []).map((u) => ({ value: u.id, label: u.name })),
 ])
 
-const statusVariant: Record<TicketStatus, 'default' | 'brand' | 'warning' | 'info'> = {
-  open: 'warning',
-  in_progress: 'info',
-  waiting_customer: 'warning',
-  resolved: 'brand',
-  closed: 'default',
-}
-
 const reply = ref('')
-const submitting = ref(false)
+const { run, pending: submitting } = useAdminAction({ refresh })
 
 async function sendReply() {
-  submitting.value = true
-  try {
-    await $fetch(`/api/admin/tickets/${ticketId}/messages`, {
-      method: 'POST',
-      body: { body: reply.value },
-      credentials: 'include',
-    })
-    reply.value = ''
-    toast.show('Antwort gesendet', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Antwort fehlgeschlagen', { variant: 'error' })
-  } finally {
-    submitting.value = false
-  }
+  const sent = await run(
+    () =>
+      $fetch(`/api/admin/tickets/${ticketId}/messages`, {
+        method: 'POST',
+        body: { body: reply.value },
+        credentials: 'include',
+      }),
+    { success: 'Antwort gesendet', error: 'Antwort fehlgeschlagen' },
+  )
+  if (sent) reply.value = ''
 }
 
-async function setStatus(status: TicketStatus) {
-  try {
-    await $fetch(`/api/admin/tickets/${ticketId}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`Status → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Statuswechsel fehlgeschlagen', { variant: 'error' })
-  }
+function setStatus(status: TicketStatus) {
+  return run(
+    () =>
+      $fetch(`/api/admin/tickets/${ticketId}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      }),
+    { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
+  )
 }
 
-async function update(patch: { priority?: string; category?: string; assignedToId?: string | null }) {
-  try {
-    await $fetch(`/api/admin/tickets/${ticketId}`, {
-      method: 'PATCH',
-      body: patch,
-      credentials: 'include',
-    })
-    toast.show('Ticket aktualisiert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Aktualisierung fehlgeschlagen', { variant: 'error' })
-  }
+function update(patch: { priority?: string; category?: string; assignedToId?: string | null }) {
+  return run(
+    () =>
+      $fetch(`/api/admin/tickets/${ticketId}`, {
+        method: 'PATCH',
+        body: patch,
+        credentials: 'include',
+      }),
+    { success: 'Ticket aktualisiert', error: 'Aktualisierung fehlgeschlagen' },
+  )
 }
 </script>
 
@@ -113,12 +102,8 @@ async function update(patch: { priority?: string; category?: string; assignedToI
   <div v-if="ticket" class="flex flex-col gap-lg" data-testid="admin-ticket-detail">
     <div class="flex flex-wrap items-center gap-md">
       <h2 class="text-heading-small">{{ ticket.ticketNumber }}</h2>
-      <PsBadge :variant="statusVariant[ticket.status]" data-testid="admin-ticket-status">
-        {{ ticket.status }}
-      </PsBadge>
-      <PsBadge v-if="ticket.priority !== 'normal'" :variant="ticket.priority === 'urgent' ? 'danger' : 'warning'">
-        {{ ticket.priority }}
-      </PsBadge>
+      <PsTicketStatusBadge :status="ticket.status" data-testid="admin-ticket-status" />
+      <PsTicketPriorityBadge v-if="ticket.priority !== 'normal'" :priority="ticket.priority" />
     </div>
 
     <div class="grid gap-lg lg:grid-cols-[2fr_1fr]">

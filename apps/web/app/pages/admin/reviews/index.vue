@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsRatingStars } from '@print-shop/ui'
+import { PsAdminTable, PsRatingStars, PsReviewStatusBadge } from '@print-shop/ui'
 import { REVIEW_STATUSES } from '@print-shop/types'
 import type { ReviewStatus } from '@print-shop/types'
 
@@ -29,13 +29,6 @@ const { data, refresh } = await useFetch<{ reviews: AdminReview[] }>('/api/admin
   })),
 })
 watch([statusFilter, flaggedOnly], () => refresh())
-
-const statusVariant: Record<ReviewStatus, 'default' | 'brand' | 'warning' | 'danger'> = {
-  pending: 'warning',
-  approved: 'brand',
-  rejected: 'danger',
-  hidden: 'default',
-}
 
 const columns = [
   { key: 'rating', label: 'Bewertung' },
@@ -73,9 +66,7 @@ const columns = [
         {{ (row as unknown as AdminReview).product.slug }}
       </template>
       <template #cell-status="{ row }">
-        <PsBadge :variant="statusVariant[(row as unknown as AdminReview).status]">
-          {{ (row as unknown as AdminReview).status }}
-        </PsBadge>
+        <PsReviewStatusBadge :status="(row as unknown as AdminReview).status" />
       </template>
       <template #cell-actions="{ row }">
         <NuxtLink

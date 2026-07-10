@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsDialog, PsInput, PsProductionQueueItem, PsSelect, useToast } from '@print-shop/ui'
+import { PsButton, PsCard, PsDialog, PsInput, PsProductionQueueItem, PsSelect } from '@print-shop/ui'
 import { PRODUCTION_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { ProductionStatus } from '@print-shop/types'
 
@@ -19,7 +19,6 @@ interface QueueResponse {
   etaByPrinter: Record<string, number>
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 const { data, refresh } = await useFetch<QueueResponse>('/api/admin/production/queue', {
   credentials: 'include',
@@ -41,38 +40,37 @@ function openAssign(job: QueueJob) {
   spoolNotes.value = ''
 }
 
+const { run } = useAdminAction({ refresh })
+
 async function submitAssign() {
-  if (!assignJob.value) return
-  try {
-    await $fetch(`/api/admin/production/${assignJob.value.id}/assign`, {
-      method: 'POST',
-      credentials: 'include',
-      body: {
-        printerId: assignPrinterId.value,
-        printDurationMinutes: Number(assignDuration.value),
-        spoolNotes: spoolNotes.value || undefined,
-      },
-    })
-    toast.show('Auftrag zugewiesen', { variant: 'success' })
-    assignJob.value = null
-    await refresh()
-  } catch {
-    toast.show('Zuweisung fehlgeschlagen', { variant: 'error' })
-  }
+  const job = assignJob.value
+  if (!job) return
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/production/${job.id}/assign`, {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          printerId: assignPrinterId.value,
+          printDurationMinutes: Number(assignDuration.value),
+          spoolNotes: spoolNotes.value || undefined,
+        },
+      }),
+    { success: 'Auftrag zugewiesen', error: 'Zuweisung fehlgeschlagen' },
+  )
+  if (ok) assignJob.value = null
 }
 
-async function setStatus(job: QueueJob, status: ProductionStatus) {
-  try {
-    await $fetch(`/api/admin/production/${job.id}/status`, {
-      method: 'POST',
-      credentials: 'include',
-      body: { status },
-    })
-    toast.show(`Status → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Statuswechsel ungültig', { variant: 'error' })
-  }
+function setStatus(job: QueueJob, status: ProductionStatus) {
+  return run(
+    () =>
+      $fetch(`/api/admin/production/${job.id}/status`, {
+        method: 'POST',
+        credentials: 'include',
+        body: { status },
+      }),
+    { success: `Status → ${status}`, error: 'Statuswechsel ungültig' },
+  )
 }
 
 function nextStatuses(job: QueueJob): ProductionStatus[] {

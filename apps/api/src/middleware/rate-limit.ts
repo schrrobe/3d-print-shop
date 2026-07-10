@@ -23,3 +23,17 @@ export const sensitiveLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'rate_limited', message: 'Too many requests, try again later' },
 })
+
+/**
+ * Limiter for admin mutations (POST/PATCH/DELETE on /api/admin). Generous —
+ * it only caps runaway scripts or abuse of a stolen session, not normal work.
+ * Reads are unlimited; mounted before auth, so it keys by IP.
+ */
+export const adminMutationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: isProduction ? 1500 : 5000,
+  skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'rate_limited', message: 'Too many requests, try again later' },
+})

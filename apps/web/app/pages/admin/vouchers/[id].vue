@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsButton, PsInput, PsTextarea, useToast } from '@print-shop/ui'
+import { PsAdminTable, PsBadge, PsButton, PsInput, PsTextarea } from '@print-shop/ui'
 import { eurosToCents, formatCents } from '@print-shop/utils'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -30,7 +30,6 @@ interface AdminVoucherDetail {
 }
 
 const route = useRoute()
-const toast = useToast()
 const auth = useAdminAuthStore()
 const voucherId = String(route.params.id)
 
@@ -64,53 +63,40 @@ watch(
   { immediate: true },
 )
 
-const submitting = ref(false)
+const { run, pending: submitting } = useAdminAction({ refresh })
 
-async function save() {
-  submitting.value = true
-  try {
-    await $fetch(`/api/admin/vouchers/${voucherId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: {
-        type: form.type,
-        value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
-        minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
-        // UTC-anchored so the window matches the picked calendar days regardless of timezone.
-        validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
-        validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
-        maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
-        note: form.note || null,
-      },
-    })
-    toast.show('Gutschein gespeichert', { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    const message = (err as { data?: { message?: string } })?.data?.message
-    toast.show(message ?? 'Speichern fehlgeschlagen', { variant: 'error' })
-  } finally {
-    submitting.value = false
-  }
+function save() {
+  return run(
+    () =>
+      $fetch(`/api/admin/vouchers/${voucherId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: {
+          type: form.type,
+          value: form.type === 'fixed' ? eurosToCents(Number(form.value)) : Number(form.value),
+          minOrderCents: eurosToCents(Number(form.minOrderEuros) || 0),
+          // UTC-anchored so the window matches the picked calendar days regardless of timezone.
+          validFrom: form.validFrom ? `${form.validFrom}T00:00:00.000Z` : null,
+          validUntil: form.validUntil ? `${form.validUntil}T23:59:59.999Z` : null,
+          maxRedemptions: form.maxRedemptions === '' ? null : Number(form.maxRedemptions),
+          note: form.note || null,
+        },
+      }),
+    { success: 'Gutschein gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
 }
 
-const togglingActive = ref(false)
-
-async function toggleActive() {
-  if (!data.value || togglingActive.value) return
-  togglingActive.value = true
-  try {
-    await $fetch(`/api/admin/vouchers/${voucherId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: { active: !data.value.voucher.active },
-    })
-    await refresh()
-  } catch (err) {
-    const message = (err as { data?: { message?: string } })?.data?.message
-    toast.show(message ?? 'Statuswechsel fehlgeschlagen', { variant: 'error' })
-  } finally {
-    togglingActive.value = false
-  }
+function toggleActive() {
+  if (!data.value) return
+  return run(
+    () =>
+      $fetch(`/api/admin/vouchers/${voucherId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: { active: !data.value?.voucher.active },
+      }),
+    { error: 'Statuswechsel fehlgeschlagen' },
+  )
 }
 
 const orderColumns = [
@@ -136,7 +122,7 @@ const orderColumns = [
         v-if="auth.can('vouchers:write')"
         variant="ghost"
         size="sm"
-        :disabled="togglingActive"
+        :disabled="submitting"
         data-testid="toggle-voucher"
         @click="toggleActive"
       >

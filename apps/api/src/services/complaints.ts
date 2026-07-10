@@ -1,20 +1,14 @@
 import { renderComplaintReceived, renderComplaintUpdated } from '@print-shop/emails'
-import { formatInvoiceNumber } from '@print-shop/utils'
 import type { ComplaintStatus } from '@print-shop/types'
 import type { Complaint, Order } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { sendEmail } from './email.js'
 
 /** Sequential per-year complaint number (REK-2026-00001), same locking as invoices. */
 export async function nextComplaintNumber(): Promise<string> {
-  const year = new Date().getFullYear()
-  const counter = await prisma.complaintCounter.upsert({
-    where: { year },
-    create: { year, lastSequence: 1 },
-    update: { lastSequence: { increment: 1 } },
-  })
-  return formatInvoiceNumber('REK', year, counter.lastSequence)
+  return (await nextSequentialNumber(prisma.complaintCounter, 'REK')).number
 }
 
 export function complaintUrl(complaint: { complaintNumber: string; accessToken: string }): string {

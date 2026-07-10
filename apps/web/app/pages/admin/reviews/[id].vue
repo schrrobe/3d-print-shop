@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsRatingStars, PsTextarea, useToast } from '@print-shop/ui'
+import { PsButton, PsCard, PsRatingStars, PsTextarea } from '@print-shop/ui'
 import { REVIEW_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { ReviewStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const route = useRoute()
-const toast = useToast()
 const id = String(route.params.id)
 
 interface ReviewDetail {
@@ -54,14 +53,13 @@ watchEffect(() => {
   note.value = review.value?.internalNote ?? ''
 })
 
-async function moderate(patch: { status?: ReviewStatus; internalNote?: string; flaggedAbuse?: boolean }) {
-  try {
-    await $fetch(`/api/admin/reviews/${id}`, { method: 'PATCH', body: patch, credentials: 'include' })
-    toast.show('Bewertung aktualisiert', { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+const { run } = useAdminAction({ refresh })
+
+function moderate(patch: { status?: ReviewStatus; internalNote?: string; flaggedAbuse?: boolean }) {
+  return run(
+    () => $fetch(`/api/admin/reviews/${id}`, { method: 'PATCH', body: patch, credentials: 'include' }),
+    { success: 'Bewertung aktualisiert', error: 'Fehler' },
+  )
 }
 
 const testIdForStatus: Record<ReviewStatus, string> = {
