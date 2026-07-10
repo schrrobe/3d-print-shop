@@ -159,6 +159,7 @@ complaintsRouter.post(
         message: (req.body as Record<string, string>).message,
       })
       const files = (req.files ?? []) as Express.Multer.File[]
+      await validateUploadedImages(files)
 
       await prisma.complaint.update({
         where: { id: complaint.id },
@@ -178,6 +179,7 @@ complaintsRouter.post(
       })
       res.status(201).json({ ok: true, status: 'in_review' })
     } catch (err) {
+      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
       next(err)
     }
   },

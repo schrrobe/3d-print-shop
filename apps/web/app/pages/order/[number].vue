@@ -6,7 +6,12 @@ import type { Locale, OrderStatus } from '@print-shop/types'
 const { t, locale } = useI18n()
 const route = useRoute()
 // Private token URL — must never end up in a search index
-useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
 
 const orderNumber = String(route.params.number)
 const token = String(route.query.token ?? '')
@@ -57,7 +62,10 @@ const bitcoinPayment = computed(() => order.value.payments.find((p) => p.bitcoin
 async function checkBitcoin() {
   const payment = bitcoinPayment.value
   if (!payment) return
-  await $fetch(`/api/payments/bitcoin/${payment.id}/sync`, { method: 'POST' })
+  await $fetch(`/api/payments/bitcoin/${payment.id}/sync`, {
+    method: 'POST',
+    headers: { 'X-Order-Token': token },
+  })
   await refresh()
 }
 </script>
@@ -67,10 +75,7 @@ async function checkBitcoin() {
     <div class="mx-auto max-w-[42rem]" data-testid="order-page">
       <div class="flex flex-wrap items-center justify-between gap-md">
         <h1 class="text-heading-medium">{{ t('order.title', { number: order.orderNumber }) }}</h1>
-        <PsOrderStatusBadge
-          :status="order.status"
-          :label="t(`order.statuses.${order.status}`)"
-        />
+        <PsOrderStatusBadge :status="order.status" :label="t(`order.statuses.${order.status}`)" />
       </div>
 
       <h2 class="mt-2xl text-label-medium">{{ t('order.items') }}</h2>
@@ -89,8 +94,12 @@ async function checkBitcoin() {
         class="mt-md flex justify-between text-body-regular"
         data-testid="order-discount"
       >
-        <span class="text-secondary">{{ t('cart.voucherLabel', { code: order.voucherCode ?? '' }) }}</span>
-        <span class="text-brand">−<PsPrice :cents="order.discountCents" :locale="locale as Locale" size="sm" /></span>
+        <span class="text-secondary">{{
+          t('cart.voucherLabel', { code: order.voucherCode ?? '' })
+        }}</span>
+        <span class="text-brand"
+          >−<PsPrice :cents="order.discountCents" :locale="locale as Locale" size="sm"
+        /></span>
       </div>
       <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">
         <span>{{ t('cart.total') }}</span>
@@ -104,10 +113,22 @@ async function checkBitcoin() {
       >
         <h2 class="text-label-medium">{{ t('order.bank.title') }}</h2>
         <dl class="mt-md grid gap-sm text-body-regular">
-          <div class="flex justify-between"><dt class="text-secondary">{{ t('order.bank.holder') }}</dt><dd>{{ bankPayment.bank.accountHolder }}</dd></div>
-          <div class="flex justify-between"><dt class="text-secondary">IBAN</dt><dd class="font-mono">{{ bankPayment.bank.iban }}</dd></div>
-          <div class="flex justify-between"><dt class="text-secondary">BIC</dt><dd class="font-mono">{{ bankPayment.bank.bic }}</dd></div>
-          <div class="flex justify-between"><dt class="text-secondary">{{ t('order.bank.reference') }}</dt><dd class="font-mono">{{ bankPayment.bank.reference }}</dd></div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">{{ t('order.bank.holder') }}</dt>
+            <dd>{{ bankPayment.bank.accountHolder }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">IBAN</dt>
+            <dd class="font-mono">{{ bankPayment.bank.iban }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">BIC</dt>
+            <dd class="font-mono">{{ bankPayment.bank.bic }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">{{ t('order.bank.reference') }}</dt>
+            <dd class="font-mono">{{ bankPayment.bank.reference }}</dd>
+          </div>
         </dl>
       </div>
 
@@ -118,7 +139,11 @@ async function checkBitcoin() {
       >
         <h2 class="text-label-medium">{{ t('order.bitcoin.title') }}</h2>
         <p class="mt-md text-body-regular">
-          {{ t('order.bitcoin.sendTo', { amount: bitcoinPayment.bitcoin.expectedSats.toLocaleString() }) }}
+          {{
+            t('order.bitcoin.sendTo', {
+              amount: bitcoinPayment.bitcoin.expectedSats.toLocaleString(),
+            })
+          }}
         </p>
         <p class="mt-sm break-all font-mono text-caption" data-testid="bitcoin-address">
           {{ bitcoinPayment.bitcoin.address }}
@@ -131,13 +156,20 @@ async function checkBitcoin() {
             })
           }}
         </p>
-        <PsButton variant="secondary" size="sm" class="mt-md" data-testid="bitcoin-check" @click="checkBitcoin">
+        <PsButton
+          variant="secondary"
+          size="sm"
+          class="mt-md"
+          data-testid="bitcoin-check"
+          @click="checkBitcoin"
+        >
           {{ t('order.bitcoin.check') }}
         </PsButton>
       </div>
 
       <p v-if="order.trackingNumber" class="mt-2xl text-body-regular" data-testid="tracking">
-        📦 {{ order.carrier?.toUpperCase() }} · <span class="font-mono">{{ order.trackingNumber }}</span>
+        📦 {{ order.carrier?.toUpperCase() }} ·
+        <span class="font-mono">{{ order.trackingNumber }}</span>
       </p>
     </div>
   </PsSection>

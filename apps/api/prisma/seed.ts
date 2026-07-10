@@ -4,6 +4,14 @@ import { PERMISSIONS, ROLE_PERMISSIONS } from '@print-shop/utils'
 import { USER_ROLES } from '@print-shop/types'
 import argon2 from 'argon2'
 
+for (const path of ['.env', '../../.env']) {
+  try {
+    process.loadEnvFile(path)
+  } catch {
+    // CI commonly provides DATABASE_URL directly.
+  }
+}
+
 const prisma = new PrismaClient()
 
 const DEV_ADMIN_EMAIL = 'admin@example.com'
@@ -1066,6 +1074,16 @@ async function seedVouchers() {
 }
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Demo seed is disabled in production; use prisma:bootstrap-admin')
+  }
+  if (process.env.ALLOW_DEMO_SEED !== 'true') {
+    throw new Error('Demo seed refused: set ALLOW_DEMO_SEED=true for local/CI fixtures')
+  }
+  const databaseUrl = new URL(process.env.DATABASE_URL ?? '')
+  if (!new Set(['localhost', '127.0.0.1', '[::1]']).has(databaseUrl.hostname)) {
+    throw new Error(`Demo seed refused for non-local database host: ${databaseUrl.hostname}`)
+  }
   console.log('Seeding roles & permissions …')
   await seedRoles()
   console.log('Seeding users …')

@@ -4,15 +4,16 @@ services:
     container_name: print-shop-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: printshop
-      POSTGRES_PASSWORD: printshop
-      POSTGRES_DB: printshop
+      POSTGRES_USER: ${POSTGRES_USER:-printshop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-printshop}
     ports:
-      - "15433:5432"
+      # Loopback-only: production traffic reaches Postgres through the API, never directly.
+      - '127.0.0.1:${POSTGRES_PORT:-15433}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U printshop"]
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
       interval: 5s
       timeout: 3s
       retries: 10

@@ -1,5 +1,5 @@
 import type { TrackingSettings } from '@print-shop/utils'
-import { allowedProviders, configuredProviders } from '@print-shop/utils'
+import { allowedProviders, configuredProviders, isSensitiveTrackingPath } from '@print-shop/utils'
 import type { AnalyticsPlugin } from 'analytics'
 
 /**
@@ -54,9 +54,10 @@ export default defineNuxtPlugin(() => {
   function trackPage(fullPath?: string) {
     const path = fullPath ?? router.currentRoute.value.fullPath
     if (!instance || !anyEnabled()) return
-    if (path.startsWith('/admin')) return
-    if (path === lastTrackedPath) return
-    lastTrackedPath = path
+    if (isSensitiveTrackingPath(path)) return
+    const pathname = path.split(/[?#]/, 1)[0] || '/'
+    if (pathname === lastTrackedPath) return
+    lastTrackedPath = pathname
     void instance.page()
   }
 
@@ -72,13 +73,17 @@ export default defineNuxtPlugin(() => {
       initializing = true
       try {
         // First consent grant: only now any tracking code enters the page
-        const [{ default: Analytics }, { default: googleAnalytics }, { default: googleTagManager }, { default: metaPixelPlugin }] =
-          await Promise.all([
-            import('analytics'),
-            import('@analytics/google-analytics'),
-            import('@analytics/google-tag-manager'),
-            import('~/utils/analytics/meta-pixel-plugin'),
-          ])
+        const [
+          { default: Analytics },
+          { default: googleAnalytics },
+          { default: googleTagManager },
+          { default: metaPixelPlugin },
+        ] = await Promise.all([
+          import('analytics'),
+          import('@analytics/google-analytics'),
+          import('@analytics/google-tag-manager'),
+          import('~/utils/analytics/meta-pixel-plugin'),
+        ])
         // Consent may have changed during the async import window above. A
         // re-entrant syncProviders() triggered by that change bails out on the
         // `initializing` guard, so re-read consent here — otherwise a withdrawal
@@ -100,7 +105,9 @@ export default defineNuxtPlugin(() => {
           } else if (provider.name === 'google-tag-manager') {
             plugins.push(googleTagManager({ containerId: s.gtmContainerId as string, enabled }))
           } else {
-            plugins.push(metaPixelPlugin({ pixelId: s.metaPixelId as string, enabled }) as AnalyticsPlugin)
+            plugins.push(
+              metaPixelPlugin({ pixelId: s.metaPixelId as string, enabled }) as AnalyticsPlugin,
+            )
           }
         }
         instance = Analytics({ app: 'print-shop', plugins }) as unknown as AnalyticsInstance
@@ -119,7 +126,8 @@ export default defineNuxtPlugin(() => {
       enabledState.set(provider.name, shouldEnable)
       if (shouldEnable) {
         if (provider.name === 'google-analytics') {
-          ;(window as unknown as Record<string, unknown>)[`ga-disable-${s.ga4MeasurementId}`] = false
+          ;(window as unknown as Record<string, unknown>)[`ga-disable-${s.ga4MeasurementId}`] =
+            false
         }
         await instance.plugins.enable(provider.name)
         if (provider.name === 'meta-pixel') {

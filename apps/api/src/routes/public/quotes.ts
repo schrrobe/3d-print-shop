@@ -1,4 +1,5 @@
 import { renderQuoteAccepted } from '@print-shop/emails'
+import type { Prisma } from '@prisma/client'
 import { addressSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
@@ -9,6 +10,66 @@ import { sendEmail } from '../../services/email.js'
 import { createStripePaymentLink } from '../../services/payments/stripe.js'
 
 export const quotesRouter = Router()
+
+const acceptedQuoteInclude = {
+  quoteRequest: true,
+  order: { include: { payments: true } },
+} as const
+
+const STALE_PAYMENT_PREPARATION_MS = 15 * 60 * 1000
+
+async function ensureQuotePaymentLink(
+  order: Prisma.OrderGetPayload<{ include: { payments: true } }>,
+  locale: string,
+): Promise<{ url: string; created: boolean }> {
+  const payment = order.payments.find((p) => p.status !== 'failed')
+  if (!payment) throw new Error(`Quote order ${order.orderNumber} has no payment`)
+  if (payment.stripePaymentLinkUrl) return { url: payment.stripePaymentLinkUrl, created: false }
+
+  if (payment.status === 'processing') {
+    await prisma.payment.updateMany({
+      where: {
+        id: payment.id,
+        status: 'processing',
+        stripeSessionId: null,
+        updatedAt: { lte: new Date(Date.now() - STALE_PAYMENT_PREPARATION_MS) },
+      },
+      data: { status: 'pending' },
+    })
+  }
+
+  const claimed = await prisma.payment.updateMany({
+    where: { id: payment.id, status: 'pending', stripeSessionId: null },
+    data: { status: 'processing' },
+  })
+  if (claimed.count !== 1) throw conflict('Payment link is already being prepared; retry shortly')
+
+  try {
+    const link = await createStripePaymentLink({
+      orderNumber: order.orderNumber,
+      accessToken: order.accessToken,
+      amountCents: order.totalCents,
+      email: order.email,
+      locale,
+      description: `Individuelles Angebot ${order.orderNumber}`,
+    })
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'pending',
+        stripeSessionId: link.sessionId,
+        stripePaymentLinkUrl: link.url,
+      },
+    })
+    return { url: link.url, created: true }
+  } catch (err) {
+    await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'processing', stripeSessionId: null },
+      data: { status: 'pending' },
+    })
+    throw err
+  }
+}
 
 /** Public quote view for the customer (token from the quote email). */
 quotesRouter.get('/:token', async (req, res, next) => {
@@ -45,88 +106,93 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
   try {
     const quote = await prisma.quote.findUnique({
       where: { token: String(req.params.token) },
-      include: { quoteRequest: true },
+      include: acceptedQuoteInclude,
     })
     if (!quote || quote.status === 'draft') throw notFound('Quote not found')
-    if (quote.status !== 'sent') throw conflict(`Quote already ${quote.status}`)
-    if (quote.validUntil < new Date()) {
-      await prisma.quote.update({ where: { id: quote.id }, data: { status: 'expired' } })
-      throw conflict('Quote expired')
-    }
-    const address = addressSchema.parse(req.body?.address ?? {})
-
-    const orderNumber = generateOrderNumber()
-    const accessToken = randomToken()
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        accessToken,
-        status: 'awaiting_payment',
-        locale: quote.quoteRequest.locale,
-        email: address.email,
-        firstName: address.firstName,
-        lastName: address.lastName,
-        company: address.company,
-        street: address.street,
-        zip: address.zip,
-        city: address.city,
-        country: address.country,
-        phone: address.phone,
-        // Quote price is the all-in total (shipping included in the individual quote)
-        subtotalCents: quote.priceCents,
-        shippingCents: 0,
-        totalCents: quote.priceCents,
-        items: {
-          create: [
-            {
-              name: `3D-Druck nach Kundenmodell (${quote.quoteRequest.name})`,
-              quantity: quote.quoteRequest.quantity,
-              unitPriceCents: Math.round(quote.priceCents / quote.quoteRequest.quantity),
+    let order = quote.order
+    if (quote.status === 'sent') {
+      if (quote.validUntil < new Date()) {
+        await prisma.quote.updateMany({
+          where: { id: quote.id, status: 'sent' },
+          data: { status: 'expired' },
+        })
+        throw conflict('Quote expired')
+      }
+      const address = addressSchema.parse(req.body?.address ?? {})
+      const orderNumber = generateOrderNumber()
+      const accessToken = randomToken()
+      order = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.quote.updateMany({
+          where: { id: quote.id, status: 'sent', validUntil: { gt: new Date() } },
+          data: { status: 'accepted', decidedAt: new Date() },
+        })
+        if (claimed.count !== 1) throw conflict('Quote was already decided')
+        const created = await tx.order.create({
+          data: {
+            orderNumber,
+            accessToken,
+            status: 'awaiting_payment',
+            locale: quote.quoteRequest.locale,
+            email: address.email,
+            firstName: address.firstName,
+            lastName: address.lastName,
+            company: address.company,
+            street: address.street,
+            zip: address.zip,
+            city: address.city,
+            country: address.country,
+            phone: address.phone,
+            subtotalCents: quote.priceCents,
+            shippingCents: 0,
+            totalCents: quote.priceCents,
+            items: {
+              create: [
+                {
+                  name: `3D-Druck nach Kundenmodell (${quote.quoteRequest.name}, ${quote.quoteRequest.quantity} Stück)`,
+                  quantity: 1,
+                  unitPriceCents: quote.priceCents,
+                },
+              ],
             },
-          ],
-        },
-      },
-    })
+            payments: {
+              create: {
+                method: 'stripe_payment_link',
+                status: 'pending',
+                amountCents: quote.priceCents,
+              },
+            },
+          },
+          include: { payments: true },
+        })
+        await tx.quote.update({ where: { id: quote.id }, data: { orderId: created.id } })
+        await tx.quoteRequest.update({
+          where: { id: quote.quoteRequestId },
+          data: { status: 'accepted' },
+        })
+        return created
+      })
+    } else if (quote.status !== 'accepted' || !order) {
+      throw conflict(`Quote already ${quote.status}`)
+    }
 
-    const link = await createStripePaymentLink({
-      orderNumber,
-      accessToken,
-      amountCents: quote.priceCents,
-      email: address.email,
-      locale: quote.quoteRequest.locale,
-      description: `Individuelles Angebot ${orderNumber}`,
-    })
-    await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        method: 'stripe_payment_link',
-        status: 'pending',
-        amountCents: quote.priceCents,
-        stripeSessionId: link.sessionId,
-        stripePaymentLinkUrl: link.url,
-      },
-    })
-    await prisma.$transaction([
-      prisma.quote.update({
-        where: { id: quote.id },
-        data: { status: 'accepted', decidedAt: new Date(), orderId: order.id },
-      }),
-      prisma.quoteRequest.update({
-        where: { id: quote.quoteRequestId },
-        data: { status: 'accepted' },
-      }),
-    ])
+    const link = await ensureQuotePaymentLink(order, quote.quoteRequest.locale)
 
-    await sendEmail(
-      address.email,
-      'quote_accepted',
-      renderQuoteAccepted(
-        { name: quote.quoteRequest.name, priceCents: quote.priceCents, paymentUrl: link.url },
-        quote.quoteRequest.locale,
-      ),
-    )
+    if (link.created) {
+      await sendEmail(
+        order.email,
+        'quote_accepted',
+        renderQuoteAccepted(
+          { name: quote.quoteRequest.name, priceCents: quote.priceCents, paymentUrl: link.url },
+          quote.quoteRequest.locale,
+        ),
+      )
+    }
 
-    res.json({ paymentUrl: link.url, orderNumber, accessToken })
+    res.json({
+      paymentUrl: link.url,
+      orderNumber: order.orderNumber,
+      accessToken: order.accessToken,
+    })
   } catch (err) {
     next(err)
   }
@@ -138,16 +204,17 @@ quotesRouter.post('/:token/decline', sensitiveLimiter, async (req, res, next) =>
     const quote = await prisma.quote.findUnique({ where: { token: String(req.params.token) } })
     if (!quote || quote.status === 'draft') throw notFound('Quote not found')
     if (quote.status !== 'sent') throw conflict(`Quote already ${quote.status}`)
-    await prisma.$transaction([
-      prisma.quote.update({
-        where: { id: quote.id },
+    await prisma.$transaction(async (tx) => {
+      const declined = await tx.quote.updateMany({
+        where: { id: quote.id, status: 'sent' },
         data: { status: 'declined', decidedAt: new Date() },
-      }),
-      prisma.quoteRequest.update({
+      })
+      if (declined.count !== 1) throw conflict('Quote was already decided')
+      await tx.quoteRequest.update({
         where: { id: quote.quoteRequestId },
         data: { status: 'rejected' },
-      }),
-    ])
+      })
+    })
     res.json({ ok: true })
   } catch (err) {
     next(err)

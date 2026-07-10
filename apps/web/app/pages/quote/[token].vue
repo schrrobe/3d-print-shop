@@ -5,7 +5,12 @@ import { PsBadge, PsInput, PsPillButton, PsPrice, PsSection } from '@print-shop/
 const { t, locale } = useI18n()
 const route = useRoute()
 // Private token URL — must never end up in a search index
-useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
 
 const token = String(route.params.token)
 
@@ -81,7 +86,12 @@ async function decline() {
       <div class="rounded-card border border-subtle bg-surface-elevated p-lg">
         <div class="flex items-center justify-between">
           <span class="text-body-regular text-secondary">{{ t('quote.price') }}</span>
-          <PsPrice :cents="quote.priceCents" size="lg" class="text-brand" data-testid="quote-price" />
+          <PsPrice
+            :cents="quote.priceCents"
+            size="lg"
+            class="text-brand"
+            data-testid="quote-price"
+          />
         </div>
         <p class="mt-sm text-caption text-secondary">
           {{ t('quote.validUntil') }}: {{ new Date(quote.validUntil).toLocaleDateString(locale) }}
@@ -96,13 +106,26 @@ async function decline() {
         <PsBadge variant="danger">{{ t('quote.expired') }}</PsBadge>
       </div>
 
-      <div v-else-if="declined || quote.status === 'declined'" class="mt-lg" data-testid="quote-declined">
+      <div
+        v-else-if="declined || quote.status === 'declined'"
+        class="mt-lg"
+        data-testid="quote-declined"
+      >
         <PsBadge variant="default">{{ t('quote.declined') }}</PsBadge>
       </div>
 
-      <div v-else-if="paymentUrl || quote.status === 'accepted'" class="mt-lg" data-testid="quote-accepted">
+      <div
+        v-else-if="paymentUrl || quote.status === 'accepted'"
+        class="mt-lg"
+        data-testid="quote-accepted"
+      >
         <p class="text-body-regular">{{ t('quote.accepted') }}</p>
-        <a v-if="paymentUrl" :href="paymentUrl" class="mt-md inline-block" data-testid="quote-pay-link">
+        <a
+          v-if="paymentUrl"
+          :href="paymentUrl"
+          class="mt-md inline-block"
+          data-testid="quote-pay-link"
+        >
           <PsPillButton size="lg">{{ t('quote.payNow') }}</PsPillButton>
         </a>
       </div>
@@ -112,12 +135,23 @@ async function decline() {
           <PsPillButton size="lg" data-testid="quote-accept" @click="showAddressForm = true">
             {{ t('quote.accept') }}
           </PsPillButton>
-          <PsPillButton size="lg" variant="secondary" :disabled="submitting || !hydrated" data-testid="quote-decline" @click="decline">
+          <PsPillButton
+            size="lg"
+            variant="secondary"
+            :disabled="submitting || !hydrated"
+            data-testid="quote-decline"
+            @click="decline"
+          >
             {{ t('quote.decline') }}
           </PsPillButton>
         </div>
 
-        <form v-else class="mt-2xl flex flex-col gap-md" data-testid="quote-address-form" @submit.prevent="accept">
+        <form
+          v-else
+          class="mt-2xl flex flex-col gap-md"
+          data-testid="quote-address-form"
+          @submit.prevent="accept"
+        >
           <h2 class="text-heading-small">{{ t('quote.addressTitle') }}</h2>
           <div class="grid gap-md sm:grid-cols-2">
             <PsInput v-model="address.firstName" :label="t('checkout.firstName')" required />
@@ -130,7 +164,12 @@ async function decline() {
             <PsInput v-model="address.country" :label="t('checkout.country')" required />
           </div>
           <PsInput v-model="address.email" :label="t('checkout.email')" type="email" required />
-          <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="quote-accept-submit">
+          <PsPillButton
+            type="submit"
+            size="lg"
+            :disabled="submitting || !hydrated"
+            data-testid="quote-accept-submit"
+          >
             {{ t('quote.accept') }}
           </PsPillButton>
         </form>

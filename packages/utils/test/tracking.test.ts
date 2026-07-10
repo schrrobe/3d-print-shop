@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { acceptAllConsent, createConsent, rejectAllConsent } from '../src/consent.js'
-import { allowedProviders, configuredProviders, type TrackingSettings } from '../src/tracking.js'
+import {
+  allowedProviders,
+  configuredProviders,
+  isSensitiveTrackingPath,
+  type TrackingSettings,
+} from '../src/tracking.js'
 
 const settings = (overrides: Partial<TrackingSettings> = {}): TrackingSettings => ({
   metaPixelId: null,
@@ -69,4 +74,25 @@ describe('tracking provider mapping', () => {
     const s = settings({ gtmContainerId: 'GTM-TEST123' })
     expect(names(allowedProviders(s, acceptAllConsent()))).toEqual(['google-tag-manager'])
   })
+})
+
+describe('sensitive tracking paths', () => {
+  it.each([
+    '/checkout/success?token=secret',
+    '/order/PS-2026-1?token=secret',
+    '/en/portal/magic-secret',
+    '/de/quote/quote-secret',
+    '/support/ticket/ticket-secret',
+    '/complaint/REK-1?token=secret',
+    '/fr/admin/orders',
+  ])('blocks %s', (path) => {
+    expect(isSensitiveTrackingPath(path)).toBe(true)
+  })
+
+  it.each(['/', '/products/item', '/en/cart', '/products/item?config=public-share'])(
+    'allows %s',
+    (path) => {
+      expect(isSensitiveTrackingPath(path)).toBe(false)
+    },
+  )
 })

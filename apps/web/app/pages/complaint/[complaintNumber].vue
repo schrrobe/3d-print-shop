@@ -6,7 +6,12 @@ import type { ComplaintStatus } from '@print-shop/types'
 const { t } = useI18n()
 const route = useRoute()
 
-useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
 
 const complaintNumber = String(route.params.complaintNumber)
 const token = String(route.query.token ?? '')
@@ -80,13 +85,17 @@ async function sendReply() {
 
       <PsCard class="mt-lg">
         <h2 class="text-label-medium">{{ t('complaints.view.description') }}</h2>
-        <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">{{ complaint.description }}</p>
+        <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">
+          {{ complaint.description }}
+        </p>
       </PsCard>
 
       <PsCard class="mt-lg">
         <h2 class="text-label-medium">{{ t('complaints.view.items') }}</h2>
         <ul class="mt-sm flex flex-col gap-xs text-body-regular">
-          <li v-for="(item, i) in complaint.items" :key="i">{{ item.quantity }}× {{ item.name }}</li>
+          <li v-for="(item, i) in complaint.items" :key="i">
+            {{ item.quantity }}× {{ item.name }}
+          </li>
         </ul>
       </PsCard>
 
@@ -101,7 +110,11 @@ async function sendReply() {
             rel="noopener"
             class="block overflow-hidden rounded-card border border-subtle"
           >
-            <img :src="attachmentUrl(a.id)" :alt="a.originalName" class="aspect-square w-full object-cover" />
+            <img
+              :src="attachmentUrl(a.id)"
+              :alt="a.originalName"
+              class="aspect-square w-full object-cover"
+            />
           </a>
         </div>
       </PsCard>
@@ -135,7 +148,11 @@ async function sendReply() {
             class="text-body-regular"
             @change="onFiles"
           />
-          <PsButton type="submit" :disabled="submitting || reply.trim().length < 2" data-testid="complaint-reply-submit">
+          <PsButton
+            type="submit"
+            :disabled="submitting || reply.trim().length < 2"
+            data-testid="complaint-reply-submit"
+          >
             {{ t('complaints.view.replySubmit') }}
           </PsButton>
         </form>

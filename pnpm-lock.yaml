@@ -74,6 +74,9 @@ importers:
       stripe:
         specifier: ^18.2.1
         version: 18.5.0(@types/node@24.13.2)
+      tsx:
+        specifier: ^4.20.1
+        version: 4.22.4
       zod:
         specifier: ^3.25.64
         version: 3.25.76
@@ -111,9 +114,6 @@ importers:
       prisma:
         specifier: ^6.9.0
         version: 6.19.3(typescript@5.9.3)
-      tsx:
-        specifier: ^4.20.1
-        version: 4.22.4
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
