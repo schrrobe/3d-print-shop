@@ -20,7 +20,12 @@ export const ORDER_STATUSES = [
 ] as const
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
-export const PAYMENT_METHODS = ['stripe', 'stripe_payment_link', 'bank_transfer', 'bitcoin'] as const
+export const PAYMENT_METHODS = [
+  'stripe',
+  'stripe_payment_link',
+  'bank_transfer',
+  'bitcoin',
+] as const
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export const PAYMENT_STATUSES = [
@@ -116,7 +121,12 @@ export const UPLOAD_FILE_TYPES = ['stl', '3mf'] as const
 export type UploadFileType = (typeof UPLOAD_FILE_TYPES)[number]
 
 /** Color zone slot names as used in GLB mesh/material names. */
-export const COLOR_ZONE_SLOTS = ['zone_1_main', 'zone_2_accent', 'zone_3_detail', 'zone_4_text'] as const
+export const COLOR_ZONE_SLOTS = [
+  'zone_1_main',
+  'zone_2_accent',
+  'zone_3_detail',
+  'zone_4_text',
+] as const
 export type ColorZoneSlot = (typeof COLOR_ZONE_SLOTS)[number]
 export const MAX_COLOR_ZONES = 4
 
@@ -252,6 +262,88 @@ export interface ProductDto {
   translations: ProductTranslationDto[]
   assets: ProductAssetDto[]
   colorSlots: ProductColorSlotDto[]
+}
+
+// ---------- Admin API DTOs ----------
+
+export interface AdminColorDto {
+  id: string
+  name: string
+  hex: string
+  active: boolean
+}
+
+export interface AdminProductDetailDto {
+  id: string
+  slug: string
+  priceCents: number
+  active: boolean
+  translations: ProductTranslationDto[]
+  assets: ProductAssetDto[]
+  colorSlots: ProductColorSlotDto[]
+}
+
+export interface AdminFilamentColorDto {
+  id: string
+  name: string
+  hex: string
+}
+
+export interface AdminFilamentSpoolDto {
+  id: string
+  material: string
+  manufacturer: string | null
+  label: string | null
+  colorId: string | null
+  color: AdminFilamentColorDto | null
+  remainingGrams: number | null
+  totalGrams: number | null
+  minRemainingGrams: number | null
+  storageLocation: string | null
+  active: boolean
+  reorder: boolean
+  amsSlotAssignment: {
+    id: string
+    slotIndex: number
+    amsUnit: { name: string; printer: { name: string } }
+  } | null
+}
+
+export interface AdminAmsSlotDto {
+  id: string
+  slotIndex: number
+  status: AmsSlotStatus
+  notes: string | null
+  spool: (AdminFilamentSpoolDto & { color: AdminFilamentColorDto | null }) | null
+}
+
+export interface AdminAmsUnitDto {
+  id: string
+  name: string
+  position: number
+  printer: { id: string; name: string; status: string }
+  slots: AdminAmsSlotDto[]
+}
+
+export interface AdminFilamentAlertsDto {
+  lowSpools: AdminFilamentSpoolDto[]
+  lowColors: {
+    color: AdminFilamentColorDto & { minStockGrams: number | null }
+    status: string
+    totalRemainingGrams: number
+  }[]
+}
+
+export interface AdminFilamentShoppingRowDto {
+  spoolId: string
+  label: string | null
+  material: string
+  manufacturer: string | null
+  colorName: string | null
+  colorHex: string | null
+  remainingGrams: number | null
+  minRemainingGrams: number | null
+  reorderFlag: boolean
 }
 
 /** Selected colors per zone slot for a configured cart/order item. */

@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsDialog, PsQcChecklist, PsQualityCheckCard, PsTextarea, useToast } from '@print-shop/ui'
+import {
+  PsButton,
+  PsCard,
+  PsDialog,
+  PsQcChecklist,
+  PsQualityCheckCard,
+  PsTextarea,
+} from '@print-shop/ui'
 import { QC_STATUSES } from '@print-shop/types'
 import type { QcStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 
 interface Checklist {
@@ -42,11 +48,14 @@ interface JobInQc {
 }
 
 const statusFilter = ref('')
-const { data, refresh } = await useFetch<{ records: QcRecord[]; jobsInQc: JobInQc[] }>('/api/admin/qc', {
-  credentials: 'include',
-  server: false,
-  query: computed(() => (statusFilter.value ? { status: statusFilter.value } : {})),
-})
+const { data, refresh } = await useFetch<{ records: QcRecord[]; jobsInQc: JobInQc[] }>(
+  '/api/admin/qc',
+  {
+    credentials: 'include',
+    server: false,
+    query: computed(() => (statusFilter.value ? { status: statusFilter.value } : {})),
+  },
+)
 watch(statusFilter, () => refresh())
 
 const canOverride = computed(() => auth.can('qc:override'))
@@ -60,7 +69,14 @@ const CHECK_FIELDS: (keyof Checklist)[] = [
   'packagingOk',
 ]
 function emptyChecklist(): Checklist {
-  return { colorOk: false, surfaceOk: false, dimensionsOk: false, stabilityOk: false, completenessOk: false, packagingOk: false }
+  return {
+    colorOk: false,
+    surfaceOk: false,
+    dimensionsOk: false,
+    stabilityOk: false,
+    completenessOk: false,
+    packagingOk: false,
+  }
 }
 function checkedCount(r: Checklist): number {
   return CHECK_FIELDS.filter((f) => r[f]).length
@@ -101,44 +117,48 @@ function draftComplete(recordId: string): boolean {
   return draft ? checkedCount(draft) === 6 : false
 }
 
-async function startCheck(jobId: string) {
-  try {
-    await $fetch('/api/admin/qc', { method: 'POST', body: { printerJobId: jobId }, credentials: 'include' })
-    toast.show('Prüfung gestartet', { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+const { run: runStartAction, pending: startPending } = useAdminAction({ refresh })
+const { run: runChecklistAction, pending: checklistPending } = useAdminAction({ refresh })
+const { run: runPhotoAction, pending: photoPending } = useAdminAction({ refresh })
+const { run: runOverrideAction, pending: overridePending } = useAdminAction({ refresh })
+
+function startCheck(jobId: string) {
+  return runStartAction(
+    () =>
+      $fetch('/api/admin/qc', {
+        method: 'POST',
+        body: { printerJobId: jobId },
+        credentials: 'include',
+      }),
+    { success: 'Prüfung gestartet', error: 'Fehler' },
+  )
 }
 
-async function saveChecklist(record: QcRecord) {
-  try {
-    await $fetch(`/api/admin/qc/${record.id}`, {
-      method: 'PATCH',
-      body: draftFor(record),
-      credentials: 'include',
-    })
-    toast.show('Checkliste gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen', { variant: 'error' })
-  }
+function saveChecklist(record: QcRecord) {
+  return runChecklistAction(
+    () =>
+      $fetch(`/api/admin/qc/${record.id}`, {
+        method: 'PATCH',
+        body: draftFor(record),
+        credentials: 'include',
+      }),
+    { success: 'Checkliste gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
 }
 
-async function setStatus(record: QcRecord, status: 'passed' | 'failed' | 'reprint_required') {
-  try {
-    // Persist the checklist first so "passed" sees the ticked boxes
-    if (status === 'passed') await saveChecklistSilent(record)
-    await $fetch(`/api/admin/qc/${record.id}/status`, {
-      method: 'POST',
-      body: { status },
-      credentials: 'include',
-    })
-    toast.show(`QC → ${status}`, { variant: 'success' })
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+function setStatus(record: QcRecord, status: 'passed' | 'failed' | 'reprint_required') {
+  return runChecklistAction(
+    async () => {
+      // Persist the checklist first so "passed" sees the ticked boxes
+      if (status === 'passed') await saveChecklistSilent(record)
+      await $fetch(`/api/admin/qc/${record.id}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      })
+    },
+    { success: `QC → ${status}`, error: 'Fehler' },
+  )
 }
 async function saveChecklistSilent(record: QcRecord) {
   await $fetch(`/api/admin/qc/${record.id}`, {
@@ -153,13 +173,15 @@ async function uploadPhoto(record: QcRecord, event: Event) {
   if (!input.files?.length) return
   const form = new FormData()
   for (const file of Array.from(input.files).slice(0, 5)) form.append('photos', file)
-  try {
-    await $fetch(`/api/admin/qc/${record.id}/photos`, { method: 'POST', body: form, credentials: 'include' })
-    toast.show('Foto hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await runPhotoAction(
+    () =>
+      $fetch(`/api/admin/qc/${record.id}/photos`, {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      }),
+    { success: 'Foto hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
 // Override dialog
@@ -172,18 +194,16 @@ function openOverride(recordId: string) {
   overrideOpen.value = true
 }
 async function submitOverride() {
-  try {
-    await $fetch(`/api/admin/qc/${overrideRecordId.value}/override`, {
-      method: 'POST',
-      body: { overrideReason: overrideReason.value },
-      credentials: 'include',
-    })
-    toast.show('QC überschrieben', { variant: 'success' })
-    overrideOpen.value = false
-    await refresh()
-  } catch (err) {
-    toast.show((err as { data?: { message?: string } })?.data?.message ?? 'Fehler', { variant: 'error' })
-  }
+  const ok = await runOverrideAction(
+    () =>
+      $fetch(`/api/admin/qc/${overrideRecordId.value}/override`, {
+        method: 'POST',
+        body: { overrideReason: overrideReason.value },
+        credentials: 'include',
+      }),
+    { success: 'QC überschrieben', error: 'Fehler' },
+  )
+  if (ok) overrideOpen.value = false
 }
 </script>
 
@@ -192,17 +212,27 @@ async function submitOverride() {
     <!-- Jobs currently in quality check -->
     <section>
       <h2 class="mb-md text-label-medium">Jobs in Qualitätsprüfung</h2>
-      <p v-if="!data?.jobsInQc.length" class="text-body-regular text-secondary">Keine offenen Prüfungen.</p>
+      <p v-if="!data?.jobsInQc.length" class="text-body-regular text-secondary">
+        Keine offenen Prüfungen.
+      </p>
       <div class="flex flex-col gap-md">
-        <PsCard v-for="entry in openQcJobs" :key="entry.job.id" :data-job-id="entry.job.id" data-testid="qc-job">
+        <PsCard
+          v-for="entry in openQcJobs"
+          :key="entry.job.id"
+          :data-job-id="entry.job.id"
+          data-testid="qc-job"
+        >
           <div class="flex flex-wrap items-center justify-between gap-md">
             <div>
               <span class="text-label-medium">{{ entry.job.order.orderNumber }}</span>
-              <span class="ml-sm text-body-regular text-secondary">{{ entry.job.orderItem?.name }}</span>
+              <span class="ml-sm text-body-regular text-secondary">{{
+                entry.job.orderItem?.name
+              }}</span>
             </div>
             <PsButton
               v-if="!entry.record"
               size="sm"
+              :disabled="startPending"
               data-testid="qc-start"
               @click="startCheck(entry.job.id)"
             >
@@ -210,29 +240,58 @@ async function submitOverride() {
             </PsButton>
           </div>
 
-          <div v-if="entry.record && drafts[entry.record.id]" class="mt-md flex flex-col gap-md border-t border-subtle pt-md">
+          <div
+            v-if="entry.record && drafts[entry.record.id]"
+            class="mt-md flex flex-col gap-md border-t border-subtle pt-md"
+          >
             <PsQcChecklist
               :model-value="drafts[entry.record.id]!"
               data-testid="qc-checklist"
-              @update:model-value="(value) => { if (entry.record) drafts[entry.record.id] = value }"
+              @update:model-value="
+                (value) => {
+                  if (entry.record) drafts[entry.record.id] = value
+                }
+              "
             />
             <div class="flex flex-wrap items-center gap-sm">
-              <PsButton variant="secondary" size="sm" @click="saveChecklist(entry.record)">
+              <PsButton
+                variant="secondary"
+                size="sm"
+                :disabled="checklistPending"
+                @click="saveChecklist(entry.record)"
+              >
                 Checkliste speichern
               </PsButton>
-              <label class="cursor-pointer text-caption text-brand hover:underline">
+              <label
+                class="text-caption text-brand hover:underline"
+                :class="photoPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'"
+              >
                 Foto hinzufügen
-                <input type="file" accept="image/*" multiple class="hidden" data-testid="qc-photo-input" @change="(e) => uploadPhoto(entry.record!, e)" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="hidden"
+                  data-testid="qc-photo-input"
+                  :disabled="photoPending"
+                  @change="(e) => uploadPhoto(entry.record!, e)"
+                />
               </label>
               <PsButton
                 size="sm"
                 data-testid="qc-pass"
-                :disabled="!draftComplete(entry.record.id)"
+                :disabled="checklistPending || !draftComplete(entry.record.id)"
                 @click="setStatus(entry.record, 'passed')"
               >
                 Bestanden
               </PsButton>
-              <PsButton variant="secondary" size="sm" data-testid="qc-fail" @click="setStatus(entry.record, 'failed')">
+              <PsButton
+                variant="secondary"
+                size="sm"
+                data-testid="qc-fail"
+                :disabled="checklistPending"
+                @click="setStatus(entry.record, 'failed')"
+              >
                 Fehlgeschlagen
               </PsButton>
             </div>
@@ -272,6 +331,7 @@ async function submitOverride() {
               v-if="record.status === 'failed'"
               variant="secondary"
               size="sm"
+              :disabled="checklistPending"
               data-testid="qc-reprint"
               @click="setStatus(record, 'reprint_required')"
             >
@@ -281,6 +341,7 @@ async function submitOverride() {
               v-if="canOverride && (record.status === 'open' || record.status === 'failed')"
               variant="ghost"
               size="sm"
+              :disabled="overridePending"
               data-testid="qc-override-open"
               @click="openOverride(record.id)"
             >
@@ -291,10 +352,24 @@ async function submitOverride() {
       </div>
     </section>
 
-    <PsDialog v-model:open="overrideOpen" title="QC überschreiben" description="Bewusstes Freigeben trotz fehlgeschlagener Prüfung. Grund wird protokolliert.">
+    <PsDialog
+      v-model:open="overrideOpen"
+      title="QC überschreiben"
+      description="Bewusstes Freigeben trotz fehlgeschlagener Prüfung. Grund wird protokolliert."
+    >
       <div class="flex flex-col gap-md">
-        <PsTextarea v-model="overrideReason" label="Begründung (min. 10 Zeichen)" name="overrideReason" :rows="3" data-testid="qc-override-reason" />
-        <PsButton :disabled="overrideReason.trim().length < 10" data-testid="qc-override-submit" @click="submitOverride">
+        <PsTextarea
+          v-model="overrideReason"
+          label="Begründung (min. 10 Zeichen)"
+          name="overrideReason"
+          :rows="3"
+          data-testid="qc-override-reason"
+        />
+        <PsButton
+          :disabled="overridePending || overrideReason.trim().length < 10"
+          data-testid="qc-override-submit"
+          @click="submitOverride"
+        >
           Überschreiben
         </PsButton>
       </div>

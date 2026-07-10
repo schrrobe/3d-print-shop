@@ -22,7 +22,6 @@ const viewMode = ref<'list' | 'calendar'>('list')
 const platformFilter = ref('')
 const statusFilter = ref('')
 const search = ref('')
-const busy = ref(false)
 
 const { data, refresh } = await useFetch<{ posts: AdminSocialPost[] }>('/api/admin/social-posts', {
   credentials: 'include',
@@ -45,24 +44,21 @@ const items = computed<SocialPostItem[]>(() =>
   (data.value?.posts ?? []).map((post) => toSocialPostItem(post, siteUrl)),
 )
 
+const { run, pending: busy } = useAdminAction({ refresh })
+
 function openPost(post: SocialPostItem) {
   navigateTo(`/admin/social/${post.id}`)
 }
 
-async function retryPost(post: SocialPostItem) {
-  busy.value = true
-  try {
-    await $fetch(`/api/admin/social-posts/${post.id}/retry`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-    toast.show('Post erneut geplant', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Erneut planen fehlgeschlagen', { variant: 'error' })
-  } finally {
-    busy.value = false
-  }
+function retryPost(post: SocialPostItem) {
+  return run(
+    () =>
+      $fetch(`/api/admin/social-posts/${post.id}/retry`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Post erneut geplant', error: 'Erneut planen fehlgeschlagen' },
+  )
 }
 
 const deleteTarget = ref<SocialPostItem | null>(null)
@@ -74,42 +70,37 @@ function confirmDelete(post: SocialPostItem) {
 }
 
 async function deletePost() {
-  if (!deleteTarget.value) return
-  busy.value = true
-  try {
-    await $fetch(`/api/admin/social-posts/${deleteTarget.value.id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Post gelöscht', { variant: 'success' })
+  const target = deleteTarget.value
+  if (!target) return
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/social-posts/${target.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Post gelöscht', error: 'Löschen fehlgeschlagen' },
+  )
+  if (ok) {
     deleteDialogOpen.value = false
     deleteTarget.value = null
-    await refresh()
-  } catch {
-    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
-  } finally {
-    busy.value = false
   }
 }
 
 /** Dev-freundlicher manueller Scheduler-Lauf (fällige Posts sofort veröffentlichen). */
-async function runScheduler() {
-  busy.value = true
-  try {
-    const data = await $fetch<{ result: { published: number; failed: number } }>(
-      '/api/admin/social-posts/run-scheduler',
-      { method: 'POST', credentials: 'include' },
-    )
-    toast.show(
-      `Scheduler-Lauf: ${data.result.published} veröffentlicht, ${data.result.failed} fehlgeschlagen`,
-      { variant: data.result.failed > 0 ? 'error' : 'success' },
-    )
-    await refresh()
-  } catch {
-    toast.show('Scheduler-Lauf fehlgeschlagen', { variant: 'error' })
-  } finally {
-    busy.value = false
-  }
+function runScheduler() {
+  return run(
+    async () => {
+      const data = await $fetch<{ result: { published: number; failed: number } }>(
+        '/api/admin/social-posts/run-scheduler',
+        { method: 'POST', credentials: 'include' },
+      )
+      toast.show(
+        `Scheduler-Lauf: ${data.result.published} veröffentlicht, ${data.result.failed} fehlgeschlagen`,
+        { variant: data.result.failed > 0 ? 'error' : 'success' },
+      )
+    },
+    { error: 'Scheduler-Lauf fehlgeschlagen' },
+  )
 }
 </script>
 

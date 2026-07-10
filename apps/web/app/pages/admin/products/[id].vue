@@ -12,43 +12,20 @@ import {
   useToast,
 } from '@print-shop/ui'
 import { COLOR_ZONE_SLOTS, LOCALES, MAX_PRODUCT_IMAGES } from '@print-shop/types'
-import type { ColorZoneSlot, Locale } from '@print-shop/types'
+import type { AdminColorDto, AdminProductDetailDto, ColorZoneSlot, Locale } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
-
-interface AdminProductDetail {
-  id: string
-  slug: string
-  priceCents: number
-  active: boolean
-  translations: {
-    locale: Locale
-    name: string
-    description: string
-    seoTitle: string | null
-    seoDescription: string | null
-  }[]
-  assets: { id: string; type: string; url: string; alt: string | null; sortOrder: number }[]
-  colorSlots: { slot: ColorZoneSlot; label: string; defaultColorId: string | null }[]
-}
-
-interface AdminColor {
-  id: string
-  name: string
-  hex: string
-  active: boolean
-}
 
 const route = useRoute()
 const toast = useToast()
 const auth = useAdminAuthStore()
 const productId = String(route.params.id)
 
-const { data, refresh } = await useFetch<{ product: AdminProductDetail }>(
+const { data, refresh } = await useFetch<{ product: AdminProductDetailDto }>(
   `/api/admin/products/${productId}`,
   { credentials: 'include', server: false },
 )
-const { data: colorData } = await useFetch<{ colors: AdminColor[] }>('/api/admin/colors', {
+const { data: colorData } = await useFetch<{ colors: AdminColorDto[] }>('/api/admin/colors', {
   credentials: 'include',
   server: false,
 })
@@ -142,7 +119,13 @@ const colorOptions = computed(() => [
   ...(colorData.value?.colors ?? []).map((c) => ({ value: c.id, label: c.name })),
 ])
 
-const saving = ref(false)
+const { run, pending: saving } = useAdminAction({ refresh })
+const { run: runModelAction } = useAdminAction({ refresh })
+const { run: runImageUploadAction } = useAdminAction({ refresh })
+const { run: runImageAltAction, pending: imageAltPending } = useAdminAction({ refresh })
+const { run: runImageOrderAction, pending: imageOrderPending } = useAdminAction({ refresh })
+const { run: runImageDeleteAction, pending: imageDeletePending } = useAdminAction({ refresh })
+const { run: runDeleteAction, pending: deletePending } = useAdminAction({ refresh })
 
 async function save() {
   if (!translations.de.name.trim()) {
@@ -172,20 +155,15 @@ async function save() {
       defaultColorId: slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
     })),
   }
-  saving.value = true
-  try {
-    await $fetch(`/api/admin/products/${productId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: payload,
-    })
-    toast.show('Gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen (Slug bereits vergeben?)', { variant: 'error' })
-  } finally {
-    saving.value = false
-  }
+  await run(
+    () =>
+      $fetch(`/api/admin/products/${productId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: payload,
+      }),
+    { success: 'Gespeichert', error: 'Speichern fehlgeschlagen (Slug bereits vergeben?)' },
+  )
 }
 
 async function uploadModel(files: File[]) {
@@ -193,20 +171,18 @@ async function uploadModel(files: File[]) {
   if (!file) return
   const body = new FormData()
   body.append('file', file)
-  try {
-    await $fetch(`/api/admin/products/${productId}/model`, {
-      method: 'POST',
-      credentials: 'include',
-      body,
-    })
-    toast.show('3D-Modell hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await runModelAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}/model`, {
+        method: 'POST',
+        credentials: 'include',
+        body,
+      }),
+    { success: '3D-Modell hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
-type ProductImageAsset = AdminProductDetail['assets'][number]
+type ProductImageAsset = AdminProductDetailDto['assets'][number]
 const imageAssets = computed<ProductImageAsset[]>(() =>
   [...(product.value?.assets.filter((a) => a.type === 'image') ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder,
@@ -224,45 +200,39 @@ async function uploadImages(files: File[]) {
   }
   const body = new FormData()
   for (const file of files.slice(0, remaining)) body.append('files', file)
-  try {
-    await $fetch(`/api/admin/products/${productId}/images`, {
-      method: 'POST',
-      credentials: 'include',
-      body,
-    })
-    toast.show('Fotos hochgeladen', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Upload fehlgeschlagen', { variant: 'error' })
-  }
+  await runImageUploadAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}/images`, {
+        method: 'POST',
+        credentials: 'include',
+        body,
+      }),
+    { success: 'Fotos hochgeladen', error: 'Upload fehlgeschlagen' },
+  )
 }
 
 async function saveAssetAlt(asset: ProductImageAsset) {
-  try {
-    await $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: { alt: asset.alt?.trim() || null },
-    })
-    toast.show('Alt-Text gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Alt-Text speichern fehlgeschlagen', { variant: 'error' })
-  }
+  await runImageAltAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}/assets/${asset.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: { alt: asset.alt?.trim() || null },
+      }),
+    { success: 'Alt-Text gespeichert', error: 'Alt-Text speichern fehlgeschlagen' },
+  )
 }
 
 async function reorderImages(assetIds: string[]) {
-  try {
-    await $fetch(`/api/admin/products/${productId}/images/order`, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: { assetIds },
-    })
-    toast.show('Bildreihenfolge gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Bildreihenfolge speichern fehlgeschlagen', { variant: 'error' })
-  }
+  await runImageOrderAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}/images/order`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: { assetIds },
+      }),
+    { success: 'Bildreihenfolge gespeichert', error: 'Bildreihenfolge speichern fehlgeschlagen' },
+  )
 }
 
 async function setCoverPhoto(assetId: string) {
@@ -295,35 +265,33 @@ const pendingDeleteAssetId = ref<string | null>(null)
 async function deleteAsset() {
   const assetId = pendingDeleteAssetId.value
   if (!assetId) return
-  try {
-    await $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Foto entfernt', { variant: 'success' })
-    pendingDeleteAssetId.value = null
-    await refresh()
-  } catch {
-    toast.show('Entfernen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await runImageDeleteAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}/assets/${assetId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Foto entfernt', error: 'Entfernen fehlgeschlagen' },
+  )
+  if (ok) pendingDeleteAssetId.value = null
 }
 
 const deleteDialogOpen = ref(false)
 
 async function deleteProduct() {
-  try {
-    await $fetch(`/api/admin/products/${productId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Produkt gelöscht', { variant: 'success' })
-    // close the modal before navigating — the Radix portal otherwise outlives the page
-    deleteDialogOpen.value = false
-    await nextTick()
-    await navigateTo('/admin/products')
-  } catch {
-    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
-  }
+  const ok = await runDeleteAction(
+    () =>
+      $fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Produkt gelöscht', error: 'Löschen fehlgeschlagen', refresh: false },
+  )
+  if (!ok) return
+  // close the modal before navigating — the Radix portal otherwise outlives the page
+  deleteDialogOpen.value = false
+  await nextTick()
+  await navigateTo('/admin/products')
 }
 </script>
 
@@ -484,7 +452,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="set-cover-photo"
-              :disabled="index === 0"
+              :disabled="imageOrderPending || index === 0"
               @click="setCoverPhoto(asset.id)"
             >
               Cover
@@ -493,7 +461,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="move-photo-up"
-              :disabled="index === 0"
+              :disabled="imageOrderPending || index === 0"
               @click="movePhoto(asset.id, -1)"
             >
               Hoch
@@ -502,7 +470,7 @@ async function deleteProduct() {
               variant="ghost"
               size="sm"
               data-testid="move-photo-down"
-              :disabled="index === imageAssets.length - 1"
+              :disabled="imageOrderPending || index === imageAssets.length - 1"
               @click="movePhoto(asset.id, 1)"
             >
               Runter
@@ -512,6 +480,7 @@ async function deleteProduct() {
             v-if="auth.can('assets:write')"
             variant="ghost"
             data-testid="save-photo-alt"
+            :disabled="imageAltPending"
             @click="saveAssetAlt(asset)"
           >
             Alt-Text speichern
@@ -520,6 +489,7 @@ async function deleteProduct() {
             v-if="auth.can('assets:write')"
             variant="ghost"
             data-testid="delete-photo"
+            :disabled="imageDeletePending"
             @click="pendingDeleteAssetId = asset.id"
           >
             Entfernen
@@ -584,19 +554,30 @@ async function deleteProduct() {
       </p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="deleteDialogOpen = false">Abbrechen</PsButton>
-        <PsButton data-testid="confirm-delete-product" @click="deleteProduct">Löschen</PsButton>
+        <PsButton
+          data-testid="confirm-delete-product"
+          :disabled="deletePending"
+          @click="deleteProduct"
+          >Löschen</PsButton
+        >
       </div>
     </PsDialog>
 
     <PsDialog
       :open="pendingDeleteAssetId !== null"
       title="Foto entfernen"
-      @update:open="(open: boolean) => { if (!open) pendingDeleteAssetId = null }"
+      @update:open="
+        (open: boolean) => {
+          if (!open) pendingDeleteAssetId = null
+        }
+      "
     >
       <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="pendingDeleteAssetId = null">Abbrechen</PsButton>
-        <PsButton data-testid="confirm-delete-photo" @click="deleteAsset">Entfernen</PsButton>
+        <PsButton data-testid="confirm-delete-photo" :disabled="imageDeletePending" @click="deleteAsset"
+          >Entfernen</PsButton
+        >
       </div>
     </PsDialog>
   </div>

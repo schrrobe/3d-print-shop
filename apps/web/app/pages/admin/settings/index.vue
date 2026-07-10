@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsButton, PsInput, useToast } from '@print-shop/ui'
+import { PsButton, PsInput } from '@print-shop/ui'
 import {
   GA4_MEASUREMENT_ID_REGEX,
   GTM_CONTAINER_ID_REGEX,
@@ -24,7 +24,6 @@ interface TrackingSettingsDto {
   gtmContainerId: string | null
 }
 
-const toast = useToast()
 const auth = useAdminAuthStore()
 
 const { data, refresh } = await useFetch<{ settings: TrackingSettingsDto }>(
@@ -33,7 +32,7 @@ const { data, refresh } = await useFetch<{ settings: TrackingSettingsDto }>(
 )
 
 const form = reactive({ metaPixelId: '', ga4MeasurementId: '', gtmContainerId: '' })
-const saving = ref(false)
+const { run, pending: saving } = useAdminAction({ refresh })
 
 watch(
   () => data.value?.settings,
@@ -88,26 +87,21 @@ const doubleTrackingRisk = computed(
     GTM_CONTAINER_ID_REGEX.test(form.gtmContainerId.trim()),
 )
 
-async function save() {
-  if (hasErrors.value || saving.value) return
-  saving.value = true
-  try {
-    await $fetch('/api/admin/settings/tracking', {
-      method: 'PUT',
-      credentials: 'include',
-      body: {
-        metaPixelId: form.metaPixelId,
-        ga4MeasurementId: form.ga4MeasurementId,
-        gtmContainerId: form.gtmContainerId,
-      },
-    })
-    toast.show('Tracking-Einstellungen gespeichert', { variant: 'success' })
-    await refresh()
-  } catch {
-    toast.show('Speichern fehlgeschlagen — Eingaben prüfen', { variant: 'error' })
-  } finally {
-    saving.value = false
-  }
+function save() {
+  if (hasErrors.value) return
+  return run(
+    () =>
+      $fetch('/api/admin/settings/tracking', {
+        method: 'PUT',
+        credentials: 'include',
+        body: {
+          metaPixelId: form.metaPixelId,
+          ga4MeasurementId: form.ga4MeasurementId,
+          gtmContainerId: form.gtmContainerId,
+        },
+      }),
+    { success: 'Tracking-Einstellungen gespeichert', error: 'Speichern fehlgeschlagen — Eingaben prüfen' },
+  )
 }
 
 function clearField(key: (typeof fields)[number]['key']) {

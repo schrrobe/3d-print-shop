@@ -46,7 +46,8 @@ const item = computed(() =>
 )
 
 const extraMedia = ref<MediaOption[]>([])
-const busy = ref(false)
+// save() drives `busy` manually — it needs the caught error for the inline editor message.
+const { run, pending: busy } = useAdminAction()
 const errorMessage = ref('')
 
 async function onUpload(file: File) {
@@ -94,37 +95,31 @@ async function save(value: SocialEditorValue, schedule: boolean) {
 }
 
 async function retry() {
-  busy.value = true
-  try {
-    await $fetch(`/api/admin/social-posts/${postId}/retry`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-    toast.show('Post erneut geplant', { variant: 'success' })
-    await router.push('/admin/social')
-  } catch {
-    toast.show('Erneut planen fehlgeschlagen', { variant: 'error' })
-  } finally {
-    busy.value = false
-  }
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/social-posts/${postId}/retry`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Post erneut geplant', error: 'Erneut planen fehlgeschlagen' },
+  )
+  if (ok) await router.push('/admin/social')
 }
 
 const deleteDialogOpen = ref(false)
 
 async function deletePost() {
-  busy.value = true
-  try {
-    await $fetch(`/api/admin/social-posts/${postId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    toast.show('Post gelöscht', { variant: 'success' })
-    await router.push('/admin/social')
-  } catch {
-    toast.show('Löschen fehlgeschlagen', { variant: 'error' })
-  } finally {
-    busy.value = false
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/social-posts/${postId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'Post gelöscht', error: 'Löschen fehlgeschlagen' },
+  )
+  if (ok) {
     deleteDialogOpen.value = false
+    await router.push('/admin/social')
   }
 }
 </script>

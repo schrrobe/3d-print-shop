@@ -2,11 +2,11 @@ import { createWriteStream } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { Prisma, type Invoice } from '@prisma/client'
-import { formatInvoiceNumber } from '@print-shop/utils'
 import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { nextSequentialNumber } from '../lib/sequential-number.js'
 import {
   buildEpcQrPayload,
   renderInvoicePdf,
@@ -30,20 +30,17 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
   const paidPayment = order.payments.find((p) => p.status === 'paid') ?? order.payments[0]
   if (!paidPayment) throw new Error(`Order ${order.orderNumber} has no payment`)
 
-  const year = new Date().getFullYear()
   try {
     return await prisma.$transaction(async (tx) => {
-      const counter = await tx.invoiceCounter.upsert({
-        where: { year },
-        create: { year, lastSequence: 1 },
-        update: { lastSequence: { increment: 1 } },
-      })
-      const number = formatInvoiceNumber(env.INVOICE_PREFIX, year, counter.lastSequence)
+      const { number, year, sequence } = await nextSequentialNumber(
+        tx.invoiceCounter,
+        env.INVOICE_PREFIX,
+      )
       return tx.invoice.create({
         data: {
           number,
           year,
-          sequence: counter.lastSequence,
+          sequence,
           orderId: order.id,
           locale: order.locale,
           subtotalCents: order.subtotalCents,

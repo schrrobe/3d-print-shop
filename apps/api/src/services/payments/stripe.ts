@@ -90,6 +90,8 @@ export function constructStripeWebhookEvent(
     if (!signature) throw new Error('Missing stripe-signature header')
     return stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET)
   }
-  if (isProduction) throw new Error('Unsigned Stripe webhooks are disabled in production')
+  // env validation already requires the webhook secret alongside a live key in
+  // production; this guard keeps unsigned events out even if that changes.
+  if (isProduction) throw new Error('Refusing to accept unsigned Stripe webhook event in production')
   return JSON.parse(rawBody.toString('utf8')) as Stripe.Event
 }

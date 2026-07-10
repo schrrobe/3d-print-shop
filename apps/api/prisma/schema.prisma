@@ -254,6 +254,8 @@ model User {
   passwordHash   String
   /// Incremented on password changes to invalidate all previously issued JWTs.
   sessionVersion Int      @default(0)
+  /// Sessions issued before this moment are rejected (set on logout).
+  sessionsInvalidatedAt DateTime?
   active         Boolean  @default(true)
   roleId         String
   role           Role     @relation(fields: [roleId], references: [id])

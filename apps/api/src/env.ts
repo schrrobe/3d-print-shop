@@ -142,6 +142,24 @@ const envSchema = z
           })
         }
       }
+      // Session cookies are signed with this secret — the dev default or a
+      // short value would make admin sessions forgeable.
+      if (val.JWT_SECRET === 'dev-only-secret-change-me' || val.JWT_SECRET.length < 32) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['JWT_SECRET'],
+          message: 'JWT_SECRET must be a unique random value of at least 32 characters in production',
+        })
+      }
+      // Without the webhook secret, unsigned (forgeable) Stripe events would
+      // be accepted and could mark orders as paid.
+      if (val.STRIPE_SECRET_KEY && !val.STRIPE_WEBHOOK_SECRET) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['STRIPE_WEBHOOK_SECRET'],
+          message: 'STRIPE_WEBHOOK_SECRET is required in production when STRIPE_SECRET_KEY is set',
+        })
+      }
     }
     if (val.BITCOIN_ENABLED && val.BITCOIN_PROVIDER === 'mock' && val.NODE_ENV === 'production') {
       ctx.addIssue({

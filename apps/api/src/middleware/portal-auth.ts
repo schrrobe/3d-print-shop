@@ -45,7 +45,7 @@ export async function requirePortalToken(req: Request, _res: Response, next: Nex
     // Lightweight usage audit — fire and forget, never blocks the request.
     void prisma.magicLinkToken
       .update({ where: { id: row.id }, data: { lastUsedAt: new Date(), useCount: { increment: 1 } } })
-      .catch(() => {})
+      .catch((err) => console.error('[portal-auth] usage stats update failed:', err))
     next()
   } catch (err) {
     next(err)
