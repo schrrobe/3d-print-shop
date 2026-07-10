@@ -297,6 +297,7 @@ adminComplaintsRouter.post(
   requirePermission('complaints:write'),
   photoUpload.array('photos', 5),
   async (req, res, next) => {
+    let persisted = false
     try {
       const complaint = await prisma.complaint.findUnique({ where: { id: String(req.params.id) } })
       if (!complaint) throw notFound('Complaint not found')
@@ -313,6 +314,7 @@ adminComplaintsRouter.post(
           uploadedBy: 'staff' as const,
         })),
       })
+      persisted = true
       await audit(
         req,
         'complaint.photo_upload',
@@ -321,7 +323,9 @@ adminComplaintsRouter.post(
       )
       res.status(201).json({ ok: true })
     } catch (err) {
-      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+      if (!persisted) {
+        await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+      }
       next(err)
     }
   },

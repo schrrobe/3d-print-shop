@@ -102,7 +102,7 @@ webhooksRouter.post(
         replyDomain: env.TICKET_REPLY_DOMAIN,
       })
       console.info(
-        `[inbound-email] from=${event.data.from} → ${result.outcome}${
+        `[inbound-email] from=${event.data.from.slice(0, 3)}*** → ${result.outcome}${
           result.outcome === 'skipped' ? `:${result.reason}` : ''
         }`,
       )

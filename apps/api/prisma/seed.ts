@@ -1080,7 +1080,15 @@ async function main() {
   if (process.env.ALLOW_DEMO_SEED !== 'true') {
     throw new Error('Demo seed refused: set ALLOW_DEMO_SEED=true for local/CI fixtures')
   }
-  const databaseUrl = new URL(process.env.DATABASE_URL ?? '')
+  if (!process.env.DATABASE_URL) {
+    throw new Error('Demo seed refused: DATABASE_URL is missing')
+  }
+  let databaseUrl: URL
+  try {
+    databaseUrl = new URL(process.env.DATABASE_URL)
+  } catch {
+    throw new Error('Demo seed refused: DATABASE_URL is invalid')
+  }
   if (!new Set(['localhost', '127.0.0.1', '[::1]']).has(databaseUrl.hostname)) {
     throw new Error(`Demo seed refused for non-local database host: ${databaseUrl.hostname}`)
   }

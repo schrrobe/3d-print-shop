@@ -53,14 +53,26 @@ async function ensureQuotePaymentLink(
       locale,
       description: `Individuelles Angebot ${order.orderNumber}`,
     })
-    await prisma.payment.update({
-      where: { id: payment.id },
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'processing', stripeSessionId: null },
       data: {
         status: 'pending',
         stripeSessionId: link.sessionId,
         stripePaymentLinkUrl: link.url,
       },
     })
+    if (updated.count !== 1) {
+      // Our claim was lost (e.g. a stale-reset let another request take over).
+      // Don't overwrite the newer link; return it if present, else signal retry.
+      const existing = await prisma.payment.findUnique({
+        where: { id: payment.id },
+        select: { stripePaymentLinkUrl: true },
+      })
+      if (existing?.stripePaymentLinkUrl) {
+        return { url: existing.stripePaymentLinkUrl, created: false }
+      }
+      throw conflict('Payment link state changed; retry shortly')
+    }
     return { url: link.url, created: true }
   } catch (err) {
     await prisma.payment.updateMany({

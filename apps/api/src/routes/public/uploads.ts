@@ -48,6 +48,7 @@ const upload = multer({
  * Creates a QuoteRequest that production reviews before an individual quote is sent.
  */
 uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, res, next) => {
+  let persisted = false
   try {
     const files = (req.files ?? []) as Express.Multer.File[]
     if (files.length === 0) throw badRequest('At least one .stl or .3mf file is required')
@@ -104,6 +105,7 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
       },
       include: { files: true },
     })
+    persisted = true
 
     await sendEmail(
       input.email,
@@ -131,7 +133,9 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
       files: request.files.map((f) => ({ name: f.originalName, sizeBytes: f.sizeBytes })),
     })
   } catch (err) {
-    await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+    if (!persisted) {
+      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+    }
     next(err)
   }
 })

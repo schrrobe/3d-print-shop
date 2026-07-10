@@ -147,6 +147,7 @@ complaintsRouter.post(
   sensitiveLimiter,
   photoUpload.array('photos', 5),
   async (req, res, next) => {
+    let persisted = false
     try {
       const complaint = await complaintByNumberAndToken(
         String(req.params.complaintNumber),
@@ -177,9 +178,12 @@ complaintsRouter.post(
           },
         },
       })
+      persisted = true
       res.status(201).json({ ok: true, status: 'in_review' })
     } catch (err) {
-      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+      if (!persisted) {
+        await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+      }
       next(err)
     }
   },

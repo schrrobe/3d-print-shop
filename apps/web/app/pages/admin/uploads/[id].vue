@@ -25,7 +25,7 @@ interface RequestDetail {
   }[]
 }
 
-const { data, refresh } = await useFetch<{ request: RequestDetail }>(
+const { data, error, refresh } = await useFetch<{ request: RequestDetail }>(
   `/api/admin/quote-requests/${requestId}`,
   { credentials: 'include', server: false },
 )
@@ -73,7 +73,10 @@ async function createQuote() {
 </script>
 
 <template>
-  <div v-if="request" class="flex flex-col gap-lg" data-testid="admin-upload-detail">
+  <div v-if="error" class="text-error" data-testid="admin-upload-error">
+    Fehler beim Laden der Anfrage
+  </div>
+  <div v-else-if="request" class="flex flex-col gap-lg" data-testid="admin-upload-detail">
     <PsCard>
       <h2 class="text-heading-small">{{ request.name }}</h2>
       <p class="text-caption text-secondary">{{ request.email }} · Status: {{ request.status }}</p>

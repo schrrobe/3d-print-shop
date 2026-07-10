@@ -32,7 +32,7 @@ export const allowedProviders = (
 
 const SENSITIVE_TRACKING_PREFIXES = [
   '/admin/',
-  '/checkout/success',
+  '/checkout/success/',
   '/order/',
   '/portal/',
   '/quote/',

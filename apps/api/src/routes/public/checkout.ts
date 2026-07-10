@@ -13,7 +13,7 @@ import { Router } from 'express'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
-import { badRequest, conflict } from '../../middleware/error.js'
+import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
@@ -252,7 +252,13 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         })
       })
     } catch (err) {
-      if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2002') throw err
+      // A concurrent request sharing this checkoutKey can lose the unique-order
+      // race (P2002) or exhaust the voucher first (conflict, 409). Both mean an
+      // order for this key already exists, so resolve idempotently to it.
+      const isConcurrent =
+        (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') ||
+        (err instanceof ApiError && err.status === 409)
+      if (!isConcurrent) throw err
       const concurrent = await prisma.order.findUnique({
         where: { checkoutKey },
         include: checkoutOrderInclude,
