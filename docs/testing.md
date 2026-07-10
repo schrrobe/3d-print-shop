@@ -31,8 +31,9 @@ pnpm e2e           # startet API (3001) + Nuxt (3000) automatisch (webServer)
 ```
 
 `global-setup.ts` stellt deterministische Daten her: `prisma migrate deploy` →
-`prisma:reset-data` (TRUNCATE aller App-Tabellen) → Seed. **Achtung:** leert die lokale
-Dev-Datenbank — für getrennte Daten eigene `DATABASE_URL` setzen.
+`prisma:reset-data` (TRUNCATE aller App-Tabellen) → Seed. Der Reset verlangt
+`ALLOW_DATABASE_RESET=true`, `NODE_ENV!=production` und eine lokale Test-/Printshop-URL;
+der Demo-Seed verlangt zusätzlich `ALLOW_DEMO_SEED=true`.
 
 31 Spec-Dateien: auth (Login/Logout/RBAC) · product-catalog · product-configurator
 (Viewer-Fallback, 4 Farbzonen, Auswahl) · cart (Mengen, Versandgrenze, Persistenz) ·
@@ -50,8 +51,7 @@ Retry via Mock-Provider `[e2e-fail]`, RBAC, Publish-Sperre).
 Neue Feature-Specs: **complaints** (Kunde eröffnet + Foto, Admin-Entscheidung
 `replacement_print` → Job in Queue, Ticket-Link, falscher Token 401) · **quality-control**
 (Checkliste erzwingt alle 6, Fail→Reprint, Override nur Admin — Produktion 403) ·
-**filament-ams** (Spulen-CRUD, Warnungen/Einkaufsliste, `outOfStock` im Shop, Slot-Kollision
-409) · **production-calendar** (Overlap-409 + `force`, verschieben, Wartungsfenster blockt) ·
+**filament-ams** (Spulen-CRUD, Warnungen/Einkaufsliste, `outOfStock` im Shop, Slot-Kollision 409) · **production-calendar** (Overlap-409 + `force`, verschieben, Wartungsfenster blockt) ·
 **shipping-management** (QC-Gate 409, DHL-Versand, `shipping_confirmation`-Mail, PDFs,
 Historie) · **customer-portal** (Magic-Link via Seed-Token, Bearer-only, abgelaufen→Renewal,
 Anti-Enumeration 202) · **wishlist** (localStorage-Persistenz, in den Warenkorb, Toggle) ·

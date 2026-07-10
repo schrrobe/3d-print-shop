@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  hasValidUploadContent,
   MAX_UPLOAD_BYTES,
   sanitizeFilename,
   validateUploadFile,
@@ -42,5 +43,38 @@ describe('upload validation', () => {
     expect(sanitizeFilename('../../etc/passwd')).toBe('passwd')
     expect(sanitizeFilename('C:\\evil\\model.stl')).toBe('model.stl')
     expect(sanitizeFilename('meine datei (final).stl')).toBe('meine_datei__final_.stl')
+  })
+})
+
+describe('upload content signatures', () => {
+  it('accepts 3MF ZIP and ASCII STL headers', () => {
+    expect(
+      hasValidUploadContent({
+        extension: '.3mf',
+        sizeBytes: 100,
+        header: Uint8Array.from([0x50, 0x4b, 3, 4]),
+      }),
+    ).toBe(true)
+    expect(
+      hasValidUploadContent({
+        extension: '.stl',
+        sizeBytes: 20,
+        header: new TextEncoder().encode('solid model\nendsolid'),
+      }),
+    ).toBe(true)
+  })
+
+  it('checks binary STL length and rejects renamed arbitrary files', () => {
+    const header = new Uint8Array(84)
+    new DataView(header.buffer).setUint32(80, 2, true)
+    expect(hasValidUploadContent({ extension: '.stl', sizeBytes: 184, header })).toBe(true)
+    expect(
+      hasValidUploadContent({
+        extension: '.3mf',
+        sizeBytes: 100,
+        header: new TextEncoder().encode('evil'),
+      }),
+    ).toBe(false)
+    expect(hasValidUploadContent({ extension: '.stl', sizeBytes: 185, header })).toBe(false)
   })
 })

@@ -8,9 +8,9 @@ Schema: `apps/api/prisma/schema.prisma` · Seed: `apps/api/prisma/seed.ts`.
 ```bash
 pnpm db:up                 # Postgres starten
 pnpm db:migrate            # prisma migrate dev
-pnpm db:seed               # Beispieldaten
+ALLOW_DEMO_SEED=true pnpm db:seed  # Beispieldaten (nur Entwicklung/CI)
 pnpm prisma:validate       # Schema validieren
-pnpm --filter @print-shop/api prisma:reset-data   # Tabellen leeren (Test-Fixture)
+ALLOW_DATABASE_RESET=true NODE_ENV=test pnpm --filter @print-shop/api prisma:reset-data
 ```
 
 ## Modelle

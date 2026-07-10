@@ -6,6 +6,13 @@ const { t } = useI18n()
 const route = useRoute()
 const localePath = useLocalePath()
 
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
+
 const orderNumber = computed(() => String(route.query.order ?? ''))
 const token = computed(() => String(route.query.token ?? ''))
 const mockSession = computed(() => (route.query.mock ? String(route.query.session ?? '') : ''))
@@ -24,7 +31,8 @@ async function simulatePayment() {
     <div class="mx-auto max-w-[36rem] py-3xl text-center" data-testid="checkout-success">
       <h1 class="text-heading-large">{{ t('success.title') }}</h1>
       <p class="mt-lg text-body-regular text-secondary">
-        {{ t('success.orderNumber') }}: <strong data-testid="order-number">{{ orderNumber }}</strong>
+        {{ t('success.orderNumber') }}:
+        <strong data-testid="order-number">{{ orderNumber }}</strong>
       </p>
       <p class="mt-sm text-body-regular text-secondary">{{ t('success.emailHint') }}</p>
       <div class="mt-2xl flex flex-wrap justify-center gap-md">

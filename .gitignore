@@ -28,7 +28,7 @@ postgres-data/
 
 # User uploads (customer 3D files) — never commit
 apps/api/uploads/
-uploads/
+/uploads/
 
 # Generated invoices
 apps/api/invoices/

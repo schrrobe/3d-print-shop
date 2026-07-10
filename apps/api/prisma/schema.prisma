@@ -248,17 +248,19 @@ enum ReviewStatus {
 // ---------- Auth / RBAC ----------
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  active       Boolean  @default(true)
-  roleId       String
-  role         Role     @relation(fields: [roleId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  passwordHash   String
+  /// Incremented on password changes to invalidate all previously issued JWTs.
+  sessionVersion Int      @default(0)
   /// Sessions issued before this moment are rejected (set on logout).
   sessionsInvalidatedAt DateTime?
+  active         Boolean  @default(true)
+  roleId         String
+  role           Role     @relation(fields: [roleId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   auditLogs       AdminAuditLog[]      @relation("AuditActor")
   passwordResets  PasswordResetToken[]
@@ -427,6 +429,8 @@ model Order {
   orderNumber    String      @unique
   /// Token for guest access to confirmation / status page
   accessToken    String      @unique
+  /// Client-generated retry key; prevents duplicate orders on checkout retries.
+  checkoutKey    String?     @unique
   status         OrderStatus @default(pending)
   locale         Locale      @default(de)
   email          String
@@ -494,7 +498,7 @@ model Payment {
   status               PaymentStatus @default(pending)
   amountCents          Int
   /// Stripe checkout session / payment link id
-  stripeSessionId      String?
+  stripeSessionId      String?       @unique
   stripePaymentLinkUrl String?
   /// Manual reference (e.g. bank transfer reference)
   reference            String?

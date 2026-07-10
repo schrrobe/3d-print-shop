@@ -147,6 +147,7 @@ complaintsRouter.post(
   sensitiveLimiter,
   photoUpload.array('photos', 5),
   async (req, res, next) => {
+    let persisted = false
     try {
       const complaint = await complaintByNumberAndToken(
         String(req.params.complaintNumber),
@@ -159,6 +160,7 @@ complaintsRouter.post(
         message: (req.body as Record<string, string>).message,
       })
       const files = (req.files ?? []) as Express.Multer.File[]
+      await validateUploadedImages(files)
 
       await prisma.complaint.update({
         where: { id: complaint.id },
@@ -176,8 +178,12 @@ complaintsRouter.post(
           },
         },
       })
+      persisted = true
       res.status(201).json({ ok: true, status: 'in_review' })
     } catch (err) {
+      if (!persisted) {
+        await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+      }
       next(err)
     }
   },

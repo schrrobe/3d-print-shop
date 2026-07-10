@@ -39,6 +39,25 @@ adminQuoteRequestsRouter.get('/:id', requirePermission('uploads:read'), async (r
   }
 })
 
+adminQuoteRequestsRouter.get(
+  '/:id/files/:fileId',
+  requirePermission('uploads:read'),
+  async (req, res, next) => {
+    try {
+      const file = await prisma.uploadedFile.findUnique({
+        where: { id: String(req.params.fileId) },
+      })
+      if (!file || file.quoteRequestId !== String(req.params.id)) {
+        throw notFound('Uploaded file not found')
+      }
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.download(file.storedPath, file.originalName)
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
 const statusSchema = z.object({ status: z.enum(['in_review', 'rejected', 'cancelled']) })
 
 adminQuoteRequestsRouter.post(
@@ -47,13 +66,20 @@ adminQuoteRequestsRouter.post(
   async (req, res, next) => {
     try {
       const { status } = statusSchema.parse(req.body)
-      const existing = await prisma.quoteRequest.findUnique({ where: { id: String(req.params.id) } })
+      const existing = await prisma.quoteRequest.findUnique({
+        where: { id: String(req.params.id) },
+      })
       if (!existing) throw notFound('Quote request not found')
       const request = await prisma.quoteRequest.update({
         where: { id: existing.id },
         data: { status },
       })
-      await audit(req, 'quote_request.status', { type: 'quote_request', id: request.id }, { status })
+      await audit(
+        req,
+        'quote_request.status',
+        { type: 'quote_request', id: request.id },
+        { status },
+      )
       res.json({ request })
     } catch (err) {
       next(err)
@@ -104,7 +130,12 @@ adminQuoteRequestsRouter.post(
           request.locale,
         ),
       )
-      await audit(req, 'quote.create', { type: 'quote', id: quote.id }, { priceCents: input.priceCents })
+      await audit(
+        req,
+        'quote.create',
+        { type: 'quote', id: quote.id },
+        { priceCents: input.priceCents },
+      )
       res.status(201).json({ quote: { ...quote, url: quoteUrl } })
     } catch (err) {
       next(err)

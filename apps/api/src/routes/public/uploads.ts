@@ -1,11 +1,18 @@
 import { mkdirSync } from 'node:fs'
+import { open } from 'node:fs/promises'
 import path from 'node:path'
 import { renderAdminNotification, renderUploadReceived } from '@print-shop/emails'
-import { getFileExtension, sanitizeFilename, validateUploadFile } from '@print-shop/utils'
+import {
+  getFileExtension,
+  hasValidUploadContent,
+  sanitizeFilename,
+  validateUploadFile,
+} from '@print-shop/utils'
 import { uploadRequestSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import multer from 'multer'
 import { env } from '../../env.js'
+import { cleanupUploadedFiles } from '../../lib/image-upload.js'
 import { prisma } from '../../lib/prisma.js'
 import { randomToken } from '../../lib/tokens.js'
 import { badRequest } from '../../middleware/error.js'
@@ -41,6 +48,7 @@ const upload = multer({
  * Creates a QuoteRequest that production reviews before an individual quote is sent.
  */
 uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, res, next) => {
+  let persisted = false
   try {
     const files = (req.files ?? []) as Express.Multer.File[]
     if (files.length === 0) throw badRequest('At least one .stl or .3mf file is required')
@@ -48,6 +56,22 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
     for (const file of files) {
       const check = validateUploadFile({ filename: file.originalname, sizeBytes: file.size })
       if (!check.ok) throw badRequest(`Invalid file "${file.originalname}": ${check.error}`)
+      const handle = await open(file.path, 'r')
+      const header = new Uint8Array(84)
+      try {
+        const { bytesRead } = await handle.read(header, 0, header.length, 0)
+        if (
+          !hasValidUploadContent({
+            extension: check.extension ?? '',
+            sizeBytes: file.size,
+            header: header.subarray(0, bytesRead),
+          })
+        ) {
+          throw badRequest(`Invalid model file content: ${file.originalname}`)
+        }
+      } finally {
+        await handle.close()
+      }
     }
 
     const body = req.body as Record<string, string>
@@ -81,6 +105,7 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
       },
       include: { files: true },
     })
+    persisted = true
 
     await sendEmail(
       input.email,
@@ -108,6 +133,9 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
       files: request.files.map((f) => ({ name: f.originalName, sizeBytes: f.sizeBytes })),
     })
   } catch (err) {
+    if (!persisted) {
+      await cleanupUploadedFiles(req.files as Express.Multer.File[] | undefined)
+    }
     next(err)
   }
 })

@@ -59,6 +59,7 @@ test.describe('production queue', () => {
       products: { id: string }[]
     }
     const checkout = await request.post('http://localhost:3001/api/checkout', {
+      headers: { 'Idempotency-Key': `e2e-${crypto.randomUUID()}` },
       data: {
         items: [{ productId: products.products[0]!.id, quantity: 1, colorSelection: {} }],
         address: {
@@ -86,6 +87,8 @@ test.describe('production queue', () => {
     const form = page.getByTestId('assign-form')
     await form.locator('input[type="number"]').fill('90')
     await page.getByTestId('confirm-assign').click()
-    await expect(page.getByTestId('production-job').filter({ hasText: 'Zugewiesen' }).first()).toBeVisible()
+    await expect(
+      page.getByTestId('production-job').filter({ hasText: 'Zugewiesen' }).first(),
+    ).toBeVisible()
   })
 })

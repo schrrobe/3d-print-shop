@@ -57,7 +57,9 @@ export async function createStripeCheckoutSession(
 }
 
 /** Payment link for accepted quotes (Stripe Payment Links or mock). */
-export async function createStripePaymentLink(params: CheckoutParams): Promise<StripeCheckoutResult> {
+export async function createStripePaymentLink(
+  params: CheckoutParams,
+): Promise<StripeCheckoutResult> {
   if (!stripe) {
     const sessionId = `mock_plink_${randomToken(12)}`
     return { sessionId, url: `${successUrl(params)}&session=${sessionId}&mock=1` }
@@ -79,8 +81,12 @@ export async function createStripePaymentLink(params: CheckoutParams): Promise<S
  * Verifies and parses a Stripe webhook. With a configured webhook secret the
  * signature is enforced; in mock mode the raw JSON body is trusted (dev only).
  */
-export function constructStripeWebhookEvent(rawBody: Buffer, signature: string | undefined): Stripe.Event {
-  if (stripe && env.STRIPE_WEBHOOK_SECRET) {
+export function constructStripeWebhookEvent(
+  rawBody: Buffer,
+  signature: string | undefined,
+): Stripe.Event {
+  if (stripe) {
+    if (!env.STRIPE_WEBHOOK_SECRET) throw new Error('Stripe webhook secret is not configured')
     if (!signature) throw new Error('Missing stripe-signature header')
     return stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET)
   }

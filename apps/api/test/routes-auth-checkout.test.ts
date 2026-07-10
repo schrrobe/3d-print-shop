@@ -6,6 +6,7 @@ vi.mock('../src/lib/prisma.js', () => ({
   prisma: {
     user: { findUnique: vi.fn(), update: vi.fn() },
     adminAuditLog: { create: vi.fn().mockResolvedValue({}) },
+    order: { findUnique: vi.fn() },
     product: { findMany: vi.fn() },
     color: { findMany: vi.fn() },
   },
@@ -15,6 +16,7 @@ const { createApp } = await import('../src/app.js')
 const { prisma } = await import('../src/lib/prisma.js')
 
 const mockedUserFindUnique = vi.mocked(prisma.user.findUnique)
+const mockedOrderFindUnique = vi.mocked(prisma.order.findUnique)
 const mockedProductFindMany = vi.mocked(prisma.product.findMany)
 const mockedColorFindMany = vi.mocked(prisma.color.findMany)
 
@@ -35,6 +37,7 @@ afterAll(() => {
 
 beforeEach(() => {
   mockedUserFindUnique.mockReset()
+  mockedOrderFindUnique.mockReset()
   mockedProductFindMany.mockReset()
   mockedColorFindMany.mockReset()
 })
@@ -56,6 +59,7 @@ async function adminUser(overrides: Record<string, unknown> = {}) {
     active: true,
     roleId: 'role_1',
     role: { id: 'role_1', name: 'admin' },
+    sessionVersion: 0,
     sessionsInvalidatedAt: null,
     ...overrides,
   }
@@ -148,22 +152,27 @@ describe('POST /api/checkout', () => {
   })
 
   it('rejects unknown or inactive products', async () => {
+    mockedOrderFindUnique.mockResolvedValue(null)
     mockedProductFindMany.mockResolvedValue([])
     mockedColorFindMany.mockResolvedValue([])
 
-    const res = await postJson('/api/checkout', {
-      items: [{ productId: 'clzz00000000000000000001', quantity: 1, colorSelection: {} }],
-      address: {
-        firstName: 'Max',
-        lastName: 'Mustermann',
-        street: 'Musterstraße 1',
-        zip: '12345',
-        city: 'Berlin',
-        country: 'DE',
-        email: 'max@example.com',
+    const res = await postJson(
+      '/api/checkout',
+      {
+        items: [{ productId: 'clzz00000000000000000001', quantity: 1, colorSelection: {} }],
+        address: {
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          street: 'Musterstraße 1',
+          zip: '12345',
+          city: 'Berlin',
+          country: 'DE',
+          email: 'max@example.com',
+        },
+        paymentMethod: 'bank_transfer',
       },
-      paymentMethod: 'bank_transfer',
-    })
+      { 'idempotency-key': 'test-checkout-idempotency-key-1' },
+    )
 
     expect(res.status).toBe(400)
     const body = (await res.json()) as { message: string }

@@ -23,7 +23,11 @@ export const forbidden = (message = 'Forbidden') => new ApiError(403, message, '
 export const conflict = (message: string, details?: unknown) =>
   new ApiError(409, message, 'conflict', details)
 
-export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction): void {
+export function errorHandler(err: unknown, req: Request, res: Response, next: NextFunction): void {
+  // If the response already started streaming (e.g. res.sendFile mid-transfer),
+  // headers are sent and writing a JSON body would throw ERR_HTTP_HEADERS_SENT.
+  // Hand off to Express's default handler, which just closes the connection.
+  if (res.headersSent) return next(err)
   if (err instanceof ApiError) {
     res.status(err.status).json({ error: err.code ?? 'error', message: err.message, details: err.details })
     return

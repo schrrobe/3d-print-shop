@@ -25,10 +25,12 @@ declare global {
   }
 }
 
-export function signSession(user: SessionUser): string {
-  return jwt.sign({ sub: user.id, role: user.role, email: user.email, name: user.name }, env.JWT_SECRET, {
-    expiresIn: SESSION_TTL_SECONDS,
-  })
+export function signSession(user: SessionUser, sessionVersion: number): string {
+  return jwt.sign(
+    { sub: user.id, role: user.role, email: user.email, name: user.name, ver: sessionVersion },
+    env.JWT_SECRET,
+    { expiresIn: SESSION_TTL_SECONDS, algorithm: 'HS256' },
+  )
 }
 
 export function sessionCookieOptions() {
@@ -50,7 +52,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     if (!token) throw unauthorized()
     let payload: jwt.JwtPayload
     try {
-      payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload
+      payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as jwt.JwtPayload
     } catch {
       throw unauthorized('Invalid or expired session')
     }
@@ -59,8 +61,12 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       include: { role: true },
     })
     if (!user || !user.active) throw unauthorized('User inactive or deleted')
-    // Second-granularity comparison (JWT iat is in seconds) so a login in the
-    // same second as a logout is not rejected.
+    // Password changes bump sessionVersion, revoking all previously issued JWTs.
+    if (!Number.isInteger(payload.ver) || payload.ver !== user.sessionVersion) {
+      throw unauthorized('Session has been revoked')
+    }
+    // Logout stamps sessionsInvalidatedAt. Second-granularity comparison (JWT
+    // iat is in seconds) so a login in the same second as a logout is not rejected.
     if (
       user.sessionsInvalidatedAt &&
       typeof payload.iat === 'number' &&

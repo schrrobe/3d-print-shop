@@ -26,7 +26,7 @@ cp .env.example apps/api/.env
 
 pnpm db:up                    # PostgreSQL (Docker, Port 15433)
 pnpm db:migrate               # Prisma-Migrationen
-pnpm db:seed                  # Beispieldaten (Produkte, Farben, Drucker, Bestellungen)
+ALLOW_DEMO_SEED=true pnpm db:seed  # Beispieldaten (nur Entwicklung/CI)
 
 pnpm dev                      # web: http://localhost:3000 · api: http://localhost:3001
 ```
@@ -39,21 +39,22 @@ pnpm dev                      # web: http://localhost:3000 · api: http://localh
 Alle Variablen mit Erklärung in [`.env.example`](.env.example). Wichtige Gruppen:
 `DATABASE_URL` · `JWT_SECRET`/`COOKIE_SECURE` (Sessions) · `RESEND_API_KEY`/`EMAIL_FROM`
 (E-Mails; leer = Dev-Log-Modus) · `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` (leer =
-Mock-Modus) · `BITCOIN_PROVIDER`/`BITCOIN_XPUB` (mock = Standard) · `BANK_*` (Bankdaten) ·
+Mock-Modus außerhalb Produktion) · `BITCOIN_ENABLED`/`BITCOIN_PROVIDER`/`BITCOIN_XPUB` ·
+`BOOTSTRAP_ADMIN_*` (einmaliger Produktions-Admin) · `BANK_*` (Bankdaten) ·
 `NUXT_PUBLIC_GA4_MEASUREMENT_ID`/`NUXT_PUBLIC_META_PIXEL_ID` (Tracking — lädt nur nach
 Consent-Opt-in) · `UPLOAD_DIR`/`INVOICE_DIR`.
 
 ## Skripte
 
-| Befehl | Zweck |
-|---|---|
-| `pnpm dev` | web + api parallel (Turbo) |
-| `pnpm lint` / `pnpm typecheck` | ESLint / tsc & vue-tsc in allen Packages |
-| `pnpm test` | Vitest-Unit-Tests (utils, validators, emails) |
-| `pnpm build` | Nuxt-Build + API-Check |
-| `pnpm storybook` / `pnpm storybook:build` | Storybook dev (Port 6006) / statischer Build |
-| `pnpm e2e` | Playwright (startet api+web selbst; DB muss laufen; **leert die lokale DB**) |
-| `pnpm db:up` / `db:migrate` / `db:seed` / `prisma:validate` | Datenbank |
+| Befehl                                                      | Zweck                                                                        |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm dev`                                                  | web + api parallel (Turbo)                                                   |
+| `pnpm lint` / `pnpm typecheck`                              | ESLint / tsc & vue-tsc in allen Packages                                     |
+| `pnpm test`                                                 | Vitest-Unit-Tests (utils, validators, emails)                                |
+| `pnpm build`                                                | Nuxt-Build + API-Check                                                       |
+| `pnpm storybook` / `pnpm storybook:build`                   | Storybook dev (Port 6006) / statischer Build                                 |
+| `pnpm e2e`                                                  | Playwright (startet api+web selbst; DB muss laufen; **leert die lokale DB**) |
+| `pnpm db:up` / `db:migrate` / `db:seed` / `prisma:validate` | Datenbank                                                                    |
 
 ## Storybook
 

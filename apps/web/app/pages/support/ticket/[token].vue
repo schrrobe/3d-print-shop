@@ -6,7 +6,12 @@ import { PsBadge, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
 const { t, locale } = useI18n()
 const route = useRoute()
 // Private token URL — must never end up in a search index
-useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
 
 const token = String(route.params.token)
 

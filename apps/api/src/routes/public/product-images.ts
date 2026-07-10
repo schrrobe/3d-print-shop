@@ -61,7 +61,7 @@ productImagesRouter.get('/:filename', async (req, res, next) => {
   if (!width) {
     res.type(CONTENT_TYPES[ext] as string)
     res.sendFile(filePath, (err) => {
-      if (err) next(notFound('Image not found'))
+      if (err && !res.headersSent) next(notFound('Image not found'))
     })
     return
   }
@@ -73,7 +73,7 @@ productImagesRouter.get('/:filename', async (req, res, next) => {
   } catch {
     res.type(CONTENT_TYPES[ext] as string)
     res.sendFile(filePath, (err) => {
-      if (err) next(notFound('Image not found'))
+      if (err && !res.headersSent) next(notFound('Image not found'))
     })
   }
 })

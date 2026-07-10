@@ -1,11 +1,12 @@
 import { consentLogSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
+import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 
 export const consentRouter = Router()
 
 /** GDPR consent log — stores every consent decision (banner + settings dialog). */
-consentRouter.post('/', async (req, res, next) => {
+consentRouter.post('/', sensitiveLimiter, async (req, res, next) => {
   try {
     const input = consentLogSchema.parse(req.body)
     const anonymousId =

@@ -7,7 +7,12 @@ const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'referrer', content: 'no-referrer' },
+  ],
+})
 
 const orderNumber = String(route.query.order ?? '')
 const token = String(route.query.token ?? '')
@@ -99,13 +104,19 @@ async function submit() {
 
       <PsCard v-if="!hasContext || error" class="mt-xl">
         <p class="text-body-regular">{{ t('complaints.form.missingContext') }}</p>
-        <NuxtLink :to="`/${locale === 'de' ? '' : locale + '/'}portal`" class="mt-md block text-brand hover:underline">
+        <NuxtLink
+          :to="`/${locale === 'de' ? '' : locale + '/'}portal`"
+          class="mt-md block text-brand hover:underline"
+        >
           {{ t('complaints.form.goToPortal') }}
         </NuxtLink>
       </PsCard>
 
       <form v-else-if="order" class="mt-xl flex flex-col gap-lg" @submit.prevent="submit">
-        <p class="rounded-card border border-amber-500/40 bg-amber-500/5 p-md text-caption" data-testid="complaint-custom-made-note">
+        <p
+          class="rounded-card border border-amber-500/40 bg-amber-500/5 p-md text-caption"
+          data-testid="complaint-custom-made-note"
+        >
           {{ t('complaints.form.customMadeNote') }}
         </p>
 

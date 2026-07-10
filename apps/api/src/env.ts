@@ -30,6 +30,10 @@ const envSchema = z
     STRIPE_SECRET_KEY: z.string().optional().default(''),
     STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
     BITCOIN_PROVIDER: z.enum(['mock', 'blockchain-api']).default('mock'),
+    BITCOIN_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
     BITCOIN_XPUB: z.string().optional().default(''),
     BITCOIN_REQUIRED_CONFIRMATIONS: z.coerce.number().int().min(1).default(2),
     BANK_ACCOUNT_HOLDER: z.string().default('Print Shop GmbH'),
@@ -74,6 +78,44 @@ const envSchema = z
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV === 'production') {
+      if (
+        val.JWT_SECRET.length < 32 ||
+        ['dev-only-secret-change-me', 'change-me-in-production'].includes(val.JWT_SECRET)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['JWT_SECRET'],
+          message: 'JWT_SECRET must be a unique secret of at least 32 characters in production',
+        })
+      }
+      if (!val.COOKIE_SECURE) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['COOKIE_SECURE'],
+          message: 'COOKIE_SECURE must be true in production',
+        })
+      }
+      if (!val.WEB_URL.startsWith('https://')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['WEB_URL'],
+          message: 'WEB_URL must use HTTPS in production',
+        })
+      }
+      if (!val.STRIPE_SECRET_KEY || !val.STRIPE_WEBHOOK_SECRET) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['STRIPE_SECRET_KEY'],
+          message: 'Stripe secret and webhook keys are required in production',
+        })
+      }
+      if (/printshop:(?:printshop|change-me-local)@/i.test(val.DATABASE_URL)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DATABASE_URL'],
+          message: 'DATABASE_URL still contains the example database password',
+        })
+      }
       // These identity/bank fields are printed on legally-binding invoices
       // (§14 UStG mandatory details) and encoded into the GiroCode. Fail fast
       // at boot rather than let placeholder defaults reach a real invoice.
@@ -118,6 +160,13 @@ const envSchema = z
           message: 'STRIPE_WEBHOOK_SECRET is required in production when STRIPE_SECRET_KEY is set',
         })
       }
+    }
+    if (val.BITCOIN_ENABLED && val.BITCOIN_PROVIDER === 'mock' && val.NODE_ENV === 'production') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['BITCOIN_PROVIDER'],
+        message: 'BITCOIN_ENABLED requires a real provider in production',
+      })
     }
     if (val.SOCIAL_PUBLISHING_PROVIDER !== 'meta') return
     for (const key of [

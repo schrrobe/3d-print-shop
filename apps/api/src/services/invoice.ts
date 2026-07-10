@@ -1,7 +1,7 @@
 import { createWriteStream } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import type { Invoice } from '@prisma/client'
+import { Prisma, type Invoice } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
 import { env } from '../env.js'
@@ -25,29 +25,39 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
     where: { id: orderId },
     include: { payments: true },
   })
+  const existing = await prisma.invoice.findUnique({ where: { orderId } })
+  if (existing) return existing
   const paidPayment = order.payments.find((p) => p.status === 'paid') ?? order.payments[0]
   if (!paidPayment) throw new Error(`Order ${order.orderNumber} has no payment`)
 
-  return prisma.$transaction(async (tx) => {
-    const { number, year, sequence } = await nextSequentialNumber(
-      tx.invoiceCounter,
-      env.INVOICE_PREFIX,
-    )
-    return tx.invoice.create({
-      data: {
-        number,
-        year,
-        sequence,
-        orderId: order.id,
-        locale: order.locale,
-        subtotalCents: order.subtotalCents,
-        shippingCents: order.shippingCents,
-        discountCents: order.discountCents,
-        totalCents: order.totalCents,
-        paymentMethod: paidPayment.method,
-      },
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const { number, year, sequence } = await nextSequentialNumber(
+        tx.invoiceCounter,
+        env.INVOICE_PREFIX,
+      )
+      return tx.invoice.create({
+        data: {
+          number,
+          year,
+          sequence,
+          orderId: order.id,
+          locale: order.locale,
+          subtotalCents: order.subtotalCents,
+          shippingCents: order.shippingCents,
+          discountCents: order.discountCents,
+          totalCents: order.totalCents,
+          paymentMethod: paidPayment.method,
+        },
+      })
     })
-  })
+  } catch (err) {
+    // Concurrent payment reconciliation may have created the order's unique invoice.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return prisma.invoice.findUniqueOrThrow({ where: { orderId } })
+    }
+    throw err
+  }
 }
 
 function companyFromEnv(): CompanyInfo {
@@ -71,7 +81,10 @@ function companyFromEnv(): CompanyInfo {
 }
 
 /** Renders the DIN 5008 invoice PDF into INVOICE_DIR and stores the path. */
-export async function generateInvoicePdf(invoice: Invoice, order: OrderForInvoice): Promise<string> {
+export async function generateInvoicePdf(
+  invoice: Invoice,
+  order: OrderForInvoice,
+): Promise<string> {
   await mkdir(env.INVOICE_DIR, { recursive: true })
   const filePath = path.join(env.INVOICE_DIR, `${invoice.number}.pdf`)
   const company = companyFromEnv()
@@ -91,7 +104,10 @@ export async function generateInvoicePdf(invoice: Invoice, order: OrderForInvoic
         { type: 'png', errorCorrectionLevel: 'M', margin: 0, scale: 4 },
       )
     } catch (err) {
-      console.warn(`GiroCode generation failed for invoice ${invoice.number}, rendering without QR:`, err)
+      console.warn(
+        `GiroCode generation failed for invoice ${invoice.number}, rendering without QR:`,
+        err,
+      )
     }
   }
 

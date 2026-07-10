@@ -42,8 +42,7 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     where: { id: orderId },
     include: { items: true, payments: true, invoice: true },
   })
-  if (order.status === 'paid') return // idempotent (webhook retries)
-  assertOrderTransition(order.status, 'paid')
+  if (order.status !== 'paid') assertOrderTransition(order.status, 'paid')
 
   // With no explicit paymentId, pick the most recent non-failed payment: an
   // order can carry a stale abandoned "pending" alongside the one that just
@@ -55,48 +54,56 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
-  await prisma.$transaction([
-    prisma.order.update({ where: { id: order.id }, data: { status: 'paid' } }),
-    prisma.payment.update({
+  const claimed = await prisma.$transaction(async (tx) => {
+    const updated = await tx.order.updateMany({
+      where: { id: order.id, status: order.status },
+      data: { status: 'paid' },
+    })
+    if (updated.count !== 1 || order.status === 'paid') return false
+    await tx.payment.update({
       where: { id: payment.id },
       data: { status: 'paid', paidAt: new Date() },
-    }),
-    // One production job per order item → production queue (status: waiting)
-    prisma.printerJob.createMany({
+    })
+    // Created only by the request that atomically claims the unpaid order.
+    await tx.printerJob.createMany({
       data: order.items.map((item) => ({
         orderId: order.id,
         orderItemId: item.id,
         status: 'waiting' as const,
       })),
-    }),
-  ])
-
-  const emailData = orderEmailData(order)
-  await sendEmail(order.email, 'payment_received', renderPaymentReceived(emailData, order.locale))
-
-  // Invoice: number, PDF, email with attachment
-  if (!order.invoice) {
-    const invoice = await createInvoiceForOrder(order.id)
-    // order was loaded before the transaction above — patch the just-paid
-    // payment so the PDF renders the "already paid" variant, not a stale one
-    const pdfPath = await generateInvoicePdf(invoice, {
-      ...order,
-      payments: order.payments.map((p) =>
-        p.id === payment.id ? { ...p, status: 'paid' as const, paidAt: p.paidAt ?? new Date() } : p,
-      ),
     })
+    return true
+  })
+
+  const paidOrder = await prisma.order.findUniqueOrThrow({
+    where: { id: order.id },
+    include: { items: true, payments: true, invoice: true },
+  })
+  if (claimed) {
+    await sendEmail(
+      paidOrder.email,
+      'payment_received',
+      renderPaymentReceived(orderEmailData(paidOrder), paidOrder.locale),
+    )
+  }
+
+  // Reconcile post-transaction artifacts on webhook retries after a partial failure.
+  const mustSendInvoice = claimed || !paidOrder.invoice?.pdfPath
+  const invoice = paidOrder.invoice ?? (await createInvoiceForOrder(paidOrder.id))
+  const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, paidOrder))
+  if (mustSendInvoice) {
     const pdf = await readFile(pdfPath)
     await sendEmail(
-      order.email,
+      paidOrder.email,
       'invoice',
       renderInvoice(
         {
-          orderNumber: order.orderNumber,
+          orderNumber: paidOrder.orderNumber,
           invoiceNumber: invoice.number,
           totalCents: invoice.totalCents,
-          orderUrl: orderUrl(order),
+          orderUrl: orderUrl(paidOrder),
         },
-        order.locale,
+        paidOrder.locale,
       ),
       [{ filename: `${invoice.number}.pdf`, content: pdf }],
     )

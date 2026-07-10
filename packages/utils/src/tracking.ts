@@ -29,3 +29,23 @@ export const allowedProviders = (
   settings: TrackingSettings,
   state: ConsentState | null,
 ): TrackingProvider[] => configuredProviders(settings).filter((p) => p.allowed(state))
+
+const SENSITIVE_TRACKING_PREFIXES = [
+  '/admin/',
+  '/checkout/success/',
+  '/order/',
+  '/portal/',
+  '/quote/',
+  '/support/ticket/',
+  '/complaint/',
+] as const
+
+/** Token-bearing customer pages must never be sent to third-party analytics providers. */
+export function isSensitiveTrackingPath(value: string): boolean {
+  const pathname = value.split(/[?#]/, 1)[0] || '/'
+  const localeAgnostic = pathname.replace(/^\/(?:de|en|pl|fr|nl|cs)(?=\/|$)/, '') || '/'
+  if (localeAgnostic === '/admin') return true
+  return SENSITIVE_TRACKING_PREFIXES.some(
+    (prefix) => localeAgnostic === prefix.replace(/\/$/, '') || localeAgnostic.startsWith(prefix),
+  )
+}

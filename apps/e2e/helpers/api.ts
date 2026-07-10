@@ -45,7 +45,9 @@ export async function passQcForOrder(
       packagingOk: true,
     },
   })
-  const passed = await admin.post(`/api/admin/qc/${record.id}/status`, { data: { status: 'passed' } })
+  const passed = await admin.post(`/api/admin/qc/${record.id}/status`, {
+    data: { status: 'passed' },
+  })
   if (!passed.ok()) throw new Error(`qc pass failed: ${passed.status()}`)
   return record.id
 }
@@ -130,6 +132,7 @@ export async function createPaidOrderViaApi(
 ): Promise<{ orderNumber: string; accessToken: string }> {
   const ctx = await apiContext()
   const checkout = await ctx.post('/api/checkout', {
+    headers: { 'Idempotency-Key': `e2e-${crypto.randomUUID()}` },
     data: {
       items: [{ productId, quantity: 1, colorSelection: {} }],
       address: {
@@ -164,7 +167,10 @@ interface AdminOrderDetail {
   printerJobs: { id: string; status: string }[]
 }
 
-export async function getAdminOrder(admin: APIRequestContext, orderNumber: string): Promise<AdminOrderDetail> {
+export async function getAdminOrder(
+  admin: APIRequestContext,
+  orderNumber: string,
+): Promise<AdminOrderDetail> {
   const list = (await (await admin.get(`/api/admin/orders?status=paid`)).json()) as {
     orders: { id: string; orderNumber: string }[]
   }
@@ -191,7 +197,10 @@ export async function getAdminOrder(admin: APIRequestContext, orderNumber: strin
  * → printed → quality_check, then open + pass a QC record. Needed to satisfy the
  * QC shipping gate in flows that start from a fresh paid order.
  */
-export async function clearOrderJobsQc(admin: APIRequestContext, orderNumber: string): Promise<void> {
+export async function clearOrderJobsQc(
+  admin: APIRequestContext,
+  orderNumber: string,
+): Promise<void> {
   const printers = (await (await admin.get('/api/admin/printers')).json()) as {
     printers: { id: string }[]
   }
@@ -205,7 +214,9 @@ export async function clearOrderJobsQc(admin: APIRequestContext, orderNumber: st
       })
       await admin.post(`/api/admin/production/${job.id}/status`, { data: { status: 'printing' } })
       await admin.post(`/api/admin/production/${job.id}/status`, { data: { status: 'printed' } })
-      await admin.post(`/api/admin/production/${job.id}/status`, { data: { status: 'quality_check' } })
+      await admin.post(`/api/admin/production/${job.id}/status`, {
+        data: { status: 'quality_check' },
+      })
     }
     const opened = await admin.post('/api/admin/qc', { data: { printerJobId: job.id } })
     if (!opened.ok()) continue
@@ -225,7 +236,10 @@ export async function clearOrderJobsQc(admin: APIRequestContext, orderNumber: st
 }
 
 /** Log in to the API as a specific seeded role account. */
-export async function roleApiContext(email: string, password = 'admin-dev-password'): Promise<APIRequestContext> {
+export async function roleApiContext(
+  email: string,
+  password = 'admin-dev-password',
+): Promise<APIRequestContext> {
   const ctx = await request.newContext({ baseURL: API_URL })
   const res = await ctx.post('/api/admin/auth/login', { data: { email, password } })
   if (!res.ok()) throw new Error(`login failed for ${email}: ${res.status()}`)

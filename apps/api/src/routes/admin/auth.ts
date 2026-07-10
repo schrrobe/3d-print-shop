@@ -37,7 +37,11 @@ adminAuthRouter.post('/login', authLimiter, async (req, res, next) => {
       name: user.name,
       role: user.role.name as UserRole,
     }
-    res.cookie(SESSION_COOKIE, signSession(sessionUser), sessionCookieOptions())
+    res.cookie(
+      SESSION_COOKIE,
+      signSession(sessionUser, user.sessionVersion),
+      sessionCookieOptions(),
+    )
     req.user = sessionUser
     await audit(req, 'auth.login', { type: 'user', id: user.id })
     res.json({ user: { ...sessionUser, permissions: permissionsForRole(sessionUser.role) } })
@@ -112,16 +116,23 @@ adminAuthRouter.post('/password-reset', authLimiter, async (req, res, next) => {
     if (!reset || reset.usedAt || reset.expiresAt < new Date()) {
       throw unauthorized('Invalid or expired reset token')
     }
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: reset.userId },
-        data: { passwordHash: await argon2.hash(password) },
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: reset.id },
+    const passwordHash = await argon2.hash(password)
+    await prisma.$transaction(async (tx) => {
+      const consumed = await tx.passwordResetToken.updateMany({
+        where: { id: reset.id, usedAt: null, expiresAt: { gt: new Date() } },
         data: { usedAt: new Date() },
-      }),
-    ])
+      })
+      if (consumed.count !== 1) throw unauthorized('Invalid or expired reset token')
+      await tx.user.update({
+        where: { id: reset.userId },
+        data: { passwordHash, sessionVersion: { increment: 1 } },
+      })
+      // A successful credential reset invalidates every outstanding reset link.
+      await tx.passwordResetToken.updateMany({
+        where: { userId: reset.userId, usedAt: null },
+        data: { usedAt: new Date() },
+      })
+    })
     res.json({ ok: true })
   } catch (err) {
     next(err)

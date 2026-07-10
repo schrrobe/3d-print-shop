@@ -66,6 +66,13 @@ export const checkoutSchema = z.object({
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
 
+export const checkoutIdempotencyKeySchema = z
+  .string()
+  .trim()
+  .min(16)
+  .max(128)
+  .regex(/^[A-Za-z0-9_-]+$/, 'Invalid Idempotency-Key')
+
 // ---------- Vouchers ----------
 
 export const voucherValidateSchema = z.object({
@@ -223,7 +230,11 @@ export const printerCreateSchema = z.object({
 
 export const printJobAssignSchema = z.object({
   printerId: cuidSchema,
-  printDurationMinutes: z.number().int().min(1).max(60 * 24 * 14),
+  printDurationMinutes: z
+    .number()
+    .int()
+    .min(1)
+    .max(60 * 24 * 14),
   spoolNotes: z.string().trim().max(2000).optional(),
 })
 

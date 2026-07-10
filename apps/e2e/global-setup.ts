@@ -11,6 +11,9 @@ export default function globalSetup(): void {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
   const env = {
     ...process.env,
+    NODE_ENV: 'test',
+    ALLOW_DATABASE_RESET: 'true',
+    ALLOW_DEMO_SEED: 'true',
     DATABASE_URL:
       process.env.DATABASE_URL ??
       'postgresql://printshop:printshop@localhost:15433/printshop?schema=public',

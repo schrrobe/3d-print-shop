@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addressSchema,
+  checkoutIdempotencyKeySchema,
   checkoutSchema,
   colorCreateSchema,
   consentLogSchema,
@@ -64,6 +65,15 @@ describe('checkoutSchema', () => {
   })
 })
 
+describe('checkoutIdempotencyKeySchema', () => {
+  it('accepts stable URL-safe retry keys and rejects missing/unsafe values', () => {
+    expect(checkoutIdempotencyKeySchema.safeParse('e2e-1234567890_abcd').success).toBe(true)
+    expect(checkoutIdempotencyKeySchema.safeParse(undefined).success).toBe(false)
+    expect(checkoutIdempotencyKeySchema.safeParse('short').success).toBe(false)
+    expect(checkoutIdempotencyKeySchema.safeParse('contains spaces 123456').success).toBe(false)
+  })
+})
+
 describe('uploadRequestSchema', () => {
   it('accepts a valid request and defaults quantity', () => {
     const result = uploadRequestSchema.safeParse({
@@ -102,9 +112,9 @@ describe('uploadedFileMetaSchema', () => {
 
 describe('quoteCreateSchema', () => {
   it('requires a positive price', () => {
-    expect(
-      quoteCreateSchema.safeParse({ quoteRequestId: 'qr_1', priceCents: 0 }).success,
-    ).toBe(false)
+    expect(quoteCreateSchema.safeParse({ quoteRequestId: 'qr_1', priceCents: 0 }).success).toBe(
+      false,
+    )
     const result = quoteCreateSchema.safeParse({ quoteRequestId: 'qr_1', priceCents: 4999 })
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.validDays).toBe(14)

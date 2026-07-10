@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { assertSafeDatabaseReset } from '../src/lib/database-reset-guard.js'
 
 /**
  * Test-fixture cleanup: truncates all application tables (keeps the schema
@@ -8,6 +9,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  assertSafeDatabaseReset(process.env)
   const tables = await prisma.$queryRaw<{ tablename: string }[]>`
     SELECT tablename FROM pg_tables
     WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'
