@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { PsSection } from '@print-shop/ui'
+import { getLegalTranslation } from '../../content/legal-translations'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const translatedDocument = computed(() => getLegalTranslation(locale.value, 'privacy'))
 
 useSeo({
   title: () => t('seo.legal.privacy'),
@@ -10,7 +12,12 @@ useSeo({
 </script>
 
 <template>
-  <PsSection :title="t('legal.privacyTitle')" heading-level="h1">
+  <LegalLocalizedDocument
+    v-if="translatedDocument"
+    :title="t('legal.privacyTitle')"
+    :document="translatedDocument"
+  />
+  <PsSection v-else :title="t('legal.privacyTitle')" heading-level="h1">
     <div
       class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
       data-testid="legal-privacy"
