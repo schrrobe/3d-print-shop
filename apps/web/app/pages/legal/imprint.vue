@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import { getLegalTranslation } from '../../content/legal-translations'
 
 const { t, locale } = useI18n()
+const company = useRuntimeConfig().public.company
 const translatedDocument = computed(() => getLegalTranslation(locale.value, 'imprint'))
 
 useSeo({
@@ -25,9 +26,9 @@ useSeo({
       <section>
         <h2 class="text-heading-small text-primary">Angaben gemäß § 5 DDG</h2>
         <p class="mt-sm">
-          Robert Schreiner<br />
-          Kapitelwiese 14<br />
-          44263 Dortmund<br />
+          {{ company.name }}<br />
+          {{ company.street }}<br />
+          {{ company.zip }} {{ company.city }}<br />
           Deutschland
         </p>
       </section>
@@ -36,9 +37,7 @@ useSeo({
         <h2 class="text-heading-small text-primary">Kontakt</h2>
         <p class="mt-sm">
           E-Mail:
-          <a class="underline" href="mailto:info@prestige-webdesign.de"
-            >info@prestige-webdesign.de</a
-          >
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a>
         </p>
       </section>
 
@@ -52,9 +51,9 @@ useSeo({
           Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV
         </h2>
         <p class="mt-sm">
-          Robert Schreiner<br />
-          Kapitelwiese 14<br />
-          44263 Dortmund
+          {{ company.name }}<br />
+          {{ company.street }}<br />
+          {{ company.zip }} {{ company.city }}
         </p>
       </section>
 

@@ -149,7 +149,8 @@
     "quantity": "Počet kusů",
     "termsAcceptance": "Souhlasím s",
     "termsAnd": "a se",
-    "termsContent": "Potvrzuji, že mám nezbytná práva k nahranému modelu, nebudu nahrávat protiprávní obsah ani obsah porušující práva třetích osob a rozumím, že soubory nepůjdou do výroby před posouzením nabídky. Verze: 13. 7. 2026.",
+    "termsContent": "Potvrzuji, že mám nezbytná práva k nahranému modelu, nebudu nahrávat protiprávní obsah ani obsah porušující práva třetích osob a rozumím, že soubory nepůjdou do výroby před posouzením nabídky.",
+    "termsVersion": "Verze: {version}.",
     "submit": "Odeslat poptávku",
     "successTitle": "Poptávka přijata!",
     "successText": "Prověříme váš model a ozveme se s nabídkou e-mailem.",
@@ -192,7 +193,7 @@
     "privacy": "Soukromí",
     "terms": "Obchodní podmínky",
     "withdrawal": "Odstoupení",
-    "claim": "3D tisk, made in Berlin."
+    "claim": "3D tisk, made in Dortmund."
   },
   "legal": {
     "imprintTitle": "Impressum",

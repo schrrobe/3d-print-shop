@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 import { apiContext, createQuoteViaApi } from '../helpers/api.js'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
@@ -47,7 +48,7 @@ test.describe('email notifications (dev mode log)', () => {
         email,
         description: 'E-Mail-Benachrichtigungstest für Uploads.',
         acceptsUploadTerms: 'true',
-        uploadTermsVersion: '2026-07-13',
+        uploadTermsVersion: UPLOAD_TERMS_VERSION,
       },
     })
     expect(await emailsFor(email)).toContain('upload_received')

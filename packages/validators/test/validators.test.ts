@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 import {
   addressSchema,
   checkoutIdempotencyKeySchema,
@@ -81,7 +82,7 @@ describe('uploadRequestSchema', () => {
       email: 'max@example.com',
       description: 'Bitte in PETG drucken, Schichthöhe 0.2mm.',
       acceptsUploadTerms: true,
-      uploadTermsVersion: '2026-07-13',
+      uploadTermsVersion: UPLOAD_TERMS_VERSION,
     })
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.quantity).toBe(1)
@@ -100,7 +101,7 @@ describe('uploadRequestSchema', () => {
       email: 'max@example.com',
       description: 'Bitte in PETG drucken, Schichthöhe 0.2mm.',
       acceptsUploadTerms: true,
-      uploadTermsVersion: '2026-07-13',
+      uploadTermsVersion: UPLOAD_TERMS_VERSION,
     }
     expect(uploadRequestSchema.safeParse({ ...valid, acceptsUploadTerms: false }).success).toBe(
       false,

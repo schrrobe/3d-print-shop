@@ -49,9 +49,10 @@ anders angegeben, beginnt die Frist mit der letzten sachlichen Bearbeitung.
    verknüpften Datenbankdaten gelöscht oder anonymisiert. Fehlschläge werden
    protokolliert und erneut bearbeitet.
 4. Backups werden nicht einzeln verändert: Sie sind verschlüsselt und
-   zugriffsbeschränkt; gelöschte Daten verschwinden nach maximal 35 Tagen
-   (tägliche Sicherungen 7 Tage, wöchentliche 28 Tage). Eine Wiederherstellung
-   darf gelöschte Daten nicht zurück in den Produktivbetrieb übernehmen.
+   zugriffsbeschränkt. Ihre Aufbewahrungsdauer und das Verfahren für eine
+   Wiederherstellung werden vor dem Produktivbetrieb verbindlich im
+   Sicherungskonzept festgelegt; bis dahin wird keine maximale Löschfrist für
+   Sicherungen zugesagt.
 5. Quartalsweise wird das Löschprotokoll geprüft. Die Prüfergebnisse und
    Ausnahmen werden für 3 Jahre dokumentiert.
 

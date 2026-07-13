@@ -1,7 +1,7 @@
 import process from 'node:process'
 
 function companyFooter(): string {
-  const name = process.env.COMPANY_NAME?.trim()
+  const name = process.env.COMPANY_NAME?.trim() || 'Print Shop GmbH'
   const street = process.env.COMPANY_STREET?.trim()
   const zip = process.env.COMPANY_ZIP?.trim()
   const city = process.env.COMPANY_CITY?.trim()
@@ -13,7 +13,7 @@ function companyFooter(): string {
 }
 
 function companyName(): string {
-  return escapeHtml(process.env.COMPANY_NAME?.trim() || 'Print Shop')
+  return escapeHtml(process.env.COMPANY_NAME?.trim() || 'Print Shop GmbH')
 }
 
 /** Minimal, mail-client-safe HTML layout (dark brand header, light body). */

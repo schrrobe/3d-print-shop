@@ -1,7 +1,7 @@
 # Offene Punkte / Pre-Launch-Checkliste
 
 Konsolidiert aus verstreuten „vor Livegang"-Markern (README-Hinweise, `docs/`, i18n-Platzhalter).
-Stand: 2026-07-04.
+Stand: 2026-07-13.
 
 ## Rechtlich (blockierend für Livegang)
 

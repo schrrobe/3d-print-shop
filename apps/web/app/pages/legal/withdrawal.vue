@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import { getLegalTranslation } from '../../content/legal-translations'
 
 const { t, locale } = useI18n()
+const company = useRuntimeConfig().public.company
 const translatedDocument = computed(() => getLegalTranslation(locale.value, 'withdrawal'))
 
 useSeo({
@@ -37,10 +38,9 @@ useSeo({
           an dem du oder ein von dir benannter Dritter die letzte Ware in Besitz genommen hat.
         </p>
         <p class="mt-sm">
-          Um dein Widerrufsrecht auszuüben, musst du uns (Robert Schreiner, Kapitelwiese 14, 44263
-          Dortmund, Deutschland, E-Mail:
-          <a class="underline" href="mailto:info@prestige-webdesign.de"
-            >info@prestige-webdesign.de</a
+          Um dein Widerrufsrecht auszuüben, musst du uns ({{ company.name }}, {{ company.street }},
+          {{ company.zip }} {{ company.city }}, Deutschland, E-Mail:
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a
           >) mittels einer eindeutigen Erklärung (z. B. per Brief oder E-Mail) über deinen
           Entschluss, diesen Vertrag zu widerrufen, informieren. Du kannst dafür das unten stehende
           Muster- Widerrufsformular verwenden, das jedoch nicht vorgeschrieben ist.
@@ -71,10 +71,10 @@ useSeo({
         </p>
         <p class="mt-sm">
           Du hast die Waren unverzüglich und in jedem Fall spätestens binnen vierzehn Tagen ab dem
-          Tag, an dem du uns über den Widerruf dieses Vertrags unterrichtest, an Robert Schreiner,
-          Kapitelwiese 14, 44263 Dortmund, Deutschland zurückzusenden oder zu übergeben. Die Frist
-          ist gewahrt, wenn du die Waren vor Ablauf der Frist von vierzehn Tagen absendest. Du
-          trägst die unmittelbaren Kosten der Rücksendung der Waren.
+          Tag, an dem du uns über den Widerruf dieses Vertrags unterrichtest, an {{ company.name }},
+          {{ company.street }}, {{ company.zip }} {{ company.city }}, Deutschland zurückzusenden
+          oder zu übergeben. Die Frist ist gewahrt, wenn du die Waren vor Ablauf der Frist von
+          vierzehn Tagen absendest. Du trägst die unmittelbaren Kosten der Rücksendung der Waren.
         </p>
         <p class="mt-sm">
           Du musst für einen etwaigen Wertverlust der Waren nur aufkommen, wenn dieser Wertverlust
@@ -102,11 +102,11 @@ useSeo({
         </p>
         <div class="mt-md rounded-card border border-subtle bg-surface-elevated p-lg text-primary">
           <p>
-            An Robert Schreiner<br />
-            Kapitelwiese 14<br />
-            44263 Dortmund<br />
+            An {{ company.name }}<br />
+            {{ company.street }}<br />
+            {{ company.zip }} {{ company.city }}<br />
             Deutschland<br />
-            E-Mail: info@prestige-webdesign.de
+            E-Mail: {{ company.email }}
           </p>
           <p class="mt-lg">
             Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über den

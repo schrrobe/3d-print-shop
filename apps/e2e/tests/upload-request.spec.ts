@@ -69,5 +69,6 @@ test.describe('upload request (3mf/stl, max 50 MB)', () => {
     await gotoHydrated(page, '/upload')
     await new ShopPage(page).acceptConsent()
     await expect(page.getByTestId('upload-terms')).not.toBeChecked()
+    await expect(page.getByTestId('upload-terms')).toHaveAttribute('required')
   })
 })

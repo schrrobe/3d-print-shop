@@ -34,6 +34,12 @@ describe('email templates', () => {
     expect(rendered.html).toContain('Robert Schreiner · Kapitelwiese 14 · 44263 Dortmund')
   })
 
+  it('uses the same default company name in the header and footer', () => {
+    const rendered = renderOrderConfirmation(orderData, 'de')
+    expect(rendered.html).toContain('● Print Shop GmbH')
+    expect(rendered.html).toContain('Print Shop GmbH')
+  })
+
   it('renders order confirmation in de and en', () => {
     const de = renderOrderConfirmation(orderData, 'de')
     expect(de.subject).toContain('Bestellbestätigung')

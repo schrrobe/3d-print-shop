@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import { getLegalTranslation } from '../../content/legal-translations'
 
 const { t, locale } = useI18n()
+const company = useRuntimeConfig().public.company
 const translatedDocument = computed(() => getLegalTranslation(locale.value, 'terms'))
 
 useSeo({
@@ -27,22 +28,21 @@ useSeo({
       <section>
         <h2 class="text-heading-small text-primary">1. Geltungsbereich</h2>
         <p class="mt-sm">
-          Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Verträge zwischen Robert
-          Schreiner, Kapitelwiese 14, 44263 Dortmund, Deutschland (nachfolgend „wir“ oder „uns“) und
-          Verbrauchern im Sinne von § 13 BGB über den Verkauf von Waren über diesen Onlineshop.
-          Verbraucher ist jede natürliche Person, die ein Rechtsgeschäft zu Zwecken abschließt, die
-          überwiegend weder ihrer gewerblichen noch ihrer selbstständigen beruflichen Tätigkeit
-          zugerechnet werden können.
+          Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Verträge zwischen
+          {{ company.name }}, {{ company.street }}, {{ company.zip }} {{ company.city }},
+          Deutschland (nachfolgend „wir“ oder „uns“) und Verbrauchern im Sinne von § 13 BGB über den
+          Verkauf von Waren über diesen Onlineshop. Verbraucher ist jede natürliche Person, die ein
+          Rechtsgeschäft zu Zwecken abschließt, die überwiegend weder ihrer gewerblichen noch ihrer
+          selbstständigen beruflichen Tätigkeit zugerechnet werden können.
         </p>
       </section>
 
       <section>
         <h2 class="text-heading-small text-primary">2. Vertragspartner und Vertragssprache</h2>
         <p class="mt-sm">
-          Vertragspartner ist Robert Schreiner, Kapitelwiese 14, 44263 Dortmund, Deutschland. Du
-          erreichst uns unter
-          <a class="underline" href="mailto:info@prestige-webdesign.de"
-            >info@prestige-webdesign.de</a
+          Vertragspartner ist {{ company.name }}, {{ company.street }}, {{ company.zip }}
+          {{ company.city }}, Deutschland. Du erreichst uns unter
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a
           >. Vertragssprache ist Deutsch.
         </p>
       </section>

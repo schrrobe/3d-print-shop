@@ -16,7 +16,7 @@ Sprache, Theme) laufen ohne Einwilligungspflicht (berechtigtes Interesse / Vertr
 
 ## Implementierung
 
-- **Banner** (`ConsentBanner.vue`): „Alle akzeptieren" / „Nur notwendige" / „Einstellungen"
+- **Banner** (`ConsentBanner.vue`): „Alle akzeptieren“ / „Nur notwendige“ / „Einstellungen“
   (granular je Kategorie). Bewusst animationsfrei, blockiert den Zahlungsprozess nicht.
 - **Speicherung**: localStorage `print-shop-consent` `{necessary, statistics, marketing,
 version, updatedAt}`. Bei Versionssprung (`CONSENT_VERSION` in `packages/utils`) wird die

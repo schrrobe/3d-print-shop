@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import { getLegalTranslation } from '../../content/legal-translations'
 
 const { t, locale } = useI18n()
+const company = useRuntimeConfig().public.company
 const translatedDocument = computed(() => getLegalTranslation(locale.value, 'privacy'))
 
 useSeo({
@@ -28,13 +29,11 @@ useSeo({
         <h2 class="text-heading-small text-primary">1. Verantwortlicher</h2>
         <p class="mt-sm">
           Verantwortlicher für die Verarbeitung personenbezogener Daten auf dieser Website ist:<br />
-          Robert Schreiner<br />
-          Kapitelwiese 14<br />
-          44263 Dortmund<br />
+          {{ company.name }}<br />
+          {{ company.street }}<br />
+          {{ company.zip }} {{ company.city }}<br />
           E-Mail:
-          <a class="underline" href="mailto:info@prestige-webdesign.de"
-            >info@prestige-webdesign.de</a
-          >
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a>
         </p>
         <p class="mt-sm">Ein Datenschutzbeauftragter ist nicht bestellt.</p>
       </section>

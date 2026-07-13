@@ -149,7 +149,8 @@
     "quantity": "Stückzahl",
     "termsAcceptance": "Ich akzeptiere die",
     "termsAnd": "und die",
-    "termsContent": "Ich bestätige, dass ich die nötigen Rechte am hochgeladenen Modell besitze, keine rechtswidrigen oder Rechte Dritter verletzenden Inhalte hochlade und dass die Dateien vor Angebotsprüfung nicht in Produktion gehen. Fassung: 13.07.2026.",
+    "termsContent": "Ich bestätige, dass ich die nötigen Rechte am hochgeladenen Modell besitze, keine rechtswidrigen oder Rechte Dritter verletzenden Inhalte hochlade und dass die Dateien vor Angebotsprüfung nicht in Produktion gehen.",
+    "termsVersion": "Fassung: {version}.",
     "submit": "Anfrage senden",
     "successTitle": "Anfrage erhalten!",
     "successText": "Wir prüfen dein Modell und melden uns mit einem Angebot per E-Mail.",
@@ -192,7 +193,7 @@
     "privacy": "Datenschutz",
     "terms": "AGB",
     "withdrawal": "Widerruf",
-    "claim": "3D-Druck, made in Berlin."
+    "claim": "3D-Druck, made in Dortmund."
   },
   "legal": {
     "imprintTitle": "Impressum",

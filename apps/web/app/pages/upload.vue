@@ -154,8 +154,8 @@ async function submit() {
           <NuxtLink to="/legal/terms" class="underline">{{ t('footer.terms') }}</NuxtLink>
           {{ t('upload.termsAnd') }}
           <NuxtLink to="/legal/privacy" class="underline">{{ t('footer.privacy') }}</NuxtLink
-          >.
-          {{ t('upload.termsContent') }}
+          >. {{ t('upload.termsContent') }}
+          {{ t('upload.termsVersion', { version: UPLOAD_TERMS_VERSION }) }}
         </span>
       </label>
 

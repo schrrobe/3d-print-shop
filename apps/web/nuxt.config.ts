@@ -39,7 +39,12 @@ export default defineNuxtConfig({
 
   build: {
     // Workspace packages ship TS/Vue source — let Nuxt transpile them
-    transpile: ['@print-shop/ui', '@print-shop/utils', '@print-shop/types', '@print-shop/validators'],
+    transpile: [
+      '@print-shop/ui',
+      '@print-shop/utils',
+      '@print-shop/types',
+      '@print-shop/validators',
+    ],
   },
 
   runtimeConfig: {
@@ -48,12 +53,27 @@ export default defineNuxtConfig({
     public: {
       apiBase: '/api',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+      company: {
+        name:
+          process.env.NUXT_PUBLIC_COMPANY_NAME ?? process.env.COMPANY_NAME ?? 'Robert Schreiner',
+        street:
+          process.env.NUXT_PUBLIC_COMPANY_STREET ?? process.env.COMPANY_STREET ?? 'Kapitelwiese 14',
+        zip: process.env.NUXT_PUBLIC_COMPANY_ZIP ?? process.env.COMPANY_ZIP ?? '44263',
+        city: process.env.NUXT_PUBLIC_COMPANY_CITY ?? process.env.COMPANY_CITY ?? 'Dortmund',
+        email:
+          process.env.NUXT_PUBLIC_COMPANY_EMAIL ??
+          process.env.COMPANY_EMAIL ??
+          'info@prestige-webdesign.de',
+      },
     },
   },
 
   nitro: {
     devProxy: {
-      '/api': { target: process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api', changeOrigin: true },
+      '/api': {
+        target: process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api',
+        changeOrigin: true,
+      },
     },
     routeRules: {
       '/api/**': { proxy: `${process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api'}/**` },
