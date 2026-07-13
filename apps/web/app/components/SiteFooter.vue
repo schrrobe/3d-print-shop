@@ -20,6 +20,9 @@ const consent = useConsentStore()
         <NuxtLink :to="localePath('/legal/terms')" class="hover:text-primary">{{
           t('footer.terms')
         }}</NuxtLink>
+        <NuxtLink :to="localePath('/legal/withdrawal')" class="hover:text-primary">{{
+          t('footer.withdrawal')
+        }}</NuxtLink>
         <button
           type="button"
           class="cursor-pointer hover:text-primary"

@@ -38,10 +38,16 @@ test.describe('email notifications (dev mode log)', () => {
     const email = `upload-mail-${Date.now()}@example.com`
     await request.post('http://localhost:3001/api/upload-requests', {
       multipart: {
-        files: { name: 'mail.stl', mimeType: 'application/octet-stream', buffer: Buffer.from('solid m\nendsolid m') },
+        files: {
+          name: 'mail.stl',
+          mimeType: 'application/octet-stream',
+          buffer: Buffer.from('solid m\nendsolid m'),
+        },
         name: 'Mail Tester',
         email,
         description: 'E-Mail-Benachrichtigungstest für Uploads.',
+        acceptsUploadTerms: 'true',
+        uploadTermsVersion: '2026-07-13',
       },
     })
     expect(await emailsFor(email)).toContain('upload_received')

@@ -147,7 +147,9 @@
     "name": "Name",
     "description": "Beschreibung (Material, Farbe, Menge, Verwendungszweck …)",
     "quantity": "Stückzahl",
-    "termsPlaceholder": "Hinweis: Upload-Bedingungen folgen. Mit dem Absenden bestätigst du, dass du die Rechte am Modell besitzt.",
+    "termsAcceptance": "Ich akzeptiere die",
+    "termsAnd": "und die",
+    "termsContent": "Ich bestätige, dass ich die nötigen Rechte am hochgeladenen Modell besitze, keine rechtswidrigen oder Rechte Dritter verletzenden Inhalte hochlade und dass die Dateien vor Angebotsprüfung nicht in Produktion gehen. Fassung: 13.07.2026.",
     "submit": "Anfrage senden",
     "successTitle": "Anfrage erhalten!",
     "successText": "Wir prüfen dein Modell und melden uns mit einem Angebot per E-Mail.",
@@ -189,12 +191,14 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
+    "withdrawal": "Widerruf",
     "claim": "3D-Druck, made in Berlin."
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Datenschutzerklärung",
     "termsTitle": "Allgemeine Geschäftsbedingungen",
+    "withdrawalTitle": "Widerrufsbelehrung",
     "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen."
   },
   "common": {

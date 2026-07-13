@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   renderAdminNotification,
   renderInvoice,
@@ -21,6 +21,19 @@ const orderData = {
 }
 
 describe('email templates', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('uses the configured company details in the header and footer', () => {
+    vi.stubEnv('COMPANY_NAME', 'Robert Schreiner')
+    vi.stubEnv('COMPANY_STREET', 'Kapitelwiese 14')
+    vi.stubEnv('COMPANY_ZIP', '44263')
+    vi.stubEnv('COMPANY_CITY', 'Dortmund')
+
+    const rendered = renderOrderConfirmation(orderData, 'de')
+    expect(rendered.html).toContain('● Robert Schreiner')
+    expect(rendered.html).toContain('Robert Schreiner · Kapitelwiese 14 · 44263 Dortmund')
+  })
+
   it('renders order confirmation in de and en', () => {
     const de = renderOrderConfirmation(orderData, 'de')
     expect(de.subject).toContain('Bestellbestätigung')
@@ -67,14 +80,21 @@ describe('email templates', () => {
     ).toBeTruthy()
     expect(
       renderInvoice(
-        { orderNumber: 'PS-1', invoiceNumber: 'RE-2026-00001', totalCents: 100, orderUrl: 'https://x' },
+        {
+          orderNumber: 'PS-1',
+          invoiceNumber: 'RE-2026-00001',
+          totalCents: 100,
+          orderUrl: 'https://x',
+        },
         'de',
       ).html,
     ).toBeTruthy()
     expect(renderPasswordReset({ name: 'Max', resetUrl: 'https://x' }, 'de').html).toBeTruthy()
     expect(
-      renderAdminNotification({ event: 'Neue Bestellung', detail: 'x', adminUrl: 'https://x' }, 'de')
-        .html,
+      renderAdminNotification(
+        { event: 'Neue Bestellung', detail: 'x', adminUrl: 'https://x' },
+        'de',
+      ).html,
     ).toBeTruthy()
   })
 })

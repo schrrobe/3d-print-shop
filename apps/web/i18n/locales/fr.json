@@ -147,7 +147,9 @@
     "name": "Nom",
     "description": "Description (matériau, couleur, quantité, usage …)",
     "quantity": "Quantité",
-    "termsPlaceholder": "Remarque : conditions d'upload à venir. En envoyant, vous confirmez détenir les droits sur le modèle.",
+    "termsAcceptance": "J’accepte les",
+    "termsAnd": "et la",
+    "termsContent": "Je confirme disposer des droits nécessaires sur le modèle envoyé, ne pas téléverser de contenu illicite ou portant atteinte aux droits de tiers et comprendre que les fichiers ne seront pas mis en production avant l’examen du devis. Version : 13 juillet 2026.",
     "submit": "Envoyer la demande",
     "successTitle": "Demande reçue !",
     "successText": "Nous examinons votre modèle et revenons vers vous avec un devis par e-mail.",
@@ -189,12 +191,14 @@
     "imprint": "Mentions légales",
     "privacy": "Confidentialité",
     "terms": "CGV",
+    "withdrawal": "Rétractation",
     "claim": "Impression 3D, made in Berlin."
   },
   "legal": {
     "imprintTitle": "Mentions légales",
     "privacyTitle": "Politique de confidentialité",
     "termsTitle": "Conditions générales de vente",
+    "withdrawalTitle": "Droit de rétractation",
     "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne."
   },
   "common": {

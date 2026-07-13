@@ -8,18 +8,18 @@ Sprache, Theme) laufen ohne Einwilligungspflicht (berechtigtes Interesse / Vertr
 
 ## Kategorien
 
-| Kategorie | Inhalt | Rechtsgrundlage |
-|---|---|---|
+| Kategorie | Inhalt                                                         | Rechtsgrundlage          |
+| --------- | -------------------------------------------------------------- | ------------------------ |
 | notwendig | Warenkorb (localStorage), Session-Cookie Admin, Sprache, Theme | keine Einwilligung nötig |
-| statistik | Google Analytics 4 | Opt-in |
-| marketing | Meta Pixel | Opt-in |
+| statistik | Google Analytics 4                                             | Opt-in                   |
+| marketing | Meta Pixel                                                     | Opt-in                   |
 
 ## Implementierung
 
 - **Banner** (`ConsentBanner.vue`): „Alle akzeptieren" / „Nur notwendige" / „Einstellungen"
   (granular je Kategorie). Bewusst animationsfrei, blockiert den Zahlungsprozess nicht.
 - **Speicherung**: localStorage `print-shop-consent` `{necessary, statistics, marketing,
-  version, updatedAt}`. Bei Versionssprung (`CONSENT_VERSION` in `packages/utils`) wird die
+version, updatedAt}`. Bei Versionssprung (`CONSENT_VERSION` in `packages/utils`) wird die
   Einwilligung ungültig → Banner erscheint erneut.
 - **Consent-Log**: Jede Entscheidung wird mit anonymer Zufalls-ID, Version, Locale und
   User-Agent an `POST /api/consent` gemeldet (`ConsentLog`-Tabelle) — Nachweisbarkeit.
@@ -43,6 +43,8 @@ Opt-in-pflichtig). Access Tokens liegen ausschließlich serverseitig.
 
 - Gastbestellung: nur vertragsnotwendige Daten, kein Konto.
 - E-Mails transaktional (kein Marketing).
-- Rechtstexte (Impressum/Datenschutz/AGB) sind **Platzhalter** → vor Livegang von
-  Rechtsberatung befüllen lassen.
-- Löschkonzept/Aufbewahrungsfristen (Rechnungen 10 Jahre!) vor Livegang definieren.
+- Die finalen Rechtstexte (Impressum/Datenschutz/AGB) müssen vor Livegang von
+  der verantwortlichen Person bzw. Rechtsberatung freigegeben und mit den
+  tatsächlichen Unternehmensdaten veröffentlicht werden.
+- Fristen, Löschsperren, Backups und der operative Ablauf stehen im
+  [Lösch- und Aufbewahrungskonzept](deletion-retention.md).

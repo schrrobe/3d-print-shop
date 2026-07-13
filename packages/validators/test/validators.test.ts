@@ -80,6 +80,8 @@ describe('uploadRequestSchema', () => {
       name: 'Max',
       email: 'max@example.com',
       description: 'Bitte in PETG drucken, Schichthöhe 0.2mm.',
+      acceptsUploadTerms: true,
+      uploadTermsVersion: '2026-07-13',
     })
     expect(result.success).toBe(true)
     if (result.success) expect(result.data.quantity).toBe(1)
@@ -90,6 +92,22 @@ describe('uploadRequestSchema', () => {
       uploadRequestSchema.safeParse({ name: 'M', email: 'max@example.com', description: 'kurz' })
         .success,
     ).toBe(false)
+  })
+
+  it('requires acceptance of the current upload terms version', () => {
+    const valid = {
+      name: 'Max',
+      email: 'max@example.com',
+      description: 'Bitte in PETG drucken, Schichthöhe 0.2mm.',
+      acceptsUploadTerms: true,
+      uploadTermsVersion: '2026-07-13',
+    }
+    expect(uploadRequestSchema.safeParse({ ...valid, acceptsUploadTerms: false }).success).toBe(
+      false,
+    )
+    expect(uploadRequestSchema.safeParse({ ...valid, uploadTermsVersion: 'old' }).success).toBe(
+      false,
+    )
   })
 })
 

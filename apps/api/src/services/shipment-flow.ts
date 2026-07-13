@@ -208,6 +208,12 @@ type ShipmentWithRefs = Shipment & {
 
 const CARRIER_LABELS: Record<string, string> = { dhl: 'DHL', hermes: 'Hermes' }
 
+function companyAddress(): string {
+  return [env.COMPANY_NAME, env.COMPANY_STREET, `${env.COMPANY_ZIP} ${env.COMPANY_CITY}`].join(
+    ' · ',
+  )
+}
+
 function shipmentPdfDir(): string {
   return path.join(env.INVOICE_DIR, 'shipping')
 }
@@ -224,8 +230,8 @@ async function renderShipmentPdf(
   const stream = createWriteStream(filePath)
   doc.pipe(stream)
 
-  doc.fontSize(18).text('Print Shop')
-  doc.fontSize(9).fillColor('#5e5e5e').text('Print Shop GmbH · Musterstraße 1 · 12345 Berlin')
+  doc.fontSize(18).text(env.COMPANY_NAME)
+  doc.fontSize(9).fillColor('#5e5e5e').text(companyAddress())
   doc.moveDown(2)
 
   doc
@@ -270,7 +276,9 @@ async function renderShipmentPdf(
     doc
       .fontSize(9)
       .fillColor('#5e5e5e')
-      .text('Lieferschein — kein Rechnungsdokument. Die Rechnung wurde separat per E-Mail zugestellt.')
+      .text(
+        'Lieferschein — kein Rechnungsdokument. Die Rechnung wurde separat per E-Mail zugestellt.',
+      )
   }
 
   doc.end()
@@ -285,7 +293,10 @@ async function renderShipmentPdf(
 export async function generatePackingListPdf(shipmentId: string): Promise<string> {
   const shipment = await loadShipmentForPdf(shipmentId)
   const filePath = await renderShipmentPdf(shipment, 'packing-list')
-  await prisma.shipment.update({ where: { id: shipmentId }, data: { packingListPdfPath: filePath } })
+  await prisma.shipment.update({
+    where: { id: shipmentId },
+    data: { packingListPdfPath: filePath },
+  })
   return filePath
 }
 
@@ -293,7 +304,10 @@ export async function generatePackingListPdf(shipmentId: string): Promise<string
 export async function generateDeliveryNotePdf(shipmentId: string): Promise<string> {
   const shipment = await loadShipmentForPdf(shipmentId)
   const filePath = await renderShipmentPdf(shipment, 'delivery-note')
-  await prisma.shipment.update({ where: { id: shipmentId }, data: { deliveryNotePdfPath: filePath } })
+  await prisma.shipment.update({
+    where: { id: shipmentId },
+    data: { deliveryNotePdfPath: filePath },
+  })
   return filePath
 }
 
