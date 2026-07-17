@@ -63,6 +63,14 @@ export const checkoutSchema = z.object({
   locale: localeSchema.default('de'),
   note: z.string().trim().max(1000).optional(),
   voucherCode: voucherCodeInputSchema.optional(),
+  /**
+   * Cookie-consent snapshot at order time, persisted onto the order's server
+   * events (drives the marketing outbox fan-out). Optional so older clients
+   * stay valid — missing means no consent (fail-closed).
+   */
+  consent: z
+    .object({ statistics: z.boolean(), marketing: z.boolean() })
+    .optional(),
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
 

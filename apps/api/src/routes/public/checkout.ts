@@ -299,7 +299,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       // Tracking is best-effort — a failure here must never break checkout.
       // The session row is already resolved/created above, so skip the re-lookup.
       try {
-        await emitOrderCreated(prisma, order, true)
+        await emitOrderCreated(prisma, order, true, input.consent)
       } catch (err) {
         console.error('[tracking] emitOrderCreated failed:', err)
       }

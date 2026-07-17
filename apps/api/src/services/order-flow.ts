@@ -14,7 +14,7 @@ import { prisma } from '../lib/prisma.js'
 import { sendEmail } from './email.js'
 import { createInvoiceForOrder, generateInvoicePdf } from './invoice.js'
 import { computeAndPersistAttribution } from './tracking/attribution.js'
-import { emitPurchase } from './tracking/events.js'
+import { recordPurchaseWithOutbox } from './tracking/outbox.js'
 
 export function orderUrl(order: { orderNumber: string; accessToken: string }): string {
   return `${env.WEB_URL}/order/${order.orderNumber}?token=${order.accessToken}`
@@ -84,7 +84,7 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     // maintenance reconciliation heals a missing purchase later.
     try {
       await prisma.$transaction(async (tx) => {
-        await emitPurchase(tx, order, paidAt)
+        await recordPurchaseWithOutbox(tx, order, paidAt)
         await computeAndPersistAttribution(tx, order, paidAt)
       })
     } catch (err) {

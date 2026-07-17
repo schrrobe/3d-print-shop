@@ -143,6 +143,12 @@ export async function recordClientBatch(
   return { accepted: inserted.count, duplicates: rows.length - inserted.count, dropped }
 }
 
+/** Cookie-consent snapshot captured at checkout (see checkoutSchema.consent). */
+export interface ConsentSnapshot {
+  statistics: boolean
+  marketing: boolean
+}
+
 export interface ServerEventInput {
   name: ServerEventName
   orderId: string
@@ -205,6 +211,7 @@ export async function emitOrderCreated(
   db: Db,
   order: { id: string; totalCents: number; trackingSessionId?: string | null },
   sessionResolved = false,
+  consent?: ConsentSnapshot,
 ): Promise<boolean> {
   return recordServerEvent(db, {
     name: 'order_created',
@@ -212,7 +219,26 @@ export async function emitOrderCreated(
     valueCents: order.totalCents,
     sessionId: order.trackingSessionId ?? null,
     sessionResolved,
+    consentStatistics: consent?.statistics,
+    consentMarketing: consent?.marketing,
   })
+}
+
+/**
+ * Consent snapshot for an order, read back from its order_created event — the
+ * only place the checkout-time consent is persisted. Fail-closed: a missing
+ * event (best-effort emit lost) means no provable consent, so no marketing
+ * fan-out for this order.
+ */
+export async function getOrderConsent(db: Db, orderId: string): Promise<ConsentSnapshot> {
+  const event = await db.trackingEvent.findUnique({
+    where: { id: orderEventId('order_created', orderId) },
+    select: { consentStatistics: true, consentMarketing: true },
+  })
+  return {
+    statistics: event?.consentStatistics ?? false,
+    marketing: event?.consentMarketing ?? false,
+  }
 }
 
 /** purchase — emitted immediately after the atomic payment claim. */
@@ -227,6 +253,7 @@ export async function emitPurchase(
     items?: { quantity: number }[]
   },
   occurredAt?: Date,
+  consent?: ConsentSnapshot,
 ): Promise<boolean> {
   const itemCount = order.items?.reduce((n, i) => n + i.quantity, 0)
   return recordServerEvent(db, {
@@ -235,6 +262,8 @@ export async function emitPurchase(
     valueCents: order.totalCents,
     sessionId: order.trackingSessionId ?? null,
     occurredAt,
+    consentStatistics: consent?.statistics,
+    consentMarketing: consent?.marketing,
     props: {
       shippingCents: order.shippingCents,
       discountCents: order.discountCents,

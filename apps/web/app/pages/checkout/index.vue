@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PsCheckoutSummary, PsInput, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
-import { formatCents } from '@print-shop/utils'
+import { canLoadTracker, formatCents } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 
 /**
@@ -10,6 +10,7 @@ import type { Locale } from '@print-shop/types'
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const cart = useCartStore()
+const consentStore = useConsentStore()
 const router = useRouter()
 type CheckoutPaymentMethod = 'stripe' | 'bank_transfer' | 'bitcoin'
 const paymentMethods = ref<CheckoutPaymentMethod[]>(['stripe', 'bank_transfer'])
@@ -22,6 +23,7 @@ useHead({ meta: [{ name: 'robots', content: 'noindex' }] })
 
 onMounted(() => {
   cart.hydrate()
+  consentStore.hydrate()
   if (cart.items.length === 0) router.replace(localePath('/cart'))
   void $fetch<{ methods: CheckoutPaymentMethod[] }>('/api/payments/methods')
     .then((config) => {
@@ -99,6 +101,12 @@ async function submit() {
         paymentMethod: paymentMethod.value,
         locale: locale.value,
         voucherCode: cart.voucher?.code,
+        // Consent snapshot at order time — canLoadTracker also rejects stale
+        // CONSENT_VERSION, so outdated consent never reaches the server events.
+        consent: {
+          statistics: canLoadTracker('statistics', consentStore.consent),
+          marketing: canLoadTracker('marketing', consentStore.consent),
+        },
       },
     })
     checkoutKey.value = null
