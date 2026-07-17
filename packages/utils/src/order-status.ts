@@ -36,3 +36,20 @@ export function assertOrderTransition(from: OrderStatus, to: OrderStatus): void 
 export function isTerminalOrderStatus(status: OrderStatus): boolean {
   return ORDER_STATUS_TRANSITIONS[status].length === 0
 }
+
+/**
+ * Paid-family statuses that count as realized revenue (a payment cleared and was
+ * not reversed). Excludes `cancelled`/`refunded` and the pre-payment states.
+ * Single source of truth for revenue/attribution/reconciliation filters — keep
+ * SQL `IN (...)` lists derived from this, never hand-copied.
+ */
+export const REVENUE_ORDER_STATUSES = [
+  'paid',
+  'in_production',
+  'quality_check',
+  'ready_to_ship',
+  'shipped',
+  'completed',
+] as const satisfies readonly OrderStatus[]
+
+export type RevenueOrderStatus = (typeof REVENUE_ORDER_STATUSES)[number]

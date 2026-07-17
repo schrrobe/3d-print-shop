@@ -8,7 +8,7 @@ import {
   normalizeVoucherCode,
   resolveColorSelection,
 } from '@print-shop/utils'
-import { checkoutIdempotencyKeySchema, checkoutSchema } from '@print-shop/validators'
+import { checkoutIdempotencyKeySchema, checkoutSchema, uuidSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
@@ -19,8 +19,31 @@ import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
 import { createStripeCheckoutSession } from '../../services/payments/stripe.js'
+import { emitOrderCreated } from '../../services/tracking/events.js'
 
 export const checkoutRouter = Router()
+
+/**
+ * Link the order to its tracker session. If the ingest endpoint has not yet
+ * persisted the session (deep link straight to checkout / slow network racing
+ * the meta batch), upsert a placeholder row (landingPath '') so the FK link
+ * survives. recordClientBatch promotes that placeholder to the real touchpoint
+ * when the meta batch lands — which is well before payment-time attribution.
+ * Best-effort: a tracking failure must never break checkout.
+ */
+async function resolveTrackingSessionId(value: string | undefined): Promise<string | null> {
+  if (!value || !uuidSchema.safeParse(value).success) return null
+  try {
+    await prisma.trackingSession.createMany({
+      data: [{ id: value, landingPath: '' }],
+      skipDuplicates: true,
+    })
+    return value
+  } catch (err) {
+    console.error('[tracking] session placeholder upsert failed:', err)
+    return null
+  }
+}
 
 function productName(translations: { locale: string; name: string }[], locale: Locale): string {
   return (
@@ -86,6 +109,9 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
   try {
     const input = checkoutSchema.parse(req.body)
     const checkoutKey = checkoutIdempotencyKeySchema.parse(req.get('idempotency-key'))
+    const trackingSessionId = await resolveTrackingSessionId(
+      req.get('x-tracking-session') ?? undefined,
+    )
     if (input.paymentMethod === 'stripe_payment_link') {
       throw badRequest('stripe_payment_link is reserved for quotes')
     }
@@ -245,6 +271,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             totalCents: totals.totalCents,
             voucherId: voucher?.id,
             voucherCode: voucher?.code,
+            trackingSessionId,
             items: { create: orderItems },
             payments: { create: paymentData },
           },
@@ -269,6 +296,13 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
 
     if (created) {
+      // Tracking is best-effort — a failure here must never break checkout.
+      // The session row is already resolved/created above, so skip the re-lookup.
+      try {
+        await emitOrderCreated(prisma, order, true)
+      } catch (err) {
+        console.error('[tracking] emitOrderCreated failed:', err)
+      }
       await sendOrderConfirmation(order.id)
       await sendEmail(
         env.ADMIN_NOTIFICATION_EMAIL,

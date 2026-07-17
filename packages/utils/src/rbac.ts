@@ -45,6 +45,7 @@ export const PERMISSIONS = [
   'vouchers:write',
   'settings:read',
   'settings:write',
+  'tracking:read',
 ] as const
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -62,6 +63,7 @@ export type Permission = (typeof PERMISSIONS)[number]
  * Reviews: product_manager & support moderate.
  * Vouchers: only admin manages (vouchers:write), support reads for order questions.
  * Settings: shop-wide config incl. tracking IDs (GDPR-relevant) — admin only.
+ * Conversion analytics: admin & product_manager read the tracking dashboard (tracking:read).
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   admin: PERMISSIONS,
@@ -78,6 +80,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'filament:read',
     'reviews:read',
     'reviews:moderate',
+    'tracking:read',
   ],
   production: [
     'dashboard:read',

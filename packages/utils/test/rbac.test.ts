@@ -71,6 +71,14 @@ describe('RBAC', () => {
     }
   })
 
+  it('conversion tracking dashboard is admin & product_manager only', () => {
+    expect(hasPermission('admin', 'tracking:read')).toBe(true)
+    expect(hasPermission('product_manager', 'tracking:read')).toBe(true)
+    for (const role of ['production', 'shipping', 'support'] as const) {
+      expect(hasPermission(role, 'tracking:read')).toBe(false)
+    }
+  })
+
   it('permissionsForRole returns the role matrix', () => {
     expect(permissionsForRole('shipping')).toEqual(ROLE_PERMISSIONS.shipping)
   })

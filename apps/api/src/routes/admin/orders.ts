@@ -1,5 +1,5 @@
 import { ORDER_STATUSES } from '@print-shop/types'
-import { assertOrderTransition } from '@print-shop/utils'
+import { assertOrderTransition, REVENUE_ORDER_STATUSES } from '@print-shop/utils'
 import { markPaidSchema, shippingUpdateSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -12,6 +12,7 @@ import {
   notifyProductionStarted,
 } from '../../services/order-flow.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
+import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
@@ -77,6 +78,14 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     if (status === 'in_production') await notifyProductionStarted(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
+    // Conversion tracking — best-effort, must never break the status change.
+    try {
+      if (status === 'refunded') await emitRefund(prisma, order)
+      else if (status === 'cancelled' && (REVENUE_ORDER_STATUSES as readonly string[]).includes(order.status))
+        await emitCancel(prisma, order)
+    } catch (err) {
+      console.error('[tracking] refund/cancel emit failed:', err)
+    }
     await audit(req, 'order.status', { type: 'order', id: order.id }, { from: order.status, to: status })
     res.json({ order: updated })
   } catch (err) {

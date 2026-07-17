@@ -75,6 +75,29 @@ const envSchema = z
     META_FACEBOOK_PAGE_ACCESS_TOKEN: z.string().optional().default(''),
     META_INSTAGRAM_BUSINESS_ACCOUNT_ID: z.string().optional().default(''),
     META_INSTAGRAM_ACCESS_TOKEN: z.string().optional().default(''),
+    // --- Conversion tracking ---
+    // Nightly retention/reconciliation worker (opt-in; single-instance assumption).
+    TRACKING_RETENTION_CRON_ENABLED: z
+      .string()
+      .default('false')
+      .transform((v) => v === 'true'),
+    TRACKING_RETENTION_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(60).default(3600),
+    /// Event row retention (~13 months); older events are purged nightly.
+    TRACKING_EVENT_RETENTION_DAYS: z.coerce.number().int().min(30).default(395),
+    /// Session metadata (UA, click ids) is anonymized after this many days.
+    TRACKING_SESSION_ANON_DAYS: z.coerce.number().int().min(7).default(90),
+    // Marketing-destination outbox worker (Phase 3; ships disabled).
+    TRACKING_OUTBOX_CRON_ENABLED: z
+      .string()
+      .default('false')
+      .transform((v) => v === 'true'),
+    TRACKING_OUTBOX_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(60),
+    // Access tokens live in env, NEVER in ShopSettings (that row is exposed publicly
+    // via /api/tracking-settings). Empty = destination disabled.
+    META_CAPI_ACCESS_TOKEN: z.string().optional().default(''),
+    META_CAPI_PIXEL_ID: z.string().optional().default(''),
+    TIKTOK_EVENTS_ACCESS_TOKEN: z.string().optional().default(''),
+    TIKTOK_PIXEL_CODE: z.string().optional().default(''),
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV === 'production') {

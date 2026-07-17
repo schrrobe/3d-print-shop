@@ -179,3 +179,41 @@ describe('POST /api/checkout', () => {
     expect(body.message).toContain('Product not available')
   })
 })
+
+describe('POST /api/t/events', () => {
+  const event = {
+    eventId: '0197fa3f-2222-7222-8222-222222222222',
+    name: 'page_view',
+    occurredAt: new Date().toISOString(),
+  }
+
+  it('rejects a batch without statistics consent', async () => {
+    const res = await postJson('/api/t/events', {
+      v: 1,
+      sessionId: '0197fa3e-1111-7111-8111-111111111111',
+      visitorId: null,
+      consent: { statistics: false, marketing: false },
+      events: [event],
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
+  })
+
+  it('rejects cross-site browser ingest before persistence', async () => {
+    const res = await postJson(
+      '/api/t/events',
+      {
+        v: 1,
+        sessionId: '0197fa3e-1111-7111-8111-111111111111',
+        visitorId: null,
+        consent: { statistics: true, marketing: false },
+        events: [event],
+      },
+      { origin: 'https://attacker.example', 'sec-fetch-site': 'cross-site' },
+    )
+
+    expect(res.status).toBe(403)
+    expect(await res.json()).toMatchObject({ error: 'forbidden' })
+  })
+})

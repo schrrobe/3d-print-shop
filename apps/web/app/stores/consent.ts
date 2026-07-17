@@ -21,7 +21,13 @@ export const useConsentStore = defineStore('consent', () => {
 
   function hydrate() {
     if (hydrated.value || typeof window === 'undefined') return
-    consent.value = parseStoredConsent(localStorage.getItem(CONSENT_STORAGE_KEY))
+    try {
+      consent.value = parseStoredConsent(localStorage.getItem(CONSENT_STORAGE_KEY))
+    } catch {
+      // Privacy modes can block storage access. Treat that as no persisted
+      // consent instead of letting a client plugin abort app hydration.
+      consent.value = null
+    }
     hydrated.value = true
   }
 

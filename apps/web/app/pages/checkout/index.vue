@@ -48,8 +48,13 @@ const paymentMethod = ref<CheckoutPaymentMethod>('stripe')
 const checkoutKey = ref<string | null>(null)
 const submitting = ref(false)
 const hydrated = ref(false)
+const tracking = useTracking()
 onMounted(() => {
   hydrated.value = true
+  tracking.track('begin_checkout', {
+    itemCount: cart.count,
+    subtotalCents: cart.totals.subtotalCents,
+  })
 })
 const errorMessage = ref('')
 
@@ -64,9 +69,19 @@ async function submit() {
   errorMessage.value = ''
   try {
     checkoutKey.value ??= crypto.randomUUID()
+    // Give the ingest endpoint a bounded chance to persist the session before
+    // checkout links it. Tracking failure must never block order placement.
+    await Promise.race([
+      tracking.flush(),
+      new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
+    ])
+    const trackingSessionId = tracking.sessionId()
     const response = await $fetch<CheckoutResponse>('/api/checkout', {
       method: 'POST',
-      headers: { 'Idempotency-Key': checkoutKey.value },
+      headers: {
+        'Idempotency-Key': checkoutKey.value,
+        ...(trackingSessionId ? { 'x-tracking-session': trackingSessionId } : {}),
+      },
       body: {
         items: cart.toCheckoutItems(),
         address: {

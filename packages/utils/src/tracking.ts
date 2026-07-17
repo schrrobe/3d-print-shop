@@ -49,3 +49,17 @@ export function isSensitiveTrackingPath(value: string): boolean {
     (prefix) => localeAgnostic === prefix.replace(/\/$/, '') || localeAgnostic.startsWith(prefix),
   )
 }
+
+/**
+ * Normalize a path for analytics storage: drop any query/hash, cap length, and
+ * blank out token-bearing sensitive paths. `sensitiveFallback` is returned for a
+ * sensitive or empty input — null for nullable event paths, '/' for the NOT NULL
+ * session landing path. Single source of truth; the client mirrors this shape.
+ */
+export function sanitizeTrackingPath(
+  value: string | null | undefined,
+  sensitiveFallback: string | null = null,
+): string | null {
+  if (!value || isSensitiveTrackingPath(value)) return sensitiveFallback
+  return (value.split(/[?#]/, 1)[0] || '/').slice(0, 512)
+}

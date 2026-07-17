@@ -13,6 +13,8 @@ import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { sendEmail } from './email.js'
 import { createInvoiceForOrder, generateInvoicePdf } from './invoice.js'
+import { computeAndPersistAttribution } from './tracking/attribution.js'
+import { emitPurchase } from './tracking/events.js'
 
 export function orderUrl(order: { orderNumber: string; accessToken: string }): string {
   return `${env.WEB_URL}/order/${order.orderNumber}?token=${order.accessToken}`
@@ -54,6 +56,7 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
+  const paidAt = new Date()
   const claimed = await prisma.$transaction(async (tx) => {
     const updated = await tx.order.updateMany({
       where: { id: order.id, status: order.status },
@@ -62,7 +65,7 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     if (updated.count !== 1 || order.status === 'paid') return false
     await tx.payment.update({
       where: { id: payment.id },
-      data: { status: 'paid', paidAt: new Date() },
+      data: { status: 'paid', paidAt },
     })
     // Created only by the request that atomically claims the unpaid order.
     await tx.printerJob.createMany({
@@ -74,6 +77,20 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     })
     return true
   })
+
+  if (claimed) {
+    // Keep tracking atomic with its attribution, but separate from the payment
+    // claim: a tracking failure must never roll back a confirmed payment. The
+    // maintenance reconciliation heals a missing purchase later.
+    try {
+      await prisma.$transaction(async (tx) => {
+        await emitPurchase(tx, order, paidAt)
+        await computeAndPersistAttribution(tx, order, paidAt)
+      })
+    } catch (err) {
+      console.error(`[tracking] purchase/attribution failed for ${order.orderNumber}:`, err)
+    }
+  }
 
   const paidOrder = await prisma.order.findUniqueOrThrow({
     where: { id: order.id },
