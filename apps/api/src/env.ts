@@ -78,7 +78,7 @@ const envSchema = z
     // --- Conversion tracking ---
     // Nightly retention/reconciliation worker (opt-in; single-instance assumption).
     TRACKING_RETENTION_CRON_ENABLED: z
-      .string()
+      .enum(['true', 'false'])
       .default('false')
       .transform((v) => v === 'true'),
     TRACKING_RETENTION_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(60).default(3600),
@@ -88,7 +88,7 @@ const envSchema = z
     TRACKING_SESSION_ANON_DAYS: z.coerce.number().int().min(7).default(90),
     // Marketing-destination outbox worker (Phase 3; ships disabled).
     TRACKING_OUTBOX_CRON_ENABLED: z
-      .string()
+      .enum(['true', 'false'])
       .default('false')
       .transform((v) => v === 'true'),
     TRACKING_OUTBOX_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(60),

@@ -20,6 +20,10 @@ trackRouter.use((req, _res, next) => {
   next()
 })
 
+// Rate-limit before the body parser so oversized/malformed floods are rejected
+// without spending parser work on them.
+trackRouter.use(trackLimiter)
+
 // navigator.sendBeacon posts a Blob as text/plain and cannot set headers, so this
 // router parses both JSON and text bodies (64kb cap; a batch is ≤20 small events).
 trackRouter.use(text({ type: ['text/plain', 'application/json'], limit: '64kb' }))
@@ -32,7 +36,7 @@ trackRouter.use(text({ type: ['text/plain', 'application/json'], limit: '64kb' }
  * Nitro proxy + rate limit + strict schema + browser origin checks.
  * Revenue/commerce events are impossible here (server-only event names).
  */
-trackRouter.post('/events', trackLimiter, async (req, res, next) => {
+trackRouter.post('/events', async (req, res, next) => {
   try {
     let raw: unknown
     try {

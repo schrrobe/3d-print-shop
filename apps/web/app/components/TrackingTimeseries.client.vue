@@ -81,8 +81,44 @@ const options = computed<ChartOptions<'bar'>>(() => ({
 </script>
 
 <template>
-  <div style="height: 260px">
-    <Bar v-if="points.length" :data="data" :options="options" />
-    <p v-else class="text-caption text-secondary">Keine Daten im Zeitraum.</p>
+  <div>
+    <div style="height: 260px" role="img" aria-label="Umsatz und Käufe pro Tag (Diagramm)">
+      <Bar v-if="points.length" :data="data" :options="options" />
+      <p v-else class="text-caption text-secondary">Keine Daten im Zeitraum.</p>
+    </div>
+    <!-- Screen-reader / keyboard alternative for the canvas chart. -->
+    <table v-if="points.length" class="sr-only">
+      <caption>
+        Umsatz und Käufe pro Tag
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Tag</th>
+          <th scope="col">Umsatz (€)</th>
+          <th scope="col">Käufe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="p in points" :key="p.day">
+          <td>{{ p.day }}</td>
+          <td>{{ (Math.round(p.revenueCents) / 100).toFixed(2) }}</td>
+          <td>{{ p.purchases }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

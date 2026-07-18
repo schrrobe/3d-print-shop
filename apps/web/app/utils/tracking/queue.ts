@@ -266,8 +266,11 @@ export function createTracker(): Tracker {
       } catch {
         queued = false
       }
-      if (queued) markSessionMetaSent(batch)
-      else persistFailedBatch(batch, sendGeneration)
+      // sendBeacon returning true only means the payload was queued, not that it
+      // was delivered — an unconfirmed beacon can still be dropped, so don't mark
+      // session meta as sent here (a confirmed fetch below is the only such signal).
+      // Later batches keep re-attaching the session meta until one is confirmed.
+      if (!queued) persistFailedBatch(batch, sendGeneration)
       return
     }
 
@@ -299,7 +302,17 @@ export function createTracker(): Tracker {
     // A checkout calling flush() must also wait for a timer flush that already
     // drained the buffer, otherwise its session can still race the order POST.
     const alreadyRunning = [...inFlight]
-    const retries = loadRetryBatches()
+    // Stored retries carry the consent captured when they were queued. Marketing
+    // consent may since have been withdrawn, so re-send with the *current*
+    // snapshot: a stale `marketing: true` must never trigger fan-out after revocation.
+    const currentConsent = consentSnapshot()
+    const retries = loadRetryBatches().map((batch) => ({
+      ...batch,
+      consent: {
+        statistics: batch.consent.statistics && currentConsent.statistics,
+        marketing: batch.consent.marketing && currentConsent.marketing,
+      },
+    }))
     localRemove(RETRY_KEY)
     const pending = buffer
     buffer = []

@@ -30,9 +30,11 @@ export async function runTrackingMaintenance(now: Date = new Date()): Promise<Ma
   const eventCutoff = new Date(now.getTime() - env.TRACKING_EVENT_RETENTION_DAYS * 24 * 60 * 60_000)
   const anonCutoff = new Date(now.getTime() - env.TRACKING_SESSION_ANON_DAYS * 24 * 60 * 60_000)
 
-  // 1. Purge events past the retention horizon.
+  // 1. Purge events past the retention horizon. Filter on the server-controlled
+  // receivedAt (uses its index) so a future-dated occurredAt cannot outlive the
+  // horizon.
   const purgedEvents = await prisma.trackingEvent.deleteMany({
-    where: { occurredAt: { lt: eventCutoff } },
+    where: { receivedAt: { lt: eventCutoff } },
   })
 
   // 2. Anonymize stale session metadata (drop UA + click ids, keep aggregates).
@@ -107,6 +109,16 @@ export async function runTrackingMaintenance(now: Date = new Date()): Promise<Ma
       const inserted = await prisma.$transaction(async (tx) => {
         const purchaseInserted = await recordPurchaseWithOutbox(tx, order, paidAt)
         await computeAndPersistAttribution(tx, order, paidAt)
+        // A payment past the anonymization horizon must not have its click/
+        // session ids reintroduced by this freshly-computed attribution — the
+        // step-2 pass (keyed on computedAt) would otherwise not revisit it for a
+        // full anon window.
+        if (paidAt < anonCutoff) {
+          await tx.orderAttribution.updateMany({
+            where: { orderId: order.id },
+            data: { lastClickId: null, lastSessionId: null },
+          })
+        }
         return purchaseInserted
       })
       if (inserted) {

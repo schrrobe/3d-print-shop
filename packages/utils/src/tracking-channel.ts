@@ -40,12 +40,14 @@ export function classifyChannel(tp: Touchpoint): TrackingChannel {
   const source = (tp.utmSource ?? '').trim().toLowerCase()
   const medium = (tp.utmMedium ?? '').trim().toLowerCase()
   const paid = PAID_MEDIUMS.includes(medium)
+  // Medium-only campaigns classify even without a utm_source, so these run
+  // before the source-specific rules (e.g. utm_medium=email with no source).
+  if (medium === 'email' || medium === 'newsletter' || source === 'email') return 'email'
+  if (medium === 'organic') return 'organic'
   if (source) {
     if (/(tiktok)/.test(source)) return paid ? 'tiktok_ads' : 'referral'
     if (/(facebook|instagram|meta|fb|ig)/.test(source)) return paid ? 'meta_ads' : 'referral'
     if (/(google|adwords)/.test(source)) return paid ? 'google_ads' : 'organic'
-    if (medium === 'email' || medium === 'newsletter' || source === 'email') return 'email'
-    if (medium === 'organic') return 'organic'
     if (paid) return 'referral'
     return 'referral'
   }

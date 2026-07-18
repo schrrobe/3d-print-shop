@@ -15,7 +15,12 @@ const revenueStatusSql = Prisma.join([...REVENUE_ORDER_STATUSES])
 const rangeSchema = z.object({
   from: z.coerce.date(),
   to: z.coerce.date(),
-  compare: z.coerce.boolean().optional(),
+  // z.coerce.boolean() follows JS truthiness, so "false"/"0" would read as true.
+  // Parse the query flag explicitly: only "true"/"1" enable the compare window.
+  compare: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
 })
 
 interface FunnelRow {
@@ -43,22 +48,47 @@ interface ChannelRow {
 async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean } = {}) {
   const kpisOnly = opts.kpisOnly ?? false
 
+  // Sessions come from behavioural events (page_view by occurredAt); purchases
+  // and revenue come from paid orders (server-truth, bucketed by Payment.paidAt
+  // and summing Order.totalCents), then the two are merged by day. This keeps
+  // the daily purchase/revenue series consistent with the KPI + channel numbers
+  // even when a client purchase event is missing or was reconciled/pruned.
   const timeseriesQuery = prisma.$queryRaw<TimeseriesRow[]>`
-      SELECT date_trunc(
-               'day',
-               e."occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin'
-             ) AS day,
-             COUNT(DISTINCT e."sessionId") FILTER (WHERE e.name = 'page_view')::bigint AS sessions,
-             COUNT(*) FILTER (
-               WHERE e.name = 'purchase' AND o.status IN (${revenueStatusSql})
-             )::bigint AS purchases,
-             COALESCE(SUM(e."valueCents") FILTER (
-               WHERE e.name = 'purchase' AND o.status IN (${revenueStatusSql})
-             ),0)::bigint AS revenue_cents
-      FROM "TrackingEvent" e
-      LEFT JOIN "Order" o ON o.id = e."orderId"
-      WHERE e."occurredAt" BETWEEN ${from} AND ${to}
-      GROUP BY 1 ORDER BY 1`
+      WITH sessions AS (
+        SELECT date_trunc(
+                 'day',
+                 e."occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin'
+               ) AS day,
+               COUNT(DISTINCT e."sessionId") FILTER (WHERE e.name = 'page_view')::bigint AS sessions
+        FROM "TrackingEvent" e
+        WHERE e."occurredAt" BETWEEN ${from} AND ${to}
+        GROUP BY 1
+      ),
+      paid_orders AS (
+        SELECT o.id, o."totalCents", MIN(p."paidAt") AS paid_at
+        FROM "Order" o
+        JOIN "Payment" p ON p."orderId" = o.id AND p.status = 'paid'
+          AND p."paidAt" BETWEEN ${from} AND ${to}
+        WHERE o.status IN (${revenueStatusSql})
+        GROUP BY o.id, o."totalCents"
+      ),
+      orders AS (
+        SELECT date_trunc(
+                 'day',
+                 paid_at AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin'
+               ) AS day,
+               COUNT(*)::bigint AS purchases,
+               COALESCE(SUM("totalCents"),0)::bigint AS revenue_cents
+        FROM paid_orders
+        GROUP BY 1
+      )
+      SELECT COALESCE(s.day, o.day) AS day,
+             COALESCE(s.sessions, 0)::bigint AS sessions,
+             COALESCE(o.purchases, 0)::bigint AS purchases,
+             COALESCE(o.revenue_cents, 0)::bigint AS revenue_cents
+      FROM sessions s
+      FULL OUTER JOIN orders o ON s.day = o.day
+      ORDER BY 1`
   const channelsQuery = prisma.$queryRaw<ChannelRow[]>`
       SELECT oa."lastChannel" AS channel, COALESCE(oa."lastUtmCampaign",'-') AS campaign,
              COUNT(*)::bigint AS orders, SUM(o."totalCents")::bigint AS revenue_cents
@@ -146,6 +176,10 @@ adminTrackingRouter.get('/overview', requirePermission('tracking:read'), async (
     if (from > to) throw badRequest('`from` must be before `to`')
 
     const span = to.getTime() - from.getTime()
+    // Bound the window before running several concurrent raw aggregations, so an
+    // authorized caller cannot request an arbitrarily large (or compare-doubled) scan.
+    const MAX_SPAN_MS = 366 * 24 * 60 * 60 * 1000
+    if (span > MAX_SPAN_MS) throw badRequest('Date range must not exceed 366 days')
     // The compare window only surfaces its KPIs, so fetch it kpis-only and run
     // it concurrently with the current window rather than back-to-back.
     const [current, previous, latest] = await Promise.all([

@@ -57,10 +57,59 @@ const options = computed<ChartOptions<'bar'>>(() => ({
   },
   scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
 }))
+
+// Screen-reader / keyboard alternative for the canvas chart: the same stage,
+// session-count and drop-off numbers exposed as a real table.
+const tableRows = computed(() =>
+  props.stages.map((s, i) => {
+    const prev = i > 0 ? (props.stages[i - 1]?.sessions ?? 0) : null
+    return {
+      stage: s.stage,
+      label: LABELS[s.stage] ?? s.stage,
+      sessions: s.sessions,
+      dropOff: prev && prev > 0 ? `${Math.round((s.sessions / prev) * 100)} %` : '—',
+    }
+  }),
+)
 </script>
 
 <template>
-  <div style="height: 240px">
-    <Bar :data="data" :options="options" />
+  <div>
+    <div style="height: 240px" role="img" aria-label="Conversion-Funnel (Diagramm)">
+      <Bar :data="data" :options="options" />
+    </div>
+    <table class="sr-only">
+      <caption>
+        Conversion-Funnel
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Stufe</th>
+          <th scope="col">Sessions</th>
+          <th scope="col">Anteil vorherige Stufe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in tableRows" :key="row.stage">
+          <td>{{ row.label }}</td>
+          <td>{{ row.sessions }}</td>
+          <td>{{ row.dropOff }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

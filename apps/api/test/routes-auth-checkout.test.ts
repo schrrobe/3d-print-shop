@@ -9,6 +9,7 @@ vi.mock('../src/lib/prisma.js', () => ({
     order: { findUnique: vi.fn() },
     product: { findMany: vi.fn() },
     color: { findMany: vi.fn() },
+    $transaction: vi.fn(),
   },
 }))
 
@@ -215,5 +216,33 @@ describe('POST /api/t/events', () => {
 
     expect(res.status).toBe(403)
     expect(await res.json()).toMatchObject({ error: 'forbidden' })
+  })
+
+  it('accepts a text/plain sendBeacon batch and answers 202', async () => {
+    // navigator.sendBeacon posts the batch as a text/plain Blob, so the custom
+    // body parser must accept text/plain and reach recordClientBatch (a tx).
+    const tx = {
+      trackingVisitor: { upsert: vi.fn() },
+      trackingSession: { upsert: vi.fn(), updateMany: vi.fn() },
+      trackingEvent: { createMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    }
+    vi.mocked(prisma.$transaction).mockImplementation(
+      ((fn: (client: unknown) => unknown) => fn(tx)) as never,
+    )
+
+    const res = await fetch(`${baseUrl}/api/t/events`, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body: JSON.stringify({
+        v: 1,
+        sessionId: '0197fa3e-1111-7111-8111-111111111111',
+        visitorId: null,
+        consent: { statistics: true, marketing: false },
+        events: [event],
+      }),
+    })
+
+    expect(res.status).toBe(202)
+    expect(await res.json()).toMatchObject({ accepted: 1 })
   })
 })
