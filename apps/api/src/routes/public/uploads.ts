@@ -82,7 +82,8 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
       description: body.description,
       quantity: body.quantity ? Number(body.quantity) : undefined,
       locale: body.locale || undefined,
-      acceptsUploadTerms: body.acceptsUploadTerms === 'true' ? true : undefined,
+      acceptsUploadTerms: body.acceptsUploadTerms === 'true',
+      uploadTermsVersion: body.uploadTermsVersion,
     })
 
     const request = await prisma.quoteRequest.create({
@@ -93,7 +94,8 @@ uploadsRouter.post('/', sensitiveLimiter, upload.array('files', 5), async (req, 
         description: input.description,
         quantity: input.quantity,
         locale: input.locale,
-        acceptedUploadTerms: input.acceptsUploadTerms ?? false,
+        acceptedUploadTerms: input.acceptsUploadTerms,
+        uploadTermsVersion: input.uploadTermsVersion,
         files: {
           create: files.map((file) => ({
             originalName: file.originalname,

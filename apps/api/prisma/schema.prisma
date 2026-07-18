@@ -544,8 +544,10 @@ model QuoteRequest {
   description         String
   quantity            Int                @default(1)
   locale              Locale             @default(de)
-  /// Placeholder: acceptance of future legal upload terms
+  /// Customer accepted the published upload conditions before submitting.
   acceptedUploadTerms Boolean            @default(false)
+  /// Immutable identifier of the conditions accepted by the customer.
+  uploadTermsVersion   String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 

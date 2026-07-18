@@ -147,7 +147,10 @@
     "name": "Imię i nazwisko",
     "description": "Opis (materiał, kolor, ilość, zastosowanie …)",
     "quantity": "Ilość sztuk",
-    "termsPlaceholder": "Uwaga: regulamin przesyłania plików wkrótce. Wysyłając potwierdzasz, że masz prawa do modelu.",
+    "termsAcceptance": "Akceptuję",
+    "termsAnd": "oraz",
+    "termsContent": "Potwierdzam, że mam niezbędne prawa do przesłanego modelu, nie będę przesyłać treści bezprawnych ani naruszających prawa osób trzecich oraz rozumiem, że pliki nie trafią do produkcji przed sprawdzeniem oferty.",
+    "termsVersion": "Wersja: {version}.",
     "submit": "Wyślij zapytanie",
     "successTitle": "Zapytanie otrzymane!",
     "successText": "Sprawdzimy Twój model i odezwiemy się z wyceną e-mailem.",
@@ -189,12 +192,14 @@
     "imprint": "Impressum",
     "privacy": "Prywatność",
     "terms": "Regulamin",
+    "withdrawal": "Odstąpienie",
     "claim": "Druk 3D, made in Berlin."
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Polityka prywatności",
     "termsTitle": "Regulamin",
+    "withdrawalTitle": "Prawo odstąpienia",
     "placeholder": "Placeholder — uzupełnij treści prawne przed startem."
   },
   "common": {

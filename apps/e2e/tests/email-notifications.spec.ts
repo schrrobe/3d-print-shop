@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 import { apiContext, createQuoteViaApi } from '../helpers/api.js'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
@@ -38,10 +39,16 @@ test.describe('email notifications (dev mode log)', () => {
     const email = `upload-mail-${Date.now()}@example.com`
     await request.post('http://localhost:3001/api/upload-requests', {
       multipart: {
-        files: { name: 'mail.stl', mimeType: 'application/octet-stream', buffer: Buffer.from('solid m\nendsolid m') },
+        files: {
+          name: 'mail.stl',
+          mimeType: 'application/octet-stream',
+          buffer: Buffer.from('solid m\nendsolid m'),
+        },
         name: 'Mail Tester',
         email,
         description: 'E-Mail-Benachrichtigungstest für Uploads.',
+        acceptsUploadTerms: 'true',
+        uploadTermsVersion: UPLOAD_TERMS_VERSION,
       },
     })
     expect(await emailsFor(email)).toContain('upload_received')

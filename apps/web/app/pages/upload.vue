@@ -8,6 +8,7 @@ import {
   PsUploadDropzone,
   useToast,
 } from '@print-shop/ui'
+import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 
 /** Customer model upload → quote request (.stl/.3mf, max 50 MB). */
 const { t, locale } = useI18n()
@@ -20,6 +21,7 @@ useSeo({
 
 const files = ref<File[]>([])
 const form = reactive({ name: '', email: '', phone: '', description: '', quantity: 1 })
+const acceptsUploadTerms = ref(false)
 const submitting = ref(false)
 const hydrated = ref(false)
 onMounted(() => {
@@ -60,6 +62,8 @@ async function submit() {
     body.append('description', form.description)
     body.append('quantity', String(form.quantity))
     body.append('locale', locale.value)
+    body.append('acceptsUploadTerms', String(acceptsUploadTerms.value))
+    body.append('uploadTermsVersion', UPLOAD_TERMS_VERSION)
     await $fetch('/api/upload-requests', { method: 'POST', body })
     submitted.value = true
   } catch (err) {
@@ -75,12 +79,21 @@ async function submit() {
   <PsSection :title="t('upload.title')" :subtitle="t('upload.subtitle')" heading-level="h1">
     <PsStepper :steps="steps" :current="submitted ? 'review' : 'upload'" class="mb-2xl" />
 
-    <div v-if="submitted" class="mx-auto max-w-[36rem] py-2xl text-center" data-testid="upload-success">
+    <div
+      v-if="submitted"
+      class="mx-auto max-w-[36rem] py-2xl text-center"
+      data-testid="upload-success"
+    >
       <h2 class="text-heading-small text-brand">{{ t('upload.successTitle') }}</h2>
       <p class="mt-md text-body-regular text-secondary">{{ t('upload.successText') }}</p>
     </div>
 
-    <form v-else class="mx-auto flex max-w-[36rem] flex-col gap-lg" data-testid="upload-form" @submit.prevent="submit">
+    <form
+      v-else
+      class="mx-auto flex max-w-[36rem] flex-col gap-lg"
+      data-testid="upload-form"
+      @submit.prevent="submit"
+    >
       <PsUploadDropzone accept=".stl,.3mf" :multiple="true" @files="onFiles" @error="onFileError">
         <p class="text-label-medium">{{ t('upload.dropzone') }}</p>
         <p class="mt-xs text-caption text-secondary">{{ t('upload.accepted') }}</p>
@@ -103,9 +116,21 @@ async function submit() {
       </ul>
 
       <PsInput v-model="form.name" :label="t('upload.name')" name="name" required />
-      <PsInput v-model="form.email" :label="t('checkout.email')" type="email" name="email" required />
+      <PsInput
+        v-model="form.email"
+        :label="t('checkout.email')"
+        type="email"
+        name="email"
+        required
+      />
       <PsInput v-model="form.phone" :label="t('checkout.phone')" type="tel" name="phone" />
-      <PsTextarea v-model="form.description" :label="t('upload.description')" name="description" required :rows="5" />
+      <PsTextarea
+        v-model="form.description"
+        :label="t('upload.description')"
+        name="description"
+        required
+        :rows="5"
+      />
       <PsInput
         :model-value="String(form.quantity)"
         :label="t('upload.quantity')"
@@ -114,15 +139,40 @@ async function submit() {
         @update:model-value="form.quantity = Number($event)"
       />
 
-      <!-- Placeholder for future legal upload terms -->
-      <p class="rounded-card border border-subtle bg-surface-elevated p-md text-caption text-secondary" data-testid="upload-terms-placeholder">
-        {{ t('upload.termsPlaceholder') }}
-      </p>
+      <label
+        class="flex cursor-pointer gap-sm rounded-card border border-subtle bg-surface-elevated p-md text-caption text-secondary"
+      >
+        <input
+          v-model="acceptsUploadTerms"
+          type="checkbox"
+          required
+          class="mt-1 accent-(--brand)"
+          data-testid="upload-terms"
+        />
+        <span>
+          {{ t('upload.termsAcceptance') }}
+          <NuxtLink to="/legal/terms" class="underline">{{ t('footer.terms') }}</NuxtLink>
+          {{ t('upload.termsAnd') }}
+          <NuxtLink to="/legal/privacy" class="underline">{{ t('footer.privacy') }}</NuxtLink
+          >. {{ t('upload.termsContent') }}
+          {{ t('upload.termsVersion', { version: UPLOAD_TERMS_VERSION }) }}
+        </span>
+      </label>
 
-      <p v-if="errorMessage" class="text-caption text-red-500" role="alert" data-testid="upload-error">
+      <p
+        v-if="errorMessage"
+        class="text-caption text-red-500"
+        role="alert"
+        data-testid="upload-error"
+      >
         {{ errorMessage }}
       </p>
-      <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="upload-submit">
+      <PsPillButton
+        type="submit"
+        size="lg"
+        :disabled="submitting || !hydrated"
+        data-testid="upload-submit"
+      >
         {{ t('upload.submit') }}
       </PsPillButton>
     </form>

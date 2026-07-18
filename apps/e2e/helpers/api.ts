@@ -1,3 +1,4 @@
+import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 import { request, type APIRequestContext } from '@playwright/test'
 
 export const API_URL = 'http://localhost:3001'
@@ -109,6 +110,8 @@ export async function createQuoteViaApi(email = 'e2e-quote@example.com'): Promis
       description: 'E2E Angebotsworkflow — bitte in PLA drucken.',
       quantity: '1',
       locale: 'de',
+      acceptsUploadTerms: 'true',
+      uploadTermsVersion: UPLOAD_TERMS_VERSION,
     },
   })
   if (!upload.ok()) throw new Error(`upload-request failed: ${upload.status()}`)

@@ -62,5 +62,5 @@ Eine Reklamations-Entscheidung `replacement_print` erzeugt je betroffener Positi
 4. Kunde nimmt an → Bestellung + Stripe-Zahlungslink (`accepted`).
 5. Nach Zahlungseingang läuft der normale Produktionsworkflow.
 
-Rechtliche Upload-Bedingungen sind bewusst noch nicht implementiert — Platzhalter auf der
-Upload-Seite (`upload.termsPlaceholder`) und Feld `acceptedUploadTerms` im Schema existieren.
+Die Upload-Seite verlangt die Zustimmung zu den versionierten Upload-Bedingungen;
+`acceptedUploadTerms` und `uploadTermsVersion` werden mit der Anfrage gespeichert.

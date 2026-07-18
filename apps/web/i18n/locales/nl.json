@@ -147,7 +147,10 @@
     "name": "Naam",
     "description": "Beschrijving (materiaal, kleur, aantal, doel …)",
     "quantity": "Aantal",
-    "termsPlaceholder": "Let op: uploadvoorwaarden volgen. Door te verzenden bevestig je dat je de rechten op het model bezit.",
+    "termsAcceptance": "Ik accepteer de",
+    "termsAnd": "en de",
+    "termsContent": "Ik bevestig dat ik de noodzakelijke rechten op het geüploade model heb, geen onrechtmatige inhoud of inhoud die rechten van derden schendt upload en begrijp dat bestanden pas na beoordeling van de offerte in productie gaan.",
+    "termsVersion": "Versie: {version}.",
     "submit": "Aanvraag versturen",
     "successTitle": "Aanvraag ontvangen!",
     "successText": "We beoordelen je model en nemen per e-mail contact op met een offerte.",
@@ -189,12 +192,14 @@
     "imprint": "Colofon",
     "privacy": "Privacy",
     "terms": "Voorwaarden",
+    "withdrawal": "Herroeping",
     "claim": "3D-printen, made in Berlin."
   },
   "legal": {
     "imprintTitle": "Colofon",
     "privacyTitle": "Privacyverklaring",
     "termsTitle": "Algemene voorwaarden",
+    "withdrawalTitle": "Herroepingsrecht",
     "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang."
   },
   "common": {

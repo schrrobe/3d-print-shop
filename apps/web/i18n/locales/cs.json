@@ -147,7 +147,10 @@
     "name": "Jméno",
     "description": "Popis (materiál, barva, množství, účel …)",
     "quantity": "Počet kusů",
-    "termsPlaceholder": "Poznámka: podmínky nahrávání budou doplněny. Odesláním potvrzujete, že máte k modelu práva.",
+    "termsAcceptance": "Souhlasím s",
+    "termsAnd": "a se",
+    "termsContent": "Potvrzuji, že mám nezbytná práva k nahranému modelu, nebudu nahrávat protiprávní obsah ani obsah porušující práva třetích osob a rozumím, že soubory nepůjdou do výroby před posouzením nabídky.",
+    "termsVersion": "Verze: {version}.",
     "submit": "Odeslat poptávku",
     "successTitle": "Poptávka přijata!",
     "successText": "Prověříme váš model a ozveme se s nabídkou e-mailem.",
@@ -189,12 +192,14 @@
     "imprint": "Impressum",
     "privacy": "Soukromí",
     "terms": "Obchodní podmínky",
-    "claim": "3D tisk, made in Berlin."
+    "withdrawal": "Odstoupení",
+    "claim": "3D tisk, made in Dortmund."
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Zásady ochrany osobních údajů",
     "termsTitle": "Obchodní podmínky",
+    "withdrawalTitle": "Poučení o odstoupení",
     "placeholder": "Placeholder — právní obsah doplňte před spuštěním."
   },
   "common": {

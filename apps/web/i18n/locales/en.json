@@ -147,7 +147,10 @@
     "name": "Name",
     "description": "Description (material, color, quantity, purpose …)",
     "quantity": "Quantity",
-    "termsPlaceholder": "Note: upload terms coming soon. By submitting you confirm you own the rights to the model.",
+    "termsAcceptance": "I accept the",
+    "termsAnd": "and the",
+    "termsContent": "I confirm that I hold the necessary rights to the uploaded model, will not upload unlawful content or content infringing third-party rights, and understand that files will not enter production before the quote review.",
+    "termsVersion": "Version: {version}.",
     "submit": "Send request",
     "successTitle": "Request received!",
     "successText": "We will review your model and get back to you with a quote by email.",
@@ -189,12 +192,14 @@
     "imprint": "Imprint",
     "privacy": "Privacy",
     "terms": "Terms",
+    "withdrawal": "Withdrawal",
     "claim": "3D printing, made in Berlin."
   },
   "legal": {
     "imprintTitle": "Imprint",
     "privacyTitle": "Privacy policy",
     "termsTitle": "Terms and conditions",
+    "withdrawalTitle": "Cancellation policy",
     "placeholder": "Placeholder — add legal content before going live."
   },
   "common": {

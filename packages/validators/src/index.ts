@@ -18,7 +18,11 @@ import {
   USER_ROLES,
   VOUCHER_TYPES,
 } from '@print-shop/types'
-import { ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_BYTES } from '@print-shop/utils'
+import {
+  ALLOWED_UPLOAD_EXTENSIONS,
+  MAX_UPLOAD_BYTES,
+  UPLOAD_TERMS_VERSION,
+} from '@print-shop/utils'
 import { z } from 'zod'
 
 // ---------- Primitives ----------
@@ -134,8 +138,10 @@ export const uploadRequestSchema = z.object({
   description: z.string().trim().min(10).max(4000),
   quantity: z.number().int().min(1).max(1000).default(1),
   locale: localeSchema.default('de'),
-  /* Placeholder: future legal upload terms acceptance flag */
-  acceptsUploadTerms: z.boolean().optional(),
+  acceptsUploadTerms: z.literal(true, {
+    errorMap: () => ({ message: 'Upload terms must be accepted' }),
+  }),
+  uploadTermsVersion: z.literal(UPLOAD_TERMS_VERSION),
 })
 export type UploadRequestInput = z.infer<typeof uploadRequestSchema>
 

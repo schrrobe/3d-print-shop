@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { PsSection } from '@print-shop/ui'
+import { getLegalTranslation } from '../../content/legal-translations'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const company = useRuntimeConfig().public.company
+const translatedDocument = computed(() => getLegalTranslation(locale.value, 'imprint'))
 
 useSeo({
   title: () => t('seo.legal.imprint'),
@@ -10,10 +13,76 @@ useSeo({
 </script>
 
 <template>
-  <PsSection :title="t('legal.imprintTitle')" heading-level="h1">
-    <div class="max-w-[42rem] text-body-regular text-secondary" data-testid="legal-imprint">
-      <p>{{ t('legal.placeholder') }}</p>
-      <p class="mt-lg">Print Shop GmbH · Musterstraße 1 · 12345 Berlin</p>
+  <LegalLocalizedDocument
+    v-if="translatedDocument"
+    :title="t('legal.imprintTitle')"
+    :document="translatedDocument"
+  />
+  <PsSection v-else :title="t('legal.imprintTitle')" heading-level="h1">
+    <div
+      class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
+      data-testid="legal-imprint"
+    >
+      <section>
+        <h2 class="text-heading-small text-primary">Angaben gemäß § 5 DDG</h2>
+        <p class="mt-sm">
+          {{ company.name }}<br />
+          {{ company.street }}<br />
+          {{ company.zip }} {{ company.city }}<br />
+          Deutschland
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">Kontakt</h2>
+        <p class="mt-sm">
+          E-Mail:
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a>
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">Geschäftsbereich</h2>
+        <p class="mt-sm">Herstellung und Verkauf individuell gefertigter 3D-Druckprodukte.</p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">
+          Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV
+        </h2>
+        <p class="mt-sm">
+          {{ company.name }}<br />
+          {{ company.street }}<br />
+          {{ company.zip }} {{ company.city }}
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">Verbraucherstreitbeilegung</h2>
+        <p class="mt-sm">
+          Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer
+          Verbraucherschlichtungsstelle teilzunehmen.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">Haftung für Inhalte und Links</h2>
+        <p class="mt-sm">
+          Die Inhalte dieser Website werden mit Sorgfalt erstellt. Für Richtigkeit, Vollständigkeit
+          und Aktualität kann jedoch keine Gewähr übernommen werden. Für Inhalte externer Websites,
+          auf die diese Website verlinkt, sind ausschließlich deren Betreiber verantwortlich. Bei
+          Hinweisen auf rechtswidrige Inhalte werden betroffene Links unverzüglich entfernt.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-heading-small text-primary">Urheberrecht</h2>
+        <p class="mt-sm">
+          Die auf dieser Website veröffentlichten Inhalte und Werke unterliegen dem deutschen
+          Urheberrecht. Jede Nutzung außerhalb der Grenzen des Urheberrechts bedarf der vorherigen
+          schriftlichen Zustimmung von Robert Schreiner oder der jeweiligen Rechteinhaber.
+        </p>
+      </section>
     </div>
   </PsSection>
 </template>
