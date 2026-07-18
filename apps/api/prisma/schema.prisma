@@ -457,6 +457,10 @@ model Order {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  /// First-party tracking session that placed the order (nullable: adblocked /
+  /// consentless checkouts still succeed). Links behavioural data to the order.
+  trackingSessionId String?
+
   items       OrderItem[]
   payments    Payment[]
   invoice     Invoice?
@@ -467,7 +471,11 @@ model Order {
   shipments   Shipment[]
   reviews     Review[]
 
+  trackingEvents TrackingEvent[]
+  attribution    OrderAttribution?
+
   @@index([voucherId])
+  @@index([trackingSessionId])
 }
 
 model OrderItem {
@@ -853,6 +861,12 @@ model ShopSettings {
   metaPixelId      String?
   ga4MeasurementId String?
   gtmContainerId   String?
+  /// Server-side marketing destinations (Phase 3). Access TOKENS stay in env —
+  /// this row is exposed publicly via /api/tracking-settings, so never store
+  /// secrets here, only the enable flags and non-secret pixel/code identifiers.
+  metaCapiEnabled    Boolean @default(false)
+  tiktokEventsEnabled Boolean @default(false)
+  tiktokPixelCode    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -1139,4 +1153,139 @@ model Review {
 
   @@index([productId, status])
   @@index([status])
+}
+
+// ============================================================================
+// Conversion tracking (first-party, GDPR-gated). See docs/agent-handoff.
+// ============================================================================
+
+enum TrackedEventSource {
+  client
+  server
+}
+
+enum TrackingOutboxStatus {
+  pending
+  sending
+  sent
+  failed
+  skipped
+}
+
+/// A returning browser (localStorage id `ps_vid`), created only after statistics
+/// consent. Pseudonymous: no PII, links to a person only via a placed order.
+model TrackingVisitor {
+  id           String            @id
+  firstSeenAt  DateTime          @default(now())
+  lastSeenAt   DateTime          @default(now())
+  anonymizedAt DateTime?
+  sessions     TrackingSession[]
+}
+
+/// One browser session (`ps_sid`). Holds the attribution touchpoint captured at
+/// session start (utm / click ids / referrer / derived channel).
+model TrackingSession {
+  id           String           @id
+  visitorId    String?
+  visitor      TrackingVisitor? @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  startedAt    DateTime         @default(now())
+  lastEventAt  DateTime         @default(now())
+  landingPath  String
+  referrer     String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmTerm      String?
+  utmContent   String?
+  fbclid       String?
+  ttclid       String?
+  gclid        String?
+  /// Derived once at session start (see classifyChannel).
+  channel      String           @default("direct")
+  userAgent    String?
+  deviceType   String?
+  locale       Locale?
+  anonymizedAt DateTime?
+  events       TrackingEvent[]
+
+  @@index([visitorId, startedAt])
+  @@index([startedAt])
+  @@index([channel])
+}
+
+/// A single tracked event. `id` is the dedup key: client events use a UUIDv7,
+/// server commerce events a deterministic `<name>:<orderId>`.
+model TrackingEvent {
+  id                String             @id
+  name              String
+  source            TrackedEventSource
+  sessionId         String?
+  session           TrackingSession?   @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  visitorId         String?
+  occurredAt        DateTime
+  receivedAt        DateTime           @default(now())
+  path              String?
+  /// Commerce columns — for server events only, sourced from Order, never client.
+  orderId           String?
+  order             Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  valueCents        Int?
+  currency          String?            @default("EUR")
+  /// Consent snapshot at emission; drives marketing outbox fan-out.
+  consentStatistics Boolean            @default(false)
+  consentMarketing  Boolean            @default(false)
+  props             Json?
+  outbox            TrackingOutbox[]
+
+  /// One purchase / one refund per order (NULL orderId never collides in Postgres).
+  @@unique([name, orderId])
+  @@index([name, occurredAt])
+  @@index([occurredAt])
+  @@index([receivedAt])
+  @@index([sessionId])
+  @@index([orderId])
+}
+
+/// Frozen attribution for a paid order (computed once after the payment claim).
+model OrderAttribution {
+  orderId          String   @id
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  model            String   @default("last_non_direct_30d")
+  computedAt       DateTime @default(now())
+  lastChannel      String
+  lastUtmSource    String?
+  lastUtmMedium    String?
+  lastUtmCampaign  String?
+  lastClickIdType  String?
+  lastClickId      String?
+  lastTouchAt      DateTime?
+  lastSessionId    String?
+  firstChannel     String?
+  firstUtmSource   String?
+  firstUtmCampaign String?
+  firstTouchAt     DateTime?
+  touchpointCount  Int      @default(0)
+  daysToConversion Int?
+
+  @@index([lastChannel])
+}
+
+/// Transactional outbox for external marketing destinations (Meta CAPI / TikTok).
+/// Payload is frozen at insert time so later anonymization cannot alter a send.
+model TrackingOutbox {
+  id            String               @id @default(cuid())
+  eventId       String
+  event         TrackingEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  destination   String
+  status        TrackingOutboxStatus @default(pending)
+  payload       Json
+  attempts      Int                  @default(0)
+  nextAttemptAt DateTime             @default(now())
+  lockUntil     DateTime?
+  lastError     String?
+  responseCode  Int?
+  createdAt     DateTime             @default(now())
+  sentAt        DateTime?
+
+  @@unique([eventId, destination])
+  @@index([status, nextAttemptAt])
 }

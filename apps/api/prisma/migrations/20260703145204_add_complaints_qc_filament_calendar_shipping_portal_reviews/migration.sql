@@ -385,7 +385,7 @@ CREATE INDEX "Review_productId_status_idx" ON "Review"("productId", "status");
 CREATE INDEX "Review_status_idx" ON "Review"("status");
 
 -- CreateIndex
-CREATE INDEX CONCURRENTLY "PrinterJob_printerId_plannedStartAt_idx" ON "PrinterJob"("printerId", "plannedStartAt");
+CREATE INDEX "PrinterJob_printerId_plannedStartAt_idx" ON "PrinterJob"("printerId", "plannedStartAt");
 
 -- Only one open QC record may exist per print job.
 CREATE UNIQUE INDEX "QcRecord_one_open_per_job_idx" ON "QcRecord"("printerJobId") WHERE "status" = 'open';

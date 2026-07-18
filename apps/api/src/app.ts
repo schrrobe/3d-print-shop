@@ -25,6 +25,7 @@ import { adminSettingsRouter } from './routes/admin/settings.js'
 import { adminShipmentsRouter } from './routes/admin/shipments.js'
 import { adminSocialPostsRouter } from './routes/admin/social-posts.js'
 import { adminTicketsRouter } from './routes/admin/tickets.js'
+import { adminTrackingRouter } from './routes/admin/tracking-stats.js'
 import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { checkoutRouter } from './routes/public/checkout.js'
@@ -44,6 +45,7 @@ import { quotesRouter } from './routes/public/quotes.js'
 import { reviewsRouter } from './routes/public/reviews.js'
 import { socialMediaRouter } from './routes/public/social-media.js'
 import { ticketsRouter } from './routes/public/tickets.js'
+import { trackRouter } from './routes/public/track.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { vouchersRouter } from './routes/public/vouchers.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
@@ -62,6 +64,10 @@ export function createApp(): Express {
 
   // Stripe webhook needs the raw body — mount before the JSON parser.
   app.use('/api/webhooks', webhooksRouter)
+
+  // Tracking ingest brings its own body parser (accepts sendBeacon text/plain) —
+  // mount before the global JSON parser so beacons aren't dropped.
+  app.use('/api/t', trackRouter)
 
   app.use(express.json({ limit: '1mb' }))
   app.use(cookieParser())
@@ -114,6 +120,7 @@ export function createApp(): Express {
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)
   app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
+  app.use('/api/admin/tracking', requireAuth, adminTrackingRouter)
 
   // Dev-only simulation endpoints (mock payments, email log)
   if (devEndpointsEnabled) {

@@ -71,6 +71,13 @@ export const useCartStore = defineStore('cart', () => {
     const existing = items.value.find((item) => item.key === key)
     if (existing) existing.quantity += line.quantity
     else items.value.push({ ...line, key })
+    if (import.meta.client) {
+      useTracking().track('add_to_cart', {
+        productId: line.productId,
+        quantity: line.quantity,
+        unitPriceCents: line.unitPriceCents,
+      })
+    }
   }
 
   function setQuantity(key: string, quantity: number) {
@@ -81,7 +88,14 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function remove(key: string) {
+    const removed = items.value.find((i) => i.key === key)
     items.value = items.value.filter((i) => i.key !== key)
+    if (removed && import.meta.client) {
+      useTracking().track('remove_from_cart', {
+        productId: removed.productId,
+        quantity: removed.quantity,
+      })
+    }
   }
 
   function clear() {

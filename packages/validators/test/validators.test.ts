@@ -46,6 +46,26 @@ describe('checkoutSchema', () => {
     if (result.success) expect(result.data.locale).toBe('de')
   })
 
+  it('accepts an optional consent snapshot and rejects malformed ones', () => {
+    const base = { items: [item], address: validAddress, paymentMethod: 'stripe' as const }
+    const withConsent = checkoutSchema.safeParse({
+      ...base,
+      consent: { statistics: true, marketing: false },
+    })
+    expect(withConsent.success).toBe(true)
+    if (withConsent.success) {
+      expect(withConsent.data.consent).toEqual({ statistics: true, marketing: false })
+    }
+    // Missing consent stays valid (older clients) and simply stays undefined.
+    const withoutConsent = checkoutSchema.safeParse(base)
+    expect(withoutConsent.success).toBe(true)
+    if (withoutConsent.success) expect(withoutConsent.data.consent).toBeUndefined()
+    expect(
+      checkoutSchema.safeParse({ ...base, consent: { statistics: 'yes', marketing: false } })
+        .success,
+    ).toBe(false)
+  })
+
   it('rejects empty carts, bad payment methods and bad zone slots', () => {
     expect(
       checkoutSchema.safeParse({ items: [], address: validAddress, paymentMethod: 'stripe' })

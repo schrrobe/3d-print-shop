@@ -19,6 +19,7 @@ const roleLabels: Record<string, string> = {
 const navItems = computed(() => {
   const items = [
     { key: 'dashboard', label: 'Dashboard', href: '/admin', icon: '📊', permission: 'dashboard:read' as const },
+    { key: 'analytics', label: 'Analytics', href: '/admin/analytics', icon: '📈', permission: 'tracking:read' as const },
     { key: 'orders', label: 'Bestellungen', href: '/admin/orders', icon: '🧾', permission: 'orders:read' as const },
     { key: 'shipments', label: 'Versand', href: '/admin/shipments', icon: '📦', permission: 'shipments:read' as const },
     { key: 'complaints', label: 'Reklamationen', href: '/admin/complaints', icon: '↩️', permission: 'complaints:read' as const },

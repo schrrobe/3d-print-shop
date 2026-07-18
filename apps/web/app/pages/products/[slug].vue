@@ -72,6 +72,12 @@ onMounted(() => {
   cart.hydrate()
   wishlist.hydrate()
 
+  useTracking().track('view_item', {
+    productId: product.value.id,
+    slug: product.value.slug,
+    priceCents: product.value.priceCents,
+  })
+
   if (editKey.value) {
     const line = cart.items.find((i) => i.key === editKey.value)
     if (line) {

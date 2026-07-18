@@ -75,6 +75,35 @@ const envSchema = z
     META_FACEBOOK_PAGE_ACCESS_TOKEN: z.string().optional().default(''),
     META_INSTAGRAM_BUSINESS_ACCOUNT_ID: z.string().optional().default(''),
     META_INSTAGRAM_ACCESS_TOKEN: z.string().optional().default(''),
+    // --- Conversion tracking ---
+    // Nightly retention/reconciliation worker (opt-in; single-instance assumption).
+    TRACKING_RETENTION_CRON_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    TRACKING_RETENTION_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(60).default(3600),
+    /// Event row retention (~13 months); older events are purged nightly.
+    TRACKING_EVENT_RETENTION_DAYS: z.coerce.number().int().min(30).default(395),
+    /// Session metadata (UA, click ids) is anonymized after this many days.
+    TRACKING_SESSION_ANON_DAYS: z.coerce.number().int().min(7).default(90),
+    // Marketing-destination outbox worker (Phase 3; ships disabled).
+    TRACKING_OUTBOX_CRON_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    TRACKING_OUTBOX_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(60),
+    // Access tokens live in env, NEVER in ShopSettings (that row is exposed publicly
+    // via /api/tracking-settings). Empty = destination disabled. Destinations
+    // are enqueue-time decisions: enabling one later does not send retroactively.
+    TRACKING_DESTINATIONS_PROVIDER: z.enum(['mock', 'live']).default('mock'),
+    META_CAPI_ACCESS_TOKEN: z.string().optional().default(''),
+    META_CAPI_PIXEL_ID: z.string().optional().default(''),
+    /// Meta Events Manager test-events verification; empty = real delivery.
+    META_CAPI_TEST_EVENT_CODE: z.string().optional().default(''),
+    TIKTOK_EVENTS_ACCESS_TOKEN: z.string().optional().default(''),
+    TIKTOK_PIXEL_CODE: z.string().optional().default(''),
+    /// TikTok Events Manager test-events verification; empty = real delivery.
+    TIKTOK_TEST_EVENT_CODE: z.string().optional().default(''),
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV === 'production') {
@@ -166,6 +195,33 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['BITCOIN_PROVIDER'],
         message: 'BITCOIN_ENABLED requires a real provider in production',
+      })
+    }
+    // Tracking destinations: a half-configured credential pair is always a
+    // mistake — fail at boot instead of silently skipping every send.
+    const destinationPairs = [
+      ['META_CAPI_ACCESS_TOKEN', 'META_CAPI_PIXEL_ID'],
+      ['TIKTOK_EVENTS_ACCESS_TOKEN', 'TIKTOK_PIXEL_CODE'],
+    ] as const
+    for (const [tokenKey, idKey] of destinationPairs) {
+      if (!val[tokenKey] !== !val[idKey]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [val[tokenKey] ? idKey : tokenKey],
+          message: `${tokenKey} and ${idKey} must be set together (or both left empty)`,
+        })
+      }
+    }
+    if (
+      val.TRACKING_DESTINATIONS_PROVIDER === 'live' &&
+      val.TRACKING_OUTBOX_CRON_ENABLED &&
+      destinationPairs.every(([tokenKey, idKey]) => !val[tokenKey] || !val[idKey])
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['TRACKING_DESTINATIONS_PROVIDER'],
+        message:
+          'TRACKING_DESTINATIONS_PROVIDER=live with the outbox cron enabled requires at least one configured destination (Meta CAPI or TikTok Events)',
       })
     }
     if (val.SOCIAL_PUBLISHING_PROVIDER !== 'meta') return
