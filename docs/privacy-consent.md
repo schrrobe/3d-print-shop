@@ -26,7 +26,7 @@ version, updatedAt}`. Bei Versionssprung (`CONSENT_VERSION` in `packages/utils`)
 - **Tracker-Gate** (`TrackingScripts.vue`): GA4 lädt nur bei `statistics=true` **und**
   gesetzter `NUXT_PUBLIC_GA4_MEASUREMENT_ID`; Meta Pixel nur bei `marketing=true` **und**
   `NUXT_PUBLIC_META_PIXEL_ID`. Ohne IDs (Default) lädt nie etwas — Platzhalter-Integration.
-- Einstellungen jederzeit über den Footer-Link „Einstellungen" änderbar.
+- Einstellungen jederzeit über den Footer-Link „Einstellungen“ änderbar.
 - Logik (`canLoadGa4`, `canLoadMetaPixel`, Parsing) unit-getestet
   (`packages/utils/test/consent.test.ts`), E2E in `consent-tracking.spec.ts`.
 
@@ -36,7 +36,7 @@ Der [Social Media Planner](social-media-planner.md) veröffentlicht **ausgehende
 Marketing-Posts der Shop-Betreiber auf eigenen Kanälen (Facebook-Seite,
 Instagram-Business) über die offiziellen Meta-APIs. Dabei fließen **keine Kunden- oder
 Besucherdaten** an Meta — übertragen werden nur Post-Inhalte (Caption, Produktbilder,
-Produktlinks). Er ist damit unabhängig vom Meta **Pixel** (Kategorie „marketing",
+Produktlinks). Er ist damit unabhängig vom Meta **Pixel** (Kategorie „marketing“,
 Opt-in-pflichtig). Access Tokens liegen ausschließlich serverseitig.
 
 ## Weitere DSGVO-Punkte

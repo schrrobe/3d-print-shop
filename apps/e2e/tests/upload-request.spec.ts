@@ -61,6 +61,9 @@ test.describe('upload request (3mf/stl, max 50 MB)', () => {
     await page.locator('input[name="name"]').fill('Ohne Datei')
     await page.locator('input[name="email"]').fill('nofile@example.com')
     await page.locator('textarea[name="description"]').fill('Anfrage ohne Datei gesendet.')
+    // Accept the (required) upload terms so native validation doesn't block the
+    // submit before the custom "missing file" error can surface.
+    await page.getByTestId('upload-terms').check()
     await page.getByTestId('upload-submit').click()
     await expect(page.getByTestId('upload-error')).toBeVisible()
   })
