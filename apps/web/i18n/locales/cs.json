@@ -38,6 +38,10 @@
     "all": "Všechny produkty",
     "configure": "Konfigurovat barvy",
     "addToCart": "Do košíku",
+    "search": {
+      "placeholder": "Hledat produkty …",
+      "noResults": "Žádné produkty neodpovídají hledání."
+    },
     "gallery": {
       "placeholder": "Fotografie není k dispozici"
     },

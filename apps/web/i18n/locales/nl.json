@@ -38,6 +38,10 @@
     "all": "Alle producten",
     "configure": "Kleuren configureren",
     "addToCart": "In winkelwagen",
+    "search": {
+      "placeholder": "Producten zoeken …",
+      "noResults": "Geen producten gevonden voor je zoekopdracht."
+    },
     "gallery": {
       "placeholder": "Geen foto beschikbaar"
     },

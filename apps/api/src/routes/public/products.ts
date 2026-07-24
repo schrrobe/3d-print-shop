@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { notFound } from '../../middleware/error.js'
@@ -12,10 +13,27 @@ const publicProductInclude = {
   colorSlots: { include: { defaultColor: true } },
 }
 
-productsRouter.get('/', async (_req, res, next) => {
+productsRouter.get('/', async (req, res, next) => {
   try {
+    const q = (typeof req.query.q === 'string' ? req.query.q.trim() : '').slice(0, 100)
+    const where: Prisma.ProductWhereInput = { active: true }
+    if (q) {
+      where.OR = [
+        { slug: { contains: q, mode: 'insensitive' } },
+        {
+          translations: {
+            some: {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { description: { contains: q, mode: 'insensitive' } },
+              ],
+            },
+          },
+        },
+      ]
+    }
     const products = await prisma.product.findMany({
-      where: { active: true },
+      where,
       include: publicProductInclude,
       orderBy: { createdAt: 'asc' },
     })
