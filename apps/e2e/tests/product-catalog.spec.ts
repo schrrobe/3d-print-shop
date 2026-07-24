@@ -14,6 +14,24 @@ test.describe('product catalog', () => {
     expect(await grid.getByTestId('product-card').count()).toBeGreaterThanOrEqual(4)
   })
 
+  test('filters the catalog via the search field', async ({ page }) => {
+    await gotoHydrated(page, '/products')
+    await expect(page.getByTestId('product-grid')).toBeVisible()
+
+    const search = page.getByTestId('product-search')
+    await search.fill('vase')
+    await expect(page.getByTestId('product-spiral-vase')).toBeVisible()
+    await expect(page.getByTestId('product-desk-organizer')).toBeHidden()
+
+    await search.fill('zzzzzz-no-match')
+    await expect(page.getByTestId('product-search-empty')).toBeVisible()
+
+    await search.fill('')
+    for (const slug of ['spiral-vase', 'desk-organizer', 'planetary-gear-toy', 'wall-hook-set']) {
+      await expect(page.getByTestId(`product-${slug}`)).toBeVisible()
+    }
+  })
+
   test('shows product details with name and price', async ({ page }) => {
     await gotoHydrated(page, '/products/spiral-vase')
     await expect(page.getByTestId('product-name')).toHaveText('Spiralvase')

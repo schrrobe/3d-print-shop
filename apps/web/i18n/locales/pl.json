@@ -38,6 +38,10 @@
     "all": "Wszystkie produkty",
     "configure": "Konfiguruj kolory",
     "addToCart": "Do koszyka",
+    "search": {
+      "placeholder": "Szukaj produktów …",
+      "noResults": "Brak produktów pasujących do wyszukiwania."
+    },
     "gallery": {
       "placeholder": "Brak zdjęcia"
     },

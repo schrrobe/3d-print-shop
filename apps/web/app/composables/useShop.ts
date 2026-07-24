@@ -97,8 +97,10 @@ export function productGlb(product: ApiProduct): string | null {
   return product.assets.find((a) => a.type === 'glb_preview')?.url ?? null
 }
 
-export function useProducts() {
-  return useFetch<{ products: ApiProduct[] }>('/api/products')
+export function useProducts(q?: Ref<string>) {
+  return useFetch<{ products: ApiProduct[] }>('/api/products', {
+    query: q ? { q: computed(() => q.value.trim() || undefined) } : undefined,
+  })
 }
 
 export function useColors() {
