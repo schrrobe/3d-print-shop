@@ -403,6 +403,10 @@
       "out_of_stock": "{zone}: zvolená barva je momentálně vyprodaná"
     }
   },
+  "recommendations": {
+    "title": "Často kupováno společně",
+    "fallbackTitle": "Mohlo by se vám také líbit"
+  },
   "reviews": {
     "title": "Recenze",
     "empty": "Zatím žádné recenze.",
