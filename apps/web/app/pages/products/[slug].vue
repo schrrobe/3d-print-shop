@@ -7,6 +7,7 @@ import { useWishlist } from '~/composables/useWishlist'
 import type { PopularCombo } from '~/composables/useProductConfiguration'
 import ProductConfiguratorSection from '~/components/products/ProductConfiguratorSection.vue'
 import ProductPurchasePanel from '~/components/products/ProductPurchasePanel.vue'
+import ProductRecommendationsSection from '~/components/products/ProductRecommendationsSection.vue'
 import ProductReviewsSection from '~/components/products/ProductReviewsSection.vue'
 
 const route = useRoute()
@@ -175,6 +176,27 @@ const { data: reviewData } = await useFetch<ProductReviews>(`/api/products/${slu
   default: (): ProductReviews => ({ reviews: [], averageRating: null, count: 0 }),
 })
 const reviews = computed(() => reviewData.value ?? { reviews: [], averageRating: null, count: 0 })
+
+interface ProductRecommendations {
+  products: ApiProduct[]
+  source: 'copurchase' | 'fallback'
+}
+
+const { data: recommendationData } = await useFetch<ProductRecommendations>(
+  `/api/products/${slug}/frequently-bought-together`,
+  {
+    server: false,
+    default: (): ProductRecommendations => ({ products: [], source: 'fallback' }),
+  },
+)
+const recommendations = computed(
+  () => recommendationData.value ?? { products: [], source: 'fallback' as const },
+)
+const recommendationsTitle = computed(() =>
+  recommendations.value.source === 'copurchase'
+    ? t('recommendations.title')
+    : t('recommendations.fallbackTitle'),
+)
 
 function reviewPhotoAltLabel(name: string) {
   return t('reviews.photoAlt', { name })
@@ -351,6 +373,12 @@ useHead({
       :count-label="t('reviews.count', { count: reviews.count })"
       :photo-alt-label="reviewPhotoAltLabel"
       :rating-label="reviewRatingLabel"
+    />
+
+    <ProductRecommendationsSection
+      :products="recommendations.products"
+      :title-label="recommendationsTitle"
+      :locale="locale"
     />
   </PsSection>
 </template>

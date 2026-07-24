@@ -1,17 +1,13 @@
 import type { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
+import { publicProductInclude } from '../../lib/product-query.js'
 import { notFound } from '../../middleware/error.js'
+import { recommendationsForProduct } from '../../services/frequently-bought-together.js'
 import { popularConfigurationsForProduct } from '../../services/popular-configurations.js'
 import { reviewPublicDto } from '../../services/reviews.js'
 
 export const productsRouter = Router()
-
-const publicProductInclude = {
-  translations: true,
-  assets: { where: { type: { not: 'production_file' as const } }, orderBy: { sortOrder: 'asc' as const } },
-  colorSlots: { include: { defaultColor: true } },
-}
 
 productsRouter.get('/', async (req, res, next) => {
   try {
@@ -81,6 +77,21 @@ productsRouter.get('/:slug/reviews', async (req, res, next) => {
       averageRating: aggregate._avg.rating ? Math.round(aggregate._avg.rating * 10) / 10 : null,
       count: aggregate._count,
     })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/** Frequently bought together (completed orders, threshold ≥2); falls back to other active products. */
+productsRouter.get('/:slug/frequently-bought-together', async (req, res, next) => {
+  try {
+    const product = await prisma.product.findFirst({
+      where: { slug: String(req.params.slug), active: true },
+      select: { id: true },
+    })
+    if (!product) throw notFound('Product not found')
+    const { products, source } = await recommendationsForProduct(product.id)
+    res.json({ products, source })
   } catch (err) {
     next(err)
   }

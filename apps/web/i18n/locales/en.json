@@ -403,6 +403,10 @@
       "out_of_stock": "{zone}: the selected colour is currently out of stock"
     }
   },
+  "recommendations": {
+    "title": "Frequently bought together",
+    "fallbackTitle": "You might also like"
+  },
   "reviews": {
     "title": "Reviews",
     "empty": "No reviews yet.",
