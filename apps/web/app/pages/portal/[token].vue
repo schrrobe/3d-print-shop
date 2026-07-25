@@ -26,7 +26,20 @@ const renewEmail = ref('')
 const renewSubmitted = ref(false)
 const renewFailed = ref(false)
 
-onMounted(load)
+/** Locale-aware `/portal` — mirrors the link built in the invalid-token branch. */
+const portalPath = computed(() => `/${locale.value === 'de' ? '' : locale.value + '/'}portal`)
+
+onMounted(async () => {
+  await load()
+  // Drop the 30-day bearer token from the address bar once it has been exchanged
+  // for state. Anything that can read location.href afterwards — an injected
+  // third-party tag, a shared screenshot, the browser history — no longer sees a
+  // usable credential. The token stays in memory for the API calls.
+  // Kept on the expired branch so the renewal form still has its context.
+  if (errorKind.value !== 'expired') {
+    window.history.replaceState(window.history.state, '', portalPath.value)
+  }
+})
 
 async function renew() {
   renewFailed.value = false

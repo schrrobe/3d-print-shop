@@ -13,6 +13,55 @@ pnpm prisma:validate       # Schema validieren
 ALLOW_DATABASE_RESET=true NODE_ENV=test pnpm --filter @print-shop/api prisma:reset-data
 ```
 
+## Migrationen
+
+Zwei harte Regeln, beide aus Vorfällen entstanden:
+
+**1. Kein `CREATE INDEX CONCURRENTLY` in einer Migration.** `prisma migrate deploy`
+kapselt jede Migration in eine Transaktion, `CONCURRENTLY` ist dort verboten
+(Postgres `25001`) — der Deploy bricht ab. Für einen Index auf einer Tabelle, die
+dieselbe Migration erst anlegt, ist ein concurrent Build ohnehin sinnlos. Wenn ein
+Index auf einer großen, produktiven Tabelle wirklich concurrent gebaut werden muss:
+außerhalb von Prisma per Hand ausführen und die Migration mit `migrate resolve`
+als angewendet markieren.
+
+**2. Eine bereits angewendete Migration nie editieren.** Prisma speichert eine
+Checksum je Migration in `_prisma_migrations`. Wird die `migration.sql` danach
+geändert, scheitert jeder weitere `migrate deploy` in Umgebungen, die die alte
+Fassung angewendet haben (`P3009`/Checksum-Mismatch) — auch dann, wenn die
+Änderung inhaltlich korrekt war. Der reguläre Weg ist eine **neue** Migration.
+
+### Bekannter Fall: `20260703145204_add_complaints_qc_filament_calendar_shipping_portal_reviews`
+
+In PR #14 wurde in dieser (schon veröffentlichten) Migration ein
+`CREATE INDEX CONCURRENTLY` auf `PrinterJob(printerId, plannedStartAt)` in ein
+normales `CREATE INDEX` geändert, weil Regel 1 sonst jeden Deploy blockiert hat.
+Neu aufgesetzte Umgebungen sind korrekt. Umgebungen, die die Migration **vor**
+diesem Commit angewendet haben, tragen die alte Checksum und laufen beim nächsten
+`migrate deploy` rot.
+
+Betroffen? Prüfen:
+
+```bash
+pnpm --filter @print-shop/api exec prisma migrate status
+```
+
+Meldet der Befehl für diese Migration einen geänderten Inhalt, die Checksum auf den
+aktuellen Dateistand ziehen — der Index existiert in der DB bereits, es wird also
+kein SQL nachgezogen:
+
+```bash
+# Angewendet-Markierung zurücknehmen und mit dem neuen Dateistand neu setzen.
+pnpm --filter @print-shop/api exec prisma migrate resolve \
+  --rolled-back 20260703145204_add_complaints_qc_filament_calendar_shipping_portal_reviews
+pnpm --filter @print-shop/api exec prisma migrate resolve \
+  --applied 20260703145204_add_complaints_qc_filament_calendar_shipping_portal_reviews
+```
+
+Danach `prisma migrate status` erneut ausführen: es muss „Database schema is up to
+date" melden, bevor deployt wird. Vorher ein Backup ziehen — `migrate resolve`
+schreibt in `_prisma_migrations`.
+
 ## Modelle
 
 **Auth/RBAC**: `User`, `Role`, `Permission` (m:n), `PasswordResetToken`.

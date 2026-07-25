@@ -17,7 +17,8 @@ adminQuoteRequestsRouter.get('/', requirePermission('uploads:read'), async (req,
     const status = req.query.status ? String(req.query.status) : undefined
     const requests = await prisma.quoteRequest.findMany({
       where: status ? { status: status as never } : undefined,
-      include: { files: true, quotes: true },
+      // Quote.token is the customer-facing acceptance credential — not needed here.
+      include: { files: true, quotes: { omit: { token: true } } },
       orderBy: { createdAt: 'desc' },
     })
     res.json({ requests })
@@ -30,7 +31,13 @@ adminQuoteRequestsRouter.get('/:id', requirePermission('uploads:read'), async (r
   try {
     const request = await prisma.quoteRequest.findUnique({
       where: { id: String(req.params.id) },
-      include: { files: true, quotes: { include: { order: { select: { orderNumber: true } } } } },
+      include: {
+        files: true,
+        quotes: {
+          omit: { token: true },
+          include: { order: { select: { orderNumber: true } } },
+        },
+      },
     })
     if (!request) throw notFound('Quote request not found')
     res.json({ request })

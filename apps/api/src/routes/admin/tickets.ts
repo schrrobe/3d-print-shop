@@ -54,6 +54,8 @@ adminTicketsRouter.get('/:id', requirePermission('tickets:read'), async (req, re
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id: String(req.params.id) },
+      // The customer-facing thread token is never needed by the admin UI.
+      omit: { accessToken: true },
       include: {
         messages: {
           orderBy: { createdAt: 'asc' },

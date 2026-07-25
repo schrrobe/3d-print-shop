@@ -61,8 +61,13 @@ export default defineNuxtPlugin(() => {
     void instance.page()
   }
 
-  async function syncProviders() {
+  async function syncProviders(fullPath?: string) {
     if (!consent.hydrated || !settings.value) return
+    // Provider *initialization* is gated too, not just event emission: injecting a
+    // third-party container (GTM fires its own All-Pages triggers) while a
+    // token-bearing URL is current would hand that URL to the provider. Deferred,
+    // not dropped — router.afterEach re-runs this on the next safe navigation.
+    if (isSensitiveTrackingPath(fullPath ?? router.currentRoute.value.fullPath)) return
     const s = settings.value
     const configured = configuredProviders(s)
     if (configured.length === 0) return
@@ -157,6 +162,9 @@ export default defineNuxtPlugin(() => {
   })
 
   router.afterEach((to) => {
+    // Picks up an initialization that syncProviders() deferred while the previous
+    // route was sensitive. No-op once the instance exists and consent is unchanged.
+    void syncProviders(to.fullPath)
     // Exactly one pageview per navigation (lastTrackedPath dedups init + afterEach)
     trackPage(to.fullPath)
   })

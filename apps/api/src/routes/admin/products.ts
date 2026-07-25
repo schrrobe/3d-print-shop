@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import path from 'node:path'
 import { MAX_PRODUCT_IMAGES } from '@print-shop/types'
-import { getFileExtension } from '@print-shop/utils'
+import { getFileExtension, sanitizeFilename } from '@print-shop/utils'
 import { productCreateSchema, productUpdateSchema } from '@print-shop/validators'
 import { Prisma } from '@prisma/client'
 import { Router } from 'express'
@@ -35,7 +35,10 @@ const modelUpload = multer({
   storage: multer.diskStorage({
     destination: modelsDir,
     filename: (req, _file, cb) => {
-      cb(null, `${String(req.params.id)}_${randomToken(6)}.glb`)
+      // sanitizeFilename before the param reaches the path: multer path.join()s
+      // this onto the destination, and Express decodes params after routing, so
+      // an encoded slash would otherwise escape modelsDir.
+      cb(null, `${sanitizeFilename(String(req.params.id))}_${randomToken(6)}.glb`)
     },
   }),
   limits: { fileSize: env.UPLOAD_MAX_BYTES, files: 1 },

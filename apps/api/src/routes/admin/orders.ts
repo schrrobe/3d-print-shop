@@ -22,6 +22,8 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
     const status = req.query.status ? String(req.query.status) : undefined
     const orders = await prisma.order.findMany({
       where: status ? { status: status as never } : undefined,
+      // The customer-facing access token is never needed by the admin UI.
+      omit: { accessToken: true },
       include: { items: true, payments: true, invoice: { select: { number: true } } },
       orderBy: { createdAt: 'desc' },
       take: 200,
@@ -36,6 +38,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   try {
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
+      omit: { accessToken: true },
       include: {
         items: true,
         payments: { include: { bitcoinPayment: true } },
