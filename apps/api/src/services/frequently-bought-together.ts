@@ -4,7 +4,7 @@ import { publicProductInclude } from '../lib/product-query.js'
 /** Only fully completed orders count towards co-purchase pairs. */
 const COUNTED_STATUS = 'completed' as const
 
-/** Pairs must co-occur in ≥2 orders — never expose a single customer's basket. */
+/** Pairs must co-occur in at least two completed orders. */
 export const FBT_MIN_COUNT = 2
 export const FBT_TAKE = 4
 const CACHE_TTL_MS = 10 * 60 * 1000
@@ -41,6 +41,8 @@ export function aggregateCoPurchases(
     .map(([productId, count]) => ({ productId, count }))
 }
 
+// Process-local by design for current shop volume. Replace with a shared cache
+// before horizontally scaling the API so instances do not serve divergent data.
 const cache = new Map<string, { data: ProductRecommendations; expires: number }>()
 
 /**
@@ -60,7 +62,9 @@ export async function recommendationsForProduct(
   })
 
   const baskets = orders.map((order) => ({
-    productIds: [...new Set(order.items.map((i) => i.productId).filter((id): id is string => id != null))],
+    productIds: [
+      ...new Set(order.items.map((i) => i.productId).filter((id): id is string => id != null)),
+    ],
   }))
 
   const ranked = aggregateCoPurchases(baskets, productId, {

@@ -6,14 +6,32 @@ set -uo pipefail
 
 payload=$(cat)
 
-file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // ""')
+if ! file_path=$(
+  printf '%s' "$payload" |
+    jq -er 'if (.tool_input.file_path | type) == "string" and (.tool_input.file_path | length) > 0 then .tool_input.file_path else error("missing file_path") end' 2>/dev/null
+); then
+  echo 'Blocked: could not parse a non-empty file path from the hook input.' >&2
+  exit 2
+fi
+
 case "$file_path" in
   */prisma/migrations/*.sql) ;;
   *) exit 0 ;;
 esac
 
 # Write uses `content`; Edit uses `new_string`.
-text=$(printf '%s' "$payload" | jq -r '[.tool_input.content, .tool_input.new_string] | map(select(. != null)) | join("\n")')
+if ! text=$(
+  printf '%s' "$payload" |
+    jq -er '
+      if (.tool_input.content | type) == "string" then .tool_input.content
+      elif (.tool_input.new_string | type) == "string" then .tool_input.new_string
+      else error("missing migration text")
+      end
+    ' 2>/dev/null
+); then
+  echo 'Blocked: could not parse migration text from the hook input.' >&2
+  exit 2
+fi
 
 if printf '%s' "$text" | grep -Eiq '(create|drop)[[:space:]]+index[[:space:]]+concurrently|concurrently'; then
   cat >&2 <<'MSG'

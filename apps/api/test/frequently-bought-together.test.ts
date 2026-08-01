@@ -18,13 +18,9 @@ const { aggregateCoPurchases, recommendationsForProduct } =
 const order = (...productIds: string[]) => ({ productIds })
 
 describe('aggregateCoPurchases', () => {
-  it('only surfaces pairs co-purchased at least twice (privacy threshold)', () => {
+  it('only surfaces pairs co-purchased at least twice', () => {
     const result = aggregateCoPurchases(
-      [
-        order('target', 'mag-pouch'),
-        order('target', 'mag-pouch'),
-        order('target', 'cleaning-kit'), // single co-purchase of one customer
-      ],
+      [order('target', 'mag-pouch'), order('target', 'mag-pouch'), order('target', 'cleaning-kit')],
       'target',
     )
     expect(result).toEqual([{ productId: 'mag-pouch', count: 2 }])
@@ -100,5 +96,32 @@ describe('recommendationsForProduct', () => {
     expect(prismaMocks.productFindMany).toHaveBeenCalledOnce()
     expect(prismaMocks.productFindMany.mock.calls[0]?.[0]?.where.id.in).toContain('active-e')
     expect(result).toEqual({ products: [{ id: 'active-e' }], source: 'copurchase' })
+  })
+
+  it('falls back to the newest other active products when no co-purchases qualify', async () => {
+    const fallbackProducts = [{ id: 'newest' }, { id: 'older' }]
+    prismaMocks.orderFindMany.mockResolvedValue([])
+    prismaMocks.productFindMany.mockResolvedValue(fallbackProducts)
+
+    const result = await recommendationsForProduct('fallback-target')
+
+    expect(prismaMocks.productFindMany).toHaveBeenCalledWith({
+      where: { active: true, id: { not: 'fallback-target' } },
+      include: expect.any(Object),
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+    })
+    expect(result).toEqual({ products: fallbackProducts, source: 'fallback' })
+  })
+
+  it('reuses cached recommendations within the TTL without querying orders again', async () => {
+    prismaMocks.orderFindMany.mockResolvedValue([])
+    prismaMocks.productFindMany.mockResolvedValue([{ id: 'cached-fallback' }])
+
+    const first = await recommendationsForProduct('cache-target')
+    const second = await recommendationsForProduct('cache-target')
+
+    expect(second).toBe(first)
+    expect(prismaMocks.orderFindMany).toHaveBeenCalledOnce()
   })
 })

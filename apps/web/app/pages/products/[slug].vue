@@ -152,12 +152,6 @@ async function shareConfig() {
   }
 }
 
-const { data: popularData } = await useFetch<{ combinations: PopularCombo[] }>(
-  `/api/products/${slug}/popular-configurations`,
-  { server: false },
-)
-const popular = computed(() => popularData.value?.combinations ?? [])
-
 function unavailableZoneLabel(zone: { label: string; colorName: string }) {
   return t('configurator.unavailableZone', {
     zone: zone.label,
@@ -171,24 +165,28 @@ interface ProductReviews {
   count: number
 }
 
-const { data: reviewData } = await useFetch<ProductReviews>(`/api/products/${slug}/reviews`, {
-  server: false,
-  default: (): ProductReviews => ({ reviews: [], averageRating: null, count: 0 }),
-})
-const reviews = computed(() => reviewData.value ?? { reviews: [], averageRating: null, count: 0 })
-
 interface ProductRecommendations {
   products: ApiProduct[]
   source: 'copurchase' | 'fallback'
 }
 
-const { data: recommendationData } = await useFetch<ProductRecommendations>(
-  `/api/products/${slug}/frequently-bought-together`,
-  {
-    server: false,
-    default: (): ProductRecommendations => ({ products: [], source: 'fallback' }),
-  },
-)
+const [{ data: popularData }, { data: reviewData }, { data: recommendationData }] =
+  await Promise.all([
+    useFetch<{ combinations: PopularCombo[] }>(`/api/products/${slug}/popular-configurations`, {
+      server: false,
+    }),
+    useFetch<ProductReviews>(`/api/products/${slug}/reviews`, {
+      server: false,
+      default: (): ProductReviews => ({ reviews: [], averageRating: null, count: 0 }),
+    }),
+    useFetch<ProductRecommendations>(`/api/products/${slug}/frequently-bought-together`, {
+      server: false,
+      default: (): ProductRecommendations => ({ products: [], source: 'fallback' }),
+    }),
+  ])
+
+const popular = computed(() => popularData.value?.combinations ?? [])
+const reviews = computed(() => reviewData.value ?? { reviews: [], averageRating: null, count: 0 })
 const recommendations = computed(
   () => recommendationData.value ?? { products: [], source: 'fallback' as const },
 )
@@ -209,7 +207,8 @@ function reviewRatingLabel(rating: number | null) {
 useSeo({
   title: () => translation.value.seoTitle ?? translation.value.name,
   fullTitle: Boolean(translation.value.seoTitle),
-  description: () => translation.value.seoDescription ?? translation.value.description.slice(0, 155),
+  description: () =>
+    translation.value.seoDescription ?? translation.value.description.slice(0, 155),
   image: () => seoImage.value,
   type: 'product',
 })

@@ -27,7 +27,7 @@ refuses anything else.
 
 2. **Create the migration directory**
 
-   ```
+   ```text
    apps/api/prisma/migrations/<YYYYMMDDHHMMSS>_<snake_case_name>/migration.sql
    ```
 
@@ -37,12 +37,13 @@ refuses anything else.
    rtk ls apps/api/prisma/migrations | tail -3
    ```
 
-3. **Write `migration.sql`** by hand. Open with a `--` comment saying *why* the
+3. **Write `migration.sql`** by hand. Open with a `--` comment saying _why_ the
    change exists, matching the existing migrations:
 
    ```sql
-   -- Dashboard freshness query orders TrackingEvent by receivedAt; index it so the
-   -- lookup stays a cheap index scan as the table grows toward its retention horizon.
+   -- Dashboard freshness query orders TrackingEvent by receivedAt; index it so
+   -- the lookup stays a cheap index scan as the table grows toward its retention
+   -- horizon.
    CREATE INDEX "TrackingEvent_receivedAt_idx" ON "TrackingEvent"("receivedAt");
    ```
 
