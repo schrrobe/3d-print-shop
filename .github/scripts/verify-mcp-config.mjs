@@ -1,35 +1,68 @@
 import { readFile } from 'node:fs/promises'
+import { isDeepStrictEqual } from 'node:util'
+import { resolve } from 'node:path'
 
-const APPROVED_PACKAGES = {
-  playwright: '@playwright/mcp@0.0.78',
-  stripe: '@stripe/mcp@0.3.3',
+const APPROVED_CONFIG = {
+  mcpServers: {
+    playwright: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@playwright/mcp@0.0.78', '--browser', 'chromium'],
+      env: {},
+    },
+    stripe: {
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@stripe/mcp@0.3.3'],
+      env: {
+        STRIPE_SECRET_KEY: '${STRIPE_MCP_RESTRICTED_KEY}',
+      },
+    },
+  },
 }
 
-const config = JSON.parse(await readFile(new URL('../../.mcp.json', import.meta.url), 'utf8'))
-const failures = []
+function validateConfig(config) {
+  const failures = []
 
-for (const [serverName, approvedPackage] of Object.entries(APPROVED_PACKAGES)) {
-  const args = config.mcpServers?.[serverName]?.args
-  const packagePrefix = approvedPackage.replace(/@[^@]+$/, '@')
-  const packageArgs = Array.isArray(args)
-    ? args.filter((arg) => typeof arg === 'string' && arg.startsWith(packagePrefix))
-    : []
-  if (packageArgs.length !== 1 || packageArgs[0] !== approvedPackage) {
-    failures.push(`${serverName} must use approved package ${approvedPackage}`)
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return ['MCP config must be a JSON object']
   }
+
+  const rootKeys = Object.keys(config).sort()
+  if (!isDeepStrictEqual(rootKeys, ['mcpServers'])) {
+    failures.push('MCP config may only contain the mcpServers root key')
+  }
+
+  const serverNames =
+    config.mcpServers && typeof config.mcpServers === 'object' && !Array.isArray(config.mcpServers)
+      ? Object.keys(config.mcpServers).sort()
+      : []
+  const approvedServerNames = Object.keys(APPROVED_CONFIG.mcpServers).sort()
+
+  if (!isDeepStrictEqual(serverNames, approvedServerNames)) {
+    failures.push(`MCP servers must be exactly: ${approvedServerNames.join(', ')}`)
+  }
+
+  for (const serverName of approvedServerNames) {
+    if (
+      !isDeepStrictEqual(config.mcpServers?.[serverName], APPROVED_CONFIG.mcpServers[serverName])
+    ) {
+      failures.push(`${serverName} must exactly match its approved type, command, args, and env`)
+    }
+  }
+
+  return failures
 }
 
-const stripe = config.mcpServers?.stripe
-if (stripe?.args?.some((arg) => arg.startsWith('--tools'))) {
-  failures.push('@stripe/mcp does not support --tools; permissions belong on its restricted key')
-}
-if (stripe?.env?.STRIPE_SECRET_KEY !== '${STRIPE_MCP_RESTRICTED_KEY}') {
-  failures.push('Stripe MCP must source STRIPE_SECRET_KEY from STRIPE_MCP_RESTRICTED_KEY')
-}
+const configSource = process.argv[2]
+  ? resolve(process.argv[2])
+  : new URL('../../.mcp.json', import.meta.url)
+const config = JSON.parse(await readFile(configSource, 'utf8'))
+const failures = validateConfig(config)
 
 if (failures.length > 0) {
   console.error(failures.join('\n'))
   process.exit(1)
 }
 
-console.log('MCP package pins and Stripe key boundary verified')
+console.log('Exact MCP server allowlist and Stripe key boundary verified')

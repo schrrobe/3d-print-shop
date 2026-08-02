@@ -47,6 +47,8 @@ assert_status 2 'Bash hook blocks protected env-file access' "$UNSAFE_PRISMA_HOO
   "$(bash_payload 'tail .env.local')"
 assert_status 0 'Bash hook allows the committed env template' "$UNSAFE_PRISMA_HOOK" \
   "$(bash_payload 'cat .env.example')"
+assert_status 2 'Bash hook blocks env files extending the template name' "$UNSAFE_PRISMA_HOOK" \
+  "$(bash_payload 'cat .env.example.bak')"
 assert_status 2 'Bash hook blocks upload-directory traversal' "$UNSAFE_PRISMA_HOOK" \
   "$(bash_payload 'find apps/api/uploads')"
 

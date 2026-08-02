@@ -24,7 +24,9 @@ blocked() {
   printf '%s' "$code" | grep -Eiq "$1"
 }
 
-protected_code=${code//.env.example/}
+# Exempt only the exact committed template name. Keep longer filenames such as
+# `.env.example.bak` intact so they are still treated as protected env files.
+protected_code=$(printf '%s' "$code" | sed -E 's/\.env\.example([^[:alnum:]_.-]|$)/\1/g')
 if printf '%s' "$protected_code" | grep -Eiq '(^|[^[:alnum:]_])(\./)?\.env([.][[:alnum:]_-]+)?([^[:alnum:]_-]|$)|(^|[^[:alnum:]_])(\./)?apps/api/uploads(/|[^[:alnum:]_-]|$)'; then
   echo 'Blocked: Bash access to protected environment files or customer uploads is not allowed.' >&2
   exit 2

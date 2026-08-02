@@ -26,8 +26,10 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - name: Verify MCP package pins and key boundary
-        run: node .github/scripts/verify-mcp-config.mjs
+      - name: Verify exact MCP server allowlist
+        run: |
+          node --test .github/scripts/verify-mcp-config.test.mjs
+          node .github/scripts/verify-mcp-config.mjs
 
       - name: Test Claude safety hooks
         run: bash .claude/hooks/test-hooks.sh
