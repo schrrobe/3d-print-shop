@@ -30,6 +30,9 @@ test('accepts the approved MCP configuration', async () => {
 })
 
 const invalidConfigs = [
+  ['an extra root key', (config) => (config.extra = {})],
+  ['a non-object mcpServers value', (config) => (config.mcpServers = [])],
+  ['a missing approved server', (config) => delete config.mcpServers.stripe],
   ['an unknown server', (config) => (config.mcpServers.unknown = config.mcpServers.playwright)],
   ['a wrong transport type', (config) => (config.mcpServers.playwright.type = 'http')],
   ['a wrong command', (config) => (config.mcpServers.playwright.command = 'node')],
