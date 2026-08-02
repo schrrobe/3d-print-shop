@@ -18,7 +18,7 @@ test.describe('product catalog', () => {
     await gotoHydrated(page, '/products')
     await expect(page.getByTestId('product-grid')).toBeVisible()
 
-    const search = page.getByTestId('product-search')
+    const search = page.getByTestId('product-search').getByRole('searchbox')
     await search.fill('vase')
     await expect(page.getByTestId('product-spiral-vase')).toBeVisible()
     await expect(page.getByTestId('product-desk-organizer')).toBeHidden()
@@ -35,7 +35,9 @@ test.describe('product catalog', () => {
   test('shows product details with name and price', async ({ page }) => {
     await gotoHydrated(page, '/products/spiral-vase')
     await expect(page.getByTestId('product-name')).toHaveText('Spiralvase')
-    await expect(page.getByTestId('product-detail').getByTestId('price').first()).toContainText('24,99')
+    await expect(page.getByTestId('product-detail').getByTestId('price').first()).toContainText(
+      '24,99',
+    )
   })
 
   test('unknown product returns 404', async ({ page }) => {

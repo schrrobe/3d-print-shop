@@ -403,6 +403,10 @@
       "out_of_stock": "{zone} : la couleur choisie est actuellement en rupture"
     }
   },
+  "recommendations": {
+    "title": "Souvent achetés ensemble",
+    "fallbackTitle": "Vous aimerez peut-être aussi"
+  },
   "reviews": {
     "title": "Avis",
     "empty": "Aucun avis pour le moment.",

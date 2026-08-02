@@ -403,6 +403,10 @@
       "out_of_stock": "{zone}: de gekozen kleur is momenteel uitverkocht"
     }
   },
+  "recommendations": {
+    "title": "Vaak samen gekocht",
+    "fallbackTitle": "Misschien vind je dit ook leuk"
+  },
   "reviews": {
     "title": "Beoordelingen",
     "empty": "Nog geen beoordelingen.",

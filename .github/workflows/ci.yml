@@ -26,6 +26,14 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - name: Verify exact MCP server allowlist
+        run: |
+          node --test .github/scripts/verify-mcp-config.test.mjs
+          node .github/scripts/verify-mcp-config.mjs
+
+      - name: Test Claude safety hooks
+        run: bash .claude/hooks/test-hooks.sh
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
