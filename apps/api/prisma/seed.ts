@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { PrismaClient } from '@prisma/client'
 import { PERMISSIONS, ROLE_PERMISSIONS } from '@print-shop/utils'
 import { USER_ROLES } from '@print-shop/types'
+import type { CaliberGroup } from '@print-shop/types'
 import argon2 from 'argon2'
 
 for (const path of ['.env', '../../.env']) {
@@ -139,161 +140,139 @@ async function seedColors() {
   }
 }
 
-interface SeedProduct {
-  slug: string
-  priceCents: number
-  de: { name: string; description: string }
-  en: { name: string; description: string }
-  slots: {
-    slot: 'zone_1_main' | 'zone_2_accent' | 'zone_3_detail' | 'zone_4_text'
-    label: string
-    defaultColor: string
-  }[]
+const SEED_CALIBERS = [
+  { slug: '9mm-luger', name: '9 mm Luger', group: 'HANDGUN', sortOrder: 10 },
+  { slug: '45-acp', name: '.45 ACP', group: 'HANDGUN', sortOrder: 20 },
+  { slug: '22-lr', name: '.22 lfB', group: 'RIMFIRE', sortOrder: 10 },
+  { slug: '223-rem', name: '.223 Rem', group: 'RIFLE', sortOrder: 10 },
+  { slug: '308-win', name: '.308 Win', group: 'RIFLE', sortOrder: 20 },
+  { slug: '762x39', name: '7,62×39', group: 'RIFLE', sortOrder: 30 },
+] as const
+
+// Platzhalterpreise (Cent) pro Kaliber-Gruppe und Boxgröße — vor Livegang festlegen.
+const PLACEHOLDER_PRICES: Record<CaliberGroup, Record<50 | 100, number>> = {
+  HANDGUN: { 50: 1490, 100: 1990 },
+  RIMFIRE: { 50: 1290, 100: 1690 },
+  RIFLE: { 50: 1990, 100: 2790 },
+}
+
+/** Demo-Produkte vor dem Kaliberbox-Umbau; werden in bestehenden Dev-DBs deaktiviert. */
+const LEGACY_DEMO_SLUGS = ['spiral-vase', 'desk-organizer', 'planetary-gear-toy', 'wall-hook-set']
+
+const boxSlug = (caliberSlug: string, capacity: 50 | 100) =>
+  `patronenbox-${caliberSlug}-${capacity}`
+
+async function seedCalibers() {
+  for (const caliber of SEED_CALIBERS) {
+    await prisma.caliber.upsert({ where: { slug: caliber.slug }, create: caliber, update: caliber })
+  }
 }
 
 async function seedProducts() {
   const colorIds = new Map((await prisma.color.findMany()).map((c) => [c.name, c.id]))
-  const products: SeedProduct[] = [
-    {
-      slug: 'spiral-vase',
-      priceCents: 2499,
-      de: {
-        name: 'Spiralvase',
-        description:
-          'Elegante Spiralvase im Vasenmodus gedruckt — wasserdicht versiegelt, perfekt für Trockenblumen.',
-      },
-      en: {
-        name: 'Spiral Vase',
-        description:
-          'Elegant spiral vase printed in vase mode — sealed watertight, perfect for dried flowers.',
-      },
-      slots: [
-        { slot: 'zone_1_main', label: 'Korpus', defaultColor: 'Brand Green' },
-        { slot: 'zone_2_accent', label: 'Sockel', defaultColor: 'Deep Black' },
-      ],
-    },
-    {
-      slug: 'desk-organizer',
-      priceCents: 3999,
-      de: {
-        name: 'Schreibtisch-Organizer',
-        description:
-          'Modularer Organizer mit Stiftehalter, Kartenfach und Handy-Ablage. In vier Farbzonen individualisierbar.',
-      },
-      en: {
-        name: 'Desk Organizer',
-        description:
-          'Modular organizer with pen holder, card slot and phone stand. Customizable in four color zones.',
-      },
-      slots: [
-        { slot: 'zone_1_main', label: 'Basis', defaultColor: 'Deep Black' },
-        { slot: 'zone_2_accent', label: 'Einsätze', defaultColor: 'Brand Green' },
-        { slot: 'zone_3_detail', label: 'Details', defaultColor: 'Warm White' },
-        { slot: 'zone_4_text', label: 'Beschriftung', defaultColor: 'Sun Yellow' },
-      ],
-    },
-    {
-      slug: 'planetary-gear-toy',
-      priceCents: 1899,
-      de: {
-        name: 'Planetengetriebe-Fidget',
-        description:
-          'Voll funktionsfähiges Planetengetriebe zum Spielen — print-in-place, sofort beweglich.',
-      },
-      en: {
-        name: 'Planetary Gear Fidget',
-        description:
-          'Fully functional planetary gear fidget — print-in-place, moving right off the bed.',
-      },
-      slots: [
-        { slot: 'zone_1_main', label: 'Gehäuse', defaultColor: 'Slate Grey' },
-        { slot: 'zone_2_accent', label: 'Zahnräder', defaultColor: 'Signal Red' },
-        { slot: 'zone_3_detail', label: 'Sonnenrad', defaultColor: 'Sun Yellow' },
-      ],
-    },
-    {
-      slug: 'wall-hook-set',
-      priceCents: 1299,
-      de: {
-        name: 'Wandhaken-Set (3 Stück)',
-        description: 'Belastbare Wandhaken mit verdeckter Verschraubung, bis 5 kg pro Haken.',
-      },
-      en: {
-        name: 'Wall Hook Set (3 pcs)',
-        description: 'Sturdy wall hooks with hidden screw mount, up to 5 kg per hook.',
-      },
-      slots: [{ slot: 'zone_1_main', label: 'Haken', defaultColor: 'Warm White' }],
-    },
-  ]
+  await prisma.product.updateMany({
+    where: { slug: { in: LEGACY_DEMO_SLUGS } },
+    data: { active: false },
+  })
 
-  for (const p of products) {
-    const translations = [
-      {
-        locale: 'de' as const,
-        name: p.de.name,
-        description: p.de.description,
-        seoTitle: `${p.de.name} — 3D-Druck`,
-        seoDescription: p.de.description.slice(0, 160),
-      },
-      {
-        locale: 'en' as const,
-        name: p.en.name,
-        description: p.en.description,
-        seoTitle: `${p.en.name} — 3D print`,
-        seoDescription: p.en.description.slice(0, 160),
-      },
-    ]
-    const colorSlots = p.slots.map((s) => ({
-      slot: s.slot,
-      label: s.label,
-      defaultColorId: colorIds.get(s.defaultColor) ?? null,
-    }))
-    const assets = [
-      {
-        type: 'image' as const,
-        url: `/images/products/${p.slug}.svg`,
-        alt: p.en.name,
-        sortOrder: 0,
-      },
-      { type: 'glb_preview' as const, url: `/models/${p.slug}.glb`, alt: null, sortOrder: 1 },
-    ]
-    // Extra photos on the flagship product so the storefront gallery shows a thumbnail strip.
-    if (p.slug === 'spiral-vase') {
-      assets.push(
-        {
-          type: 'image' as const,
-          url: '/images/products/desk-organizer.svg',
-          alt: `${p.en.name} – Detail`,
-          sortOrder: 2,
-        },
-        {
-          type: 'image' as const,
-          url: '/images/products/wall-hook-set.svg',
-          alt: `${p.en.name} – Seite`,
-          sortOrder: 3,
-        },
-      )
-    }
-
-    const existing = await prisma.product.findUnique({ where: { slug: p.slug } })
-    if (existing) {
-      await prisma.product.update({
-        where: { id: existing.id },
-        data: { priceCents: p.priceCents, active: true },
-      })
-      continue
-    }
-    await prisma.product.create({
-      data: {
-        slug: p.slug,
-        priceCents: p.priceCents,
+  for (const caliber of SEED_CALIBERS) {
+    for (const capacity of [50, 100] as const) {
+      const slug = boxSlug(caliber.slug, capacity)
+      const priceCents = PLACEHOLDER_PRICES[caliber.group][capacity]
+      const de = {
+        name: `Patronenbox ${caliber.name} – ${capacity} Schuss`,
+        description: `Patronenbox mit passgenauen Fächern für ${capacity} Patronen ${caliber.name}. Wird auf Bestellung im 3D-Druck gefertigt; Box- und Beschriftungsfarbe wählst du selbst. Hinweis: Die Box dient der Organisation im Waffenschrank.`,
+      }
+      const en = {
+        name: `Cartridge box ${caliber.name} – ${capacity} rounds`,
+        description: `Cartridge box with snug-fit compartments for ${capacity} rounds of ${caliber.name}. Printed to order; you choose the box and label colours. Note: the box is meant for organising ammunition inside your gun safe.`,
+      }
+      const productFields = {
+        priceCents,
         active: true,
-        translations: { create: translations },
-        colorSlots: { create: colorSlots },
-        assets: { create: assets },
-      },
-    })
+        capacity,
+        familyKey: caliber.slug,
+        calibers: { set: [{ slug: caliber.slug }] },
+      }
+      const existing = await prisma.product.findUnique({ where: { slug } })
+      if (existing) {
+        await prisma.product.update({ where: { id: existing.id }, data: productFields })
+        continue
+      }
+      await prisma.product.create({
+        data: {
+          slug,
+          ...productFields,
+          calibers: { connect: [{ slug: caliber.slug }] },
+          translations: {
+            create: [
+              {
+                locale: 'de',
+                name: de.name,
+                description: de.description,
+                seoTitle: `${de.name} — 3D-Druck`,
+                seoDescription: de.description.slice(0, 160),
+              },
+              {
+                locale: 'en',
+                name: en.name,
+                description: en.description,
+                seoTitle: `${en.name} — 3D print`,
+                seoDescription: en.description.slice(0, 160),
+              },
+            ],
+          },
+          colorSlots: {
+            create: [
+              {
+                slot: 'zone_1_main',
+                label: 'Box',
+                defaultColorId: colorIds.get('Deep Black') ?? null,
+              },
+              {
+                slot: 'zone_4_text',
+                label: 'Beschriftung',
+                defaultColorId: colorIds.get('Warm White') ?? null,
+              },
+            ],
+          },
+          assets: {
+            create: [
+              {
+                type: 'image',
+                url: `/images/products/kaliberbox-${capacity}.svg`,
+                alt: de.name,
+                sortOrder: 0,
+              },
+            ],
+          },
+        },
+      })
+    }
   }
+}
+
+/** Default colour selection (Box + Beschriftung) for seeded order lines. */
+function defaultSelection(product: {
+  colorSlots: { slot: string; defaultColorId: string | null }[]
+}): Record<string, string> {
+  return Object.fromEntries(
+    product.colorSlots.flatMap((s) => (s.defaultColorId ? [[s.slot, s.defaultColorId]] : [])),
+  )
+}
+
+async function seedProduct(slug: string) {
+  return prisma.product.findUniqueOrThrow({
+    where: { slug },
+    include: { colorSlots: true, translations: true },
+  })
+}
+
+function productName(
+  product: { slug: string; translations: { locale: string; name: string }[] },
+  locale: 'de' | 'en' = 'de',
+): string {
+  return product.translations.find((t) => t.locale === locale)?.name ?? product.slug
 }
 
 async function seedPrinters() {
@@ -334,14 +313,9 @@ async function seedPrinters() {
 
 async function seedOrders() {
   if ((await prisma.order.count()) > 0) return
-  const vase = await prisma.product.findUniqueOrThrow({
-    where: { slug: 'spiral-vase' },
-    include: { colorSlots: true },
-  })
-  const organizer = await prisma.product.findUniqueOrThrow({
-    where: { slug: 'desk-organizer' },
-    include: { colorSlots: true },
-  })
+  const nine50 = await seedProduct(boxSlug('9mm-luger', 50))
+  const win100 = await seedProduct(boxSlug('308-win', 100))
+  const rem100 = await seedProduct(boxSlug('223-rem', 100))
 
   // 1: paid order in production
   await prisma.order.create({
@@ -357,22 +331,22 @@ async function seedOrders() {
       zip: '10115',
       city: 'Berlin',
       country: 'DE',
-      subtotalCents: 4998,
+      subtotalCents: 2980,
       shippingCents: 699,
-      totalCents: 5697,
+      totalCents: 3679,
       items: {
         create: [
           {
-            productId: vase.id,
-            name: 'Spiralvase',
+            productId: nine50.id,
+            name: productName(nine50),
             quantity: 2,
-            unitPriceCents: 2499,
-            colorSelection: { zone_1_main: vase.colorSlots[0]?.defaultColorId ?? '' },
+            unitPriceCents: 1490,
+            colorSelection: defaultSelection(nine50),
           },
         ],
       },
       payments: {
-        create: [{ method: 'stripe', status: 'paid', amountCents: 5697, paidAt: new Date() }],
+        create: [{ method: 'stripe', status: 'paid', amountCents: 3679, paidAt: new Date() }],
       },
     },
   })
@@ -391,17 +365,17 @@ async function seedOrders() {
       zip: '00-001',
       city: 'Warszawa',
       country: 'PL',
-      subtotalCents: 3999,
+      subtotalCents: 2790,
       shippingCents: 699,
-      totalCents: 4698,
+      totalCents: 3489,
       items: {
         create: [
           {
-            productId: organizer.id,
-            name: 'Desk Organizer',
+            productId: win100.id,
+            name: productName(win100, 'en'),
             quantity: 1,
-            unitPriceCents: 3999,
-            colorSelection: {},
+            unitPriceCents: 2790,
+            colorSelection: defaultSelection(win100),
           },
         ],
       },
@@ -410,7 +384,7 @@ async function seedOrders() {
           {
             method: 'bank_transfer',
             status: 'pending',
-            amountCents: 4698,
+            amountCents: 3489,
             reference: 'PS-2026-00000002',
           },
         ],
@@ -418,7 +392,7 @@ async function seedOrders() {
     },
   })
 
-  // 3: free-shipping order, shipped
+  // 3: free-shipping order (≥ 150 €), shipped
   await prisma.order.create({
     data: {
       orderNumber: 'PS-2026-00000003',
@@ -432,25 +406,25 @@ async function seedOrders() {
       zip: '20095',
       city: 'Hamburg',
       country: 'DE',
-      subtotalCents: 15996,
+      subtotalCents: 16740,
       shippingCents: 0,
-      totalCents: 15996,
+      totalCents: 16740,
       carrier: 'dhl',
       trackingNumber: 'DHL-SEED-123456',
       shippedAt: new Date(),
       items: {
         create: [
           {
-            productId: organizer.id,
-            name: 'Schreibtisch-Organizer',
-            quantity: 4,
-            unitPriceCents: 3999,
-            colorSelection: {},
+            productId: rem100.id,
+            name: productName(rem100),
+            quantity: 6,
+            unitPriceCents: 2790,
+            colorSelection: defaultSelection(rem100),
           },
         ],
       },
       payments: {
-        create: [{ method: 'bitcoin', status: 'paid', amountCents: 15996, paidAt: new Date() }],
+        create: [{ method: 'bitcoin', status: 'paid', amountCents: 16740, paidAt: new Date() }],
       },
     },
   })
@@ -459,13 +433,13 @@ async function seedOrders() {
 // 4: shipped order for kunde1 (portal, reviews, complaints — 4 items, one stays unreviewed for e2e)
 async function seedPortalOrder() {
   if (await prisma.order.findUnique({ where: { orderNumber: 'PS-2026-00000004' } })) return
-  const vase = await prisma.product.findUniqueOrThrow({
-    where: { slug: 'spiral-vase' },
-    include: { colorSlots: true },
-  })
-  const organizer = await prisma.product.findUniqueOrThrow({ where: { slug: 'desk-organizer' } })
-  const gear = await prisma.product.findUniqueOrThrow({ where: { slug: 'planetary-gear-toy' } })
-  const hooks = await prisma.product.findUniqueOrThrow({ where: { slug: 'wall-hook-set' } })
+  const lines = [
+    await seedProduct(boxSlug('9mm-luger', 50)),
+    await seedProduct(boxSlug('45-acp', 100)),
+    await seedProduct(boxSlug('22-lr', 50)),
+    await seedProduct(boxSlug('762x39', 50)),
+  ]
+  const subtotalCents = lines.reduce((sum, p) => sum + p.priceCents, 0)
   await prisma.order.create({
     data: {
       orderNumber: 'PS-2026-00000004',
@@ -479,50 +453,27 @@ async function seedPortalOrder() {
       zip: '10115',
       city: 'Berlin',
       country: 'DE',
-      subtotalCents: 9696,
+      subtotalCents,
       shippingCents: 699,
-      totalCents: 10395,
+      totalCents: subtotalCents + 699,
       carrier: 'hermes',
       trackingNumber: 'HERMES-SEED-654321',
       shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       items: {
-        create: [
-          {
-            productId: vase.id,
-            name: 'Spiralvase',
-            quantity: 1,
-            unitPriceCents: 2499,
-            colorSelection: { zone_1_main: vase.colorSlots[0]?.defaultColorId ?? '' },
-          },
-          {
-            productId: organizer.id,
-            name: 'Schreibtisch-Organizer',
-            quantity: 1,
-            unitPriceCents: 3999,
-            colorSelection: {},
-          },
-          {
-            productId: gear.id,
-            name: 'Planetengetriebe-Fidget',
-            quantity: 1,
-            unitPriceCents: 1899,
-            colorSelection: {},
-          },
-          {
-            productId: hooks.id,
-            name: 'Wandhaken-Set (3 Stück)',
-            quantity: 1,
-            unitPriceCents: 1299,
-            colorSelection: {},
-          },
-        ],
+        create: lines.map((p) => ({
+          productId: p.id,
+          name: productName(p),
+          quantity: 1,
+          unitPriceCents: p.priceCents,
+          colorSelection: defaultSelection(p),
+        })),
       },
       payments: {
         create: [
           {
             method: 'stripe',
             status: 'paid',
-            amountCents: 10395,
+            amountCents: subtotalCents + 699,
             paidAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
           },
         ],
@@ -546,7 +497,7 @@ async function seedProductionJobs() {
       status: 'printing',
       printDurationMinutes: 180,
       startedAt: new Date(),
-      spoolNotes: 'AMS Slot 1: Brand Green, Slot 2: Deep Black',
+      spoolNotes: 'AMS Slot 2: Deep Black (Box), Slot 3: Warm White (Beschriftung)',
     },
   })
   await prisma.printer.update({ where: { id: x1c.id }, data: { status: 'printing' } })
@@ -603,7 +554,7 @@ async function seedTickets() {
         create: [
           {
             authorType: 'customer',
-            body: 'Hallo, ist das Wandregal auch in PETG statt PLA druckbar? Es soll ins Badezimmer.',
+            body: 'Hallo, gibt es die Patronenbox .308 Win auch in PETG statt PLA? Mein Waffenschrank steht im Keller.',
           },
         ],
       },
@@ -672,21 +623,17 @@ async function seedTickets() {
 async function seedSocialPosts() {
   if ((await prisma.socialMediaPost.count()) > 0) return
   const admin = await prisma.user.findUniqueOrThrow({ where: { email: DEV_ADMIN_EMAIL } })
-  const vase = await prisma.product.findUniqueOrThrow({
-    where: { slug: 'spiral-vase' },
-    include: { translations: true },
-  })
-  const organizer = await prisma.product.findUniqueOrThrow({ where: { slug: 'desk-organizer' } })
-  const vaseName = vase.translations.find((t) => t.locale === 'de')?.name ?? vase.slug
+  const nine50 = await seedProduct(boxSlug('9mm-luger', 50))
+  const win100 = await seedProduct(boxSlug('308-win', 100))
 
   // Entwurf (Instagram)
   await prisma.socialMediaPost.create({
     data: {
       platform: 'instagram',
       status: 'draft',
-      caption: `${vaseName} — frisch vom Drucker! 🌿\n\nWasserdicht versiegelt, perfekt für Trockenblumen.\n\nJetzt im Shop: http://localhost:3000/products/spiral-vase`,
-      mediaUrls: [`/images/products/spiral-vase.svg`],
-      productId: vase.id,
+      caption: `${productName(nine50)} — frisch vom Drucker.\n\nPassgenaue Fächer, Box- und Beschriftungsfarbe nach Wahl.\n\nJetzt im Shop: http://localhost:3000/products/${nine50.slug}`,
+      mediaUrls: ['/images/products/kaliberbox-50.svg'],
+      productId: nine50.id,
       createdById: admin.id,
     },
   })
@@ -699,10 +646,9 @@ async function seedSocialPosts() {
     data: {
       platform: 'facebook',
       status: 'scheduled',
-      caption:
-        'Ordnung auf dem Schreibtisch: unser modularer Desk Organizer in deinen Wunschfarben. 🖥️\n\nhttp://localhost:3000/products/desk-organizer',
-      mediaUrls: [`/images/products/desk-organizer.svg`],
-      productId: organizer.id,
+      caption: `Ordnung im Waffenschrank: ${productName(win100)} in deinen Wunschfarben.\n\nhttp://localhost:3000/products/${win100.slug}`,
+      mediaUrls: ['/images/products/kaliberbox-100.svg'],
+      productId: win100.id,
       scheduledAt: tomorrow,
       createdById: admin.id,
     },
@@ -713,7 +659,7 @@ async function seedSocialPosts() {
     data: {
       platform: 'instagram',
       status: 'failed',
-      caption: 'Planetengetriebe-Fidget — print-in-place und sofort beweglich. ⚙️',
+      caption: 'Neu: Patronenboxen für .22 lfB — 50 oder 100 Schuss.',
       mediaUrls: [],
       scheduledAt: new Date(Date.now() - 60 * 60 * 1000),
       errorMessage: 'Instagram posts require at least one image',
@@ -923,7 +869,7 @@ async function seedComplaints() {
     where: { orderNumber: 'PS-2026-00000004' },
     include: { items: true },
   })
-  const gearItem = order4.items.find((i) => i.name.includes('Planeten')) ?? order4.items[2]!
+  const rimfireItem = order4.items.find((i) => i.name.includes('.22 lfB')) ?? order4.items[2]!
   await prisma.complaint.create({
     data: {
       complaintNumber: 'REK-2026-00001',
@@ -931,8 +877,8 @@ async function seedComplaints() {
       orderId: order4.id,
       status: 'submitted',
       reason: 'quality_issue',
-      description: 'Die Zahnräder klemmen nach wenigen Umdrehungen, ein Layer hat sich gelöst.',
-      items: { create: [{ orderItemId: gearItem.id, quantity: 1 }] },
+      description: 'Der Deckel schließt nicht sauber, an einer Ecke hat sich ein Layer gelöst.',
+      items: { create: [{ orderItemId: rimfireItem.id, quantity: 1 }] },
     },
   })
   await prisma.complaintCounter.upsert({
@@ -967,28 +913,25 @@ async function seedPortalTokens() {
 
 async function seedSavedConfigurations() {
   if ((await prisma.savedConfiguration.count()) > 0) return
-  const vase = await prisma.product.findUniqueOrThrow({
-    where: { slug: 'spiral-vase' },
-    include: { colorSlots: true },
-  })
+  const nine50 = await seedProduct(boxSlug('9mm-luger', 50))
   const brandGreen = await prisma.color.findUniqueOrThrow({ where: { name: 'Brand Green' } })
   const neonOrange = await prisma.color.findUniqueOrThrow({
     where: { name: 'Neon Orange (ausverkauft)' },
   })
-  const slot = vase.colorSlots[0]?.slot ?? 'zone_1_main'
+  const selection = defaultSelection(nine50)
   await prisma.savedConfiguration.create({
     data: {
-      productId: vase.id,
-      selectedColors: { [slot]: brandGreen.id },
-      shareToken: 'seed-config-vase-1',
+      productId: nine50.id,
+      selectedColors: { ...selection, zone_1_main: brandGreen.id },
+      shareToken: 'seed-config-box-1',
     },
   })
   // Kombination mit inaktiver Farbe → Verfügbarkeitswarnung testbar
   await prisma.savedConfiguration.create({
     data: {
-      productId: vase.id,
-      selectedColors: { [slot]: neonOrange.id },
-      shareToken: 'seed-config-vase-2',
+      productId: nine50.id,
+      selectedColors: { ...selection, zone_1_main: neonOrange.id },
+      shareToken: 'seed-config-box-2',
     },
   })
 }
@@ -1001,18 +944,18 @@ async function seedReviews() {
     include: { items: { include: { product: true } } },
   })
   const itemBySlug = (slug: string) => order4.items.find((i) => i.product?.slug === slug)
-  const vaseItem = itemBySlug('spiral-vase')!
-  const gearItem = itemBySlug('planetary-gear-toy')!
-  const hooksItem = itemBySlug('wall-hook-set')!
-  // Der Organizer-Posten bleibt unbewertet → E2E kann eine Bewertung abgeben.
+  const nineItem = itemBySlug(boxSlug('9mm-luger', 50))!
+  const rimfireItem = itemBySlug(boxSlug('22-lr', 50))!
+  const akItem = itemBySlug(boxSlug('762x39', 50))!
+  // Der .45-ACP-Posten bleibt unbewertet → E2E kann eine Bewertung abgeben.
   await prisma.review.create({
     data: {
-      orderItemId: vaseItem.id,
+      orderItemId: nineItem.id,
       orderId: order4.id,
-      productId: vaseItem.productId!,
+      productId: nineItem.productId!,
       rating: 5,
-      title: 'Wunderschön gedruckt',
-      body: 'Die Vase sieht fantastisch aus, saubere Layer und kräftige Farbe. Gerne wieder!',
+      title: 'Passt genau',
+      body: 'Die Patronen sitzen fest in den Fächern, saubere Layer und gut lesbare Beschriftung. Gerne wieder!',
       displayName: 'Anna K.',
       locale: 'de',
       status: 'approved',
@@ -1022,11 +965,11 @@ async function seedReviews() {
   })
   await prisma.review.create({
     data: {
-      orderItemId: gearItem.id,
+      orderItemId: rimfireItem.id,
       orderId: order4.id,
-      productId: gearItem.productId!,
+      productId: rimfireItem.productId!,
       rating: 3,
-      body: 'Nettes Spielzeug, aber die Zahnräder könnten leichter laufen.',
+      body: 'Ordentliche Box, aber der Deckel könnte etwas strammer schließen.',
       displayName: 'Kim K.',
       locale: 'de',
       status: 'pending',
@@ -1034,9 +977,9 @@ async function seedReviews() {
   })
   await prisma.review.create({
     data: {
-      orderItemId: hooksItem.id,
+      orderItemId: akItem.id,
       orderId: order4.id,
-      productId: hooksItem.productId!,
+      productId: akItem.productId!,
       rating: 1,
       body: 'SPAM SPAM besucht meine Website unter example-spam.tld!!!',
       displayName: 'Spammer',
@@ -1098,6 +1041,8 @@ async function main() {
   await seedUsers()
   console.log('Seeding colors …')
   await seedColors()
+  console.log('Seeding calibers …')
+  await seedCalibers()
   console.log('Seeding products …')
   await seedProducts()
   console.log('Seeding printers & spools …')

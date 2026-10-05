@@ -27,10 +27,10 @@ test.describe('admin products', () => {
     await admin.login()
     await gotoHydrated(page, '/admin/products')
     await expect(page.getByTestId('admin-products')).toBeVisible()
-    await expect(page.getByText('spiral-vase')).toBeVisible()
+    await expect(page.getByText('patronenbox-9mm-luger-50', { exact: true })).toBeVisible()
 
-    // Deactivate + reactivate the wall hook set
-    const row = page.locator('tr', { hasText: 'wall-hook-set' })
+    // Deactivate + reactivate the 7,62×39 box
+    const row = page.locator('tr', { hasText: 'patronenbox-762x39-50' })
     await row.getByTestId('toggle-product').click()
     await expect(row.getByText('inaktiv')).toBeVisible()
     await row.getByTestId('toggle-product').click()
@@ -63,7 +63,7 @@ test.describe('admin products', () => {
     await page.getByTestId('new-product').click()
     const form = page.getByTestId('product-form')
     await form.locator('input').nth(0).fill('Duplikat')
-    await form.locator('input').nth(1).fill('spiral-vase')
+    await form.locator('input').nth(1).fill('patronenbox-9mm-luger-50')
     await form.locator('input').nth(2).fill('1,00')
     await form.locator('textarea').fill('Duplikatstest')
     await page.getByTestId('save-product').click()

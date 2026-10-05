@@ -8,7 +8,7 @@ test.describe('invoices', () => {
   test('paid order generates a sequential invoice, downloadable as pdf', async ({ page }) => {
     // Pay an order via mock stripe
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress('invoice-e2e@example.com')
     await page.getByTestId('payment-stripe').click()

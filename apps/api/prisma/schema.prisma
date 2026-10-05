@@ -126,6 +126,12 @@ enum ColorZoneSlot {
   zone_4_text
 }
 
+enum CaliberGroup {
+  HANDGUN
+  RIFLE
+  RIMFIRE
+}
+
 enum EmailStatus {
   sent
   dev_logged
@@ -309,9 +315,14 @@ model Product {
   /// Sonderanfertigung (made-to-order / farblich personalisiert): kein Widerruf,
   /// nur Reklamation/Kulanz. Steuert den Hinweis im Reklamations-Formular.
   customMade Boolean  @default(true)
+  /// Patronen pro Box (50 / 100); null bei Produkten ohne Kapazität
+  capacity   Int?
+  /// Produkte mit gleichem familyKey sind Größenvarianten (50/100) derselben Kaliberbox
+  familyKey  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  calibers            Caliber[]
   translations        ProductTranslation[]
   assets              ProductAsset[]
   colorSlots          ProductColorSlot[]
@@ -320,6 +331,21 @@ model Product {
   socialPosts         SocialMediaPost[]
   reviews             Review[]
   savedConfigurations SavedConfiguration[]
+
+  @@index([familyKey])
+}
+
+/// Kaliber (Anzeigename wird nicht übersetzt, z. B. „9 mm Luger“); m:n zu Product.
+model Caliber {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  name      String
+  group     CaliberGroup
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  products Product[]
 }
 
 model ProductTranslation {

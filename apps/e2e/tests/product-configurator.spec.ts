@@ -4,7 +4,7 @@ import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('3d configurator', () => {
   test('renders the 3d viewer', async ({ page }) => {
-    await gotoHydrated(page, '/products/desk-organizer')
+    await gotoHydrated(page, '/products/patronenbox-308-win-100')
     const viewer = page.getByTestId('model-viewer')
     await expect(viewer).toBeVisible()
     // GLB asset does not exist in the repo → fallback zone model renders
@@ -13,11 +13,11 @@ test.describe('3d configurator', () => {
   })
 
   test('shows color zones with global colors', async ({ page }) => {
-    await gotoHydrated(page, '/products/desk-organizer')
+    await gotoHydrated(page, '/products/patronenbox-308-win-100')
     const picker = page.getByTestId('color-picker')
     await expect(picker).toBeVisible()
-    // desk organizer has all 4 zones
-    for (const zone of ['zone_1_main', 'zone_2_accent', 'zone_3_detail', 'zone_4_text']) {
+    // cartridge boxes have two zones: Box + Beschriftung
+    for (const zone of ['zone_1_main', 'zone_4_text']) {
       await expect(picker.locator(`[data-zone="${zone}"]`)).toBeVisible()
     }
     // one swatch per active global color (count via public api — other tests may add colors)
@@ -29,7 +29,7 @@ test.describe('3d configurator', () => {
   })
 
   test('selecting a color updates the selection state', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await new ShopPage(page).acceptConsent()
     const zone = page.getByTestId('color-picker').locator('[data-zone="zone_1_main"]')
     const swatch = zone.getByTestId('color-swatch').nth(3)
@@ -39,7 +39,7 @@ test.describe('3d configurator', () => {
 
   test('configured colors end up in the cart line', async ({ page }) => {
     const shop = new ShopPage(page)
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await shop.acceptConsent()
     await page
       .getByTestId('color-picker')

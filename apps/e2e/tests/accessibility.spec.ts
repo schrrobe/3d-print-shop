@@ -12,7 +12,7 @@ async function scan(page: Page) {
 }
 
 test.describe('accessibility (axe, wcag aa)', () => {
-  for (const route of ['/', '/products', '/products/spiral-vase', '/cart', '/upload']) {
+  for (const route of ['/', '/products', '/products/patronenbox-9mm-luger-50', '/cart', '/upload']) {
     test(`no serious/critical violations on ${route}`, async ({ page }) => {
       // Scan the settled UI: with reduced motion the GSAP word-reveal renders
       // text fully visible instead of mid-fade, which axe otherwise flags as a

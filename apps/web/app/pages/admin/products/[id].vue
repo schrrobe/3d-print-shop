@@ -11,8 +11,21 @@ import {
   PsUploadDropzone,
   useToast,
 } from '@print-shop/ui'
-import { COLOR_ZONE_SLOTS, LOCALES, MAX_PRODUCT_IMAGES } from '@print-shop/types'
-import type { AdminColorDto, AdminProductDetailDto, ColorZoneSlot, Locale } from '@print-shop/types'
+import {
+  BOX_CAPACITIES,
+  CALIBER_GROUPS,
+  COLOR_ZONE_SLOTS,
+  LOCALES,
+  MAX_PRODUCT_IMAGES,
+} from '@print-shop/types'
+import type {
+  AdminCaliberDto,
+  AdminColorDto,
+  AdminProductDetailDto,
+  CaliberGroup,
+  ColorZoneSlot,
+  Locale,
+} from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -30,10 +43,41 @@ const { data: colorData } = await useFetch<{ colors: AdminColorDto[] }>('/api/ad
   server: false,
 })
 
+const { data: caliberData, refresh: refreshCalibers } = await useFetch<{
+  calibers: AdminCaliberDto[]
+}>('/api/admin/calibers', { credentials: 'include', server: false })
+
 const product = computed(() => data.value?.product)
 const glbAsset = computed(() => product.value?.assets.find((a) => a.type === 'glb_preview'))
 
-const form = reactive({ slug: '', priceEuros: '', active: false })
+// 'none' sentinel: Radix SelectItem forbids empty-string values
+const NO_CAPACITY = 'none'
+const form = reactive({
+  slug: '',
+  priceEuros: '',
+  active: false,
+  capacity: NO_CAPACITY,
+  familyKey: '',
+  caliberSlugs: [] as string[],
+})
+
+const capacityOptions = [
+  { value: NO_CAPACITY, label: '– keine –' },
+  ...BOX_CAPACITIES.map((c) => ({ value: String(c), label: `${c} Schuss` })),
+]
+
+const CALIBER_GROUP_LABELS: Record<CaliberGroup, string> = {
+  HANDGUN: 'Kurzwaffe',
+  RIFLE: 'Langwaffe',
+  RIMFIRE: 'Randfeuer',
+}
+const caliberGroupOptions = CALIBER_GROUPS.map((g) => ({ value: g, label: CALIBER_GROUP_LABELS[g] }))
+const calibersByGroup = computed(() =>
+  CALIBER_GROUPS.map((group) => ({
+    group,
+    calibers: (caliberData.value?.calibers ?? []).filter((c) => c.group === group),
+  })).filter((g) => g.calibers.length > 0),
+)
 
 type TranslationForm = {
   name: string
@@ -79,6 +123,9 @@ watch(
     form.slug = p.slug
     form.priceEuros = (p.priceCents / 100).toFixed(2).replace('.', ',')
     form.active = p.active
+    form.capacity = p.capacity === null ? NO_CAPACITY : String(p.capacity)
+    form.familyKey = p.familyKey ?? ''
+    form.caliberSlugs = p.calibers.map((c) => c.slug)
     for (const locale of LOCALES) {
       const t = p.translations.find((x) => x.locale === locale)
       translations[locale] = {
@@ -142,6 +189,9 @@ async function save() {
     slug: form.slug,
     priceCents,
     active: form.active,
+    capacity: form.capacity === NO_CAPACITY ? null : Number(form.capacity),
+    familyKey: form.familyKey.trim() || null,
+    caliberSlugs: form.caliberSlugs,
     translations: LOCALES.filter((l) => translations[l].name.trim() !== '').map((l) => ({
       locale: l,
       name: translations[l].name.trim(),
@@ -164,6 +214,34 @@ async function save() {
       }),
     { success: 'Gespeichert', error: 'Speichern fehlgeschlagen (Slug bereits vergeben?)' },
   )
+}
+
+const newCaliber = reactive({ slug: '', name: '', group: 'HANDGUN' })
+const { run: runCaliberAction, pending: caliberPending } = useAdminAction({
+  refresh: refreshCalibers,
+})
+
+async function createCaliber() {
+  const slug = newCaliber.slug.trim()
+  const name = newCaliber.name.trim()
+  if (!slug || !name) {
+    toast.show('Slug und Name sind Pflicht', { variant: 'error' })
+    return
+  }
+  const ok = await runCaliberAction(
+    () =>
+      $fetch('/api/admin/calibers', {
+        method: 'POST',
+        credentials: 'include',
+        body: { slug, name, group: newCaliber.group },
+      }),
+    { success: 'Kaliber angelegt', error: 'Anlegen fehlgeschlagen (Slug kebab-case?)' },
+  )
+  if (!ok) return
+  // tick the new caliber for this product; saving the product persists the link
+  if (!form.caliberSlugs.includes(slug)) form.caliberSlugs.push(slug)
+  newCaliber.slug = ''
+  newCaliber.name = ''
 }
 
 async function uploadModel(files: File[]) {
@@ -332,6 +410,73 @@ async function deleteProduct() {
         />
         Im Shop sichtbar
       </label>
+    </PsCard>
+
+    <PsCard>
+      <h3 class="text-label-medium">Kaliber &amp; Boxgröße</h3>
+      <div class="mt-md grid gap-md sm:grid-cols-2">
+        <PsSelect
+          v-model="form.capacity"
+          label="Patronen pro Box"
+          :options="capacityOptions"
+          data-testid="product-capacity"
+          :disabled="!auth.can('products:write')"
+        />
+        <div>
+          <PsInput
+            v-model="form.familyKey"
+            label="Familie (optional)"
+            name="familyKey"
+            data-testid="product-family-key"
+            :disabled="!auth.can('products:write')"
+          />
+          <p class="mt-xs text-caption text-secondary">
+            Gleiche Familie = 50/100-Varianten derselben Box (z. B. Kaliber-Slug).
+          </p>
+        </div>
+      </div>
+      <fieldset class="mt-md" data-testid="product-calibers">
+        <legend class="text-body-regular">Passende Kaliber</legend>
+        <p v-if="!calibersByGroup.length" class="mt-xs text-caption text-secondary">
+          Noch keine Kaliber angelegt.
+        </p>
+        <div class="mt-sm grid gap-md sm:grid-cols-3">
+          <div v-for="g in calibersByGroup" :key="g.group" class="flex flex-col gap-xs">
+            <span class="text-label-medium">{{ CALIBER_GROUP_LABELS[g.group] }}</span>
+            <label
+              v-for="c in g.calibers"
+              :key="c.slug"
+              class="flex items-center gap-sm text-body-regular"
+            >
+              <input
+                v-model="form.caliberSlugs"
+                type="checkbox"
+                :value="c.slug"
+                :data-testid="`caliber-${c.slug}`"
+                :disabled="!auth.can('products:write')"
+              />
+              {{ c.name }}
+            </label>
+          </div>
+        </div>
+      </fieldset>
+      <div
+        v-if="auth.can('products:write')"
+        class="mt-md grid items-end gap-md sm:grid-cols-[1fr_1fr_1fr_auto]"
+        data-testid="new-caliber-form"
+      >
+        <PsInput v-model="newCaliber.slug" label="Neues Kaliber: Slug" name="newCaliberSlug" />
+        <PsInput v-model="newCaliber.name" label="Anzeigename" name="newCaliberName" />
+        <PsSelect v-model="newCaliber.group" label="Gruppe" :options="caliberGroupOptions" />
+        <PsButton
+          variant="ghost"
+          data-testid="create-caliber"
+          :disabled="caliberPending"
+          @click="createCaliber"
+        >
+          Neues Kaliber anlegen
+        </PsButton>
+      </div>
     </PsCard>
 
     <PsCard>

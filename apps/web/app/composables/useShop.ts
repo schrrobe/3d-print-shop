@@ -23,11 +23,41 @@ export interface ApiColorSlot {
   defaultColorId: string | null
 }
 
+export type ApiCaliberGroup = 'HANDGUN' | 'RIFLE' | 'RIMFIRE'
+
+/** Caliber as embedded in a product (GET /api/products, /api/products/:slug). */
+export interface ApiCaliberRef {
+  slug: string
+  name: string
+  group: ApiCaliberGroup
+}
+
+/** GET /api/calibers → { calibers: ApiCaliber[] } (only calibers with ≥1 active product). */
+export interface ApiCaliber extends ApiCaliberRef {
+  sortOrder: number
+  productCount: number
+}
+
+/** 50/100 size variant of the same box (same familyKey), incl. the product itself. */
+export interface ApiProductSibling {
+  slug: string
+  capacity: number | null
+  priceCents: number
+}
+
 export interface ApiProduct {
   id: string
   slug: string
   priceCents: number
   active: boolean
+  /** Rounds per box (50 / 100), null if not a sized box */
+  capacity: number | null
+  /** Products sharing a familyKey are the 50/100 siblings of one caliber box */
+  familyKey: string | null
+  /** Ordered by caliber sortOrder */
+  calibers: ApiCaliberRef[]
+  /** Only on GET /api/products/:slug — sorted by capacity */
+  siblings?: ApiProductSibling[]
   translations: ApiTranslation[]
   assets: ApiAsset[]
   colorSlots: ApiColorSlot[]

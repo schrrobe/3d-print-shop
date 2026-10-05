@@ -18,6 +18,7 @@ import { adminPaymentsRouter } from './routes/admin/payments.js'
 import { adminPrintersRouter } from './routes/admin/printers.js'
 import { adminProductionRouter } from './routes/admin/production.js'
 import { adminProductsRouter } from './routes/admin/products.js'
+import { adminCalibersRouter } from './routes/admin/calibers.js'
 import { adminQcRouter } from './routes/admin/qc.js'
 import { adminQuoteRequestsRouter } from './routes/admin/quote-requests.js'
 import { adminReviewsRouter } from './routes/admin/reviews.js'
@@ -30,6 +31,7 @@ import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { checkoutRouter } from './routes/public/checkout.js'
 import { trackingSettingsRouter } from './routes/public/tracking-settings.js'
+import { calibersRouter } from './routes/public/calibers.js'
 import { colorsRouter } from './routes/public/colors.js'
 import { complaintsRouter } from './routes/public/complaints.js'
 import { configurationsRouter } from './routes/public/configurations.js'
@@ -79,6 +81,7 @@ export function createApp(): Express {
   // Public shop API
   app.use('/api/products', productsRouter)
   app.use('/api/colors', colorsRouter)
+  app.use('/api/calibers', calibersRouter)
   app.use('/api/checkout', checkoutRouter)
   app.use('/api/vouchers', vouchersRouter)
   app.use('/api/orders', ordersRouter)
@@ -102,6 +105,7 @@ export function createApp(): Express {
   app.use('/api/admin/auth', adminAuthRouter)
   app.use('/api/admin/dashboard', requireAuth, adminDashboardRouter)
   app.use('/api/admin/products', requireAuth, adminProductsRouter)
+  app.use('/api/admin/calibers', requireAuth, adminCalibersRouter)
   app.use('/api/admin/colors', requireAuth, adminColorsRouter)
   app.use('/api/admin/quote-requests', requireAuth, adminQuoteRequestsRouter)
   app.use('/api/admin/orders', requireAuth, adminOrdersRouter)

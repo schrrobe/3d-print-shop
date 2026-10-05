@@ -5,7 +5,7 @@ import { gotoHydrated } from '../helpers/hydration.js'
 test.describe('checkout with stripe (mock)', () => {
   test('guest checkout completes and payment can be simulated', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress('stripe-e2e@example.com')
     await page.getByTestId('payment-stripe').click()
@@ -34,7 +34,7 @@ test.describe('checkout with stripe (mock)', () => {
 
   test('validation: missing address blocks submit', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     // HTML5 required fields prevent submission — we stay on the checkout page
     await page.getByTestId('submit-order').click()
@@ -44,7 +44,7 @@ test.describe('checkout with stripe (mock)', () => {
 
   test('bank transfer checkout shows bank details', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress('bank-e2e@example.com')
     await page.getByTestId('payment-bank_transfer').click()
@@ -56,7 +56,7 @@ test.describe('checkout with stripe (mock)', () => {
 
   test('bitcoin checkout: paid only after 2 confirmations', async ({ page, request }) => {
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress('btc-e2e@example.com')
     await page.getByTestId('payment-bitcoin').click()

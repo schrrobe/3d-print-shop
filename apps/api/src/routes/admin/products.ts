@@ -26,6 +26,20 @@ const include = {
   translations: true,
   assets: { orderBy: { sortOrder: 'asc' as const } },
   colorSlots: true,
+  calibers: { orderBy: { sortOrder: 'asc' as const } },
+}
+
+/** Resolve caliber slugs to ids; unknown slugs are a 400, not a silent drop. */
+async function caliberIdsForSlugs(slugs: string[]): Promise<{ id: string }[]> {
+  const unique = [...new Set(slugs)]
+  const calibers = await prisma.caliber.findMany({
+    where: { slug: { in: unique } },
+    select: { id: true, slug: true },
+  })
+  const known = new Set(calibers.map((caliber) => caliber.slug))
+  const unknown = unique.filter((slug) => !known.has(slug))
+  if (unknown.length > 0) throw badRequest(`Unknown caliber: ${unknown.join(', ')}`)
+  return calibers.map(({ id }) => ({ id }))
 }
 
 const modelsDir = path.resolve(env.UPLOAD_DIR, 'models')
@@ -102,11 +116,15 @@ adminProductsRouter.get('/:id', requirePermission('products:read'), async (req, 
 adminProductsRouter.post('/', requirePermission('products:write'), async (req, res, next) => {
   try {
     const input = productCreateSchema.parse(req.body)
+    const caliberIds = input.caliberSlugs ? await caliberIdsForSlugs(input.caliberSlugs) : []
     const product = await prisma.product.create({
       data: {
         slug: input.slug,
         priceCents: input.priceCents,
         active: input.active,
+        capacity: input.capacity ?? null,
+        familyKey: input.familyKey ?? null,
+        calibers: { connect: caliberIds },
         translations: { create: input.translations },
         colorSlots: { create: input.colorSlots },
       },
@@ -124,6 +142,7 @@ adminProductsRouter.patch('/:id', requirePermission('products:write'), async (re
     const input = productUpdateSchema.parse(req.body)
     const existing = await prisma.product.findUnique({ where: { id: String(req.params.id) } })
     if (!existing) throw notFound('Product not found')
+    const caliberIds = input.caliberSlugs ? await caliberIdsForSlugs(input.caliberSlugs) : undefined
     const product = await prisma.$transaction(async (tx) => {
       if (input.translations) {
         await tx.productTranslation.deleteMany({ where: { productId: existing.id } })
@@ -143,6 +162,9 @@ adminProductsRouter.patch('/:id', requirePermission('products:write'), async (re
           slug: input.slug,
           priceCents: input.priceCents,
           active: input.active,
+          capacity: input.capacity,
+          familyKey: input.familyKey,
+          calibers: caliberIds ? { set: caliberIds } : undefined,
         },
         include,
       })

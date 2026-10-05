@@ -124,14 +124,11 @@ test.describe('product photos', () => {
     await expect(page.getByTestId('product-photo')).toHaveCount(0)
   })
 
-  test('seeded product shows a multi-photo gallery with the configurator below it', async ({
-    page,
-  }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+  // Seeded cartridge boxes ship a single image, so no thumbnail strip is asserted here.
+  test('seeded product shows the gallery with the configurator below it', async ({ page }) => {
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     const detail = page.getByTestId('product-detail')
     await expect(detail.getByTestId('product-gallery')).toBeVisible()
-    await expect(page.getByTestId('product-gallery-thumb').first()).toBeVisible()
-    expect(await page.getByTestId('product-gallery-thumb').count()).toBeGreaterThan(1)
 
     // Configurator moved one section down and still holds the colour picker.
     await expect(page.getByTestId('purchase-panel')).toBeVisible()
@@ -188,7 +185,7 @@ test.describe('product photos', () => {
   test('server rejects more than four photos', async () => {
     const admin = await adminApiContext()
     const anon = await apiContext()
-    const { product } = (await (await anon.get('/api/products/spiral-vase')).json()) as {
+    const { product } = (await (await anon.get('/api/products/patronenbox-9mm-luger-50')).json()) as {
       product: { id: string; assets: { id: string; type: string }[] }
     }
     await anon.dispose()

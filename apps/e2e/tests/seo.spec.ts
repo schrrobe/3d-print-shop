@@ -28,21 +28,21 @@ test.describe('seo & social previews', () => {
   test('product page has product og:type, db seo title and Product JSON-LD', async ({
     request,
   }) => {
-    const { html } = await ssrHead(request, '/products/spiral-vase')
+    const { html } = await ssrHead(request, '/products/patronenbox-9mm-luger-50')
     expect(html).toContain('property="og:type" content="product"')
-    expect(html).toContain('<title>Spiralvase — 3D-Druck</title>')
+    expect(html).toContain('<title>Patronenbox 9 mm Luger – 50 Schuss — 3D-Druck</title>')
     expect(html).toContain('"@type":"Product"')
     expect(html).toContain('"priceCurrency":"EUR"')
     expect(html).toContain('data-testid="product-breadcrumbs"')
     expect(html).toContain('"@type":"BreadcrumbList"')
-    expect(html).toContain('"item":"http://localhost:3000/products/spiral-vase"')
+    expect(html).toContain('"item":"http://localhost:3000/products/patronenbox-9mm-luger-50"')
     expect(html).toContain(
-      '"image":["http://localhost:3000/images/products/spiral-vase.svg","http://localhost:3000/images/products/desk-organizer.svg"',
+      '"image":["http://localhost:3000/images/products/kaliberbox-50.svg"',
     )
     // SVG product images must not leak into og:image (crawlers cannot render them)
     expect(html).not.toMatch(/og:image" content="[^"]*\.svg/)
     // english variant carries its own translation and locale
-    const en = await ssrHead(request, '/en/products/spiral-vase')
+    const en = await ssrHead(request, '/en/products/patronenbox-9mm-luger-50')
     expect(en.html).toContain('property="og:locale" content="en_US"')
   })
 
@@ -69,8 +69,8 @@ test.describe('seo & social previews', () => {
     expect(response.status()).toBe(200)
     expect(response.headers()['content-type']).toContain('xml')
     const body = await response.text()
-    expect(body).toContain('<loc>http://localhost:3000/products/spiral-vase</loc>')
-    expect(body).toContain('<loc>http://localhost:3000/cs/products/spiral-vase</loc>')
+    expect(body).toContain('<loc>http://localhost:3000/products/patronenbox-9mm-luger-50</loc>')
+    expect(body).toContain('<loc>http://localhost:3000/cs/products/patronenbox-9mm-luger-50</loc>')
     expect(body).toContain('hreflang="pl"')
     expect(body).not.toContain('/checkout')
   })

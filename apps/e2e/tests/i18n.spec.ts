@@ -30,10 +30,10 @@ test.describe('i18n (de, en, pl, fr, nl, cs)', () => {
   })
 
   test('product translations follow the locale', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
-    await expect(page.getByTestId('product-name')).toHaveText('Spiralvase')
-    await gotoHydrated(page, '/en/products/spiral-vase')
-    await expect(page.getByTestId('product-name')).toHaveText('Spiral Vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
+    await expect(page.getByTestId('product-name')).toHaveText('Patronenbox 9 mm Luger – 50 Schuss')
+    await gotoHydrated(page, '/en/products/patronenbox-9mm-luger-50')
+    await expect(page.getByTestId('product-name')).toHaveText('Cartridge box 9 mm Luger – 50 rounds')
   })
 
   test('html lang attribute matches the locale', async ({ page }) => {

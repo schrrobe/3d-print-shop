@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { UPLOAD_TERMS_VERSION } from '@print-shop/utils'
 import {
   addressSchema,
+  caliberCreateSchema,
   checkoutIdempotencyKeySchema,
   checkoutSchema,
   colorCreateSchema,
   consentLogSchema,
   loginSchema,
   productCreateSchema,
+  productUpdateSchema,
   quoteCreateSchema,
   uploadedFileMetaSchema,
   uploadRequestSchema,
@@ -216,6 +218,41 @@ describe('loginSchema', () => {
     expect(loginSchema.safeParse({ email: 'a@b.co', password: 'short' }).success).toBe(false)
     expect(loginSchema.safeParse({ email: 'a@b.co', password: 'long-enough-pw' }).success).toBe(
       true,
+    )
+  })
+})
+
+describe('product caliber fields', () => {
+  it('accepts capacity 50/100, a kebab-case familyKey and caliber slugs', () => {
+    const parsed = productUpdateSchema.parse({
+      capacity: 100,
+      familyKey: '9mm-luger',
+      caliberSlugs: ['9mm-luger'],
+    })
+    expect(parsed).toEqual({ capacity: 100, familyKey: '9mm-luger', caliberSlugs: ['9mm-luger'] })
+    expect(productUpdateSchema.safeParse({ capacity: null, familyKey: null }).success).toBe(true)
+  })
+
+  it('rejects other capacities and malformed slugs', () => {
+    expect(productUpdateSchema.safeParse({ capacity: 75 }).success).toBe(false)
+    expect(productUpdateSchema.safeParse({ familyKey: '9mm Luger' }).success).toBe(false)
+    expect(productUpdateSchema.safeParse({ caliberSlugs: ['.308 Win'] }).success).toBe(false)
+  })
+})
+
+describe('caliberCreateSchema', () => {
+  it('accepts a caliber and defaults sortOrder', () => {
+    expect(caliberCreateSchema.parse({ slug: '22-lr', name: '.22 lfB', group: 'RIMFIRE' })).toEqual(
+      { slug: '22-lr', name: '.22 lfB', group: 'RIMFIRE', sortOrder: 0 },
+    )
+  })
+
+  it('rejects unknown groups and empty names', () => {
+    expect(
+      caliberCreateSchema.safeParse({ slug: '12-70', name: '12/70', group: 'SHOTGUN' }).success,
+    ).toBe(false)
+    expect(caliberCreateSchema.safeParse({ slug: 'x', name: ' ', group: 'RIFLE' }).success).toBe(
+      false,
     )
   })
 })

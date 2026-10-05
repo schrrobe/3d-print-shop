@@ -5,19 +5,19 @@ import { gotoHydrated } from '../helpers/hydration.js'
 const ORDER = 'PS-2026-00000004'
 const ORDER_TOKEN = 'seed-token-order-4'
 
-async function organizerItemId(ctx: APIRequestContext): Promise<string> {
+async function unreviewedItemId(ctx: APIRequestContext): Promise<string> {
   const order = (await (await ctx.get(`/api/orders/${ORDER}`, { params: { token: ORDER_TOKEN } })).json()) as {
     order: { items: { id: string; name: string }[] }
   }
-  // The desk-organizer line is deliberately left unreviewed in the seed
-  const item = order.order.items.find((i) => i.name.includes('Organizer'))
+  // The .45 ACP line is deliberately left unreviewed in the seed
+  const item = order.order.items.find((i) => i.name.includes('.45 ACP'))
   return item!.id
 }
 
 test.describe('reviews', () => {
   test('a review can be submitted once per order item', async () => {
     const ctx = await apiContext()
-    const orderItemId = await organizerItemId(ctx)
+    const orderItemId = await unreviewedItemId(ctx)
 
     const form = new FormData()
     form.append('orderNumber', ORDER)
@@ -49,7 +49,7 @@ test.describe('reviews', () => {
 
   test('approved reviews are public, no private data leaks', async () => {
     const ctx = await apiContext()
-    const res = await ctx.get('/api/products/spiral-vase/reviews')
+    const res = await ctx.get('/api/products/patronenbox-9mm-luger-50/reviews')
     const data = (await res.json()) as {
       reviews: Record<string, unknown>[]
       averageRating: number | null
@@ -68,9 +68,9 @@ test.describe('reviews', () => {
 
   test('rejected reviews never appear publicly', async () => {
     const ctx = await apiContext()
-    const res = await ctx.get('/api/products/wall-hook-set/reviews')
+    const res = await ctx.get('/api/products/patronenbox-762x39-50/reviews')
     const data = (await res.json()) as { reviews: { rating: number }[] }
-    // The seeded 1-star abuse review on the hook set is rejected → hidden
+    // The seeded 1-star abuse review on the 7,62×39 box is rejected → hidden
     expect(data.reviews.some((r) => r.rating === 1)).toBe(false)
     await ctx.dispose()
   })
@@ -90,7 +90,7 @@ test.describe('reviews', () => {
   })
 
   test('product page renders the reviews section', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await expect(page.getByTestId('product-reviews')).toBeVisible()
     await expect(page.getByText('Anna K.')).toBeVisible()
   })
