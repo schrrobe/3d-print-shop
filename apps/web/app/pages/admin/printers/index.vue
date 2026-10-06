@@ -10,7 +10,13 @@ interface AdminPrinter {
   model: string
   status: PrinterStatus
   notes: string | null
-  spools: { id: string; amsSlot: number | null; material: string; remainingGrams: number | null; color: { name: string; hex: string } | null }[]
+  spools: {
+    id: string
+    amsSlot: number | null
+    material: string
+    remainingGrams: number | null
+    color: { name: string; hex: string } | null
+  }[]
   jobs: { id: string; order: { orderNumber: string } }[]
 }
 
@@ -94,7 +100,12 @@ const statusOptions = PRINTER_STATUSES.map((s) => ({ value: s, label: s }))
     <PsDialog v-model:open="dialogOpen" title="Drucker anlegen">
       <form class="flex flex-col gap-md" data-testid="printer-form" @submit.prevent="createPrinter">
         <PsInput v-model="form.name" label="Name" required placeholder="Bambu Lab X1C #3" />
-        <PsInput v-model="form.model" label="Modell" required placeholder="Bambu Lab X1 Carbon + AMS 2 Pro" />
+        <PsInput
+          v-model="form.model"
+          label="Modell"
+          required
+          placeholder="Bambu Lab X1 Carbon + AMS 2 Pro"
+        />
         <PsInput v-model="form.notes" label="Notizen" />
         <PsButton type="submit" data-testid="save-printer">Anlegen</PsButton>
       </form>

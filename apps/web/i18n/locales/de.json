@@ -316,13 +316,13 @@
   },
   "wishlist": {
     "title": "Merkliste",
-    "empty": "Deine Wunschliste ist leer.",
+    "empty": "Deine Merkliste ist leer.",
     "toCart": "In den Warenkorb",
     "share": "Teilen",
-    "add": "Zur Wunschliste hinzufügen",
-    "remove": "Von der Wunschliste entfernen",
-    "added": "Zur Wunschliste hinzugefügt",
-    "removed": "Von der Wunschliste entfernt",
+    "add": "Zur Merkliste hinzufügen",
+    "remove": "Von der Merkliste entfernen",
+    "added": "Zur Merkliste hinzugefügt",
+    "removed": "Von der Merkliste entfernt",
     "movedToCart": "In den Warenkorb verschoben",
     "shareCopied": "Link kopiert",
     "shareError": "Link konnte nicht erstellt werden"
@@ -349,7 +349,7 @@
   "reviews": {
     "title": "Bewertungen",
     "empty": "Noch keine Bewertungen.",
-    "count": "{count} Bewertungen",
+    "count": "Keine Bewertungen | {count} Bewertung | {count} Bewertungen",
     "ratingLabel": "{rating} von 5 Sternen",
     "photoAlt": "Bewertungsfoto von {name}"
   },

@@ -73,3 +73,19 @@ export function boxColors(
     labelName: labelColor?.name ?? '',
   }
 }
+
+// Approximate case-head diameters (mm, C.I.P.) so the schematic shows .22 lfB vs .308 Win
+// sockets in proportion. Not a dimensioned drawing; unknown calibers fall back to 0.8.
+const CASE_HEAD_MM: Record<string, number> = {
+  '22-lr': 6.9,
+  '223-rem': 9.6,
+  '9mm-luger': 9.96,
+  '762x39': 11.35,
+  '308-win': 12.01,
+  '45-acp': 12.19,
+}
+
+export function socketScale(caliberSlug?: string | null): number {
+  const mm = caliberSlug ? CASE_HEAD_MM[caliberSlug] : undefined
+  return mm ? mm / 12.2 : 0.8
+}

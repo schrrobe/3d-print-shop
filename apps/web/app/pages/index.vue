@@ -50,50 +50,53 @@ const steps = ['caliber', 'colors', 'print'] as const
   <div>
     <!-- First viewport: the target -->
     <section
-      class="kb-wrap grid gap-8 pb-14 pt-8 md:grid-cols-[1fr_minmax(0,34rem)] md:items-center md:gap-12 md:pb-20 md:pt-14"
+      class="kb-wrap grid gap-5 pb-14 pt-6 md:grid-cols-[1fr_minmax(0,34rem)] md:grid-rows-[auto_auto_auto_1fr] md:gap-x-12 md:gap-y-6 md:pb-20 md:pt-14"
       data-testid="hero"
     >
-      <div class="flex flex-col gap-6 md:order-1">
-        <h1
-          class="kb-display text-[3.25rem] sm:text-[4.5rem] lg:text-[5.75rem]"
-          data-testid="animated-headline"
-        >
-          {{ t('shop.home.title') }}
-        </h1>
-        <p class="max-w-[34ch] text-[1.125rem] text-ink-2">{{ t('shop.home.lead') }}</p>
-
-        <ShopCaliberPicker
-          v-if="calibers.length"
-          v-model="chosen"
-          :calibers="calibers"
-          :legend="t('shop.home.pickLegend')"
-          class="md:max-w-[36rem]"
-        />
-
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
-          <NuxtLink
-            :to="localePath({ path: '/products', query: chosen ? { caliber: chosen } : {} })"
-            class="kb-btn kb-btn-hit w-full text-[1.0625rem] sm:w-auto"
-            data-testid="hero-cta-products"
-          >
-            {{
-              chosenCaliber
-                ? t('shop.home.cta', { caliber: chosenCaliber.name })
-                : t('shop.home.ctaAll')
-            }}
-            <ShopIcon name="arrow-right" />
-          </NuxtLink>
-          <p v-if="chosenFrom" class="kb-num text-ink-2" aria-live="polite">
-            {{ t('shop.product.fromPrice', { price: chosenFrom }) }}
-          </p>
-        </div>
-      </div>
+      <h1
+        class="kb-display text-[3rem] sm:text-[4.5rem] md:col-start-1 md:row-start-1 md:self-end lg:text-[5.75rem]"
+        data-testid="animated-headline"
+      >
+        {{ t('shop.home.title') }}
+      </h1>
 
       <div
-        class="order-first mx-auto w-full max-w-[22rem] sm:max-w-[26rem] md:order-2 md:max-w-none"
+        class="mx-auto w-full max-w-[15rem] sm:max-w-[24rem] md:col-start-2 md:row-span-4 md:row-start-1 md:max-w-none md:self-center"
       >
         <ShopTarget :label="chosenCaliber?.name ?? 'kaliberbox'" :sublabel="targetSublabel" />
       </div>
+
+      <ShopCaliberPicker
+        v-if="calibers.length"
+        v-model="chosen"
+        :calibers="calibers"
+        :legend="t('shop.home.pickLegend')"
+        class="md:col-start-1 md:row-start-3 md:max-w-[36rem]"
+      />
+
+      <div
+        class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 md:col-start-1 md:row-start-4 md:self-start"
+      >
+        <NuxtLink
+          :to="localePath({ path: '/products', query: chosen ? { caliber: chosen } : {} })"
+          class="kb-btn kb-btn-hit w-full text-[1.0625rem] sm:w-auto"
+          data-testid="hero-cta-products"
+        >
+          {{
+            chosenCaliber
+              ? t('shop.home.cta', { caliber: chosenCaliber.name })
+              : t('shop.home.ctaAll')
+          }}
+          <ShopIcon name="arrow-right" />
+        </NuxtLink>
+        <p v-if="chosenFrom" class="kb-num text-ink-2" aria-live="polite">
+          {{ t('shop.product.fromPrice', { price: chosenFrom }) }}
+        </p>
+      </div>
+
+      <p class="max-w-[34ch] text-[1.125rem] text-ink-2 md:col-start-1 md:row-start-2">
+        {{ t('shop.home.lead') }}
+      </p>
     </section>
 
     <!-- How it works: three entries in a ruled register -->
@@ -106,7 +109,7 @@ const steps = ['caliber', 'colors', 'print'] as const
           <li
             v-for="(step, i) in steps"
             :key="step"
-            class="grid grid-cols-[3rem_1fr] gap-x-4 border-b border-rule py-6 md:grid-cols-1 md:border-b-0 md:border-r md:px-6 md:py-8 md:first:pl-0 md:last:border-r-0"
+            class="grid grid-cols-[3rem_1fr] content-start gap-x-4 border-b border-rule py-6 md:grid-cols-1 md:border-b-0 md:border-r md:px-6 md:py-8 md:first:pl-0 md:last:border-r-0"
           >
             <span class="kb-display text-[2.5rem] text-hit md:text-[3.5rem]" aria-hidden="true">{{
               i + 1

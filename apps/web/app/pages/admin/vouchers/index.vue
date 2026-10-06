@@ -45,7 +45,12 @@ const columns = [
 
 <template>
   <div data-testid="admin-vouchers">
-    <p v-if="error" class="mb-md text-body-regular text-red-500" role="alert" data-testid="vouchers-error">
+    <p
+      v-if="error"
+      class="mb-md text-body-regular text-red-500"
+      role="alert"
+      data-testid="vouchers-error"
+    >
       Gutscheine konnten nicht geladen werden.
     </p>
     <div v-if="auth.can('vouchers:write')" class="mb-lg">

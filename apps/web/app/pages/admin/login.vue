@@ -35,8 +35,19 @@ async function submit() {
   <div class="flex min-h-screen items-center justify-center bg-surface p-md text-primary">
     <PsCard class="w-full max-w-[24rem]">
       <h1 class="text-heading-small">Admin-Login</h1>
-      <form class="mt-lg flex flex-col gap-md" data-testid="admin-login-form" @submit.prevent="submit">
-        <PsInput v-model="email" label="E-Mail" type="email" name="email" required autocomplete="username" />
+      <form
+        class="mt-lg flex flex-col gap-md"
+        data-testid="admin-login-form"
+        @submit.prevent="submit"
+      >
+        <PsInput
+          v-model="email"
+          label="E-Mail"
+          type="email"
+          name="email"
+          required
+          autocomplete="username"
+        />
         <PsInput
           v-model="password"
           label="Passwort"
@@ -45,8 +56,12 @@ async function submit() {
           required
           autocomplete="current-password"
         />
-        <p v-if="error" class="text-caption text-red-500" role="alert" data-testid="login-error">{{ error }}</p>
-        <PsPillButton type="submit" :disabled="submitting || !hydrated" data-testid="login-submit">Anmelden</PsPillButton>
+        <p v-if="error" class="text-caption text-red-500" role="alert" data-testid="login-error">
+          {{ error }}
+        </p>
+        <PsPillButton type="submit" :disabled="submitting || !hydrated" data-testid="login-submit"
+          >Anmelden</PsPillButton
+        >
       </form>
     </PsCard>
   </div>

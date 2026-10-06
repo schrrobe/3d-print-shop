@@ -349,7 +349,7 @@
   "reviews": {
     "title": "Beoordelingen",
     "empty": "Nog geen beoordelingen.",
-    "count": "{count} beoordelingen",
+    "count": "Geen beoordelingen | {count} beoordeling | {count} beoordelingen",
     "ratingLabel": "{rating} van de 5 sterren",
     "photoAlt": "Reviewfoto van {name}"
   },

@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  PsButton,
-  PsCard,
-  PsInput,
-  PsOrderStatusBadge,
-  PsPrice,
-  PsSelect,
-} from '@print-shop/ui'
+import { PsButton, PsCard, PsInput, PsOrderStatusBadge, PsPrice, PsSelect } from '@print-shop/ui'
 import { ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { OrderStatus } from '@print-shop/types'
 
@@ -132,18 +125,24 @@ function ship() {
               <NuxtLink :to="`/admin/tickets/${ticketRow.id}`" class="text-brand hover:underline">
                 {{ ticketRow.ticketNumber }}
               </NuxtLink>
-              <span class="text-secondary"> — {{ ticketRow.subject }} ({{ ticketRow.status }})</span>
+              <span class="text-secondary">
+                — {{ ticketRow.subject }} ({{ ticketRow.status }})</span
+              >
             </li>
           </ul>
         </template>
       </PsCard>
     </div>
 
-    <PsCard v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')">
+    <PsCard
+      v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')"
+    >
       <h3 class="text-label-medium">Aktionen</h3>
       <div class="mt-md flex flex-wrap items-center gap-md">
         <template v-if="auth.can('payments:write') && order.status === 'awaiting_bank_transfer'">
-          <PsButton data-testid="mark-paid" @click="markPaid">Zahlung erhalten (Überweisung)</PsButton>
+          <PsButton data-testid="mark-paid" @click="markPaid"
+            >Zahlung erhalten (Überweisung)</PsButton
+          >
         </template>
         <template v-if="auth.can('orders:write')">
           <PsButton
@@ -159,7 +158,10 @@ function ship() {
       </div>
 
       <div
-        v-if="auth.can('orders:ship') && ['ready_to_ship', 'quality_check', 'in_production', 'paid'].includes(order.status)"
+        v-if="
+          auth.can('orders:ship') &&
+          ['ready_to_ship', 'quality_check', 'in_production', 'paid'].includes(order.status)
+        "
         class="mt-lg flex flex-wrap items-end gap-md border-t border-subtle pt-lg"
         data-testid="shipping-form"
       >
@@ -172,7 +174,11 @@ function ship() {
           ]"
         />
         <PsInput v-model="trackingNumber" label="Trackingnummer" name="trackingNumber" />
-        <PsButton :disabled="trackingNumber.length < 4 || order.status !== 'ready_to_ship'" data-testid="ship-order" @click="ship">
+        <PsButton
+          :disabled="trackingNumber.length < 4 || order.status !== 'ready_to_ship'"
+          data-testid="ship-order"
+          @click="ship"
+        >
           Versand bestätigen
         </PsButton>
       </div>

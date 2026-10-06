@@ -100,7 +100,10 @@ function save() {
           gtmContainerId: form.gtmContainerId,
         },
       }),
-    { success: 'Tracking-Einstellungen gespeichert', error: 'Speichern fehlgeschlagen — Eingaben prüfen' },
+    {
+      success: 'Tracking-Einstellungen gespeichert',
+      error: 'Speichern fehlgeschlagen — Eingaben prüfen',
+    },
   )
 }
 

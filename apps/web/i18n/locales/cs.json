@@ -315,8 +315,8 @@
     }
   },
   "wishlist": {
-    "title": "Oblíbené",
-    "empty": "Váš seznam přání je prázdný.",
+    "title": "Seznam přání",
+    "empty": "Tvůj seznam přání je prázdný.",
     "toCart": "Do košíku",
     "share": "Sdílet",
     "add": "Přidat do seznamu přání",
@@ -364,7 +364,7 @@
       "closeMenu": "Zavřít menu",
       "homeLabel": "kaliberbox.de – úvod",
       "boxes": "Krabičky na náboje",
-      "wishlist": "Oblíbené",
+      "wishlist": "Seznam přání",
       "cartWithCount": "Košík, položek: {count}",
       "language": "Jazyk",
       "languageCurrent": "Jazyk: {language}",
@@ -506,7 +506,7 @@
       "lead": "Uložené konfigurace zůstávají v tomto zařízení.",
       "emptyText": "Klepnutím na srdíčko na stránce produktu si konfiguraci uložíš.",
       "shareItem": "Sdílet {name}",
-      "removeItem": "Odebrat {name} z oblíbených"
+      "removeItem": "Odebrat {name} ze seznamu přání"
     },
     "success": {
       "hit": "Desítka"

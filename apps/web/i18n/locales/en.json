@@ -349,7 +349,7 @@
   "reviews": {
     "title": "Reviews",
     "empty": "No reviews yet.",
-    "count": "{count} reviews",
+    "count": "No reviews | {count} review | {count} reviews",
     "ratingLabel": "{rating} out of 5 stars",
     "photoAlt": "Review photo by {name}"
   },

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { PsButton, PsCard, PsDialog, PsInput, PsSelect, PsWeekCalendar, useToast } from '@print-shop/ui'
+import {
+  PsButton,
+  PsCard,
+  PsDialog,
+  PsInput,
+  PsSelect,
+  PsWeekCalendar,
+  useToast,
+} from '@print-shop/ui'
 import type { WeekCalendarEvent } from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -76,7 +84,9 @@ const days = computed(() =>
     }
   }),
 )
-const resources = computed(() => (data.value?.printers ?? []).map((p) => ({ id: p.id, name: p.name })))
+const resources = computed(() =>
+  (data.value?.printers ?? []).map((p) => ({ id: p.id, name: p.name })),
+)
 const events = computed<WeekCalendarEvent[]>(() => {
   const jobEvents: WeekCalendarEvent[] = (data.value?.jobs ?? [])
     .filter((j) => j.plannedStartAt && j.printerId)
@@ -169,7 +179,11 @@ async function submitSchedule(force = false) {
 }
 async function removeFromCalendar() {
   const ok = await run(
-    () => $fetch(`/api/admin/production/${scheduleJobId.value}/schedule`, { method: 'DELETE', credentials: 'include' }),
+    () =>
+      $fetch(`/api/admin/production/${scheduleJobId.value}/schedule`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
     { success: 'Aus Kalender entfernt', error: 'Fehler' },
   )
   if (ok) scheduleOpen.value = false
@@ -196,7 +210,11 @@ async function createMaintenance() {
 }
 function deleteMaintenance(id: string) {
   return run(
-    () => $fetch(`/api/admin/production/maintenance/${id}`, { method: 'DELETE', credentials: 'include' }),
+    () =>
+      $fetch(`/api/admin/production/maintenance/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
     { success: 'Wartungsfenster gelöscht', error: 'Fehler' },
   )
 }
@@ -206,11 +224,17 @@ function deleteMaintenance(id: string) {
   <div class="flex flex-col gap-lg" data-testid="admin-calendar">
     <div class="flex flex-wrap items-center justify-between gap-md">
       <div class="flex items-center gap-sm">
-        <PsButton variant="secondary" size="sm" data-testid="calendar-prev" @click="shiftWeek(-1)">←</PsButton>
+        <PsButton variant="secondary" size="sm" data-testid="calendar-prev" @click="shiftWeek(-1)"
+          >←</PsButton
+        >
         <span class="text-label-medium">{{ days[0]?.label }} – {{ days[6]?.label }}</span>
-        <PsButton variant="secondary" size="sm" data-testid="calendar-next" @click="shiftWeek(1)">→</PsButton>
+        <PsButton variant="secondary" size="sm" data-testid="calendar-next" @click="shiftWeek(1)"
+          >→</PsButton
+        >
       </div>
-      <PsButton size="sm" data-testid="maintenance-create" @click="maintOpen = true">Wartungsfenster</PsButton>
+      <PsButton size="sm" data-testid="maintenance-create" @click="maintOpen = true"
+        >Wartungsfenster</PsButton
+      >
     </div>
 
     <PsWeekCalendar
@@ -223,7 +247,9 @@ function deleteMaintenance(id: string) {
     <!-- Unscheduled jobs -->
     <PsCard>
       <h3 class="text-label-medium">Ungeplante Jobs</h3>
-      <p v-if="!data?.unscheduledJobs.length" class="mt-sm text-body-regular text-secondary">Alle Jobs sind eingeplant.</p>
+      <p v-if="!data?.unscheduledJobs.length" class="mt-sm text-body-regular text-secondary">
+        Alle Jobs sind eingeplant.
+      </p>
       <div class="mt-sm flex flex-col gap-sm">
         <div
           v-for="job in data?.unscheduledJobs ?? []"
@@ -232,7 +258,12 @@ function deleteMaintenance(id: string) {
           data-testid="unscheduled-job"
         >
           <span>{{ job.order.orderNumber }} · {{ job.orderItem?.name }}</span>
-          <PsButton variant="secondary" size="sm" data-testid="unscheduled-plan" @click="openScheduleForJob(job)">
+          <PsButton
+            variant="secondary"
+            size="sm"
+            data-testid="unscheduled-plan"
+            @click="openScheduleForJob(job)"
+          >
             Planen
           </PsButton>
         </div>
@@ -248,8 +279,17 @@ function deleteMaintenance(id: string) {
           :key="m.id"
           class="flex items-center justify-between text-body-regular"
         >
-          <span>{{ m.printer.name }} · {{ m.title }} · {{ new Date(m.startsAt).toLocaleString('de') }}</span>
-          <PsButton variant="ghost" size="sm" data-testid="maintenance-delete" @click="deleteMaintenance(m.id)">Löschen</PsButton>
+          <span
+            >{{ m.printer.name }} · {{ m.title }} ·
+            {{ new Date(m.startsAt).toLocaleString('de') }}</span
+          >
+          <PsButton
+            variant="ghost"
+            size="sm"
+            data-testid="maintenance-delete"
+            @click="deleteMaintenance(m.id)"
+            >Löschen</PsButton
+          >
         </li>
       </ul>
     </PsCard>
@@ -263,27 +303,54 @@ function deleteMaintenance(id: string) {
           :options="resources.map((r) => ({ value: r.id, label: r.name }))"
           data-testid="schedule-printer"
         />
-        <label class="flex flex-col gap-xs text-caption">Start
-          <input v-model="scheduleStart" type="datetime-local" class="rounded-card border border-subtle bg-surface px-sm py-xs" data-testid="schedule-start" />
+        <label class="flex flex-col gap-xs text-caption"
+          >Start
+          <input
+            v-model="scheduleStart"
+            type="datetime-local"
+            class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            data-testid="schedule-start"
+          />
         </label>
-        <label class="flex flex-col gap-xs text-caption">Ende
-          <input v-model="scheduleEnd" type="datetime-local" class="rounded-card border border-subtle bg-surface px-sm py-xs" data-testid="schedule-end" />
+        <label class="flex flex-col gap-xs text-caption"
+          >Ende
+          <input
+            v-model="scheduleEnd"
+            type="datetime-local"
+            class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            data-testid="schedule-end"
+          />
         </label>
 
-        <div v-if="conflicts" class="rounded-card border border-red-500/40 bg-red-500/5 p-md text-caption" data-testid="schedule-conflicts">
+        <div
+          v-if="conflicts"
+          class="rounded-card border border-red-500/40 bg-red-500/5 p-md text-caption"
+          data-testid="schedule-conflicts"
+        >
           <p class="font-medium text-red-500">Konflikte auf diesem Drucker:</p>
           <ul class="mt-xs">
-            <li v-for="c in conflicts.jobs" :key="c.jobId">Job {{ c.orderNumber }} ({{ new Date(c.startsAt).toLocaleString('de') }})</li>
-            <li v-for="c in conflicts.maintenance" :key="c.maintenanceId">Wartung: {{ c.title }}</li>
+            <li v-for="c in conflicts.jobs" :key="c.jobId">
+              Job {{ c.orderNumber }} ({{ new Date(c.startsAt).toLocaleString('de') }})
+            </li>
+            <li v-for="c in conflicts.maintenance" :key="c.maintenanceId">
+              Wartung: {{ c.title }}
+            </li>
           </ul>
         </div>
 
         <div class="flex flex-wrap gap-sm">
           <PsButton data-testid="schedule-save" @click="submitSchedule(false)">Speichern</PsButton>
-          <PsButton v-if="conflicts" variant="secondary" data-testid="schedule-force" @click="submitSchedule(true)">
+          <PsButton
+            v-if="conflicts"
+            variant="secondary"
+            data-testid="schedule-force"
+            @click="submitSchedule(true)"
+          >
             Trotzdem buchen
           </PsButton>
-          <PsButton variant="ghost" data-testid="schedule-remove" @click="removeFromCalendar">Aus Kalender entfernen</PsButton>
+          <PsButton variant="ghost" data-testid="schedule-remove" @click="removeFromCalendar"
+            >Aus Kalender entfernen</PsButton
+          >
         </div>
       </div>
     </PsDialog>
@@ -297,12 +364,29 @@ function deleteMaintenance(id: string) {
           :options="resources.map((r) => ({ value: r.id, label: r.name }))"
           data-testid="maintenance-printer"
         />
-        <PsInput v-model="maintForm.title" label="Titel" name="maintTitle" data-testid="maintenance-title" />
-        <label class="flex flex-col gap-xs text-caption">Start
-          <input v-model="maintForm.startsAt" type="datetime-local" class="rounded-card border border-subtle bg-surface px-sm py-xs" data-testid="maintenance-start" />
+        <PsInput
+          v-model="maintForm.title"
+          label="Titel"
+          name="maintTitle"
+          data-testid="maintenance-title"
+        />
+        <label class="flex flex-col gap-xs text-caption"
+          >Start
+          <input
+            v-model="maintForm.startsAt"
+            type="datetime-local"
+            class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            data-testid="maintenance-start"
+          />
         </label>
-        <label class="flex flex-col gap-xs text-caption">Ende
-          <input v-model="maintForm.endsAt" type="datetime-local" class="rounded-card border border-subtle bg-surface px-sm py-xs" data-testid="maintenance-end" />
+        <label class="flex flex-col gap-xs text-caption"
+          >Ende
+          <input
+            v-model="maintForm.endsAt"
+            type="datetime-local"
+            class="rounded-card border border-subtle bg-surface px-sm py-xs"
+            data-testid="maintenance-end"
+          />
         </label>
         <PsButton data-testid="maintenance-save" @click="createMaintenance">Anlegen</PsButton>
       </div>

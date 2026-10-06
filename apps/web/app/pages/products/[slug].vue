@@ -186,16 +186,18 @@ async function shareConfig() {
   }
 }
 
-// Sticky buy bar appears once the main buy button has scrolled out of view
+// Sticky buy bar (mobile) shows whenever the buy panel is off screen — above or below
 const buyBox = ref<HTMLElement | null>(null)
 const buyBoxVisible = ref(true)
 let observer: IntersectionObserver | undefined
-onMounted(() => {
-  if (!buyBox.value || !('IntersectionObserver' in window)) return
+// Watch the ref (not onMounted): the panel may render after the first mount tick
+watch(buyBox, (el) => {
+  observer?.disconnect()
+  if (!el || typeof IntersectionObserver === 'undefined') return
   observer = new IntersectionObserver(([entry]) => {
-    buyBoxVisible.value = Boolean(entry?.isIntersecting) || (entry?.boundingClientRect.top ?? 0) > 0
+    buyBoxVisible.value = Boolean(entry?.isIntersecting)
   })
-  observer.observe(buyBox.value)
+  observer.observe(el)
 })
 onBeforeUnmount(() => observer?.disconnect())
 
@@ -334,11 +336,7 @@ useHead({
     >
       <!-- Title (first on mobile, right column on desktop) -->
       <header class="lg:col-start-2 lg:row-start-1">
-        <p class="kb-tick text-ink-2">
-          <template v-if="caliber">{{ t(`shop.caliberGroups.${caliber.group}`) }} · </template
-          >{{ t('shop.product.kind') }}
-        </p>
-        <h1 class="kb-display mt-2 text-[3.25rem] sm:text-[4.5rem]" data-testid="product-name">
+        <h1 class="kb-display text-[3.25rem] sm:text-[4.5rem]" data-testid="product-name">
           {{ translation.name }}
         </h1>
       </header>
@@ -353,6 +351,7 @@ useHead({
               :label-hex="drawingColors.label"
               :caliber-label="caliberName"
               :show-sibling="siblings.length > 1"
+              :socket-scale="socketScale(caliber?.slug)"
               :description="drawingDescription"
             />
             <figcaption class="mt-3 flex flex-wrap justify-between gap-2 text-sm text-ink-2">
@@ -580,7 +579,7 @@ useHead({
       :locale="locale"
       :title-label="t('reviews.title')"
       :empty-label="t('reviews.empty')"
-      :count-label="t('reviews.count', { count: reviews.count })"
+      :count-label="t('reviews.count', { count: reviews.count }, reviews.count)"
       :photo-alt-label="reviewPhotoAltLabel"
       :rating-label="reviewRatingLabel"
     />

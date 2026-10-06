@@ -97,7 +97,12 @@ const AXES: [number, number][] = [
           >
             {{ props.label }}
           </span>
-          <span v-if="props.sublabel" class="kb-tick text-on-mirror-2">{{ props.sublabel }}</span>
+          <span
+            v-if="props.sublabel"
+            class="kb-tick whitespace-nowrap text-on-mirror-2"
+            :style="{ fontSize: 'clamp(0.5625rem, 2.9cqi, 0.75rem)' }"
+            >{{ props.sublabel }}</span
+          >
         </div>
       </Transition>
     </div>

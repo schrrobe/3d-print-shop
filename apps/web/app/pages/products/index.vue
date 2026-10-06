@@ -101,7 +101,7 @@ useSeo({
       </div>
     </div>
 
-    <p class="kb-tick mt-6 text-ink-2" role="status" aria-live="polite">
+    <p class="kb-num mt-6 text-ink-2" role="status" aria-live="polite">
       <template v-if="status === 'pending'">{{ t('common.loading') }}</template>
       <template v-else>{{
         t('shop.list.count', { count: families.length }, families.length)

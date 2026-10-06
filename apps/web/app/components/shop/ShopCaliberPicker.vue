@@ -29,7 +29,7 @@ const grouped = computed(() =>
 <template>
   <fieldset class="min-w-0" data-testid="caliber-picker">
     <legend :class="props.legendVisible ? 'kb-label mb-3' : 'sr-only'">{{ props.legend }}</legend>
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2.5">
       <div v-if="props.allLabel" class="flex">
         <label class="kb-chip" :data-tone="props.tone ?? 'paper'">
           <input
@@ -43,9 +43,13 @@ const grouped = computed(() =>
           <span>{{ props.allLabel }}</span>
         </label>
       </div>
-      <div v-for="g in grouped" :key="g.group" class="flex flex-col gap-2">
+      <div
+        v-for="g in grouped"
+        :key="g.group"
+        class="grid grid-cols-[5.75rem_1fr] items-start gap-x-3 sm:grid-cols-[6.5rem_1fr]"
+      >
         <span
-          class="kb-tick"
+          class="kb-tick pt-[0.95rem]"
           :class="props.tone === 'mirror' ? 'text-on-mirror-2' : 'text-ink-2'"
           aria-hidden="true"
           >{{ t(`shop.caliberGroups.${g.group}`) }}</span
@@ -59,7 +63,11 @@ const grouped = computed(() =>
             :data-caliber="c.slug"
           >
             <input v-model="model" type="radio" :name="name" :value="c.slug" class="sr-only" />
-            <span class="kb-chip-dot" aria-hidden="true" />
+            <svg class="kb-chip-ring" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1" />
+              <circle cx="8" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="1" />
+              <circle class="kb-chip-hit" cx="8" cy="8" r="2.6" />
+            </svg>
             <span>{{ c.name }}</span>
             <span class="sr-only">({{ t(`shop.caliberGroups.${g.group}`) }})</span>
           </label>
@@ -103,15 +111,19 @@ const grouped = computed(() =>
   outline: 2px solid var(--kb-hit);
   outline-offset: 2px;
 }
-.kb-chip-dot {
-  display: none;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: var(--kb-hit);
+.kb-chip-ring {
+  flex: none;
+  opacity: 0.7;
 }
-.kb-chip:has(:checked) .kb-chip-dot {
-  display: inline-block;
+.kb-chip-hit {
+  fill: transparent;
+  transition: fill 140ms ease-out;
+}
+.kb-chip:has(:checked) .kb-chip-ring {
+  opacity: 1;
+}
+.kb-chip:has(:checked) .kb-chip-hit {
+  fill: var(--kb-hit);
 }
 
 .kb-chip[data-tone='mirror'] {

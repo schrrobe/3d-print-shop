@@ -38,7 +38,10 @@ const columns = [
     </template>
     <template #cell-method="{ row }">
       {{ (row as unknown as AdminPayment).method }}
-      <span v-if="(row as unknown as AdminPayment).bitcoinPayment" class="text-caption text-secondary">
+      <span
+        v-if="(row as unknown as AdminPayment).bitcoinPayment"
+        class="text-caption text-secondary"
+      >
         ({{ (row as unknown as AdminPayment).bitcoinPayment!.confirmations }} conf.)
       </span>
     </template>

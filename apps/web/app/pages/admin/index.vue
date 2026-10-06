@@ -39,8 +39,13 @@ const { data } = await useFetch<Dashboard>('/api/admin/dashboard', {
       <PsCard>
         <p class="text-caption text-secondary">Bestellungen</p>
         <ul class="mt-sm text-body-regular">
-          <li v-for="(count, status) in data.ordersByStatus" :key="status" class="flex justify-between">
-            <span class="text-secondary">{{ status }}</span><span>{{ count }}</span>
+          <li
+            v-for="(count, status) in data.ordersByStatus"
+            :key="status"
+            class="flex justify-between"
+          >
+            <span class="text-secondary">{{ status }}</span
+            ><span>{{ count }}</span>
           </li>
         </ul>
       </PsCard>

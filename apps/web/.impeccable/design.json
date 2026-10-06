@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T07:37:41.191369+00:00",
+  "title": "Design System: kaliberbox.de",
+  "extensions": {
+    "scope": "Storefront only: tokens scoped to html.kb (light) and html.kb[data-theme='dark'] in app/assets/css/shop.css. Admin (layouts/admin.vue) keeps packages/config/tailwind/theme.css and is out of scope.",
+    "colorMeta": {
+      "hit": {
+        "role": "primary",
+        "displayName": "Signal Hit",
+        "canonical": "oklch(55.3% 0.174 41)",
+        "cssVar": "--kb-hit",
+        "note": "Dark: #e2571e",
+        "tonalRamp": [
+          "oklch(15% 0.17 41)",
+          "oklch(27% 0.17 41)",
+          "oklch(39% 0.17 41)",
+          "oklch(51% 0.17 41)",
+          "oklch(63% 0.17 41)",
+          "oklch(75% 0.17 41)",
+          "oklch(85% 0.17 41)",
+          "oklch(95% 0.17 41)"
+        ]
+      },
+      "on-hit": {
+        "role": "primary",
+        "displayName": "On Hit",
+        "canonical": "#ffffff",
+        "cssVar": "--kb-on-hit",
+        "note": "Dark: #121417"
+      },
+      "hit-soft": {
+        "role": "primary",
+        "displayName": "Hit Wash",
+        "canonical": "rgba(194,65,12,0.1)",
+        "cssVar": "--kb-hit-soft",
+        "note": "Dark: rgba(226,87,30,0.14)"
+      },
+      "mirror": {
+        "role": "secondary",
+        "displayName": "Target Mirror",
+        "canonical": "oklch(19.4% 0.006 255)",
+        "cssVar": "--kb-mirror",
+        "note": "Dark: #0b0c0e",
+        "tonalRamp": [
+          "oklch(15% 0.006 255)",
+          "oklch(27% 0.006 255)",
+          "oklch(39% 0.006 255)",
+          "oklch(51% 0.006 255)",
+          "oklch(63% 0.006 255)",
+          "oklch(75% 0.006 255)",
+          "oklch(85% 0.006 255)",
+          "oklch(95% 0.006 255)"
+        ]
+      },
+      "mirror-2": {
+        "role": "secondary",
+        "displayName": "Mirror Lift",
+        "canonical": "#1d2126",
+        "cssVar": "--kb-mirror-2",
+        "note": "Dark: #15181b"
+      },
+      "on-mirror": {
+        "role": "secondary",
+        "displayName": "Mirror Paper",
+        "canonical": "#f3f1ea",
+        "cssVar": "--kb-on-mirror",
+        "note": "Dark: #f1efe8"
+      },
+      "on-mirror-2": {
+        "role": "secondary",
+        "displayName": "Mirror Grey",
+        "canonical": "#a9aeb5",
+        "cssVar": "--kb-on-mirror-2",
+        "note": "Dark: #9aa0a8"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Card Stock",
+        "canonical": "oklch(95.7% 0.009 95)",
+        "cssVar": "--kb-paper",
+        "note": "Dark: #16191d",
+        "tonalRamp": [
+          "oklch(15% 0.009 95)",
+          "oklch(27% 0.009 95)",
+          "oklch(39% 0.009 95)",
+          "oklch(51% 0.009 95)",
+          "oklch(63% 0.009 95)",
+          "oklch(75% 0.009 95)",
+          "oklch(85% 0.009 95)",
+          "oklch(95% 0.009 95)"
+        ]
+      },
+      "paper-raised": {
+        "role": "neutral",
+        "displayName": "Raised Stock",
+        "canonical": "#fbfaf6",
+        "cssVar": "--kb-paper-raised",
+        "note": "Dark: #1e2227"
+      },
+      "paper-sunk": {
+        "role": "neutral",
+        "displayName": "Sunk Stock",
+        "canonical": "#e8e5da",
+        "cssVar": "--kb-paper-sunk",
+        "note": "Dark: #101215"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#121417",
+        "cssVar": "--kb-ink",
+        "note": "Dark: #f1efe8"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Grey",
+        "canonical": "#4a4f57",
+        "cssVar": "--kb-ink-2",
+        "note": "Dark: #aab0b8"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Ring Line",
+        "canonical": "#d3cec1",
+        "cssVar": "--kb-rule",
+        "note": "Dark: #30353c"
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Ring",
+        "canonical": "#85806f",
+        "cssVar": "--kb-rule-strong",
+        "note": "Dark: #737a84"
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "OK",
+        "canonical": "#2f6b3f",
+        "cssVar": "--kb-ok",
+        "note": "Dark: #7cc48f"
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Warning",
+        "canonical": "#8a5a00",
+        "cssVar": "--kb-warn",
+        "note": "Dark: #e0b34a"
+      },
+      "error": {
+        "role": "status",
+        "displayName": "Error",
+        "canonical": "#b42318",
+        "cssVar": "--kb-error",
+        "note": "Dark: #ff8a7a"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Kaliber Display",
+        "purpose": "H1s, caliber names, ordinal step numbers, the caliber inside the target. Condensed 68%, 760.",
+        "sizes": [
+          "3rem",
+          "3.25rem",
+          "4rem",
+          "4.5rem",
+          "5.75rem"
+        ],
+        "cssClass": "kb-display"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section, panel and form-section titles. 82% width, 700.",
+        "sizes": [
+          "1.375rem",
+          "1.5rem",
+          "1.75rem",
+          "2rem",
+          "2.75rem"
+        ],
+        "cssClass": "kb-heading"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Step titles in registers."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, 34-46ch; leads at 1.125rem in ink grey."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, hints, errors.",
+        "cssClass": "kb-label"
+      },
+      "tick": {
+        "displayName": "Ring Tick",
+        "purpose": "Ring numbers, dimension values, caliber-group labels, footer column headings. Wide 112%, uppercase, tabular.",
+        "cssClass": "kb-tick"
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay-scrim",
+        "value": "rgba(18,20,23,0.55)",
+        "note": "Modal backdrop only; dark rgba(0,0,0,0.7). No box-shadows exist in the system."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-snap",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "use": "Buttons (160ms colour, 120ms press), box-drawing geometry (360ms), sockets (220ms)."
+      },
+      {
+        "name": "ease-shot",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "use": "Target hit flight (520ms), ring pulse (900ms, 380ms delay), caliber clip-path swap (260ms)."
+      },
+      {
+        "name": "duration-control",
+        "value": "140ms ease-out",
+        "use": "Chips and inputs."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "use": "All transitions/animations under prefers-reduced-motion; target swaps instantly."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px",
+        "note": "gutter 1rem -> 2rem; desktop nav; hero two columns"
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "note": "sticky side panels; mobile buy bar hidden"
+      }
+    ],
+    "components": [
+      {
+        "name": "button-hit",
+        "description": "Primary action; the one Signal Hit per region.",
+        "html": "<button class=\"ds-btn ds-btn-hit\">Boxen für 9 mm Luger</button>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-btn{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:.5rem;border:1px solid transparent;border-radius:2px;padding:.75rem 1.25rem;font-weight:650;font-stretch:92%;line-height:1.1;cursor:pointer;transition:background-color 160ms cubic-bezier(0.22,1,0.36,1),color 160ms cubic-bezier(0.22,1,0.36,1),border-color 160ms cubic-bezier(0.22,1,0.36,1),transform 120ms cubic-bezier(0.22,1,0.36,1);}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid var(--kb-hit);outline-offset:3px}.ds-btn-hit{background:var(--kb-hit);color:var(--kb-on-hit)}.ds-btn-hit:hover{background:color-mix(in oklab,var(--kb-hit) 88%,var(--kb-ink))}"
+      },
+      {
+        "name": "button-ink",
+        "description": "Solid secondary action.",
+        "html": "<button class=\"ds-btn ds-btn-ink\">Filter zurücksetzen</button>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-btn{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:.5rem;border:1px solid transparent;border-radius:2px;padding:.75rem 1.25rem;font-weight:650;font-stretch:92%;line-height:1.1;cursor:pointer;transition:background-color 160ms cubic-bezier(0.22,1,0.36,1),color 160ms cubic-bezier(0.22,1,0.36,1),border-color 160ms cubic-bezier(0.22,1,0.36,1),transform 120ms cubic-bezier(0.22,1,0.36,1);}.ds-btn:focus-visible{outline:2px solid var(--kb-hit);outline-offset:3px}.ds-btn-ink{background:var(--kb-ink);color:var(--kb-paper)}.ds-btn-ink:hover{background:color-mix(in oklab,var(--kb-ink) 85%,var(--kb-paper))}"
+      },
+      {
+        "name": "button-line",
+        "description": "Outlined tertiary action.",
+        "html": "<button class=\"ds-btn ds-btn-line\">Kaliber anfragen</button>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-btn{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:.5rem;border:1px solid transparent;border-radius:2px;padding:.75rem 1.25rem;font-weight:650;font-stretch:92%;line-height:1.1;cursor:pointer;transition:background-color 160ms cubic-bezier(0.22,1,0.36,1),color 160ms cubic-bezier(0.22,1,0.36,1),border-color 160ms cubic-bezier(0.22,1,0.36,1),transform 120ms cubic-bezier(0.22,1,0.36,1);}.ds-btn:focus-visible{outline:2px solid var(--kb-hit);outline-offset:3px}.ds-btn-line{border-color:var(--kb-rule-strong);color:var(--kb-ink);background:transparent}.ds-btn-line:hover{border-color:var(--kb-ink);background:var(--kb-paper-sunk)}"
+      },
+      {
+        "name": "button-quiet",
+        "description": "Underlined text action (see all, remove, edit).",
+        "html": "<a href=\"#\" class=\"ds-btn-quiet\">Alle Boxen</a>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-btn-quiet{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:inline-flex;align-items:center;min-height:2.75rem;padding:0 .5rem;font-weight:650;font-stretch:92%;color:var(--kb-ink);text-decoration:underline;text-decoration-color:var(--kb-rule-strong);text-underline-offset:.2em;text-decoration-thickness:1px}.ds-btn-quiet:hover{text-decoration-color:var(--kb-hit)}.ds-btn-quiet:focus-visible{outline:2px solid var(--kb-hit);outline-offset:3px}"
+      },
+      {
+        "name": "input",
+        "description": "48px field on Raised Stock; hit-orange focus.",
+        "html": "<label class=\"ds-label\" for=\"ds-mail\">E-Mail</label><input id=\"ds-mail\" class=\"ds-input\" placeholder=\"name@beispiel.de\">",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-label{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:block;margin-bottom:.375rem;font-size:.875rem;font-weight:600;color:var(--kb-ink)}.ds-input{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:block;width:100%;min-height:3rem;border:1px solid var(--kb-rule-strong);border-radius:2px;background:var(--kb-paper-raised);padding:.625rem .875rem;color:var(--kb-ink);font-size:1rem;transition:border-color 140ms ease-out}.ds-input::placeholder{color:var(--kb-ink-2);opacity:.8}.ds-input:hover{border-color:var(--kb-ink-2)}.ds-input:focus-visible{border-color:var(--kb-hit);outline:2px solid var(--kb-hit);outline-offset:0}"
+      },
+      {
+        "name": "chip-caliber",
+        "description": "Caliber radio chip with ring glyph; selected fills ink and drops the hit.",
+        "html": "<div class=\"ds-chips\"><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-cal\" checked><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"none\" stroke=\"currentColor\"/><circle cx=\"8\" cy=\"8\" r=\"3.6\" fill=\"none\" stroke=\"currentColor\"/><circle class=\"ds-hit\" cx=\"8\" cy=\"8\" r=\"2.6\"/></svg><span>9 mm Luger</span></label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-cal\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"none\" stroke=\"currentColor\"/><circle cx=\"8\" cy=\"8\" r=\"3.6\" fill=\"none\" stroke=\"currentColor\"/><circle class=\"ds-hit\" cx=\"8\" cy=\"8\" r=\"2.6\"/></svg><span>.45 ACP</span></label></div>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-chips{display:flex;flex-wrap:wrap;gap:.5rem}.ds-chip{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:inline-flex;min-height:2.75rem;align-items:center;gap:.5rem;border:1px solid var(--kb-rule-strong);border-radius:2px;padding:.5rem .875rem;font-weight:650;font-stretch:86%;font-size:1.0625rem;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--kb-ink);transition:background-color 140ms ease-out,color 140ms ease-out,border-color 140ms ease-out}.ds-chip input{position:absolute;opacity:0;width:1px;height:1px}.ds-chip svg{opacity:.7}.ds-chip .ds-hit{fill:transparent}.ds-chip:hover{border-color:var(--kb-ink)}.ds-chip:has(:checked){border-color:var(--kb-ink);background:var(--kb-ink);color:var(--kb-paper)}.ds-chip:has(:checked) svg{opacity:1}.ds-chip:has(:checked) .ds-hit{fill:var(--kb-hit)}.ds-chip:has(:focus-visible){outline:2px solid var(--kb-hit);outline-offset:2px}"
+      },
+      {
+        "name": "nav-header",
+        "description": "Sticky 64px header; current link carries a 2px hit underline on the header rule.",
+        "html": "<header class=\"ds-head\"><span class=\"ds-mark\">kaliberbox<span>.de</span></span><nav><a href=\"#\" aria-current=\"page\">Boxen</a><a href=\"#\">Merkliste</a><a href=\"#\">Hilfe</a></nav></header>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-head{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;gap:1.5rem;height:4rem;padding:0 1rem;border-bottom:1px solid var(--kb-rule);background:color-mix(in oklab,var(--kb-paper) 90%,transparent)}.ds-mark{font-weight:760;font-stretch:68%;font-size:1.5rem;color:var(--kb-ink)}.ds-mark span{color:var(--kb-ink-2)}.ds-head nav{display:flex;gap:.25rem}.ds-head a{position:relative;display:inline-flex;align-items:center;min-height:2.75rem;padding:0 .75rem;font-weight:600;color:var(--kb-ink-2);text-decoration:none}.ds-head a:hover,.ds-head a[aria-current=page]{color:var(--kb-ink)}.ds-head a[aria-current=page]::after{content:'';position:absolute;left:.75rem;right:.75rem;bottom:-11px;height:2px;background:var(--kb-hit)}"
+      },
+      {
+        "name": "product-row",
+        "description": "Ruled register row: drawing thumbnail, condensed caliber, tabular price. Whole row is the link.",
+        "html": "<ul class=\"ds-reg\"><li><a href=\"#\" class=\"ds-row\"><span class=\"ds-thumb\"></span><span class=\"ds-cal\">9 mm Luger</span><span class=\"ds-price\">ab 24,90 €</span><span class=\"ds-meta\">50 / 100 Patronen</span></a></li><li><a href=\"#\" class=\"ds-row\"><span class=\"ds-thumb\"></span><span class=\"ds-cal\">.308 Win</span><span class=\"ds-price\">ab 29,90 €</span><span class=\"ds-meta\">50 / 100 Patronen</span></a></li></ul>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-reg{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;list-style:none;margin:0;padding:0;border-top:1px solid var(--kb-ink);border-bottom:1px solid var(--kb-ink)}.ds-reg li+li{border-top:1px solid var(--kb-rule)}.ds-row{display:grid;grid-template-columns:4.5rem 1fr auto;column-gap:1rem;row-gap:.25rem;align-items:center;padding:1rem 0;color:var(--kb-ink);text-decoration:none}.ds-thumb{grid-row:span 2;height:3.5rem;border:1px solid var(--kb-rule);background:var(--kb-paper-sunk)}.ds-row:hover .ds-thumb{border-color:var(--kb-ink)}.ds-cal{align-self:end;font-size:2rem;font-weight:760;font-stretch:68%;line-height:.92;letter-spacing:-.01em;text-decoration-color:var(--kb-hit);text-decoration-thickness:2px;text-underline-offset:4px}.ds-row:hover .ds-cal{text-decoration-line:underline}.ds-price{grid-row:span 2;font-weight:700;font-variant-numeric:tabular-nums}.ds-meta{align-self:start;font-size:.875rem;color:var(--kb-ink-2)}"
+      },
+      {
+        "name": "mirror-buy-bar",
+        "description": "Mobile sticky buy bar on the mirror field.",
+        "html": "<div class=\"ds-bar\"><span class=\"ds-bar-price\">24,90 €</span><button class=\"ds-bar-btn\">In den Warenkorb</button></div>",
+        "css": ":root{--kb-paper:#f3f1ea;--kb-paper-raised:#fbfaf6;--kb-paper-sunk:#e8e5da;--kb-ink:#121417;--kb-ink-2:#4a4f57;--kb-rule:#d3cec1;--kb-rule-strong:#85806f;--kb-mirror:#121417;--kb-on-mirror:#f3f1ea;--kb-on-mirror-2:#a9aeb5;--kb-hit:#c2410c;--kb-on-hit:#fff;}.ds-bar{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:var(--kb-mirror);color:var(--kb-on-mirror);border-top:1px solid color-mix(in oklab,var(--kb-on-mirror) 20%,transparent)}.ds-bar-price{font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}.ds-bar-btn{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif;min-height:3rem;border:0;border-radius:2px;padding:.75rem 1.25rem;font-weight:650;font-stretch:92%;background:var(--kb-hit);color:var(--kb-on-hit);cursor:pointer}.ds-bar-btn:focus-visible{outline:2px solid var(--kb-hit);outline-offset:3px}"
+      }
+    ],
+    "narrative": {
+      "northStar": "Die Ringscheibe",
+      "overview": "The storefront is a paper shooting target. Card-stock paper is the ground, a flat black mirror is the one large colour field, thin 1px ring lines and small wide ring numbers organise everything, and a single signal-orange hit marks the choice and the primary action. Choosing a caliber is placing a shot. Downstream views are ruled registers drawn like a technical sheet with dimension lines and arrowheads. Depth is flat: rules, paper tones and the mirror field, never shadows. Tone is precise and gift-worthy, never martial.",
+      "keyCharacteristics": [
+        "Card-stock paper ground, one flat black mirror field per view",
+        "One hit colour, signal orange",
+        "Archivo variable across its width axis",
+        "Tabular figures for every number",
+        "2px corners; rules instead of cards; no shadows"
+      ],
+      "rules": [
+        {
+          "name": "The One Hit Rule",
+          "body": "Signal orange marks exactly one thing per region: the primary action, the hit, or the current position.",
+          "section": "colors"
+        },
+        {
+          "name": "The One Mirror Rule",
+          "body": "The black mirror is a flat field, never a card; at most one per scroll band plus the footer.",
+          "section": "colors"
+        },
+        {
+          "name": "The Width-Axis Rule",
+          "body": "Condensed means a caliber or a title, wide means a measurement. No second family.",
+          "section": "typography"
+        },
+        {
+          "name": "The Tabular Rule",
+          "body": "Every price, quantity, count, caliber number and dimension uses tabular figures.",
+          "section": "typography"
+        },
+        {
+          "name": "The Rule-Not-Shadow Rule",
+          "body": "Separate with a line or a paper step, never a shadow.",
+          "section": "elevation"
+        }
+      ],
+      "dos": [
+        "Do scope storefront rules to html.kb and read colours through --kb-* tokens.",
+        "Do build lists as ruled registers: heavy ink line top and bottom, 1px ring line between rows.",
+        "Do keep touch targets at least 44px; primary buttons and inputs 48px.",
+        "Do show focus as a 2px Signal Hit outline.",
+        "Do use tabular figures and the Tick style for measurements.",
+        "Do let motion describe the shot or the geometry and disable it under reduced motion."
+      ],
+      "donts": [
+        "Don't add box-shadows, decorative gradients or rounded cards.",
+        "Don't use Signal Hit for more than one action per region, or for decoration.",
+        "Don't use a second typeface, stencil or slab type, or military styling.",
+        "Don't show product photos or 3D renders that do not exist; the box drawing is the product image.",
+        "Don't apply these tokens to the admin."
+      ]
+    }
+  }
+}

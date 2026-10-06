@@ -14,8 +14,10 @@ const props = withDefaults(
     showSibling?: boolean
     compact?: boolean
     description?: string
+    /** Relative socket size (1 = largest case head); schematic, see socketScale() */
+    socketScale?: number
   }>(),
-  { capacity: 50, showSibling: false, compact: false, description: undefined },
+  { capacity: 50, showSibling: false, compact: false, description: undefined, socketScale: 0.8 },
 )
 
 const COLS = 10
@@ -159,7 +161,7 @@ const id = useId()
       :key="s.i"
       :cx="s.cx"
       :cy="s.cy"
-      :r="CELL * 0.33"
+      :r="CELL * 0.42 * props.socketScale"
       :fill="socketFill"
       class="kb-socket"
       :style="{ opacity: s.row < rows ? 1 : 0, transitionDelay: `${(s.row % 5) * 25}ms` }"

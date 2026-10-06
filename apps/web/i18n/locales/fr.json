@@ -315,7 +315,7 @@
     }
   },
   "wishlist": {
-    "title": "Favoris",
+    "title": "Liste de souhaits",
     "empty": "Votre liste de souhaits est vide.",
     "toCart": "Ajouter au panier",
     "share": "Partager",
@@ -349,7 +349,7 @@
   "reviews": {
     "title": "Avis",
     "empty": "Aucun avis pour le moment.",
-    "count": "{count} avis",
+    "count": "Aucun avis | {count} avis | {count} avis",
     "ratingLabel": "{rating} sur 5 étoiles",
     "photoAlt": "Photo d'avis de {name}"
   },
@@ -364,7 +364,7 @@
       "closeMenu": "Fermer le menu",
       "homeLabel": "kaliberbox.de – accueil",
       "boxes": "Boîtes à cartouches",
-      "wishlist": "Favoris",
+      "wishlist": "Liste de souhaits",
       "cartWithCount": "Panier, {count} articles",
       "language": "Langue",
       "languageCurrent": "Langue : {language}",
@@ -506,7 +506,7 @@
       "lead": "Les configurations enregistrées restent sur cet appareil.",
       "emptyText": "Touchez le cœur sur une page produit pour enregistrer une configuration.",
       "shareItem": "Partager {name}",
-      "removeItem": "Retirer {name} des favoris"
+      "removeItem": "Retirer {name} de la liste de souhaits"
     },
     "success": {
       "hit": "Dans le mille"

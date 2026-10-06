@@ -46,6 +46,7 @@ const priceLabel = computed(() =>
         :box-hex="colorsFor.box"
         :label-hex="colorsFor.label"
         :caliber-label="family.caliberName"
+        :socket-scale="socketScale(family.lead.calibers?.[0]?.slug)"
       />
     </span>
     <component
@@ -64,8 +65,9 @@ const priceLabel = computed(() =>
       />
     </span>
     <span class="self-start text-sm text-ink-2">
-      <span v-if="family.group">{{ t(`shop.caliberGroups.${family.group}`) }} · </span
-      >{{ sizesLabel }}
+      <span v-if="family.group" class="hidden sm:inline"
+        >{{ t(`shop.caliberGroups.${family.group}`) }} · </span
+      ><span class="whitespace-nowrap">{{ sizesLabel }}</span>
     </span>
   </NuxtLink>
 </template>
