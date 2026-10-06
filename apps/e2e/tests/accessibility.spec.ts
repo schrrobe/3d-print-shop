@@ -4,15 +4,25 @@ import { gotoHydrated } from '../helpers/hydration.js'
 
 /** WCAG A/AA scans on the core shop pages (design system targets AA). */
 async function scan(page: Page) {
-  return new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    // 3D canvas has no text alternative concept in axe
-    .exclude('[data-testid="model-viewer"]')
-    .analyze()
+  return (
+    new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa'])
+      // 3D canvas has no text alternative concept in axe
+      .exclude('[data-testid="model-viewer"]')
+      .analyze()
+  )
 }
 
 test.describe('accessibility (axe, wcag aa)', () => {
-  for (const route of ['/', '/products', '/products/patronenbox-9mm-luger-50', '/cart', '/upload']) {
+  for (const route of [
+    '/',
+    '/products',
+    '/products?caliber=308-win',
+    '/products/patronenbox-9mm-luger-50',
+    '/cart',
+    '/checkout',
+    '/wishlist',
+  ]) {
     test(`no serious/critical violations on ${route}`, async ({ page }) => {
       // Scan the settled UI: with reduced motion the GSAP word-reveal renders
       // text fully visible instead of mid-fade, which axe otherwise flags as a
@@ -26,9 +36,7 @@ test.describe('accessibility (axe, wcag aa)', () => {
       const severe = results.violations.filter((v) =>
         ['serious', 'critical'].includes(v.impact ?? ''),
       )
-      expect(
-        severe.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(', ')}`),
-      ).toEqual([])
+      expect(severe.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(', ')}`)).toEqual([])
     })
   }
 

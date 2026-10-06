@@ -9,7 +9,7 @@ const i18nHead = useLocaleHead({ seo: true })
 useHead({
   // short code ('en'), not the regional variant from useLocaleHead ('en-US')
   htmlAttrs: { lang: locale },
-  titleTemplate: (title) => (title ? `${title} · 3D Print Shop` : '3D Print Shop'),
+  titleTemplate: (title) => (title ? `${title} · kaliberbox.de` : 'kaliberbox.de'),
   link: () => i18nHead.value.link ?? [],
   meta: () => i18nHead.value.meta ?? [],
   script: [
@@ -20,13 +20,13 @@ useHead({
         '@graph': [
           {
             '@type': 'Organization',
-            name: '3D Print Shop',
+            name: 'kaliberbox.de',
             url: siteUrl,
             logo: `${siteUrl}/og-default.png`,
           },
           {
             '@type': 'WebSite',
-            name: '3D Print Shop',
+            name: 'kaliberbox.de',
             url: siteUrl,
             inLanguage: ['de', 'en', 'pl', 'fr', 'nl', 'cs'],
           },

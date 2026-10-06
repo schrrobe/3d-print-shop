@@ -2,8 +2,9 @@ import { expect, test } from '@playwright/test'
 import { adminApiContext } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
-const SEED_SLUGS = ['9mm-luger', '45-acp', '22-lr', '223-rem', '308-win', '762x39'].flatMap(
-  (caliber) => [`patronenbox-${caliber}-50`, `patronenbox-${caliber}-100`],
+// The list shows one row per caliber family (50 + 100 round box), linked to the 50 round box
+const SEED_SLUGS = ['9mm-luger', '45-acp', '22-lr', '223-rem', '308-win', '762x39'].map(
+  (caliber) => `patronenbox-${caliber}-50`,
 )
 
 test.describe('product catalog', () => {
@@ -11,11 +12,11 @@ test.describe('product catalog', () => {
     await gotoHydrated(page, '/products')
     const grid = page.getByTestId('product-grid')
     await expect(grid).toBeVisible()
-    // all twelve seed products are present (other tests may add more)
+    // all six seeded caliber families are present (other tests may add more)
     for (const slug of SEED_SLUGS) {
       await expect(page.getByTestId(`product-${slug}`)).toBeVisible()
     }
-    expect(await grid.getByTestId('product-card').count()).toBeGreaterThanOrEqual(12)
+    expect(await grid.getByTestId('product-card').count()).toBeGreaterThanOrEqual(6)
   })
 
   test('filters the catalog via the search field', async ({ page }) => {
@@ -25,7 +26,7 @@ test.describe('product catalog', () => {
     const search = page.getByTestId('product-search').getByRole('searchbox')
     await search.fill('Luger')
     await expect(page.getByTestId('product-patronenbox-9mm-luger-50')).toBeVisible()
-    await expect(page.getByTestId('product-patronenbox-308-win-100')).toBeHidden()
+    await expect(page.getByTestId('product-patronenbox-308-win-50')).toBeHidden()
 
     await search.fill('zzzzzz-no-match')
     await expect(page.getByTestId('product-search-empty')).toBeVisible()

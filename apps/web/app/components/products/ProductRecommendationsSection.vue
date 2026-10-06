@@ -1,38 +1,34 @@
 <script setup lang="ts">
-import { PsProductCard, PsProductGrid } from '@print-shop/ui'
-import type { Locale } from '@print-shop/types'
-import type { ApiProduct } from '~/composables/useShop'
+import type { ApiColor, ApiProduct } from '~/composables/useShop'
 
-defineProps<{
+const props = defineProps<{
   products: ApiProduct[]
   titleLabel: string
-  locale: string
+  colors: ApiColor[]
 }>()
 
-const localePath = useLocalePath()
+const { locale } = useI18n()
+const families = computed(() => groupFamilies(props.products, locale.value))
 </script>
 
 <template>
   <section
     v-if="products.length > 0"
-    class="mt-3xl"
+    class="mt-16 md:mt-24"
+    aria-labelledby="recommendations-title"
     data-testid="product-recommendations"
   >
-    <h2 class="text-heading-small">{{ titleLabel }}</h2>
-    <PsProductGrid class="mt-lg" data-testid="recommendation-grid">
-      <NuxtLink
-        v-for="product in products"
-        :key="product.id"
-        :to="localePath(`/products/${product.slug}`)"
-        :data-testid="`recommendation-${product.slug}`"
+    <h2 id="recommendations-title" class="kb-heading text-[1.75rem] md:text-[2.25rem]">
+      {{ titleLabel }}
+    </h2>
+    <ul class="mt-4 divide-y divide-rule border-y border-ink" data-testid="recommendation-grid">
+      <li
+        v-for="family in families"
+        :key="family.key"
+        :data-testid="`recommendation-${family.lead.slug}`"
       >
-        <PsProductCard
-          :name="pickTranslation(product, locale).name"
-          :price-cents="product.priceCents"
-          :image-url="productImage(product)"
-          :locale="locale as Locale"
-        />
-      </NuxtLink>
-    </PsProductGrid>
+        <ShopProductRow :family="family" :colors="colors" heading-level="h3" />
+      </li>
+    </ul>
   </section>
 </template>

@@ -1,5 +1,12 @@
 const LOCALES = ['de', 'en', 'pl', 'fr', 'nl', 'cs']
-const STATIC_PATHS = ['', '/products', '/upload', '/support', '/legal/imprint', '/legal/privacy', '/legal/terms']
+const STATIC_PATHS = [
+  '',
+  '/products',
+  '/support',
+  '/legal/imprint',
+  '/legal/privacy',
+  '/legal/terms',
+]
 
 /** Locale-prefixed URL (strategy prefix_except_default: de has no prefix). */
 function localizedUrl(siteUrl: string, locale: string, path: string): string {

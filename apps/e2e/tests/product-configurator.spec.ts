@@ -2,14 +2,37 @@ import { expect, test } from '@playwright/test'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
-test.describe('3d configurator', () => {
-  test('renders the 3d viewer', async ({ page }) => {
+test.describe('box configurator', () => {
+  test('renders the live box drawing instead of a placeholder 3d model', async ({ page }) => {
     await gotoHydrated(page, '/products/patronenbox-308-win-100')
-    const viewer = page.getByTestId('model-viewer')
-    await expect(viewer).toBeVisible()
-    // GLB asset does not exist in the repo → fallback zone model renders
-    await expect(viewer).toHaveAttribute('data-fallback', 'true', { timeout: 15_000 })
-    await expect(viewer.locator('canvas')).toBeVisible()
+    const drawing = page.getByTestId('product-detail').getByTestId('box-drawing')
+    await expect(drawing).toBeVisible()
+    await expect(drawing).toHaveAttribute('data-capacity', '100')
+    // no GLB uploaded for seeded boxes → no 3d viewer
+    await expect(page.getByTestId('model-viewer')).toHaveCount(0)
+  })
+
+  test('size switch moves between the 50 and 100 round box and keeps the colours', async ({
+    page,
+  }) => {
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
+    await new ShopPage(page).acceptConsent()
+    const swatch = page
+      .getByTestId('color-picker')
+      .locator('[data-zone="zone_1_main"]')
+      .getByTestId('color-swatch')
+      .nth(2)
+    await swatch.click()
+    const chosen = await swatch.getAttribute('aria-label')
+    await page.getByTestId('size-switch').getByRole('link', { name: /100/ }).click()
+    await page.waitForURL(/patronenbox-9mm-luger-100/)
+    await expect(page.getByTestId('box-drawing').first()).toHaveAttribute('data-capacity', '100')
+    await expect(
+      page
+        .getByTestId('color-picker')
+        .locator('[data-zone="zone_1_main"]')
+        .getByLabel(chosen!, { exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   test('shows color zones with global colors', async ({ page }) => {

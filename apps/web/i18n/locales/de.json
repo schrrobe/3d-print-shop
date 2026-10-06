@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Start",
-    "products": "Produkte",
-    "upload": "Eigenes Modell",
     "cart": "Warenkorb",
     "support": "Support"
   },
-  "hero": {
-    "eyebrow": "3D-Druck aus Berlin",
-    "title": "Deine Ideen. Gedruckt in deinen Farben.",
-    "subtitle": "Konfiguriere fertige Designs in deinen Wunschfarben — oder lade dein eigenes 3D-Modell hoch und erhalte ein individuelles Angebot.",
-    "ctaProducts": "Produkte entdecken",
-    "ctaUpload": "Modell hochladen"
-  },
-  "stats": {
-    "printed": "gedruckte Teile",
-    "colors": "Farben",
-    "hours": "Druckstunden"
-  },
-  "features": {
-    "title": "So funktioniert's",
-    "configure": {
-      "title": "Konfigurieren",
-      "text": "Wähle ein Produkt und stelle deine Farbkombination live in 3D zusammen."
-    },
-    "print": {
-      "title": "Drucken",
-      "text": "Wir drucken auf Bambu Lab Maschinen mit Markenfilament."
-    },
-    "ship": {
-      "title": "Liefern",
-      "text": "Versand in 3–5 Werktagen, kostenlos ab 150 €."
-    }
-  },
   "products": {
-    "title": "Produkte",
-    "all": "Alle Produkte",
+    "title": "Patronenboxen",
     "configure": "Farben konfigurieren",
     "addToCart": "In den Warenkorb",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Zum Warenkorb hinzugefügt",
     "manufacturingNotice": {
       "title": "Hinweis zur Herstellung",
-      "imagesTitle": "Hinweis zu den Produktbildern",
-      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Leichte Schichtlinien oder minimale Oberflächenabweichungen sind produktionsbedingt und typisch für die additive Fertigung. Sie stellen keinen Mangel dar und haben keinen Einfluss auf Funktion, Stabilität oder Haltbarkeit.",
-      "ammunition": "Die auf den Produktbildern gezeigte Munition dient ausschließlich der Veranschaulichung und ist nicht Bestandteil des Angebots."
+      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Leichte Schichtlinien oder minimale Oberflächenabweichungen sind produktionsbedingt und typisch für die additive Fertigung. Sie stellen keinen Mangel dar und haben keinen Einfluss auf Funktion, Stabilität oder Haltbarkeit."
     },
     "viewer": {
-      "hint": "Ziehen zum Drehen · Scrollen zum Zoomen",
-      "fallback": "3D-Vorschau"
+      "hint": "Ziehen zum Drehen · Scrollen zum Zoomen"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Erstattet"
     }
   },
-  "upload": {
-    "title": "Eigenes Modell drucken lassen",
-    "subtitle": "Lade deine 3MF- oder STL-Datei hoch (max. 50 MB). Wir prüfen sie und schicken dir ein individuelles Angebot.",
-    "dropzone": "Dateien hierher ziehen oder klicken",
-    "accepted": "Erlaubt: .stl, .3mf · max. 50 MB",
-    "name": "Name",
-    "description": "Beschreibung (Material, Farbe, Menge, Verwendungszweck …)",
-    "quantity": "Stückzahl",
-    "termsAcceptance": "Ich akzeptiere die",
-    "termsAnd": "und die",
-    "termsContent": "Ich bestätige, dass ich die nötigen Rechte am hochgeladenen Modell besitze, keine rechtswidrigen oder Rechte Dritter verletzenden Inhalte hochlade und dass die Dateien vor Angebotsprüfung nicht in Produktion gehen.",
-    "termsVersion": "Fassung: {version}.",
-    "submit": "Anfrage senden",
-    "successTitle": "Anfrage erhalten!",
-    "successText": "Wir prüfen dein Modell und melden uns mit einem Angebot per E-Mail.",
-    "steps": {
-      "upload": "Hochladen",
-      "review": "Prüfung",
-      "quote": "Angebot",
-      "payment": "Zahlung",
-      "production": "Produktion"
-    }
-  },
   "quote": {
     "title": "Dein Angebot",
     "price": "Angebotspreis",
@@ -196,8 +140,7 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
-    "withdrawal": "Widerruf",
-    "claim": "3D-Druck, made in Dortmund."
+    "withdrawal": "Widerruf"
   },
   "legal": {
     "imprintTitle": "Impressum",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Individueller 3D-Druck in deinen Farben",
-      "description": "Konfigurierbare 3D-Druck-Produkte mit Live-Farbvorschau, eigene Modelle hochladen & Angebot erhalten. Versandkostenfrei ab 150 €."
+      "title": "kaliberbox.de — Patronenboxen für dein Kaliber, in deinen Farben",
+      "description": "Passgenaue Patronenboxen für 9 mm Luger, .45 ACP, .22 lfB, .223 Rem, .308 Win und 7,62×39 — als 50er oder 100er Box, Box- und Beschriftungsfarbe frei wählbar. Versandkostenfrei ab 150 €."
     },
     "products": {
-      "description": "Alle 3D-Druck-Produkte im Überblick — Farben frei konfigurierbar, direkt im Browser mit 3D-Vorschau."
+      "description": "Alle Patronenboxen nach Kaliber — 50er und 100er Boxen, Farben frei wählbar, auf Bestellung gedruckt."
     },
     "cart": {
       "title": "Warenkorb",
       "description": "Dein Warenkorb im 3D Print Shop — Versand 6,99 €, versandkostenfrei ab 150 €."
-    },
-    "upload": {
-      "title": "Eigenes Modell hochladen",
-      "description": "STL- oder 3MF-Datei hochladen und ein individuelles Angebot für deinen 3D-Druck erhalten."
     },
     "support": {
       "title": "Support",
@@ -376,7 +315,7 @@
     }
   },
   "wishlist": {
-    "title": "Wunschliste",
+    "title": "Merkliste",
     "empty": "Deine Wunschliste ist leer.",
     "toCart": "In den Warenkorb",
     "share": "Teilen",
@@ -413,5 +352,172 @@
     "count": "{count} Bewertungen",
     "ratingLabel": "{rating} von 5 Sternen",
     "photoAlt": "Bewertungsfoto von {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Zum Inhalt springen"
+    },
+    "nav": {
+      "main": "Hauptnavigation",
+      "menu": "Menü",
+      "openMenu": "Menü öffnen",
+      "closeMenu": "Menü schließen",
+      "homeLabel": "kaliberbox.de – Startseite",
+      "boxes": "Patronenboxen",
+      "wishlist": "Merkliste",
+      "cartWithCount": "Warenkorb, {count} Artikel",
+      "language": "Sprache",
+      "languageCurrent": "Sprache: {language}",
+      "theme": "Darstellung",
+      "themes": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Kurzwaffe",
+      "RIFLE": "Langwaffe",
+      "RIMFIRE": "Randfeuer"
+    },
+    "home": {
+      "title": "Für welches Kaliber?",
+      "lead": "Passgenaue Patronenboxen, gedruckt in deinen Farben. Wähle dein Kaliber – den Rest erledigen wir.",
+      "pickLegend": "Kaliber wählen",
+      "cta": "Boxen für {caliber}",
+      "ctaAll": "Alle Patronenboxen",
+      "howTitle": "So kommt deine Box zu dir",
+      "steps": {
+        "caliber": {
+          "title": "Kaliber und Größe",
+          "text": "Jede Box ist für genau ein Kaliber konstruiert – als 50er oder 100er Ausführung."
+        },
+        "colors": {
+          "title": "Deine Farben",
+          "text": "Box- und Beschriftungsfarbe aus unserem Filamentbestand wählen. Die Vorschau zeigt sofort, wie sie aussieht."
+        },
+        "print": {
+          "title": "Gedruckt auf Bestellung",
+          "text": "Wir drucken deine Box nach Auftragseingang und schicken sie an deine Adresse."
+        }
+      },
+      "boxesTitle": "Alle Kaliber",
+      "boxesAll": "Zur Übersicht",
+      "gift": {
+        "title": "Ein Geschenk, das passt.",
+        "text": "Für Sportschützen und Jäger, die schon alles haben – außer Ordnung im Munitionsfach.",
+        "tips": {
+          "ask": "Du brauchst nur das Kaliber – es steht auf jeder Patronenschachtel.",
+          "box": "50 oder 100 Schuss? Auch das verrät die Schachtel.",
+          "note": "Im Checkout „Ist ein Geschenk“ ankreuzen – wir vermerken es an deiner Bestellung."
+        }
+      }
+    },
+    "list": {
+      "lead": "Eine Box pro Kaliber, jeweils als 50er und 100er Ausführung.",
+      "titleFor": "Patronenboxen für {caliber}",
+      "filterLegend": "Nach Kaliber filtern",
+      "allCalibers": "Alle Kaliber",
+      "searchLabel": "Suchen",
+      "count": "Keine Boxen | 1 Box | {count} Boxen",
+      "reset": "Filter zurücksetzen"
+    },
+    "caliberMissing": {
+      "title": "Dein Kaliber fehlt?",
+      "text": "Sag uns, für welches Kaliber du eine Box brauchst. Wir sammeln die Wünsche und erweitern das Sortiment danach.",
+      "cta": "Kaliber wünschen",
+      "link": "Kaliber wünschen",
+      "subject": "Kaliberwunsch: {caliber}"
+    },
+    "product": {
+      "kind": "Patronenbox",
+      "fromPrice": "ab {price}",
+      "sizesShort": "{sizes} Schuss",
+      "rounds": "{count} Schuss",
+      "sizeLegend": "Größe",
+      "priceNote": "Endpreis, zzgl. Versand",
+      "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
+      "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
+      "drawingCaption": "Schematische Darstellung, nicht maßstäblich",
+      "drawingSibling": "andere Größe",
+      "contentsTitle": "Lieferumfang",
+      "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots."
+    },
+    "configurator": {
+      "noColor": "Keine Farbe gewählt"
+    },
+    "quantity": {
+      "decrease": "Menge verringern",
+      "increase": "Menge erhöhen"
+    },
+    "legalNotice": {
+      "title": "Hinweis zur Aufbewahrung",
+      "text": "Die Patronenboxen dienen der Ordnung und Sortierung. Sie ersetzen kein verschließbares Behältnis bzw. keinen Waffenschrank, wie ihn § 36 Waffengesetz für die Aufbewahrung von Munition vorschreibt.",
+      "short": "Zur Ordnung im Waffenschrank – kein Ersatz für die gesetzliche Aufbewahrung nach § 36 WaffG."
+    },
+    "voucher": {
+      "label": "Gutscheincode"
+    },
+    "totals": {
+      "vatNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+    },
+    "form": {
+      "optional": "optional"
+    },
+    "cart": {
+      "emptyText": "Wähle dein Kaliber und stell dir deine Box zusammen.",
+      "itemsLabel": "Artikel im Warenkorb ({count})",
+      "unitPrice": "{price} pro Stück",
+      "editItem": "{name} bearbeiten",
+      "removeItem": "{name} entfernen",
+      "continue": "Weiter einkaufen"
+    },
+    "checkout": {
+      "contactTitle": "Kontakt",
+      "addressTitle": "Lieferadresse",
+      "emailHint": "Für Bestellbestätigung und Versandinfo.",
+      "phone": "Telefon",
+      "company": "Firma",
+      "note": "Anmerkung zur Bestellung",
+      "gift": "Ist ein Geschenk",
+      "giftHint": "Wir vermerken es an deiner Bestellung.",
+      "showSummary": "Bestellübersicht anzeigen",
+      "hideSummary": "Bestellübersicht ausblenden",
+      "legal": "Mit deiner Bestellung akzeptierst du unsere {terms}. Informationen zum Widerrufsrecht findest du in der {withdrawal}, zum Datenschutz in der {privacy}.",
+      "withdrawalLink": "Widerrufsbelehrung",
+      "payHints": {
+        "stripe": "Sichere Zahlung über Stripe, z. B. per Kreditkarte.",
+        "bank_transfer": "Bankdaten erhältst du nach der Bestellung.",
+        "bitcoin": "Zahlung per Bitcoin-Adresse nach der Bestellung."
+      },
+      "errors": {
+        "summary": "Bitte prüfe {count} markierte Felder.",
+        "email": "Bitte gib deine E-Mail-Adresse ein.",
+        "emailFormat": "Bitte gib eine gültige E-Mail-Adresse ein, z. B. name{'@'}beispiel.de.",
+        "firstName": "Bitte gib deinen Vornamen ein.",
+        "lastName": "Bitte gib deinen Nachnamen ein.",
+        "street": "Bitte gib Straße und Hausnummer ein.",
+        "zip": "Bitte gib deine Postleitzahl ein.",
+        "zipFormat": "Die Postleitzahl muss 3 bis 12 Zeichen lang sein.",
+        "city": "Bitte gib deinen Ort ein."
+      }
+    },
+    "wishlist": {
+      "lead": "Gemerkte Konfigurationen bleiben auf diesem Gerät gespeichert.",
+      "emptyText": "Tippe auf einer Produktseite auf das Herz, um eine Konfiguration zu merken.",
+      "shareItem": "{name} teilen",
+      "removeItem": "{name} von der Merkliste entfernen"
+    },
+    "success": {
+      "hit": "Treffer"
+    },
+    "footer": {
+      "claim": "Patronenboxen für dein Kaliber – gedruckt auf Bestellung, in deinen Farben.",
+      "shop": "Shop",
+      "shopNav": "Shop-Navigation",
+      "legal": "Rechtliches",
+      "legalNav": "Rechtliches",
+      "vat": "Kleinunternehmer gemäß § 19 UStG"
+    }
   }
 }

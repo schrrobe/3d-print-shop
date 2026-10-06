@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { PsCheckoutSummary, PsInput, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
 import { canLoadTracker, formatCents } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 
 /**
  * Checkout — deliberately animation-free (design rule: no strong animations
- * in the checkout). Guest checkout, no account required.
+ * in the checkout). Guest checkout, no account required. One page, three numbered
+ * sections; validation runs on submit and reports per field.
  */
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -34,7 +34,16 @@ onMounted(() => {
     })
 })
 
+// ponytail: fixed delivery-country list; move to config/API when shipping rates differ per country
+const COUNTRIES = ['DE', 'AT', 'CH', 'NL', 'BE', 'LU', 'FR', 'DK', 'PL', 'CZ', 'IT', 'ES'] as const
+const countryOptions = computed(() => {
+  const names = new Intl.DisplayNames([locale.value], { type: 'region' })
+  return COUNTRIES.map((code) => ({ code, name: names.of(code) ?? code }))
+})
+
 const form = reactive({
+  email: '',
+  phone: '',
   firstName: '',
   lastName: '',
   company: '',
@@ -42,10 +51,9 @@ const form = reactive({
   zip: '',
   city: '',
   country: 'DE',
-  email: '',
-  phone: '',
   note: '',
 })
+const isGift = ref(false)
 const paymentMethod = ref<CheckoutPaymentMethod>('stripe')
 const checkoutKey = ref<string | null>(null)
 const submitting = ref(false)
@@ -60,6 +68,30 @@ onMounted(() => {
 })
 const errorMessage = ref('')
 
+type Field = 'email' | 'firstName' | 'lastName' | 'street' | 'zip' | 'city'
+const errors = reactive<Partial<Record<Field, string>>>({})
+const FIELD_ORDER: Field[] = ['email', 'firstName', 'lastName', 'street', 'zip', 'city']
+
+function validate(): boolean {
+  for (const key of FIELD_ORDER) delete errors[key]
+  const required: Field[] = ['email', 'firstName', 'lastName', 'street', 'zip', 'city']
+  for (const key of required) {
+    if (!form[key].trim()) errors[key] = t(`shop.checkout.errors.${key}`)
+  }
+  if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = t('shop.checkout.errors.emailFormat')
+  }
+  const zip = form.zip.trim()
+  if (zip && (zip.length < 3 || zip.length > 12)) errors.zip = t('shop.checkout.errors.zipFormat')
+  const first = FIELD_ORDER.find((key) => errors[key])
+  if (first) {
+    errorMessage.value = t('shop.checkout.errors.summary', { count: Object.keys(errors).length })
+    nextTick(() => document.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus())
+    return false
+  }
+  return true
+}
+
 interface CheckoutResponse {
   orderNumber: string
   accessToken: string
@@ -67,8 +99,9 @@ interface CheckoutResponse {
 }
 
 async function submit() {
-  submitting.value = true
   errorMessage.value = ''
+  if (!validate()) return
+  submitting.value = true
   try {
     checkoutKey.value ??= crypto.randomUUID()
     // Give the ingest endpoint a bounded chance to persist the session before
@@ -78,6 +111,8 @@ async function submit() {
       new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
     ])
     const trackingSessionId = tracking.sessionId()
+    // Gift flag travels in the order note so production sees it without a schema change
+    const note = [isGift.value ? '[Geschenk]' : '', form.note.trim()].filter(Boolean).join(' ')
     const response = await $fetch<CheckoutResponse>('/api/checkout', {
       method: 'POST',
       headers: {
@@ -97,7 +132,7 @@ async function submit() {
           email: form.email,
           phone: form.phone || undefined,
         },
-        note: form.note || undefined,
+        note: note || undefined,
         paymentMethod: paymentMethod.value,
         locale: locale.value,
         voucherCode: cart.voucher?.code,
@@ -136,9 +171,21 @@ async function submit() {
 
 const paymentOptions = computed(() => {
   const options = {
-    stripe: { value: 'stripe' as const, label: t('checkout.payStripe') },
-    bank_transfer: { value: 'bank_transfer' as const, label: t('checkout.payBank') },
-    bitcoin: { value: 'bitcoin' as const, label: t('checkout.payBitcoin') },
+    stripe: {
+      value: 'stripe' as const,
+      label: t('checkout.payStripe'),
+      hint: t('shop.checkout.payHints.stripe'),
+    },
+    bank_transfer: {
+      value: 'bank_transfer' as const,
+      label: t('checkout.payBank'),
+      hint: t('shop.checkout.payHints.bank_transfer'),
+    },
+    bitcoin: {
+      value: 'bitcoin' as const,
+      label: t('checkout.payBitcoin'),
+      hint: t('shop.checkout.payHints.bitcoin'),
+    },
   }
   return paymentMethods.value.map((method) => options[method])
 })
@@ -148,165 +195,301 @@ watchEffect(() => {
     paymentMethod.value = paymentMethods.value[0] ?? 'bank_transfer'
   }
 })
+
+const money = (cents: number) => formatCents(cents, locale.value as Locale)
+const summaryOpen = ref(false)
 </script>
 
 <template>
-  <PsSection :title="t('checkout.title')">
+  <div class="kb-wrap pb-16 pt-8 md:pb-24 md:pt-12">
+    <h1 class="kb-display text-[3rem] sm:text-[4rem]">{{ t('checkout.title') }}</h1>
+    <p class="mt-2 flex items-center gap-2 text-ink-2">
+      <ShopIcon name="lock" :size="16" />
+      {{ t('checkout.guestHint') }}
+    </p>
+
+    <!-- Mobile: collapsible order summary above the form -->
+    <details
+      class="mt-6 border-y border-ink lg:hidden"
+      :open="summaryOpen"
+      @toggle="summaryOpen = ($event.target as HTMLDetailsElement).open"
+    >
+      <summary
+        class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"
+      >
+        <span class="flex items-center gap-2 font-semibold">
+          <ShopIcon name="chevron-down" :size="18" :class="summaryOpen ? 'rotate-180' : ''" />
+          {{ summaryOpen ? t('shop.checkout.hideSummary') : t('shop.checkout.showSummary') }}
+        </span>
+        <span class="kb-num text-[1.125rem] font-bold">{{ money(cart.totals.totalCents) }}</span>
+      </summary>
+      <div class="pb-5">
+        <ul class="divide-y divide-rule border-b border-rule">
+          <li v-for="item in cart.items" :key="item.key" class="flex justify-between gap-3 py-3">
+            <span>
+              <span class="kb-num">{{ item.quantity }}×</span> {{ item.name }}
+              <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
+                item.colorNames.join(' · ')
+              }}</span>
+            </span>
+            <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
+          </li>
+        </ul>
+      </div>
+    </details>
+
     <form
-      class="grid gap-2xl lg:grid-cols-[1fr_380px]"
+      class="mt-8 grid gap-10 lg:grid-cols-[1fr_24rem] lg:gap-14"
+      novalidate
       data-testid="checkout-form"
       @submit.prevent="submit"
     >
-      <div class="flex flex-col gap-lg">
-        <p class="text-caption text-secondary">{{ t('checkout.guestHint') }}</p>
-        <h2 class="text-heading-small">{{ t('checkout.contact') }}</h2>
-        <div class="grid gap-md sm:grid-cols-2">
-          <PsInput
-            v-model="form.firstName"
-            :label="t('checkout.firstName')"
-            name="firstName"
-            required
-            autocomplete="given-name"
-          />
-          <PsInput
-            v-model="form.lastName"
-            :label="t('checkout.lastName')"
-            name="lastName"
-            required
-            autocomplete="family-name"
-          />
-        </div>
-        <PsInput
-          v-model="form.company"
-          :label="t('checkout.company')"
-          name="company"
-          autocomplete="organization"
-        />
-        <PsInput
-          v-model="form.street"
-          :label="t('checkout.street')"
-          name="street"
-          required
-          autocomplete="street-address"
-        />
-        <div class="grid gap-md sm:grid-cols-[140px_1fr_120px]">
-          <PsInput
-            v-model="form.zip"
-            :label="t('checkout.zip')"
-            name="zip"
-            required
-            autocomplete="postal-code"
-          />
-          <PsInput
-            v-model="form.city"
-            :label="t('checkout.city')"
-            name="city"
-            required
-            autocomplete="address-level2"
-          />
-          <PsInput
-            v-model="form.country"
-            :label="t('checkout.country')"
-            name="country"
-            required
-            autocomplete="country"
-          />
-        </div>
-        <div class="grid gap-md sm:grid-cols-2">
-          <PsInput
-            v-model="form.email"
-            :label="t('checkout.email')"
-            type="email"
-            name="email"
-            required
-            autocomplete="email"
-          />
-          <PsInput
-            v-model="form.phone"
-            :label="t('checkout.phone')"
-            type="tel"
-            name="phone"
-            autocomplete="tel"
-          />
-        </div>
-        <PsTextarea v-model="form.note" :label="t('checkout.note')" name="note" :rows="3" />
-
-        <h2 class="mt-md text-heading-small">{{ t('checkout.payment') }}</h2>
-        <div class="flex flex-col gap-sm" role="radiogroup" :aria-label="t('checkout.payment')">
-          <label
-            v-for="option in paymentOptions"
-            :key="option.value"
-            class="flex cursor-pointer items-center gap-md rounded-card border p-md transition-colors"
-            :class="
-              paymentMethod === option.value
-                ? 'border-brand bg-brand/5'
-                : 'border-subtle bg-surface-elevated'
-            "
-            :data-testid="`payment-${option.value}`"
-          >
-            <input
-              v-model="paymentMethod"
-              type="radio"
-              name="paymentMethod"
-              :value="option.value"
-              class="accent-(--brand)"
+      <div class="flex flex-col gap-12">
+        <!-- 1 Contact -->
+        <fieldset class="min-w-0">
+          <legend class="flex w-full items-baseline gap-3 border-b border-ink pb-3">
+            <span class="kb-display text-[2rem] text-hit" aria-hidden="true">1</span>
+            <span class="kb-heading text-[1.5rem]">{{ t('shop.checkout.contactTitle') }}</span>
+          </legend>
+          <div class="mt-5 grid gap-5 sm:grid-cols-2">
+            <ShopField
+              v-model="form.email"
+              :label="t('checkout.email')"
+              :error="errors.email"
+              :hint="t('shop.checkout.emailHint')"
+              type="email"
+              name="email"
+              autocomplete="email"
+              inputmode="email"
+              autocapitalize="off"
+              spellcheck="false"
+              required
+              class="sm:col-span-2"
             />
-            <span class="text-label-medium">{{ option.label }}</span>
+            <ShopField
+              v-model="form.phone"
+              :label="t('shop.checkout.phone')"
+              optional
+              type="tel"
+              name="phone"
+              autocomplete="tel"
+              inputmode="tel"
+            />
+          </div>
+        </fieldset>
+
+        <!-- 2 Address -->
+        <fieldset class="min-w-0">
+          <legend class="flex w-full items-baseline gap-3 border-b border-ink pb-3">
+            <span class="kb-display text-[2rem] text-hit" aria-hidden="true">2</span>
+            <span class="kb-heading text-[1.5rem]">{{ t('shop.checkout.addressTitle') }}</span>
+          </legend>
+          <div class="mt-5 grid gap-5 sm:grid-cols-6">
+            <ShopField
+              v-model="form.firstName"
+              :label="t('checkout.firstName')"
+              :error="errors.firstName"
+              name="firstName"
+              autocomplete="given-name"
+              required
+              class="sm:col-span-3"
+            />
+            <ShopField
+              v-model="form.lastName"
+              :label="t('checkout.lastName')"
+              :error="errors.lastName"
+              name="lastName"
+              autocomplete="family-name"
+              required
+              class="sm:col-span-3"
+            />
+            <ShopField
+              v-model="form.company"
+              :label="t('shop.checkout.company')"
+              optional
+              name="company"
+              autocomplete="organization"
+              class="sm:col-span-6"
+            />
+            <ShopField
+              v-model="form.street"
+              :label="t('checkout.street')"
+              :error="errors.street"
+              name="street"
+              autocomplete="street-address"
+              required
+              class="sm:col-span-6"
+            />
+            <ShopField
+              v-model="form.zip"
+              :label="t('checkout.zip')"
+              :error="errors.zip"
+              name="zip"
+              autocomplete="postal-code"
+              inputmode="numeric"
+              required
+              class="sm:col-span-2"
+            />
+            <ShopField
+              v-model="form.city"
+              :label="t('checkout.city')"
+              :error="errors.city"
+              name="city"
+              autocomplete="address-level2"
+              required
+              class="sm:col-span-4"
+            />
+            <div class="sm:col-span-6">
+              <label for="checkout-country" class="kb-label">{{ t('checkout.country') }}</label>
+              <select
+                id="checkout-country"
+                v-model="form.country"
+                name="country"
+                autocomplete="country"
+                class="kb-input"
+                required
+              >
+                <option v-for="c in countryOptions" :key="c.code" :value="c.code">
+                  {{ c.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- 3 Payment -->
+        <fieldset class="min-w-0">
+          <legend class="flex w-full items-baseline gap-3 border-b border-ink pb-3">
+            <span class="kb-display text-[2rem] text-hit" aria-hidden="true">3</span>
+            <span class="kb-heading text-[1.5rem]">{{ t('checkout.payment') }}</span>
+          </legend>
+          <div class="mt-5 flex flex-col gap-2">
+            <label
+              v-for="option in paymentOptions"
+              :key="option.value"
+              class="flex min-h-16 cursor-pointer items-center gap-4 border px-4 py-3 transition-colors has-[:checked]:border-ink has-[:checked]:bg-paper-raised has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-hit"
+              :class="paymentMethod === option.value ? 'border-ink' : 'border-rule-strong'"
+              :data-testid="`payment-${option.value}`"
+            >
+              <input
+                v-model="paymentMethod"
+                type="radio"
+                name="paymentMethod"
+                :value="option.value"
+                class="size-5 shrink-0"
+              />
+              <span>
+                <span class="block font-bold">{{ option.label }}</span>
+                <span class="block text-sm text-ink-2">{{ option.hint }}</span>
+              </span>
+            </label>
+          </div>
+
+          <label class="mt-8 flex cursor-pointer items-start gap-3">
+            <input
+              v-model="isGift"
+              type="checkbox"
+              name="isGift"
+              class="mt-0.5 size-5 shrink-0"
+              data-testid="checkout-gift"
+            />
+            <span>
+              <span class="flex items-center gap-2 font-bold"
+                ><ShopIcon name="gift" :size="18" />{{ t('shop.checkout.gift') }}</span
+              >
+              <span class="block text-sm text-ink-2">{{ t('shop.checkout.giftHint') }}</span>
+            </span>
           </label>
-        </div>
+
+          <div class="mt-6">
+            <label for="checkout-note" class="kb-label">
+              {{ t('shop.checkout.note') }}
+              <span class="font-normal text-ink-2">({{ t('shop.form.optional') }})</span>
+            </label>
+            <textarea
+              id="checkout-note"
+              v-model="form.note"
+              name="note"
+              rows="3"
+              maxlength="900"
+              class="kb-input min-h-24 resize-y"
+            />
+          </div>
+        </fieldset>
       </div>
 
       <aside
-        class="flex h-fit flex-col gap-lg rounded-card border border-subtle bg-surface-elevated p-lg"
+        class="flex h-fit flex-col gap-6 bg-paper-raised p-5 outline outline-1 outline-rule md:p-6 lg:sticky lg:top-24"
       >
-        <h2 class="text-label-medium">{{ t('checkout.summary') }}</h2>
-        <PsCheckoutSummary
-          :items="
-            cart.items.map((i) => ({
-              name: i.name,
-              quantity: i.quantity,
-              unitPriceCents: i.unitPriceCents,
-            }))
-          "
-          :subtotal-cents="cart.totals.subtotalCents"
-          :shipping-cents="cart.totals.shippingCents"
-          :discount-cents="cart.totals.discountCents"
-          :discount-label="
-            cart.voucher ? t('cart.voucherLabel', { code: cart.voucher.code }) : undefined
-          "
-          :total-cents="cart.totals.totalCents"
-          :free-shipping-applied="cart.totals.freeShippingApplied"
-          :locale="locale as Locale"
-        />
-        <p
-          v-if="cart.voucher && cart.totals.discountCents === 0"
-          class="text-caption text-red-500"
-          role="alert"
-          data-testid="checkout-voucher-inactive-hint"
-        >
-          {{
-            t('cart.voucherReason.min_order_not_met', {
-              amount: formatCents(cart.voucher.minOrderCents, locale as Locale),
-            })
-          }}
-        </p>
+        <h2 class="kb-heading hidden text-[1.5rem] lg:block">{{ t('checkout.summary') }}</h2>
+        <ul class="hidden divide-y divide-rule border-y border-rule lg:block">
+          <li v-for="item in cart.items" :key="item.key" class="flex justify-between gap-3 py-3">
+            <span>
+              <span class="kb-num">{{ item.quantity }}×</span> {{ item.name }}
+              <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
+                item.colorNames.join(' · ')
+              }}</span>
+            </span>
+            <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
+          </li>
+        </ul>
+        <ShopTotals prefix="checkout" />
+        <ShopVoucherForm />
+
         <p
           v-if="errorMessage"
-          class="text-caption text-red-500"
+          class="kb-error flex gap-2"
           role="alert"
           data-testid="checkout-error"
         >
+          <ShopIcon name="alert" :size="18" class="mt-0.5" />
           {{ errorMessage }}
         </p>
-        <PsPillButton
+
+        <p class="text-sm text-ink-2" data-testid="checkout-legal">
+          <i18n-t keypath="shop.checkout.legal" tag="span" scope="global">
+            <template #terms>
+              <NuxtLink
+                :to="localePath('/legal/terms')"
+                target="_blank"
+                class="text-ink underline"
+                >{{ t('footer.terms') }}</NuxtLink
+              >
+            </template>
+            <template #withdrawal>
+              <NuxtLink
+                :to="localePath('/legal/withdrawal')"
+                target="_blank"
+                class="text-ink underline"
+                >{{ t('shop.checkout.withdrawalLink') }}</NuxtLink
+              >
+            </template>
+            <template #privacy>
+              <NuxtLink
+                :to="localePath('/legal/privacy')"
+                target="_blank"
+                class="text-ink underline"
+                >{{ t('footer.privacy') }}</NuxtLink
+              >
+            </template>
+          </i18n-t>
+        </p>
+
+        <button
           type="submit"
-          size="lg"
+          class="kb-btn kb-btn-hit w-full text-[1.0625rem]"
           :disabled="submitting || !hydrated"
+          :aria-busy="submitting"
           data-testid="submit-order"
         >
+          <span
+            v-if="submitting"
+            class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            aria-hidden="true"
+          />
           {{ t('checkout.submit') }}
-        </PsPillButton>
+        </button>
       </aside>
     </form>
-  </PsSection>
+  </div>
 </template>

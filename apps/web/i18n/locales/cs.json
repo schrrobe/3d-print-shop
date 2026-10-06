@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Domů",
-    "products": "Produkty",
-    "upload": "Váš model",
     "cart": "Košík",
     "support": "Podpora"
   },
-  "hero": {
-    "eyebrow": "3D tisk z Berlína",
-    "title": "Vaše nápady. Vytištěné ve vašich barvách.",
-    "subtitle": "Nakonfigurujte hotové designy ve svých oblíbených barvách — nebo nahrajte vlastní 3D model a získejte individuální nabídku.",
-    "ctaProducts": "Prohlédnout produkty",
-    "ctaUpload": "Nahrát model"
-  },
-  "stats": {
-    "printed": "vytištěných dílů",
-    "colors": "barev",
-    "hours": "hodin tisku"
-  },
-  "features": {
-    "title": "Jak to funguje",
-    "configure": {
-      "title": "Konfigurace",
-      "text": "Vyberte produkt a sestavte barevnou kombinaci živě ve 3D."
-    },
-    "print": {
-      "title": "Tisk",
-      "text": "Tiskneme na strojích Bambu Lab se značkovým filamentem."
-    },
-    "ship": {
-      "title": "Doručení",
-      "text": "Dodání za 3–5 pracovních dnů, zdarma od 150 €."
-    }
-  },
   "products": {
-    "title": "Produkty",
-    "all": "Všechny produkty",
+    "title": "Krabičky na náboje",
     "configure": "Konfigurovat barvy",
     "addToCart": "Do košíku",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Přidáno do košíku",
     "manufacturingNotice": {
       "title": "Upozornění k výrobě",
-      "imagesTitle": "Upozornění k produktovým fotografiím",
-      "production": "Každý box na munici je vyráběn metodou 3D tisku. Jemné vrstvy nebo minimální povrchové odchylky jsou dány výrobním procesem a jsou typické pro aditivní výrobu. Nepředstavují vadu a nemají vliv na funkci, stabilitu ani životnost.",
-      "ammunition": "Munice zobrazená na produktových fotografiích slouží pouze k ilustraci a není součástí nabídky."
+      "production": "Každý box na munici je vyráběn metodou 3D tisku. Jemné vrstvy nebo minimální povrchové odchylky jsou dány výrobním procesem a jsou typické pro aditivní výrobu. Nepředstavují vadu a nemají vliv na funkci, stabilitu ani životnost."
     },
     "viewer": {
-      "hint": "Tažením otáčet · Kolečkem přiblížit",
-      "fallback": "3D náhled"
+      "hint": "Tažením otáčet · Kolečkem přiblížit"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Vráceno"
     }
   },
-  "upload": {
-    "title": "Nechte si vytisknout vlastní model",
-    "subtitle": "Nahrajte soubor 3MF nebo STL (max. 50 MB). Prověříme ho a pošleme vám individuální nabídku.",
-    "dropzone": "Přetáhněte soubory sem nebo klikněte",
-    "accepted": "Povoleno: .stl, .3mf · max. 50 MB",
-    "name": "Jméno",
-    "description": "Popis (materiál, barva, množství, účel …)",
-    "quantity": "Počet kusů",
-    "termsAcceptance": "Souhlasím s",
-    "termsAnd": "a se",
-    "termsContent": "Potvrzuji, že mám nezbytná práva k nahranému modelu, nebudu nahrávat protiprávní obsah ani obsah porušující práva třetích osob a rozumím, že soubory nepůjdou do výroby před posouzením nabídky.",
-    "termsVersion": "Verze: {version}.",
-    "submit": "Odeslat poptávku",
-    "successTitle": "Poptávka přijata!",
-    "successText": "Prověříme váš model a ozveme se s nabídkou e-mailem.",
-    "steps": {
-      "upload": "Nahrání",
-      "review": "Kontrola",
-      "quote": "Nabídka",
-      "payment": "Platba",
-      "production": "Výroba"
-    }
-  },
   "quote": {
     "title": "Vaše nabídka",
     "price": "Nabídková cena",
@@ -196,8 +140,7 @@
     "imprint": "Impressum",
     "privacy": "Soukromí",
     "terms": "Obchodní podmínky",
-    "withdrawal": "Odstoupení",
-    "claim": "3D tisk, made in Dortmund."
+    "withdrawal": "Odstoupení"
   },
   "legal": {
     "imprintTitle": "Impressum",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Individuální 3D tisk ve vašich barvách",
-      "description": "Konfigurovatelné 3D tištěné produkty s živým náhledem barev, nahrajte vlastní modely a získejte nabídku. Doprava zdarma od 150 €."
+      "title": "kaliberbox.de — Krabičky na náboje pro tvou ráži, v tvých barvách",
+      "description": "Přesně padnoucí krabičky na náboje pro 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win a 7,62×39 — na 50 nebo 100 nábojů, barva krabičky i popisku podle výběru. Doprava zdarma od 150 €."
     },
     "products": {
-      "description": "Všechny 3D tištěné produkty v přehledu — barvy plně konfigurovatelné s 3D náhledem v prohlížeči."
+      "description": "Všechny krabičky na náboje podle ráže — na 50 a 100 nábojů, barvy podle výběru, tištěné na objednávku."
     },
     "cart": {
       "title": "Košík",
       "description": "Váš košík v 3D Print Shopu — doprava 6,99 €, zdarma od 150 €."
-    },
-    "upload": {
-      "title": "Nahrajte vlastní model",
-      "description": "Nahrajte soubor STL nebo 3MF a získejte individuální nabídku na váš 3D tisk."
     },
     "support": {
       "title": "Podpora",
@@ -376,7 +315,7 @@
     }
   },
   "wishlist": {
-    "title": "Seznam přání",
+    "title": "Oblíbené",
     "empty": "Váš seznam přání je prázdný.",
     "toCart": "Do košíku",
     "share": "Sdílet",
@@ -413,5 +352,172 @@
     "count": "Počet recenzí: {count}",
     "ratingLabel": "{rating} z 5 hvězdiček",
     "photoAlt": "Fotka recenze od {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Přejít na obsah"
+    },
+    "nav": {
+      "main": "Hlavní navigace",
+      "menu": "Menu",
+      "openMenu": "Otevřít menu",
+      "closeMenu": "Zavřít menu",
+      "homeLabel": "kaliberbox.de – úvod",
+      "boxes": "Krabičky na náboje",
+      "wishlist": "Oblíbené",
+      "cartWithCount": "Košík, položek: {count}",
+      "language": "Jazyk",
+      "languageCurrent": "Jazyk: {language}",
+      "theme": "Vzhled",
+      "themes": {
+        "light": "Světlý",
+        "dark": "Tmavý",
+        "system": "Systém"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Krátká zbraň",
+      "RIFLE": "Dlouhá zbraň",
+      "RIMFIRE": "Okrajový zápal"
+    },
+    "home": {
+      "title": "Jaká ráže?",
+      "lead": "Přesně padnoucí krabičky na náboje, tištěné v tvých barvách. Vyber ráži – o zbytek se postaráme.",
+      "pickLegend": "Vybrat ráži",
+      "cta": "Krabičky pro {caliber}",
+      "ctaAll": "Všechny krabičky",
+      "howTitle": "Jak se k tobě krabička dostane",
+      "steps": {
+        "caliber": {
+          "title": "Ráže a velikost",
+          "text": "Každá krabička je navržena pro jednu ráži – ve verzi na 50 nebo 100 nábojů."
+        },
+        "colors": {
+          "title": "Tvoje barvy",
+          "text": "Vyber barvu krabičky a popisku z našich filamentů. Náhled ukáže výsledek hned."
+        },
+        "print": {
+          "title": "Tisk na objednávku",
+          "text": "Krabičku vytiskneme po přijetí objednávky a pošleme ji na tvou adresu."
+        }
+      },
+      "boxesTitle": "Všechny ráže",
+      "boxesAll": "Zobrazit vše",
+      "gift": {
+        "title": "Dárek, který sedí.",
+        "text": "Pro sportovní střelce a myslivce, kteří už mají všechno – kromě pořádku v šuplíku s municí.",
+        "tips": {
+          "ask": "Stačí znát ráži – je uvedena na každé krabičce nábojů.",
+          "box": "50, nebo 100 nábojů? I to prozradí původní krabička.",
+          "note": "V pokladně zaškrtni „Je to dárek“ – poznamenáme to k objednávce."
+        }
+      }
+    },
+    "list": {
+      "lead": "Jedna krabička pro každou ráži, ve verzi na 50 a 100 nábojů.",
+      "titleFor": "Krabičky na náboje {caliber}",
+      "filterLegend": "Filtrovat podle ráže",
+      "allCalibers": "Všechny ráže",
+      "searchLabel": "Hledat",
+      "count": "Počet krabiček: {count}",
+      "reset": "Zrušit filtry"
+    },
+    "caliberMissing": {
+      "title": "Chybí tvoje ráže?",
+      "text": "Napiš nám, pro jakou ráži potřebuješ krabičku. Přání sbíráme a podle nich rozšiřujeme nabídku.",
+      "cta": "Navrhnout ráži",
+      "link": "Navrhnout ráži",
+      "subject": "Přání ráže: {caliber}"
+    },
+    "product": {
+      "kind": "Krabička na náboje",
+      "fromPrice": "od {price}",
+      "sizesShort": "{sizes} nábojů",
+      "rounds": "{count} nábojů",
+      "sizeLegend": "Velikost",
+      "priceNote": "Konečná cena, plus doprava",
+      "summary": "{caliber} · {capacity} nábojů · krabička {box} · popisek {label}",
+      "drawingAlt": "Schéma krabičky na náboje {caliber} na {capacity} nábojů v barvě {box} s popiskem v barvě {label}",
+      "drawingCaption": "Schéma, ne v měřítku",
+      "drawingSibling": "jiná velikost",
+      "contentsTitle": "Obsah balení",
+      "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky."
+    },
+    "configurator": {
+      "noColor": "Barva nevybrána"
+    },
+    "quantity": {
+      "decrease": "Snížit množství",
+      "increase": "Zvýšit množství"
+    },
+    "legalNotice": {
+      "title": "Upozornění k uložení",
+      "text": "Krabičky slouží k uspořádání a třídění. Nenahrazují uzamykatelnou schránku ani trezor, které § 36 německého zákona o zbraních (WaffG) vyžaduje pro uložení munice.",
+      "short": "Pro pořádek v trezoru – nenahrazuje zákonné uložení podle § 36 WaffG."
+    },
+    "voucher": {
+      "label": "Slevový kód"
+    },
+    "totals": {
+      "vatNote": "Podle § 19 UStG se DPH neúčtuje."
+    },
+    "form": {
+      "optional": "nepovinné"
+    },
+    "cart": {
+      "emptyText": "Vyber ráži a sestav si krabičku.",
+      "itemsLabel": "Položky v košíku ({count})",
+      "unitPrice": "{price} za kus",
+      "editItem": "Upravit {name}",
+      "removeItem": "Odebrat {name}",
+      "continue": "Pokračovat v nákupu"
+    },
+    "checkout": {
+      "contactTitle": "Kontakt",
+      "addressTitle": "Dodací adresa",
+      "emailHint": "Pro potvrzení objednávky a informace o odeslání.",
+      "phone": "Telefon",
+      "company": "Firma",
+      "note": "Poznámka k objednávce",
+      "gift": "Je to dárek",
+      "giftHint": "Poznamenáme to k objednávce.",
+      "showSummary": "Zobrazit souhrn objednávky",
+      "hideSummary": "Skrýt souhrn objednávky",
+      "legal": "Odesláním objednávky přijímáš naše {terms}. Informace o právu na odstoupení najdeš v {withdrawal}, o ochraně údajů v {privacy}.",
+      "withdrawalLink": "poučení o odstoupení",
+      "payHints": {
+        "stripe": "Bezpečná platba přes Stripe, např. kartou.",
+        "bank_transfer": "Bankovní údaje dostaneš po objednávce.",
+        "bitcoin": "Platba na bitcoinovou adresu po objednávce."
+      },
+      "errors": {
+        "summary": "Zkontroluj označená pole ({count}).",
+        "email": "Zadej e-mailovou adresu.",
+        "emailFormat": "Zadej platnou e-mailovou adresu, např. jmeno{'@'}priklad.cz.",
+        "firstName": "Zadej jméno.",
+        "lastName": "Zadej příjmení.",
+        "street": "Zadej ulici a číslo domu.",
+        "zip": "Zadej PSČ.",
+        "zipFormat": "PSČ musí mít 3 až 12 znaků.",
+        "city": "Zadej město."
+      }
+    },
+    "wishlist": {
+      "lead": "Uložené konfigurace zůstávají v tomto zařízení.",
+      "emptyText": "Klepnutím na srdíčko na stránce produktu si konfiguraci uložíš.",
+      "shareItem": "Sdílet {name}",
+      "removeItem": "Odebrat {name} z oblíbených"
+    },
+    "success": {
+      "hit": "Desítka"
+    },
+    "footer": {
+      "claim": "Krabičky na náboje pro tvou ráži – tištěné na objednávku, v tvých barvách.",
+      "shop": "Obchod",
+      "shopNav": "Navigace obchodu",
+      "legal": "Právní informace",
+      "legalNav": "Právní informace",
+      "vat": "Drobný podnikatel podle § 19 UStG"
+    }
   }
 }

@@ -81,9 +81,9 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    // Dark is the primary brand theme; stored in localStorage, System selectable
-    preference: 'dark',
-    fallback: 'dark',
+    // Shop follows the OS setting by default; manual choice stored in localStorage
+    preference: 'system',
+    fallback: 'light',
     dataValue: 'theme',
     classSuffix: '',
     storageKey: 'print-shop-color-mode',
@@ -109,11 +109,14 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: '3D Print Shop',
+      title: 'kaliberbox.de',
       htmlAttrs: { lang: 'de' },
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Individuell konfigurierbare 3D-Druck-Artikel' },
+        {
+          name: 'description',
+          content: 'Patronenboxen für dein Kaliber – in deinen Farben gedruckt',
+        },
       ],
     },
   },

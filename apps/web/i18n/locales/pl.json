@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Start",
-    "products": "Produkty",
-    "upload": "Twój model",
     "cart": "Koszyk",
     "support": "Pomoc"
   },
-  "hero": {
-    "eyebrow": "Druk 3D z Berlina",
-    "title": "Twoje pomysły. Wydrukowane w Twoich kolorach.",
-    "subtitle": "Skonfiguruj gotowe projekty w ulubionych kolorach — albo prześlij własny model 3D i otrzymaj indywidualną wycenę.",
-    "ctaProducts": "Zobacz produkty",
-    "ctaUpload": "Prześlij model"
-  },
-  "stats": {
-    "printed": "wydrukowanych części",
-    "colors": "kolorów",
-    "hours": "godzin druku"
-  },
-  "features": {
-    "title": "Jak to działa",
-    "configure": {
-      "title": "Konfiguruj",
-      "text": "Wybierz produkt i skomponuj kolory na żywo w 3D."
-    },
-    "print": {
-      "title": "Drukujemy",
-      "text": "Drukujemy na maszynach Bambu Lab z markowym filamentem."
-    },
-    "ship": {
-      "title": "Wysyłamy",
-      "text": "Dostawa w 3–5 dni roboczych, gratis od 150 €."
-    }
-  },
   "products": {
-    "title": "Produkty",
-    "all": "Wszystkie produkty",
+    "title": "Pudełka na naboje",
     "configure": "Konfiguruj kolory",
     "addToCart": "Do koszyka",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Dodano do koszyka",
     "manufacturingNotice": {
       "title": "Informacja o produkcji",
-      "imagesTitle": "Informacja o zdjęciach produktu",
-      "production": "Każde pudełko na amunicję jest wykonywane metodą druku 3D. Delikatne linie warstw lub minimalne różnice powierzchni wynikają z procesu produkcji i są typowe dla wytwarzania addytywnego. Nie stanowią wady i nie mają wpływu na funkcję, stabilność ani trwałość.",
-      "ammunition": "Amunicja pokazana na zdjęciach produktu służy wyłącznie do celów ilustracyjnych i nie jest częścią oferty."
+      "production": "Każde pudełko na amunicję jest wykonywane metodą druku 3D. Delikatne linie warstw lub minimalne różnice powierzchni wynikają z procesu produkcji i są typowe dla wytwarzania addytywnego. Nie stanowią wady i nie mają wpływu na funkcję, stabilność ani trwałość."
     },
     "viewer": {
-      "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć",
-      "fallback": "Podgląd 3D"
+      "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Zwrócone"
     }
   },
-  "upload": {
-    "title": "Wydrukuj własny model",
-    "subtitle": "Prześlij plik 3MF lub STL (maks. 50 MB). Sprawdzimy go i wyślemy indywidualną wycenę.",
-    "dropzone": "Przeciągnij pliki tutaj lub kliknij",
-    "accepted": "Dozwolone: .stl, .3mf · maks. 50 MB",
-    "name": "Imię i nazwisko",
-    "description": "Opis (materiał, kolor, ilość, zastosowanie …)",
-    "quantity": "Ilość sztuk",
-    "termsAcceptance": "Akceptuję",
-    "termsAnd": "oraz",
-    "termsContent": "Potwierdzam, że mam niezbędne prawa do przesłanego modelu, nie będę przesyłać treści bezprawnych ani naruszających prawa osób trzecich oraz rozumiem, że pliki nie trafią do produkcji przed sprawdzeniem oferty.",
-    "termsVersion": "Wersja: {version}.",
-    "submit": "Wyślij zapytanie",
-    "successTitle": "Zapytanie otrzymane!",
-    "successText": "Sprawdzimy Twój model i odezwiemy się z wyceną e-mailem.",
-    "steps": {
-      "upload": "Przesyłanie",
-      "review": "Weryfikacja",
-      "quote": "Wycena",
-      "payment": "Płatność",
-      "production": "Produkcja"
-    }
-  },
   "quote": {
     "title": "Twoja wycena",
     "price": "Cena ofertowa",
@@ -196,8 +140,7 @@
     "imprint": "Impressum",
     "privacy": "Prywatność",
     "terms": "Regulamin",
-    "withdrawal": "Odstąpienie",
-    "claim": "Druk 3D, made in Berlin."
+    "withdrawal": "Odstąpienie"
   },
   "legal": {
     "imprintTitle": "Impressum",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Indywidualny druk 3D w Twoich kolorach",
-      "description": "Konfigurowalne produkty z druku 3D z podglądem kolorów na żywo, wgraj własne modele i otrzymaj wycenę. Darmowa dostawa od 150 €."
+      "title": "kaliberbox.de — Pudełka na naboje do Twojego kalibru, w Twoich kolorach",
+      "description": "Dopasowane pudełka na naboje do 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win i 7,62×39 — na 50 lub 100 naboi, kolor pudełka i napisu do wyboru. Darmowa wysyłka od 150 €."
     },
     "products": {
-      "description": "Wszystkie produkty z druku 3D — kolory w pełni konfigurowalne z podglądem 3D w przeglądarce."
+      "description": "Wszystkie pudełka na naboje według kalibru — na 50 i 100 naboi, kolory do wyboru, drukowane na zamówienie."
     },
     "cart": {
       "title": "Koszyk",
       "description": "Twój koszyk w 3D Print Shop — dostawa 6,99 €, darmowa od 150 €."
-    },
-    "upload": {
-      "title": "Wgraj własny model",
-      "description": "Wgraj plik STL lub 3MF i otrzymaj indywidualną wycenę druku 3D."
     },
     "support": {
       "title": "Pomoc",
@@ -413,5 +352,172 @@
     "count": "Opinie: {count}",
     "ratingLabel": "{rating} na 5 gwiazdek",
     "photoAlt": "Zdjęcie z opinii od {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Przejdź do treści"
+    },
+    "nav": {
+      "main": "Nawigacja główna",
+      "menu": "Menu",
+      "openMenu": "Otwórz menu",
+      "closeMenu": "Zamknij menu",
+      "homeLabel": "kaliberbox.de – strona główna",
+      "boxes": "Pudełka na naboje",
+      "wishlist": "Lista życzeń",
+      "cartWithCount": "Koszyk, liczba produktów: {count}",
+      "language": "Język",
+      "languageCurrent": "Język: {language}",
+      "theme": "Wygląd",
+      "themes": {
+        "light": "Jasny",
+        "dark": "Ciemny",
+        "system": "Systemowy"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Broń krótka",
+      "RIFLE": "Broń długa",
+      "RIMFIRE": "Bocznego zapłonu"
+    },
+    "home": {
+      "title": "Jaki kaliber?",
+      "lead": "Dopasowane pudełka na naboje, drukowane w Twoich kolorach. Wybierz kaliber – resztą zajmiemy się my.",
+      "pickLegend": "Wybierz kaliber",
+      "cta": "Pudełka do {caliber}",
+      "ctaAll": "Wszystkie pudełka",
+      "howTitle": "Jak pudełko trafia do Ciebie",
+      "steps": {
+        "caliber": {
+          "title": "Kaliber i rozmiar",
+          "text": "Każde pudełko jest zaprojektowane dla jednego kalibru – w wersji na 50 lub 100 naboi."
+        },
+        "colors": {
+          "title": "Twoje kolory",
+          "text": "Wybierz kolor pudełka i napisu z naszych filamentów. Podgląd od razu pokazuje efekt."
+        },
+        "print": {
+          "title": "Druk na zamówienie",
+          "text": "Drukujemy pudełko po otrzymaniu zamówienia i wysyłamy je na Twój adres."
+        }
+      },
+      "boxesTitle": "Wszystkie kalibry",
+      "boxesAll": "Zobacz wszystkie",
+      "gift": {
+        "title": "Prezent, który pasuje.",
+        "text": "Dla strzelców sportowych i myśliwych, którzy mają już wszystko – oprócz porządku w szufladzie z amunicją.",
+        "tips": {
+          "ask": "Wystarczy znać kaliber – jest na każdym opakowaniu naboi.",
+          "box": "50 czy 100 naboi? To też widać na opakowaniu.",
+          "note": "Zaznacz w kasie „To prezent” – odnotujemy to przy zamówieniu."
+        }
+      }
+    },
+    "list": {
+      "lead": "Jedno pudełko na kaliber, w wersji na 50 i 100 naboi.",
+      "titleFor": "Pudełka na naboje {caliber}",
+      "filterLegend": "Filtruj według kalibru",
+      "allCalibers": "Wszystkie kalibry",
+      "searchLabel": "Szukaj",
+      "count": "Liczba pudełek: {count}",
+      "reset": "Wyczyść filtry"
+    },
+    "caliberMissing": {
+      "title": "Brakuje Twojego kalibru?",
+      "text": "Napisz nam, do jakiego kalibru potrzebujesz pudełka. Zbieramy prośby i na ich podstawie rozszerzamy ofertę.",
+      "cta": "Zaproponuj kaliber",
+      "link": "Zaproponuj kaliber",
+      "subject": "Prośba o kaliber: {caliber}"
+    },
+    "product": {
+      "kind": "Pudełko na naboje",
+      "fromPrice": "od {price}",
+      "sizesShort": "{sizes} naboi",
+      "rounds": "{count} naboi",
+      "sizeLegend": "Rozmiar",
+      "priceNote": "Cena końcowa, plus wysyłka",
+      "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
+      "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
+      "drawingCaption": "Schemat, nie w skali",
+      "drawingSibling": "inny rozmiar",
+      "contentsTitle": "Zawartość",
+      "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty."
+    },
+    "configurator": {
+      "noColor": "Nie wybrano koloru"
+    },
+    "quantity": {
+      "decrease": "Zmniejsz ilość",
+      "increase": "Zwiększ ilość"
+    },
+    "legalNotice": {
+      "title": "Uwaga dotycząca przechowywania",
+      "text": "Pudełka służą do porządkowania i sortowania. Nie zastępują zamykanego pojemnika ani sejfu na broń, których § 36 niemieckiej ustawy o broni (WaffG) wymaga do przechowywania amunicji.",
+      "short": "Dla porządku w sejfie – nie zastępuje przechowywania wymaganego przez § 36 WaffG."
+    },
+    "voucher": {
+      "label": "Kod rabatowy"
+    },
+    "totals": {
+      "vatNote": "Zgodnie z § 19 UStG nie naliczamy podatku VAT."
+    },
+    "form": {
+      "optional": "opcjonalnie"
+    },
+    "cart": {
+      "emptyText": "Wybierz kaliber i skonfiguruj swoje pudełko.",
+      "itemsLabel": "Produkty w koszyku ({count})",
+      "unitPrice": "{price} za sztukę",
+      "editItem": "Edytuj {name}",
+      "removeItem": "Usuń {name}",
+      "continue": "Kontynuuj zakupy"
+    },
+    "checkout": {
+      "contactTitle": "Kontakt",
+      "addressTitle": "Adres dostawy",
+      "emailHint": "Do potwierdzenia zamówienia i informacji o wysyłce.",
+      "phone": "Telefon",
+      "company": "Firma",
+      "note": "Uwagi do zamówienia",
+      "gift": "To prezent",
+      "giftHint": "Odnotujemy to przy zamówieniu.",
+      "showSummary": "Pokaż podsumowanie",
+      "hideSummary": "Ukryj podsumowanie",
+      "legal": "Składając zamówienie, akceptujesz nasz {terms}. Informacje o prawie odstąpienia znajdziesz w {withdrawal}, o ochronie danych w {privacy}.",
+      "withdrawalLink": "pouczeniu o odstąpieniu",
+      "payHints": {
+        "stripe": "Bezpieczna płatność przez Stripe, np. kartą kredytową.",
+        "bank_transfer": "Dane do przelewu otrzymasz po złożeniu zamówienia.",
+        "bitcoin": "Płatność na adres Bitcoin po złożeniu zamówienia."
+      },
+      "errors": {
+        "summary": "Sprawdź oznaczone pola ({count}).",
+        "email": "Podaj adres e-mail.",
+        "emailFormat": "Podaj prawidłowy adres e-mail, np. imie{'@'}przyklad.pl.",
+        "firstName": "Podaj imię.",
+        "lastName": "Podaj nazwisko.",
+        "street": "Podaj ulicę i numer domu.",
+        "zip": "Podaj kod pocztowy.",
+        "zipFormat": "Kod pocztowy musi mieć od 3 do 12 znaków.",
+        "city": "Podaj miejscowość."
+      }
+    },
+    "wishlist": {
+      "lead": "Zapisane konfiguracje pozostają na tym urządzeniu.",
+      "emptyText": "Stuknij serce na stronie produktu, aby zapisać konfigurację.",
+      "shareItem": "Udostępnij {name}",
+      "removeItem": "Usuń {name} z listy życzeń"
+    },
+    "success": {
+      "hit": "Dziesiątka"
+    },
+    "footer": {
+      "claim": "Pudełka na naboje do Twojego kalibru – drukowane na zamówienie, w Twoich kolorach.",
+      "shop": "Sklep",
+      "shopNav": "Nawigacja sklepu",
+      "legal": "Informacje prawne",
+      "legalNav": "Informacje prawne",
+      "vat": "Mały przedsiębiorca zgodnie z § 19 UStG"
+    }
   }
 }

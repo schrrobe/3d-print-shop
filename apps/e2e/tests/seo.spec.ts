@@ -21,7 +21,7 @@ test.describe('seo & social previews', () => {
     expect(html).toContain('rel="canonical"')
     expect(html).toContain('hreflang="x-default"')
     expect(html).toContain('hreflang="cs"')
-    expect(html).toMatch(/<title>3D Print Shop — [^<]+<\/title>/)
+    expect(html).toMatch(/<title>kaliberbox\.de — [^<]+<\/title>/)
     expect(html).toContain('application/ld+json')
   })
 
@@ -36,9 +36,7 @@ test.describe('seo & social previews', () => {
     expect(html).toContain('data-testid="product-breadcrumbs"')
     expect(html).toContain('"@type":"BreadcrumbList"')
     expect(html).toContain('"item":"http://localhost:3000/products/patronenbox-9mm-luger-50"')
-    expect(html).toContain(
-      '"image":["http://localhost:3000/images/products/kaliberbox-50.svg"',
-    )
+    expect(html).toContain('"image":["http://localhost:3000/images/products/kaliberbox-50.svg"')
     // SVG product images must not leak into og:image (crawlers cannot render them)
     expect(html).not.toMatch(/og:image" content="[^"]*\.svg/)
     // english variant carries its own translation and locale
@@ -48,10 +46,10 @@ test.describe('seo & social previews', () => {
 
   test('static pages have unique titles and descriptions', async ({ request }) => {
     const cart = await ssrHead(request, '/cart')
-    expect(cart.html).toContain('<title>Warenkorb · 3D Print Shop</title>')
-    const upload = await ssrHead(request, '/upload')
-    expect(upload.html).toMatch(/<title>[^<]+ · 3D Print Shop<\/title>/)
-    expect(upload.html).not.toContain('<title>Warenkorb')
+    expect(cart.html).toContain('<title>Warenkorb · kaliberbox.de</title>')
+    const products = await ssrHead(request, '/products')
+    expect(products.html).toMatch(/<title>Patronenboxen · kaliberbox\.de<\/title>/)
+    expect(products.html).not.toContain('<title>Warenkorb')
     expect(cart.html).toContain('name="description" content="Dein Warenkorb')
   })
 
