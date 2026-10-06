@@ -170,22 +170,14 @@ const orderColumns = [
       <PsTextarea v-model="form.note" label="Interne Notiz" :rows="3" />
 
       <div class="flex gap-md">
-        <PsButton type="submit" :disabled="submitting" data-testid="save-voucher"
-          >Speichern</PsButton
-        >
+        <PsButton type="submit" :disabled="submitting" data-testid="save-voucher">Speichern</PsButton>
         <NuxtLink to="/admin/vouchers"><PsButton variant="ghost">Zurück</PsButton></NuxtLink>
       </div>
     </form>
 
     <section>
-      <h3 class="mb-md text-label-medium">
-        Letzte Bestellungen ({{ data.voucher._count.orders }})
-      </h3>
-      <PsAdminTable
-        :columns="orderColumns"
-        :rows="data.voucher.orders"
-        empty="Noch keine Einlösungen"
-      >
+      <h3 class="mb-md text-label-medium">Letzte Bestellungen ({{ data.voucher._count.orders }})</h3>
+      <PsAdminTable :columns="orderColumns" :rows="data.voucher.orders" empty="Noch keine Einlösungen">
         <template #cell-orderNumber="{ row }">
           <NuxtLink
             :to="`/admin/orders/${(row as unknown as VoucherOrder).id}`"

@@ -19,12 +19,9 @@ export interface PublicReview {
 
 export function useReviews() {
   async function eligibility(orderNumber: string, token: string) {
-    return $fetch<{ eligible: boolean; items: ReviewEligibilityItem[] }>(
-      '/api/reviews/eligibility',
-      {
-        query: { orderNumber, token },
-      },
-    )
+    return $fetch<{ eligible: boolean; items: ReviewEligibilityItem[] }>('/api/reviews/eligibility', {
+      query: { orderNumber, token },
+    })
   }
 
   async function submit(input: {

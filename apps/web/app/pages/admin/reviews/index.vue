@@ -51,8 +51,7 @@ const columns = [
         <option v-for="s in REVIEW_STATUSES" :key="s" :value="s">{{ s }}</option>
       </select>
       <label class="flex items-center gap-sm text-body-regular">
-        <input v-model="flaggedOnly" type="checkbox" data-testid="review-flagged-filter" /> Nur
-        gemeldete
+        <input v-model="flaggedOnly" type="checkbox" data-testid="review-flagged-filter" /> Nur gemeldete
       </label>
     </div>
 
@@ -60,11 +59,7 @@ const columns = [
       <template #cell-rating="{ row }">
         <div class="flex items-center gap-sm">
           <PsRatingStars :rating="(row as unknown as AdminReview).rating" />
-          <span
-            v-if="(row as unknown as AdminReview).flaggedAbuse"
-            class="text-caption text-red-500"
-            >⚑</span
-          >
+          <span v-if="(row as unknown as AdminReview).flaggedAbuse" class="text-caption text-red-500">⚑</span>
         </div>
       </template>
       <template #cell-product="{ row }">

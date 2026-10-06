@@ -47,11 +47,7 @@ interface ComplaintDetail {
   items: {
     quantity: number
     note: string | null
-    orderItem: {
-      name: string
-      quantity: number
-      product: { slug: string; customMade: boolean } | null
-    }
+    orderItem: { name: string; quantity: number; product: { slug: string; customMade: boolean } | null }
   }[]
   attachments: { id: string; originalName: string; uploadedBy: string; createdAt: string }[]
   decisions: Decision[]
@@ -144,9 +140,7 @@ async function submitDecision() {
           resolution: resolution.value,
           note: decisionNote.value || undefined,
           refundAmountCents:
-            resolution.value === 'refund' && refundAmount.value
-              ? Math.round(refundAmount.value * 100)
-              : undefined,
+            resolution.value === 'refund' && refundAmount.value ? Math.round(refundAmount.value * 100) : undefined,
           voucherCode: resolution.value === 'voucher' ? voucherCode.value || undefined : undefined,
         },
         credentials: 'include',
@@ -174,18 +168,14 @@ function createTicket() {
     <div class="flex flex-wrap items-center gap-md">
       <h2 class="text-heading-small">{{ complaint.complaintNumber }}</h2>
       <PsComplaintStatusBadge :status="complaint.status" data-testid="complaint-status" />
-      <span class="text-caption text-secondary">{{
-        reasonLabels[complaint.reason] ?? complaint.reason
-      }}</span>
+      <span class="text-caption text-secondary">{{ reasonLabels[complaint.reason] ?? complaint.reason }}</span>
     </div>
 
     <div class="grid gap-lg lg:grid-cols-[2fr_1fr]">
       <div class="flex flex-col gap-lg">
         <PsCard>
           <h3 class="text-label-medium">Beschreibung</h3>
-          <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">
-            {{ complaint.description }}
-          </p>
+          <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">{{ complaint.description }}</p>
         </PsCard>
 
         <PsCard>
@@ -218,23 +208,14 @@ function createTicket() {
         <PsCard v-if="complaint.decisions.length" data-testid="complaint-decisions">
           <h3 class="text-label-medium">Entscheidungen</h3>
           <ul class="mt-sm flex flex-col gap-sm text-body-regular">
-            <li
-              v-for="d in complaint.decisions"
-              :key="d.id"
-              class="rounded-card border border-subtle p-md"
-            >
+            <li v-for="d in complaint.decisions" :key="d.id" class="rounded-card border border-subtle p-md">
               <span class="text-brand">{{ resolutionLabels[d.resolution] ?? d.resolution }}</span>
-              <span v-if="d.refundAmountCents">
-                · {{ (d.refundAmountCents / 100).toFixed(2) }} €</span
-              >
+              <span v-if="d.refundAmountCents"> · {{ (d.refundAmountCents / 100).toFixed(2) }} €</span>
               <span v-if="d.voucherCode"> · {{ d.voucherCode }}</span>
-              <span v-if="d.reprintJob" class="text-caption text-secondary">
-                · Ersatzdruck-Job angelegt</span
-              >
+              <span v-if="d.reprintJob" class="text-caption text-secondary"> · Ersatzdruck-Job angelegt</span>
               <p v-if="d.note" class="text-caption text-secondary">{{ d.note }}</p>
               <p class="text-caption text-secondary">
-                {{ d.decidedBy?.name ?? 'System' }} ·
-                {{ new Date(d.decidedAt).toLocaleString('de') }}
+                {{ d.decidedBy?.name ?? 'System' }} · {{ new Date(d.decidedAt).toLocaleString('de') }}
               </p>
             </li>
           </ul>
@@ -244,17 +225,11 @@ function createTicket() {
       <div class="flex flex-col gap-lg">
         <PsCard>
           <h3 class="text-label-medium">Kunde & Bezug</h3>
-          <p class="mt-md text-body-regular">
-            {{ complaint.order.firstName }} {{ complaint.order.lastName }}
-          </p>
+          <p class="mt-md text-body-regular">{{ complaint.order.firstName }} {{ complaint.order.lastName }}</p>
           <p class="text-body-regular text-secondary">{{ complaint.order.email }}</p>
           <p class="mt-md text-body-regular">
             Bestellung:
-            <NuxtLink
-              :to="`/admin/orders/${complaint.order.id}`"
-              class="text-brand hover:underline"
-              data-testid="complaint-order-link"
-            >
+            <NuxtLink :to="`/admin/orders/${complaint.order.id}`" class="text-brand hover:underline" data-testid="complaint-order-link">
               {{ complaint.order.orderNumber }}
             </NuxtLink>
           </p>
@@ -344,9 +319,7 @@ function createTicket() {
           />
         </label>
         <PsTextarea v-model="decisionNote" label="Notiz (optional)" name="decisionNote" :rows="3" />
-        <PsButton data-testid="complaint-decision-submit" @click="submitDecision"
-          >Speichern</PsButton
-        >
+        <PsButton data-testid="complaint-decision-submit" @click="submitDecision">Speichern</PsButton>
       </div>
     </PsDialog>
   </div>

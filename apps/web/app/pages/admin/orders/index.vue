@@ -39,20 +39,7 @@ const columns = [
       data-testid="order-status-filter"
     >
       <option value="">Alle Status</option>
-      <option
-        v-for="s in [
-          'pending',
-          'awaiting_payment',
-          'awaiting_bank_transfer',
-          'paid',
-          'in_production',
-          'ready_to_ship',
-          'shipped',
-          'completed',
-        ]"
-        :key="s"
-        :value="s"
-      >
+      <option v-for="s in ['pending', 'awaiting_payment', 'awaiting_bank_transfer', 'paid', 'in_production', 'ready_to_ship', 'shipped', 'completed']" :key="s" :value="s">
         {{ s }}
       </option>
     </select>

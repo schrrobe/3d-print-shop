@@ -48,41 +48,19 @@ async function create() {
 
 <template>
   <div class="max-w-[36rem]" data-testid="admin-voucher-new">
-    <p
-      v-if="!auth.can('vouchers:write')"
-      class="text-body-regular text-secondary"
-      data-testid="voucher-no-access"
-    >
+    <p v-if="!auth.can('vouchers:write')" class="text-body-regular text-secondary" data-testid="voucher-no-access">
       Keine Berechtigung zum Anlegen von Gutscheinen.
     </p>
     <form v-else class="flex flex-col gap-md" data-testid="voucher-form" @submit.prevent="create">
-      <PsInput
-        v-model="form.code"
-        label="Code"
-        required
-        placeholder="SOMMER10"
-        data-testid="voucher-code"
-      />
+      <PsInput v-model="form.code" label="Code" required placeholder="SOMMER10" data-testid="voucher-code" />
 
       <fieldset class="flex gap-lg" role="radiogroup" aria-label="Typ">
         <label class="flex cursor-pointer items-center gap-sm">
-          <input
-            v-model="form.type"
-            type="radio"
-            value="percent"
-            name="type"
-            data-testid="type-percent"
-          />
+          <input v-model="form.type" type="radio" value="percent" name="type" data-testid="type-percent" />
           <span>Prozent</span>
         </label>
         <label class="flex cursor-pointer items-center gap-sm">
-          <input
-            v-model="form.type"
-            type="radio"
-            value="fixed"
-            name="type"
-            data-testid="type-fixed"
-          />
+          <input v-model="form.type" type="radio" value="fixed" name="type" data-testid="type-fixed" />
           <span>Festbetrag</span>
         </label>
       </fieldset>

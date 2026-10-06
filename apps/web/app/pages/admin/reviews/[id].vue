@@ -57,8 +57,7 @@ const { run } = useAdminAction({ refresh })
 
 function moderate(patch: { status?: ReviewStatus; internalNote?: string; flaggedAbuse?: boolean }) {
   return run(
-    () =>
-      $fetch(`/api/admin/reviews/${id}`, { method: 'PATCH', body: patch, credentials: 'include' }),
+    () => $fetch(`/api/admin/reviews/${id}`, { method: 'PATCH', body: patch, credentials: 'include' }),
     { success: 'Bewertung aktualisiert', error: 'Fehler' },
   )
 }
@@ -83,9 +82,7 @@ const testIdForStatus: Record<ReviewStatus, string> = {
       <div class="flex flex-col gap-lg">
         <PsCard>
           <h3 v-if="review.title" class="text-label-medium">{{ review.title }}</h3>
-          <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">
-            {{ review.body }}
-          </p>
+          <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">{{ review.body }}</p>
           <p class="mt-md text-caption text-secondary">
             {{ review.displayName }} · {{ new Date(review.createdAt).toLocaleDateString('de') }} ·
             {{ review.product.slug }} ({{ review.orderItem.name }})
@@ -134,17 +131,8 @@ const testIdForStatus: Record<ReviewStatus, string> = {
 
         <PsCard>
           <h3 class="text-label-medium">Interne Notiz</h3>
-          <PsTextarea
-            v-model="note"
-            label=""
-            name="internalNote"
-            :rows="4"
-            class="mt-sm"
-            data-testid="review-note"
-          />
-          <PsButton size="sm" class="mt-sm" @click="moderate({ internalNote: note })"
-            >Speichern</PsButton
-          >
+          <PsTextarea v-model="note" label="" name="internalNote" :rows="4" class="mt-sm" data-testid="review-note" />
+          <PsButton size="sm" class="mt-sm" @click="moderate({ internalNote: note })">Speichern</PsButton>
         </PsCard>
       </div>
     </div>

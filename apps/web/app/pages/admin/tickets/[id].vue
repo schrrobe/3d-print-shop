@@ -134,19 +134,8 @@ function update(patch: { priority?: string; category?: string; assignedToId?: st
         <PsCard v-if="auth.can('tickets:write') && ticket.status !== 'closed'">
           <h3 class="text-label-medium">Antworten</h3>
           <form class="mt-md flex flex-col gap-md" @submit.prevent="sendReply">
-            <PsTextarea
-              v-model="reply"
-              label="Antwort an den Kunden"
-              name="reply"
-              required
-              :rows="4"
-              data-testid="admin-ticket-reply"
-            />
-            <PsButton
-              type="submit"
-              :disabled="submitting || reply.trim().length === 0"
-              data-testid="admin-ticket-reply-submit"
-            >
+            <PsTextarea v-model="reply" label="Antwort an den Kunden" name="reply" required :rows="4" data-testid="admin-ticket-reply" />
+            <PsButton type="submit" :disabled="submitting || reply.trim().length === 0" data-testid="admin-ticket-reply-submit">
               Antwort senden
             </PsButton>
           </form>
@@ -164,11 +153,7 @@ function update(patch: { priority?: string; category?: string; assignedToId?: st
           </p>
           <p v-if="ticket.order" class="mt-md text-body-regular">
             Bestellung:
-            <NuxtLink
-              :to="`/admin/orders/${ticket.order.id}`"
-              class="text-brand hover:underline"
-              data-testid="ticket-order-link"
-            >
+            <NuxtLink :to="`/admin/orders/${ticket.order.id}`" class="text-brand hover:underline" data-testid="ticket-order-link">
               {{ ticket.order.orderNumber }}
             </NuxtLink>
           </p>

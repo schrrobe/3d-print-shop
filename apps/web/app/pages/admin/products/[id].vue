@@ -71,10 +71,7 @@ const CALIBER_GROUP_LABELS: Record<CaliberGroup, string> = {
   RIFLE: 'Langwaffe',
   RIMFIRE: 'Randfeuer',
 }
-const caliberGroupOptions = CALIBER_GROUPS.map((g) => ({
-  value: g,
-  label: CALIBER_GROUP_LABELS[g],
-}))
+const caliberGroupOptions = CALIBER_GROUPS.map((g) => ({ value: g, label: CALIBER_GROUP_LABELS[g] }))
 const calibersByGroup = computed(() =>
   CALIBER_GROUPS.map((group) => ({
     group,
@@ -723,10 +720,7 @@ async function deleteProduct() {
       <p class="text-body-regular">Dieses Foto wirklich entfernen? Die Datei wird gelöscht.</p>
       <div class="mt-lg flex justify-end gap-md">
         <PsButton variant="ghost" @click="pendingDeleteAssetId = null">Abbrechen</PsButton>
-        <PsButton
-          data-testid="confirm-delete-photo"
-          :disabled="imageDeletePending"
-          @click="deleteAsset"
+        <PsButton data-testid="confirm-delete-photo" :disabled="imageDeletePending" @click="deleteAsset"
           >Entfernen</PsButton
         >
       </div>

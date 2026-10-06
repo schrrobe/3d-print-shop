@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  PsAdminTable,
-  PsBadge,
-  PsButton,
-  PsDialog,
-  PsInput,
-  PsPrice,
-  PsTextarea,
-} from '@print-shop/ui'
+import { PsAdminTable, PsBadge, PsButton, PsDialog, PsInput, PsPrice, PsTextarea } from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -119,12 +111,7 @@ const rows = computed(() =>
     <PsDialog v-model:open="dialogOpen" title="Neues Produkt">
       <form class="flex flex-col gap-md" data-testid="product-form" @submit.prevent="createProduct">
         <PsInput v-model="form.name" label="Name (de/en)" required />
-        <PsInput
-          v-model="form.slug"
-          label="Slug (kebab-case)"
-          required
-          placeholder="mein-produkt"
-        />
+        <PsInput v-model="form.slug" label="Slug (kebab-case)" required placeholder="mein-produkt" />
         <PsInput v-model="form.priceEuros" label="Preis (EUR)" required placeholder="24,99" />
         <PsTextarea v-model="form.description" label="Beschreibung" required :rows="3" />
         <PsButton type="submit" data-testid="save-product">Anlegen</PsButton>

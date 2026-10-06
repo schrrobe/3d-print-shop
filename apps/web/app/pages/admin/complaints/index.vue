@@ -16,14 +16,11 @@ interface AdminComplaint {
 }
 
 const statusFilter = ref('')
-const { data, refresh } = await useFetch<{ complaints: AdminComplaint[] }>(
-  '/api/admin/complaints',
-  {
-    credentials: 'include',
-    server: false,
-    query: computed(() => (statusFilter.value ? { status: statusFilter.value } : {})),
-  },
-)
+const { data, refresh } = await useFetch<{ complaints: AdminComplaint[] }>('/api/admin/complaints', {
+  credentials: 'include',
+  server: false,
+  query: computed(() => (statusFilter.value ? { status: statusFilter.value } : {})),
+})
 watch(statusFilter, () => refresh())
 
 const reasonLabels: Record<string, string> = {
@@ -60,16 +57,11 @@ const columns = [
       <template #cell-order="{ row }">
         <div class="flex flex-col">
           <span>{{ (row as unknown as AdminComplaint).order.orderNumber }}</span>
-          <span class="text-caption text-secondary">{{
-            (row as unknown as AdminComplaint).order.email
-          }}</span>
+          <span class="text-caption text-secondary">{{ (row as unknown as AdminComplaint).order.email }}</span>
         </div>
       </template>
       <template #cell-reason="{ row }">
-        {{
-          reasonLabels[(row as unknown as AdminComplaint).reason] ??
-          (row as unknown as AdminComplaint).reason
-        }}
+        {{ reasonLabels[(row as unknown as AdminComplaint).reason] ?? (row as unknown as AdminComplaint).reason }}
       </template>
       <template #cell-status="{ row }">
         <PsComplaintStatusBadge :status="(row as unknown as AdminComplaint).status" />

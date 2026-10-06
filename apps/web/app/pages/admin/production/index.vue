@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  PsButton,
-  PsCard,
-  PsDialog,
-  PsInput,
-  PsProductionQueueItem,
-  PsSelect,
-} from '@print-shop/ui'
+import { PsButton, PsCard, PsDialog, PsInput, PsProductionQueueItem, PsSelect } from '@print-shop/ui'
 import { PRODUCTION_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { ProductionStatus } from '@print-shop/types'
 
@@ -94,21 +87,13 @@ function etaLabel(job: QueueJob): string {
 
 <template>
   <div class="flex flex-col gap-md" data-testid="production-queue">
-    <PsCard
-      v-for="job in data?.jobs ?? []"
-      :key="job.id"
-      :padded="true"
-      data-testid="production-job"
-    >
+    <PsCard v-for="job in data?.jobs ?? []" :key="job.id" :padded="true" data-testid="production-job">
       <PsProductionQueueItem
         :order-number="job.order.orderNumber"
         :item-name="job.orderItem ? `${job.orderItem.quantity}× ${job.orderItem.name}` : '—'"
         :status="job.status"
         :printer-name="job.printer?.name"
-        :duration-label="
-          etaLabel(job) ||
-          (job.printDurationMinutes ? `${job.printDurationMinutes} min` : undefined)
-        "
+        :duration-label="etaLabel(job) || (job.printDurationMinutes ? `${job.printDurationMinutes} min` : undefined)"
       >
         <template #actions>
           <template v-if="auth.can('print-jobs:write')">
@@ -148,11 +133,7 @@ function etaLabel(job: QueueJob): string {
           :options="(printersData?.printers ?? []).map((p) => ({ value: p.id, label: p.name }))"
         />
         <PsInput v-model="assignDuration" label="Druckzeit (Minuten)" type="number" required />
-        <PsInput
-          v-model="spoolNotes"
-          label="AMS-/Spulenbelegung"
-          placeholder="Slot 1: Brand Green …"
-        />
+        <PsInput v-model="spoolNotes" label="AMS-/Spulenbelegung" placeholder="Slot 1: Brand Green …" />
         <PsButton type="submit" data-testid="confirm-assign">Zuweisen</PsButton>
       </form>
     </PsDialog>

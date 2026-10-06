@@ -121,9 +121,7 @@ function runScheduler() {
           role="tab"
           :aria-selected="viewMode === 'list'"
           class="cursor-pointer rounded-l-card px-md py-sm text-caption transition-colors"
-          :class="
-            viewMode === 'list' ? 'bg-brand text-on-brand' : 'text-secondary hover:text-primary'
-          "
+          :class="viewMode === 'list' ? 'bg-brand text-on-brand' : 'text-secondary hover:text-primary'"
           data-testid="social-view-list"
           @click="viewMode = 'list'"
         >
@@ -134,9 +132,7 @@ function runScheduler() {
           role="tab"
           :aria-selected="viewMode === 'calendar'"
           class="cursor-pointer rounded-r-card px-md py-sm text-caption transition-colors"
-          :class="
-            viewMode === 'calendar' ? 'bg-brand text-on-brand' : 'text-secondary hover:text-primary'
-          "
+          :class="viewMode === 'calendar' ? 'bg-brand text-on-brand' : 'text-secondary hover:text-primary'"
           data-testid="social-view-calendar"
           @click="viewMode = 'calendar'"
         >
@@ -205,19 +201,10 @@ function runScheduler() {
       description="Der Post wird endgültig entfernt. Veröffentlichte Posts können nicht gelöscht werden."
     >
       <div class="flex justify-end gap-sm">
-        <PsButton
-          variant="ghost"
-          data-testid="social-delete-cancel"
-          @click="deleteDialogOpen = false"
-        >
+        <PsButton variant="ghost" data-testid="social-delete-cancel" @click="deleteDialogOpen = false">
           Abbrechen
         </PsButton>
-        <PsButton
-          variant="danger"
-          :disabled="busy"
-          data-testid="social-delete-confirm"
-          @click="deletePost"
-        >
+        <PsButton variant="danger" :disabled="busy" data-testid="social-delete-confirm" @click="deletePost">
           Löschen
         </PsButton>
       </div>
