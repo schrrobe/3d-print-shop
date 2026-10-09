@@ -53,6 +53,10 @@ test.describe('filament & AMS', () => {
     }
     const shown = shopColors.colors.find((c) => c.id === target.id)
     expect(shown?.outOfStock).toBe(true)
+    // restore: Warm White is the seeded default label colour of every box
+    await admin.post(`/api/admin/filament/colors/${target.id}/availability`, {
+      data: { outOfStock: false },
+    })
     await admin.dispose()
     await ctx.dispose()
   })

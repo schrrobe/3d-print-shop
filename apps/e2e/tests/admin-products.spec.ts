@@ -91,7 +91,7 @@ test.describe('admin products', () => {
     // public shop shows the english translation on the en route and the new price
     await gotoHydrated(page, '/en/products/e2e-edit-produkt')
     await expect(page.getByTestId('product-name')).toHaveText('E2E Edited EN')
-    await expect(page.getByTestId('product-detail')).toContainText('12,50')
+    await expect(page.getByTestId('product-detail')).toContainText('€12.50')
   })
 
   test('configures a second color zone that shows up in the public configurator', async ({ page }) => {
