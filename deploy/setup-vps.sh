@@ -19,19 +19,25 @@ write_env() { # <env> <web-port> <api-port> <node-env> <site-url> <api-url>
   local dir=/opt/kaliberbox/$1
   install -d -o kaliberbox -g kaliberbox -m 750 "$dir"
   [[ -e $dir/.env ]] && return
+  local db_pw jwt
+  db_pw=$(openssl rand -hex 24)
+  jwt=$(openssl rand -hex 32)
+  # Printed once, at creation, so the operator can store them.
+  echo "$1 POSTGRES_PASSWORD=$db_pw"
+  echo "$1 JWT_SECRET=$jwt"
   install -o kaliberbox -g kaliberbox -m 600 /dev/stdin "$dir/.env" <<EOF
 # Compose stack
 STACK_ENV=$1
 IMAGE_TAG=none
 WEB_PORT=$2
 API_PORT_PUBLISH=$3
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
+POSTGRES_PASSWORD=$db_pw
 
 # API (see apps/api/src/env.ts and .env.example for every option)
 NODE_ENV=$4
 WEB_URL=$5
 API_URL=$6
-JWT_SECRET=$(openssl rand -hex 32)
+JWT_SECRET=$jwt
 COOKIE_SECURE=true
 BITCOIN_ENABLED=false
 EOF
