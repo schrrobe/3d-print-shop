@@ -1,6 +1,7 @@
 # One compose project per environment (kaliberbox-prod, kaliberbox-dev) on the VPS.
 # Driven by /usr/local/bin/kaliberbox-deploy; values come from /opt/kaliberbox/<env>/.env (api) and web.env (web):
-#   STACK_ENV, IMAGE_TAG, WEB_PORT, API_PORT_PUBLISH, DB_PORT_PUBLISH, POSTGRES_PASSWORD, plus every app variable.
+#   STACK_ENV, API_TAG, WEB_TAG, WEB_PORT, API_PORT_PUBLISH, DB_PORT_PUBLISH, POSTGRES_PASSWORD,
+#   plus every app variable. API and web are released independently, hence two tags.
 # Ports bind 127.0.0.1 only — a bare port mapping would let Docker bypass ufw.
 name: kaliberbox-${STACK_ENV:?}
 
@@ -25,7 +26,7 @@ services:
       retries: 10
 
   api:
-    image: ghcr.io/schrrobe/kaliberbox-api:${IMAGE_TAG:?}
+    image: ghcr.io/schrrobe/kaliberbox-api:${API_TAG:?}
     container_name: kaliberbox-api-${STACK_ENV}
     restart: unless-stopped
     env_file: .env
@@ -53,7 +54,7 @@ services:
       start_period: 60s
 
   web:
-    image: ghcr.io/schrrobe/kaliberbox-web:${IMAGE_TAG}-${STACK_ENV}
+    image: ghcr.io/schrrobe/kaliberbox-web:${WEB_TAG:?}
     container_name: kaliberbox-web-${STACK_ENV}
     restart: unless-stopped
     # Not .env: the web process needs no secrets, only NUXT_PUBLIC_* runtime overrides.

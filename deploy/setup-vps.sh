@@ -33,7 +33,8 @@ create_env() {
   install -o kaliberbox -g kaliberbox -m 600 /dev/stdin "$dir/.env" <<EOF
 # Compose stack
 STACK_ENV=$1
-IMAGE_TAG=none
+API_TAG=none
+WEB_TAG=none
 WEB_PORT=$2
 API_PORT_PUBLISH=$3
 POSTGRES_PASSWORD=$db_pw
