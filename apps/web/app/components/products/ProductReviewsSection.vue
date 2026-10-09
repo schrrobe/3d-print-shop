@@ -25,21 +25,27 @@ const formattedReviews = computed(() =>
 </script>
 
 <template>
-  <section class="mx-auto mt-3xl max-w-[52rem]" data-testid="product-reviews">
-    <div class="flex flex-wrap items-center gap-md">
-      <h2 class="text-heading-small">{{ titleLabel }}</h2>
-      <div v-if="reviews.length > 0" class="flex items-center gap-sm">
+  <section
+    class="mt-16 max-w-[52rem] md:mt-24"
+    aria-labelledby="reviews-title"
+    data-testid="product-reviews"
+  >
+    <div class="flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-ink pb-3">
+      <h2 id="reviews-title" class="kb-heading text-[1.75rem] md:text-[2.25rem]">
+        {{ titleLabel }}
+      </h2>
+      <div v-if="reviews.length > 0" class="flex items-center gap-2 pb-1">
         <PsRatingStars :rating="averageRating ?? 0" :aria-label-text="ratingLabel(averageRating)" />
-        <span class="text-caption text-secondary">
+        <span class="kb-num text-sm text-ink-2">
           {{ countLabel }}
         </span>
       </div>
     </div>
 
-    <p v-if="reviews.length === 0" class="mt-md text-body-regular text-secondary">
+    <p v-if="reviews.length === 0" class="mt-4 text-ink-2">
       {{ emptyLabel }}
     </p>
-    <div v-else class="mt-lg flex flex-col gap-md">
+    <div v-else class="mt-6 flex flex-col gap-4">
       <PsReviewCard
         v-for="review in formattedReviews"
         :key="review.id"

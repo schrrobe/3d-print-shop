@@ -22,6 +22,10 @@ Rollen: admin, product_manager, production, shipping, support — Rechtematrix i
 **Katalog**: `Product` (+ `ProductTranslation` je Locale, `ProductAsset` [image | glb_preview |
 production_file], `ProductColorSlot` [max. 4 Zonen: zone_1_main … zone_4_text]), `Color`
 (globale Farbliste: Name, Hex, Material, Hersteller, aktiv, Lagerbestand, AMS-Slot).
+`Product.capacity` (Patronen pro Box, 50/100) und `Product.familyKey` (indiziert; gleiche
+Familie = 50/100-Varianten einer Kaliberbox). `Caliber` (slug, Anzeigename, `CaliberGroup`
+HANDGUN | RIFLE | RIMFIRE, sortOrder) ist m:n mit `Product` verknüpft. Der Demo-Seed legt
+6 Kaliber × 50/100 = 12 Patronenboxen an (`patronenbox-<kaliber>-<50|100>`, Platzhalterpreise).
 
 **Kauf**: `Cart`/`CartItem` (für spätere Server-Warenkörbe), `Order` (Gast-Zugriff via
 `accessToken`, Adresse flach, Beträge in Cents), `OrderItem` (Namens-/Preis-Snapshot).

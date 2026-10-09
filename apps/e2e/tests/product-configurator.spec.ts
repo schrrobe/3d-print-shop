@@ -2,22 +2,45 @@ import { expect, test } from '@playwright/test'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
-test.describe('3d configurator', () => {
-  test('renders the 3d viewer', async ({ page }) => {
-    await gotoHydrated(page, '/products/desk-organizer')
-    const viewer = page.getByTestId('model-viewer')
-    await expect(viewer).toBeVisible()
-    // GLB asset does not exist in the repo → fallback zone model renders
-    await expect(viewer).toHaveAttribute('data-fallback', 'true', { timeout: 15_000 })
-    await expect(viewer.locator('canvas')).toBeVisible()
+test.describe('box configurator', () => {
+  test('renders the live box drawing instead of a placeholder 3d model', async ({ page }) => {
+    await gotoHydrated(page, '/products/patronenbox-308-win-100')
+    const drawing = page.getByTestId('product-detail').getByTestId('box-drawing')
+    await expect(drawing).toBeVisible()
+    await expect(drawing).toHaveAttribute('data-capacity', '100')
+    // no GLB uploaded for seeded boxes → no 3d viewer
+    await expect(page.getByTestId('model-viewer')).toHaveCount(0)
+  })
+
+  test('size switch moves between the 50 and 100 round box and keeps the colours', async ({
+    page,
+  }) => {
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
+    await new ShopPage(page).acceptConsent()
+    const swatch = page
+      .getByTestId('color-picker')
+      .locator('[data-zone="zone_1_main"]')
+      .getByTestId('color-swatch')
+      .nth(2)
+    await swatch.click()
+    const chosen = await swatch.getAttribute('aria-label')
+    await page.getByTestId('size-switch').getByRole('link', { name: /100/ }).click()
+    await page.waitForURL(/patronenbox-9mm-luger-100/)
+    await expect(page.getByTestId('box-drawing').first()).toHaveAttribute('data-capacity', '100')
+    await expect(
+      page
+        .getByTestId('color-picker')
+        .locator('[data-zone="zone_1_main"]')
+        .getByLabel(chosen!, { exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   test('shows color zones with global colors', async ({ page }) => {
-    await gotoHydrated(page, '/products/desk-organizer')
+    await gotoHydrated(page, '/products/patronenbox-308-win-100')
     const picker = page.getByTestId('color-picker')
     await expect(picker).toBeVisible()
-    // desk organizer has all 4 zones
-    for (const zone of ['zone_1_main', 'zone_2_accent', 'zone_3_detail', 'zone_4_text']) {
+    // cartridge boxes have two zones: Box + Beschriftung
+    for (const zone of ['zone_1_main', 'zone_4_text']) {
       await expect(picker.locator(`[data-zone="${zone}"]`)).toBeVisible()
     }
     // one swatch per active global color (count via public api — other tests may add colors)
@@ -29,7 +52,7 @@ test.describe('3d configurator', () => {
   })
 
   test('selecting a color updates the selection state', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await new ShopPage(page).acceptConsent()
     const zone = page.getByTestId('color-picker').locator('[data-zone="zone_1_main"]')
     const swatch = zone.getByTestId('color-swatch').nth(3)
@@ -39,7 +62,7 @@ test.describe('3d configurator', () => {
 
   test('configured colors end up in the cart line', async ({ page }) => {
     const shop = new ShopPage(page)
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await shop.acceptConsent()
     await page
       .getByTestId('color-picker')

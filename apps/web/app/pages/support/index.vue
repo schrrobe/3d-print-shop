@@ -11,10 +11,17 @@ useSeo({
   description: () => t('seo.support.description'),
 })
 
+// "Kaliber nicht dabei?" links here with ?topic=caliber[&caliber=…] to prefill a wish ticket
+const route = useRoute()
+const caliberWish = route.query.topic === 'caliber'
 const form = reactive({
   name: '',
   email: '',
-  subject: '',
+  subject: caliberWish
+    ? t('shop.caliberMissing.subject', {
+        caliber: String(route.query.caliber ?? '').slice(0, 40),
+      }).trim()
+    : '',
   orderNumber: '',
   category: 'other',
   message: '',
@@ -81,7 +88,13 @@ async function submit() {
     >
       <div class="grid gap-md sm:grid-cols-2">
         <PsInput v-model="form.name" :label="t('support.name')" name="name" required />
-        <PsInput v-model="form.email" :label="t('support.email')" type="email" name="email" required />
+        <PsInput
+          v-model="form.email"
+          :label="t('support.email')"
+          type="email"
+          name="email"
+          required
+        />
       </div>
       <PsInput v-model="form.subject" :label="t('support.subject')" name="subject" required />
       <div class="flex flex-col gap-xs">
@@ -104,12 +117,28 @@ async function submit() {
         <PsInput v-model="form.orderNumber" :label="t('support.orderNumber')" name="orderNumber" />
         <p class="mt-xs text-caption text-secondary">{{ t('support.orderNumberHint') }}</p>
       </div>
-      <PsTextarea v-model="form.message" :label="t('support.message')" name="message" required :rows="6" />
+      <PsTextarea
+        v-model="form.message"
+        :label="t('support.message')"
+        name="message"
+        required
+        :rows="6"
+      />
 
-      <p v-if="errorMessage" class="text-caption text-red-500" role="alert" data-testid="support-error">
+      <p
+        v-if="errorMessage"
+        class="text-caption text-red-500"
+        role="alert"
+        data-testid="support-error"
+      >
         {{ errorMessage }}
       </p>
-      <PsPillButton type="submit" size="lg" :disabled="submitting || !hydrated" data-testid="support-submit">
+      <PsPillButton
+        type="submit"
+        size="lg"
+        :disabled="submitting || !hydrated"
+        data-testid="support-submit"
+      >
         {{ t('support.submit') }}
       </PsPillButton>
     </form>

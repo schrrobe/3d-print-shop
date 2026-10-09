@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Home",
-    "products": "Products",
-    "upload": "Your model",
     "cart": "Cart",
     "support": "Support"
   },
-  "hero": {
-    "eyebrow": "3D printing from Berlin",
-    "title": "Your ideas. Printed in your colors.",
-    "subtitle": "Configure finished designs in your favorite colors — or upload your own 3D model and receive an individual quote.",
-    "ctaProducts": "Browse products",
-    "ctaUpload": "Upload model"
-  },
-  "stats": {
-    "printed": "printed parts",
-    "colors": "colors",
-    "hours": "print hours"
-  },
-  "features": {
-    "title": "How it works",
-    "configure": {
-      "title": "Configure",
-      "text": "Pick a product and compose your color combination live in 3D."
-    },
-    "print": {
-      "title": "Print",
-      "text": "We print on Bambu Lab machines with brand filament."
-    },
-    "ship": {
-      "title": "Ship",
-      "text": "Delivery in 3–5 business days, free from €150."
-    }
-  },
   "products": {
-    "title": "Products",
-    "all": "All products",
+    "title": "Cartridge boxes",
     "configure": "Configure colors",
     "addToCart": "Add to cart",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Added to cart",
     "manufacturingNotice": {
       "title": "Manufacturing note",
-      "imagesTitle": "Note on product images",
-      "production": "Each ammunition box is manufactured using the 3D printing process. Slight layer lines or minimal surface variations are production-related and typical of additive manufacturing. They do not constitute a defect and have no effect on function, stability, or durability.",
-      "ammunition": "The ammunition shown in the product images is for illustration purposes only and is not included in the offer."
+      "production": "Each ammunition box is manufactured using the 3D printing process. Slight layer lines or minimal surface variations are production-related and typical of additive manufacturing. They do not constitute a defect and have no effect on function, stability, or durability."
     },
     "viewer": {
-      "hint": "Drag to rotate · Scroll to zoom",
-      "fallback": "3D preview"
+      "hint": "Drag to rotate · Scroll to zoom"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Refunded"
     }
   },
-  "upload": {
-    "title": "Print your own model",
-    "subtitle": "Upload your 3MF or STL file (max. 50 MB). We review it and send you an individual quote.",
-    "dropzone": "Drop files here or click",
-    "accepted": "Allowed: .stl, .3mf · max. 50 MB",
-    "name": "Name",
-    "description": "Description (material, color, quantity, purpose …)",
-    "quantity": "Quantity",
-    "termsAcceptance": "I accept the",
-    "termsAnd": "and the",
-    "termsContent": "I confirm that I hold the necessary rights to the uploaded model, will not upload unlawful content or content infringing third-party rights, and understand that files will not enter production before the quote review.",
-    "termsVersion": "Version: {version}.",
-    "submit": "Send request",
-    "successTitle": "Request received!",
-    "successText": "We will review your model and get back to you with a quote by email.",
-    "steps": {
-      "upload": "Upload",
-      "review": "Review",
-      "quote": "Quote",
-      "payment": "Payment",
-      "production": "Production"
-    }
-  },
   "quote": {
     "title": "Your quote",
     "price": "Quoted price",
@@ -196,8 +140,7 @@
     "imprint": "Imprint",
     "privacy": "Privacy",
     "terms": "Terms",
-    "withdrawal": "Withdrawal",
-    "claim": "3D printing, made in Berlin."
+    "withdrawal": "Withdrawal"
   },
   "legal": {
     "imprintTitle": "Imprint",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Custom 3D prints in your colors",
-      "description": "Configurable 3D-printed products with live color preview, upload your own models & get a quote. Free shipping from €150."
+      "title": "kaliberbox.de — Cartridge boxes for your caliber, in your colours",
+      "description": "Precisely fitted cartridge boxes for 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win and 7.62×39 — 50 or 100 rounds, box and label colour of your choice. Free shipping from €150."
     },
     "products": {
-      "description": "All 3D-printed products at a glance — colors fully configurable with a live 3D preview in your browser."
+      "description": "All cartridge boxes by caliber — 50 and 100 round boxes, colours of your choice, printed to order."
     },
     "cart": {
       "title": "Cart",
       "description": "Your cart at the 3D Print Shop — shipping €6.99, free from €150."
-    },
-    "upload": {
-      "title": "Upload your model",
-      "description": "Upload an STL or 3MF file and receive an individual quote for your 3D print."
     },
     "support": {
       "title": "Support",
@@ -410,8 +349,175 @@
   "reviews": {
     "title": "Reviews",
     "empty": "No reviews yet.",
-    "count": "{count} reviews",
+    "count": "No reviews | {count} review | {count} reviews",
     "ratingLabel": "{rating} out of 5 stars",
     "photoAlt": "Review photo by {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Skip to content"
+    },
+    "nav": {
+      "main": "Main navigation",
+      "menu": "Menu",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "homeLabel": "kaliberbox.de – home",
+      "boxes": "Cartridge boxes",
+      "wishlist": "Wishlist",
+      "cartWithCount": "Cart, {count} items",
+      "language": "Language",
+      "languageCurrent": "Language: {language}",
+      "theme": "Appearance",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Handgun",
+      "RIFLE": "Rifle",
+      "RIMFIRE": "Rimfire"
+    },
+    "home": {
+      "title": "Which caliber?",
+      "lead": "Precisely fitted cartridge boxes, printed in your colours. Pick your caliber – we take care of the rest.",
+      "pickLegend": "Choose a caliber",
+      "cta": "Boxes for {caliber}",
+      "ctaAll": "All cartridge boxes",
+      "howTitle": "How your box gets to you",
+      "steps": {
+        "caliber": {
+          "title": "Caliber and size",
+          "text": "Every box is designed for exactly one caliber – in a 50 or 100 round version."
+        },
+        "colors": {
+          "title": "Your colours",
+          "text": "Choose box and label colours from our filament stock. The preview shows the result instantly."
+        },
+        "print": {
+          "title": "Printed to order",
+          "text": "We print your box once your order arrives and ship it to your address."
+        }
+      },
+      "boxesTitle": "All calibers",
+      "boxesAll": "View all",
+      "gift": {
+        "title": "A gift that fits.",
+        "text": "For sport shooters and hunters who have everything – except order in their ammo drawer.",
+        "tips": {
+          "ask": "All you need is the caliber – it is printed on every box of cartridges.",
+          "box": "50 or 100 rounds? The cartridge box tells you that too.",
+          "note": "Tick “This is a gift” at checkout – we note it on your order."
+        }
+      }
+    },
+    "list": {
+      "lead": "One box per caliber, each in a 50 and a 100 round version.",
+      "titleFor": "Cartridge boxes for {caliber}",
+      "filterLegend": "Filter by caliber",
+      "allCalibers": "All calibers",
+      "searchLabel": "Search",
+      "count": "No boxes | 1 box | {count} boxes",
+      "reset": "Reset filters"
+    },
+    "caliberMissing": {
+      "title": "Your caliber is missing?",
+      "text": "Tell us which caliber you need a box for. We collect requests and expand the range accordingly.",
+      "cta": "Request a caliber",
+      "link": "Request a caliber",
+      "subject": "Caliber request: {caliber}"
+    },
+    "product": {
+      "kind": "Cartridge box",
+      "fromPrice": "from {price}",
+      "sizesShort": "{sizes} rounds",
+      "rounds": "{count} rounds",
+      "sizeLegend": "Size",
+      "priceNote": "Final price, plus shipping",
+      "summary": "{caliber} · {capacity} rounds · box {box} · label {label}",
+      "drawingAlt": "Schematic drawing of the {caliber} cartridge box for {capacity} rounds in {box} with label in {label}",
+      "drawingCaption": "Schematic, not to scale",
+      "drawingSibling": "other size",
+      "contentsTitle": "What's included",
+      "contentsText": "One empty cartridge box. Ammunition is not part of the offer."
+    },
+    "configurator": {
+      "noColor": "No colour selected"
+    },
+    "quantity": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
+    },
+    "legalNotice": {
+      "title": "Storage notice",
+      "text": "The cartridge boxes are for organising and sorting. They do not replace a lockable container or gun safe as required by Section 36 of the German Weapons Act (WaffG) for storing ammunition.",
+      "short": "For order inside your gun safe – not a substitute for legally required storage (§ 36 WaffG)."
+    },
+    "voucher": {
+      "label": "Voucher code"
+    },
+    "totals": {
+      "vatNote": "No VAT is charged under § 19 UStG (small business regulation)."
+    },
+    "form": {
+      "optional": "optional"
+    },
+    "cart": {
+      "emptyText": "Pick your caliber and put together your box.",
+      "itemsLabel": "Items in cart ({count})",
+      "unitPrice": "{price} each",
+      "editItem": "Edit {name}",
+      "removeItem": "Remove {name}",
+      "continue": "Continue shopping"
+    },
+    "checkout": {
+      "contactTitle": "Contact",
+      "addressTitle": "Delivery address",
+      "emailHint": "For your order confirmation and shipping updates.",
+      "phone": "Phone",
+      "company": "Company",
+      "note": "Order note",
+      "gift": "This is a gift",
+      "giftHint": "We note it on your order.",
+      "showSummary": "Show order summary",
+      "hideSummary": "Hide order summary",
+      "legal": "By placing your order you accept our {terms}. Information on your right of withdrawal is in the {withdrawal}, on data protection in the {privacy}.",
+      "withdrawalLink": "withdrawal policy",
+      "payHints": {
+        "stripe": "Secure payment via Stripe, e.g. by credit card.",
+        "bank_transfer": "You receive the bank details after ordering.",
+        "bitcoin": "Pay to a Bitcoin address after ordering."
+      },
+      "errors": {
+        "summary": "Please check {count} marked fields.",
+        "email": "Please enter your email address.",
+        "emailFormat": "Please enter a valid email address, e.g. name{'@'}example.com.",
+        "firstName": "Please enter your first name.",
+        "lastName": "Please enter your last name.",
+        "street": "Please enter street and house number.",
+        "zip": "Please enter your postcode.",
+        "zipFormat": "The postcode must be 3 to 12 characters long.",
+        "city": "Please enter your city."
+      }
+    },
+    "wishlist": {
+      "lead": "Saved configurations stay on this device.",
+      "emptyText": "Tap the heart on a product page to save a configuration.",
+      "shareItem": "Share {name}",
+      "removeItem": "Remove {name} from wishlist"
+    },
+    "success": {
+      "hit": "Bullseye"
+    },
+    "footer": {
+      "claim": "Cartridge boxes for your caliber – printed to order, in your colours.",
+      "shop": "Shop",
+      "shopNav": "Shop navigation",
+      "legal": "Legal",
+      "legalNav": "Legal",
+      "vat": "Small business under § 19 UStG"
+    }
   }
 }

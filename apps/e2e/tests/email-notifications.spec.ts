@@ -17,7 +17,7 @@ test.describe('email notifications (dev mode log)', () => {
   test('checkout + payment sends confirmation, payment_received and invoice', async ({ page }) => {
     const email = `mail-e2e-${Date.now()}@example.com`
     const shop = new ShopPage(page)
-    await shop.addProductToCart('spiral-vase')
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
     await gotoHydrated(page, '/checkout')
     await shop.fillCheckoutAddress(email)
     await page.getByTestId('payment-stripe').click()

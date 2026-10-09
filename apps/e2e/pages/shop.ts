@@ -46,7 +46,7 @@ export class ShopPage {
     await this.page.locator('input[name="street"]').fill('Teststraße 42')
     await this.page.locator('input[name="zip"]').fill('10115')
     await this.page.locator('input[name="city"]').fill('Berlin')
-    await this.page.locator('input[name="country"]').fill('DE')
+    await this.page.locator('select[name="country"]').selectOption('DE')
     await this.page.locator('input[name="email"]').fill(email)
   }
 }

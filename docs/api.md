@@ -9,8 +9,9 @@ Fehlerformat: `{ "error": "<code>", "message": "…", "details"?: … }`.
 | Methode & Pfad | Beschreibung |
 |---|---|
 | `GET /health` | Healthcheck |
-| `GET /api/products` | Aktive Produkte inkl. Übersetzungen, Assets, Farbzonen |
-| `GET /api/products/:slug` | Produktdetail |
+| `GET /api/products` | Aktive Produkte inkl. Übersetzungen, Assets, Farbzonen, `capacity` (50/100 \| null), `familyKey`, `calibers: [{ slug, name, group }]` (nach sortOrder). Query: `q` (Suche), `caliber=<slug>` (kebab-case, sonst 400; kombinierbar mit `q`) |
+| `GET /api/products/:slug` | Produktdetail, zusätzlich `siblings: [{ slug, capacity, priceCents }]` — aktive Produkte mit gleichem `familyKey` inkl. sich selbst, nach `capacity` sortiert (ohne `familyKey`: nur das Produkt selbst) |
+| `GET /api/calibers` | `{ calibers: [{ slug, name, group, sortOrder, productCount }] }` — nur Kaliber mit ≥ 1 aktivem Produkt, sortiert nach Gruppe (HANDGUN, RIFLE, RIMFIRE), dann sortOrder |
 | `GET /api/colors` | Aktive globale Farben |
 | `GET /api/models/:filename` | Admin-hochgeladene GLB-Vorschaumodelle (`model/gltf-binary`) |
 | `GET /api/product-images/:filename` | Admin-hochgeladene Produktfotos (JPG/PNG/WebP, öffentlich) |
@@ -51,6 +52,7 @@ Auth: `POST auth/login` (Rate-Limit 10/15 min) · `POST auth/logout` · `GET aut
 |---|---|---|
 | Dashboard | `GET dashboard` | dashboard:read |
 | Produkte | `GET/POST products`, `GET/PATCH/DELETE products/:id`, `POST products/:id/assets`, `POST products/:id/images` (multipart `files`, 1–4 JPG/PNG/WebP ≤ 10 MB), `DELETE products/:id/assets/:assetId`, `POST products/:id/model` (multipart `file`, .glb ≤ 50 MB — ersetzt das GLB-Vorschaumodell) | products:read/write, assets:write |
+| Kaliber | `GET/POST calibers` (`{ slug, name, group: HANDGUN\|RIFLE\|RIMFIRE, sortOrder? }`, doppelter Slug → 409). Produkt-POST/PATCH akzeptiert `capacity` (50 \| 100 \| null), `familyKey` (kebab-case \| null), `caliberSlugs: string[]` (unbekannter Slug → 400; PATCH ersetzt die Zuordnung) | products:read/write |
 | Farben | `GET/POST colors`, `PATCH/DELETE colors/:id` | colors:read/write |
 | Upload-Anfragen | `GET quote-requests[/:id]`, `POST quote-requests/:id/status` | uploads:read/review |
 | Angebote | `POST quote-requests/:id/quotes` (sendet E-Mail mit Link) | quotes:write |

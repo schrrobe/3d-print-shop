@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Accueil",
-    "products": "Produits",
-    "upload": "Votre modèle",
     "cart": "Panier",
     "support": "Assistance"
   },
-  "hero": {
-    "eyebrow": "Impression 3D de Berlin",
-    "title": "Vos idées. Imprimées dans vos couleurs.",
-    "subtitle": "Configurez des designs finis dans vos couleurs préférées — ou téléversez votre propre modèle 3D et recevez un devis individuel.",
-    "ctaProducts": "Découvrir les produits",
-    "ctaUpload": "Téléverser un modèle"
-  },
-  "stats": {
-    "printed": "pièces imprimées",
-    "colors": "couleurs",
-    "hours": "heures d'impression"
-  },
-  "features": {
-    "title": "Comment ça marche",
-    "configure": {
-      "title": "Configurer",
-      "text": "Choisissez un produit et composez vos couleurs en direct en 3D."
-    },
-    "print": {
-      "title": "Imprimer",
-      "text": "Nous imprimons sur des machines Bambu Lab avec du filament de marque."
-    },
-    "ship": {
-      "title": "Livrer",
-      "text": "Livraison en 3 à 5 jours ouvrés, gratuite dès 150 €."
-    }
-  },
   "products": {
-    "title": "Produits",
-    "all": "Tous les produits",
+    "title": "Boîtes à cartouches",
     "configure": "Configurer les couleurs",
     "addToCart": "Ajouter au panier",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Ajouté au panier",
     "manufacturingNotice": {
       "title": "Remarque sur la fabrication",
-      "imagesTitle": "Remarque sur les photos du produit",
-      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De légères lignes de couche ou de minimes variations de surface sont liées à la production et typiques de la fabrication additive. Elles ne constituent pas un défaut et n'ont aucune incidence sur la fonction, la stabilité ou la durabilité.",
-      "ammunition": "Les munitions présentées sur les photos du produit servent uniquement d'illustration et ne font pas partie de l'offre."
+      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De légères lignes de couche ou de minimes variations de surface sont liées à la production et typiques de la fabrication additive. Elles ne constituent pas un défaut et n'ont aucune incidence sur la fonction, la stabilité ou la durabilité."
     },
     "viewer": {
-      "hint": "Glisser pour tourner · Molette pour zoomer",
-      "fallback": "Aperçu 3D"
+      "hint": "Glisser pour tourner · Molette pour zoomer"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Remboursée"
     }
   },
-  "upload": {
-    "title": "Faites imprimer votre modèle",
-    "subtitle": "Téléversez votre fichier 3MF ou STL (max. 50 Mo). Nous l'examinons et vous envoyons un devis individuel.",
-    "dropzone": "Déposez vos fichiers ici ou cliquez",
-    "accepted": "Autorisé : .stl, .3mf · max. 50 Mo",
-    "name": "Nom",
-    "description": "Description (matériau, couleur, quantité, usage …)",
-    "quantity": "Quantité",
-    "termsAcceptance": "J’accepte les",
-    "termsAnd": "et la",
-    "termsContent": "Je confirme disposer des droits nécessaires sur le modèle envoyé, ne pas téléverser de contenu illicite ou portant atteinte aux droits de tiers et comprendre que les fichiers ne seront pas mis en production avant l’examen du devis.",
-    "termsVersion": "Version : {version}.",
-    "submit": "Envoyer la demande",
-    "successTitle": "Demande reçue !",
-    "successText": "Nous examinons votre modèle et revenons vers vous avec un devis par e-mail.",
-    "steps": {
-      "upload": "Téléversement",
-      "review": "Vérification",
-      "quote": "Devis",
-      "payment": "Paiement",
-      "production": "Production"
-    }
-  },
   "quote": {
     "title": "Votre devis",
     "price": "Prix proposé",
@@ -196,8 +140,7 @@
     "imprint": "Mentions légales",
     "privacy": "Confidentialité",
     "terms": "CGV",
-    "withdrawal": "Rétractation",
-    "claim": "Impression 3D, made in Berlin."
+    "withdrawal": "Rétractation"
   },
   "legal": {
     "imprintTitle": "Mentions légales",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Impression 3D personnalisée dans vos couleurs",
-      "description": "Produits imprimés en 3D configurables avec aperçu couleur en direct, téléchargez vos modèles et recevez un devis. Livraison gratuite dès 150 €."
+      "title": "kaliberbox.de — Boîtes à cartouches pour votre calibre, à vos couleurs",
+      "description": "Boîtes à cartouches ajustées pour 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win et 7,62×39 — 50 ou 100 cartouches, couleur de la boîte et du marquage au choix. Livraison offerte dès 150 €."
     },
     "products": {
-      "description": "Tous les produits imprimés en 3D — couleurs entièrement configurables avec aperçu 3D dans le navigateur."
+      "description": "Toutes les boîtes à cartouches par calibre — 50 et 100 cartouches, couleurs au choix, imprimées à la commande."
     },
     "cart": {
       "title": "Panier",
       "description": "Votre panier au 3D Print Shop — livraison 6,99 €, gratuite dès 150 €."
-    },
-    "upload": {
-      "title": "Téléchargez votre modèle",
-      "description": "Téléchargez un fichier STL ou 3MF et recevez un devis individuel pour votre impression 3D."
     },
     "support": {
       "title": "Support",
@@ -410,8 +349,175 @@
   "reviews": {
     "title": "Avis",
     "empty": "Aucun avis pour le moment.",
-    "count": "{count} avis",
+    "count": "Aucun avis | {count} avis | {count} avis",
     "ratingLabel": "{rating} sur 5 étoiles",
     "photoAlt": "Photo d'avis de {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Aller au contenu"
+    },
+    "nav": {
+      "main": "Navigation principale",
+      "menu": "Menu",
+      "openMenu": "Ouvrir le menu",
+      "closeMenu": "Fermer le menu",
+      "homeLabel": "kaliberbox.de – accueil",
+      "boxes": "Boîtes à cartouches",
+      "wishlist": "Liste de souhaits",
+      "cartWithCount": "Panier, {count} articles",
+      "language": "Langue",
+      "languageCurrent": "Langue : {language}",
+      "theme": "Apparence",
+      "themes": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Arme de poing",
+      "RIFLE": "Arme d’épaule",
+      "RIMFIRE": "Percussion annulaire"
+    },
+    "home": {
+      "title": "Quel calibre ?",
+      "lead": "Des boîtes à cartouches ajustées, imprimées à vos couleurs. Choisissez votre calibre – on s’occupe du reste.",
+      "pickLegend": "Choisir un calibre",
+      "cta": "Boîtes pour {caliber}",
+      "ctaAll": "Toutes les boîtes",
+      "howTitle": "Comment votre boîte arrive chez vous",
+      "steps": {
+        "caliber": {
+          "title": "Calibre et taille",
+          "text": "Chaque boîte est conçue pour un seul calibre – en version 50 ou 100 cartouches."
+        },
+        "colors": {
+          "title": "Vos couleurs",
+          "text": "Choisissez la couleur de la boîte et du marquage parmi nos filaments. L’aperçu montre le résultat immédiatement."
+        },
+        "print": {
+          "title": "Imprimée à la commande",
+          "text": "Nous imprimons votre boîte dès réception de la commande et l’expédions à votre adresse."
+        }
+      },
+      "boxesTitle": "Tous les calibres",
+      "boxesAll": "Tout voir",
+      "gift": {
+        "title": "Un cadeau qui tombe juste.",
+        "text": "Pour les tireurs sportifs et les chasseurs qui ont déjà tout – sauf de l’ordre dans le tiroir à munitions.",
+        "tips": {
+          "ask": "Il suffit de connaître le calibre – il figure sur chaque boîte de cartouches.",
+          "box": "50 ou 100 cartouches ? La boîte d’origine l’indique aussi.",
+          "note": "Cochez « C’est un cadeau » lors du paiement – nous le notons sur votre commande."
+        }
+      }
+    },
+    "list": {
+      "lead": "Une boîte par calibre, en version 50 et 100 cartouches.",
+      "titleFor": "Boîtes à cartouches pour {caliber}",
+      "filterLegend": "Filtrer par calibre",
+      "allCalibers": "Tous les calibres",
+      "searchLabel": "Rechercher",
+      "count": "Aucune boîte | 1 boîte | {count} boîtes",
+      "reset": "Réinitialiser les filtres"
+    },
+    "caliberMissing": {
+      "title": "Votre calibre manque ?",
+      "text": "Dites-nous pour quel calibre il vous faut une boîte. Nous rassemblons les demandes et élargissons la gamme en conséquence.",
+      "cta": "Demander un calibre",
+      "link": "Demander un calibre",
+      "subject": "Demande de calibre : {caliber}"
+    },
+    "product": {
+      "kind": "Boîte à cartouches",
+      "fromPrice": "à partir de {price}",
+      "sizesShort": "{sizes} cartouches",
+      "rounds": "{count} cartouches",
+      "sizeLegend": "Taille",
+      "priceNote": "Prix final, hors frais de port",
+      "summary": "{caliber} · {capacity} cartouches · boîte {box} · marquage {label}",
+      "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",
+      "drawingCaption": "Schéma, pas à l’échelle",
+      "drawingSibling": "autre taille",
+      "contentsTitle": "Contenu",
+      "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre."
+    },
+    "configurator": {
+      "noColor": "Aucune couleur choisie"
+    },
+    "quantity": {
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité"
+    },
+    "legalNotice": {
+      "title": "Remarque sur le stockage",
+      "text": "Les boîtes servent à ranger et trier. Elles ne remplacent pas le contenant verrouillable ou l’armoire forte exigés par le § 36 de la loi allemande sur les armes (WaffG) pour stocker des munitions.",
+      "short": "Pour ranger dans l’armoire forte – ne remplace pas le stockage légal (§ 36 WaffG)."
+    },
+    "voucher": {
+      "label": "Code promo"
+    },
+    "totals": {
+      "vatNote": "TVA non applicable, § 19 UStG (petite entreprise)."
+    },
+    "form": {
+      "optional": "facultatif"
+    },
+    "cart": {
+      "emptyText": "Choisissez votre calibre et composez votre boîte.",
+      "itemsLabel": "Articles dans le panier ({count})",
+      "unitPrice": "{price} l’unité",
+      "editItem": "Modifier {name}",
+      "removeItem": "Retirer {name}",
+      "continue": "Continuer mes achats"
+    },
+    "checkout": {
+      "contactTitle": "Contact",
+      "addressTitle": "Adresse de livraison",
+      "emailHint": "Pour la confirmation de commande et le suivi d’expédition.",
+      "phone": "Téléphone",
+      "company": "Société",
+      "note": "Remarque sur la commande",
+      "gift": "C’est un cadeau",
+      "giftHint": "Nous le notons sur votre commande.",
+      "showSummary": "Afficher le récapitulatif",
+      "hideSummary": "Masquer le récapitulatif",
+      "legal": "En commandant, vous acceptez nos {terms}. Les informations sur le droit de rétractation figurent dans l’{withdrawal}, sur la protection des données dans la {privacy}.",
+      "withdrawalLink": "information sur la rétractation",
+      "payHints": {
+        "stripe": "Paiement sécurisé via Stripe, par ex. par carte bancaire.",
+        "bank_transfer": "Vous recevez les coordonnées bancaires après la commande.",
+        "bitcoin": "Paiement vers une adresse Bitcoin après la commande."
+      },
+      "errors": {
+        "summary": "Veuillez vérifier les champs signalés ({count}).",
+        "email": "Veuillez saisir votre adresse e-mail.",
+        "emailFormat": "Veuillez saisir une adresse e-mail valide, par ex. nom{'@'}exemple.fr.",
+        "firstName": "Veuillez saisir votre prénom.",
+        "lastName": "Veuillez saisir votre nom.",
+        "street": "Veuillez saisir la rue et le numéro.",
+        "zip": "Veuillez saisir votre code postal.",
+        "zipFormat": "Le code postal doit comporter 3 à 12 caractères.",
+        "city": "Veuillez saisir votre ville."
+      }
+    },
+    "wishlist": {
+      "lead": "Les configurations enregistrées restent sur cet appareil.",
+      "emptyText": "Touchez le cœur sur une page produit pour enregistrer une configuration.",
+      "shareItem": "Partager {name}",
+      "removeItem": "Retirer {name} de la liste de souhaits"
+    },
+    "success": {
+      "hit": "Dans le mille"
+    },
+    "footer": {
+      "claim": "Des boîtes à cartouches pour votre calibre – imprimées à la commande, à vos couleurs.",
+      "shop": "Boutique",
+      "shopNav": "Navigation de la boutique",
+      "legal": "Mentions légales",
+      "legalNav": "Mentions légales",
+      "vat": "Petite entreprise selon le § 19 UStG"
+    }
   }
 }

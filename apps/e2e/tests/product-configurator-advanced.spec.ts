@@ -5,7 +5,7 @@ import { gotoHydrated } from '../helpers/hydration.js'
 test.describe('advanced product configurator', () => {
   test('save + share a configuration is deduplicated to a stable token', async () => {
     const ctx = await apiContext()
-    const product = (await (await ctx.get('/api/products/spiral-vase')).json()) as {
+    const product = (await (await ctx.get('/api/products/patronenbox-9mm-luger-50')).json()) as {
       product: { id: string; colorSlots: { slot: string }[] }
     }
     const colors = (await (await ctx.get('/api/colors')).json()) as {
@@ -31,8 +31,8 @@ test.describe('advanced product configurator', () => {
 
   test('shared configuration reports per-zone availability', async () => {
     const ctx = await apiContext()
-    // seed-config-vase-2 references an unavailable colour
-    const res = await ctx.get('/api/configurations/seed-config-vase-2')
+    // seed-config-box-2 references an unavailable colour
+    const res = await ctx.get('/api/configurations/seed-config-box-2')
     expect(res.ok()).toBe(true)
     const config = (await res.json()) as { availability: Record<string, string> }
     expect(Object.values(config.availability).some((s) => s !== 'ok')).toBe(true)
@@ -40,23 +40,23 @@ test.describe('advanced product configurator', () => {
   })
 
   test('loading a shared config with an unavailable colour warns the user', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase?config=seed-config-vase-2')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50?config=seed-config-box-2')
     await expect(page.getByTestId('config-warning').first()).toBeVisible({ timeout: 10_000 })
   })
 
   test('a valid shared config loads without a warning', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase?config=seed-config-vase-1')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50?config=seed-config-box-1')
     await expect(page.getByTestId('product-detail')).toBeVisible()
     await expect(page.getByTestId('config-warning')).toHaveCount(0)
   })
 
   test('cart line can be edited via the configurator', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await page.getByTestId('add-to-cart').click()
     await gotoHydrated(page, '/cart')
     await expect(page.getByTestId('cart-item').first()).toBeVisible()
     await page.getByTestId('cart-edit').first().click()
-    await page.waitForURL(/\/products\/spiral-vase\?edit=/)
+    await page.waitForURL(/\/products\/patronenbox-9mm-luger-50\?edit=/)
     await expect(page.getByTestId('add-to-cart')).toContainText('Änderungen', { ignoreCase: true })
     await page.getByTestId('add-to-cart').click()
     await page.waitForURL(/\/cart/)

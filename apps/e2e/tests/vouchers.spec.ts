@@ -11,40 +11,40 @@ import { ShopPage } from '../pages/shop.js'
 test.describe('vouchers — shop', () => {
   test('redeems a percentage voucher and reduces the total', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase') // 24,99
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50') // 14,90
     await shop.applyVoucher('TEST10')
 
-    // 10 % of 24,99 = 2,50 → total 24,99 − 2,50 + 6,99 shipping = 29,48
+    // 10 % of 14,90 = 1,49 → total 14,90 − 1,49 + 6,99 shipping = 20,40
     await expect(page.getByTestId('voucher-row')).toBeVisible()
-    await expect(page.getByTestId('cart-discount')).toContainText('2,50')
-    await expect(page.getByTestId('cart-total')).toContainText('29,48')
+    await expect(page.getByTestId('cart-discount')).toContainText('1,49')
+    await expect(page.getByTestId('cart-total')).toContainText('20,40')
   })
 
   test('accepts lowercase input (case-insensitive)', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
 
     await shop.applyVoucher('test10')
     await expect(page.getByTestId('voucher-row')).toContainText('TEST10')
-    await expect(page.getByTestId('cart-discount')).toContainText('2,50')
+    await expect(page.getByTestId('cart-discount')).toContainText('1,49')
   })
 
   test('removing a voucher restores the full total', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
 
     await shop.applyVoucher('TEST10')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
     await page.getByTestId('voucher-remove').click()
     await expect(page.getByTestId('voucher-row')).toBeHidden()
-    await expect(page.getByTestId('cart-total')).toContainText('31,98') // 24,99 + 6,99
+    await expect(page.getByTestId('cart-total')).toContainText('21,89') // 14,90 + 6,99
     await expect(page.getByTestId('voucher-input')).toBeVisible()
   })
 
   test('rejects an unknown code', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
 
     await shop.applyVoucher('DOESNOTEXIST')
     await expect(page.getByTestId('voucher-error')).toBeVisible()
@@ -53,14 +53,14 @@ test.describe('vouchers — shop', () => {
 
   test('enforces the minimum order value', async ({ page }) => {
     const shop = new ShopPage(page)
-    // One vase (24,99) is below the 25 € threshold of WELCOME5.
-    await shop.addAndGotoCart('spiral-vase')
+    // One 9 mm box (14,90) is below the 25 € threshold of WELCOME5.
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
 
     await shop.applyVoucher('WELCOME5')
     await expect(page.getByTestId('voucher-error')).toContainText('25,00')
     await expect(page.getByTestId('voucher-row')).toBeHidden()
 
-    // Two vases (49,98) clear the threshold → fixed 5 € discount applies.
+    // Two boxes (29,80) clear the threshold → fixed 5 € discount applies.
     await page.getByTestId('cart-quantity').fill('2')
     await page.getByTestId('cart-quantity').dispatchEvent('change')
     await shop.applyVoucher('WELCOME5')
@@ -71,14 +71,14 @@ test.describe('vouchers — shop', () => {
     page,
   }) => {
     const shop = new ShopPage(page)
-    // Two vases (49,98) clear the 25 € threshold → WELCOME5 applies.
-    await shop.addAndGotoCart('spiral-vase')
+    // Two boxes (29,80) clear the 25 € threshold → WELCOME5 applies.
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await page.getByTestId('cart-quantity').fill('2')
     await page.getByTestId('cart-quantity').dispatchEvent('change')
     await shop.applyVoucher('WELCOME5')
     await expect(page.getByTestId('cart-discount')).toContainText('5,00')
 
-    // Dropping back to one vase (24,99) falls below the minimum: the voucher is
+    // Dropping back to one box (14,90) falls below the minimum: the voucher is
     // kept but contributes nothing, so the cart surfaces a min-order hint.
     await page.getByTestId('cart-quantity').fill('1')
     await page.getByTestId('cart-quantity').dispatchEvent('change')
@@ -93,25 +93,25 @@ test.describe('vouchers — shop', () => {
 
   test('voucher survives a reload (localStorage)', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('TEST10')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
     await page.reload()
     await page.waitForSelector('html[data-hydrated="true"]')
     await expect(page.getByTestId('voucher-row')).toBeVisible()
-    await expect(page.getByTestId('cart-discount')).toContainText('2,50')
+    await expect(page.getByTestId('cart-discount')).toContainText('1,49')
   })
 
   test('carries the discount through checkout onto the order', async ({ page }) => {
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('TEST10')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
     await shop.gotoCheckout()
     // Checkout summary reflects the voucher.
-    await expect(page.getByTestId('checkout-discount')).toContainText('2,50')
+    await expect(page.getByTestId('checkout-discount')).toContainText('1,49')
 
     await shop.fillCheckoutAddress('voucher-e2e@example.com')
     await page.getByTestId('payment-bank_transfer').click()
@@ -119,7 +119,7 @@ test.describe('vouchers — shop', () => {
 
     await page.waitForURL(/\/order\//)
     await expect(page.getByTestId('order-page')).toBeVisible()
-    await expect(page.getByTestId('order-discount')).toContainText('2,50')
+    await expect(page.getByTestId('order-discount')).toContainText('1,49')
   })
 })
 
@@ -143,12 +143,12 @@ test.describe('vouchers — admin', () => {
     await page.waitForURL(/\/admin\/vouchers$/)
     await expect(page.getByText('E2E20')).toBeVisible()
 
-    // Redeem it on the shop: 20 % of 24,99 = 5,00 → total 24,99 − 5,00 + 6,99 = 26,98
+    // Redeem it on the shop: 20 % of 14,90 = 2,98 → total 14,90 − 2,98 + 6,99 = 18,91
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('E2E20')
-    await expect(page.getByTestId('cart-discount')).toContainText('5,00')
-    await expect(page.getByTestId('cart-total')).toContainText('26,98')
+    await expect(page.getByTestId('cart-discount')).toContainText('2,98')
+    await expect(page.getByTestId('cart-total')).toContainText('18,91')
   })
 
   test('normalizes the code to uppercase on create', async ({ page }) => {
@@ -191,7 +191,7 @@ test.describe('vouchers — admin', () => {
 
     // Shop refuses the inactive code.
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('OFF10')
     await expect(page.getByTestId('voucher-error')).toBeVisible()
     await expect(page.getByTestId('voucher-row')).toBeHidden()
@@ -208,7 +208,7 @@ test.describe('vouchers — admin', () => {
 
     // First redemption goes all the way through checkout.
     const shop = new ShopPage(page)
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('ONCE1')
     await expect(page.getByTestId('cart-discount')).toBeVisible()
 
@@ -219,7 +219,7 @@ test.describe('vouchers — admin', () => {
     await page.waitForURL(/\/order\//)
 
     // Second attempt: the voucher is now exhausted.
-    await shop.addAndGotoCart('spiral-vase')
+    await shop.addAndGotoCart('patronenbox-9mm-luger-50')
     await shop.applyVoucher('ONCE1')
     await expect(page.getByTestId('voucher-error')).toBeVisible()
     await expect(page.getByTestId('voucher-row')).toBeHidden()

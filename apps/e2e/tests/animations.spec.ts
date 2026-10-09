@@ -2,37 +2,38 @@ import { expect, test } from '@playwright/test'
 import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('animations', () => {
-  test('landing page renders hero headline and marquee', async ({ page }) => {
+  test('landing page renders the caliber target hero', async ({ page }) => {
     await gotoHydrated(page, '/')
     await expect(page.getByTestId('hero')).toBeVisible()
     await expect(page.getByTestId('animated-headline')).toBeVisible()
-    // Marquee duplicates its content for the infinite loop
-    await expect(page.locator('text=Bambu Lab X1C').first()).toBeVisible()
+    await expect(page.getByTestId('caliber-picker')).toBeVisible()
   })
 
-  test('stat counters end at their target values', async ({ page }) => {
+  test('choosing a caliber retargets the hero call to action', async ({ page }) => {
     await gotoHydrated(page, '/')
-    const counter = page.getByTestId('stat-counter').first()
-    await counter.scrollIntoViewIfNeeded()
-    // GSAP counts up to 12500 (locale-formatted)
-    await expect(counter).toContainText(/12[.,]?500/, { timeout: 10_000 })
+    await page.locator('[data-caliber="308-win"]').click()
+    const cta = page.getByTestId('hero-cta-products')
+    await expect(cta).toContainText('.308 Win')
+    await cta.click()
+    await page.waitForURL(/\/products\?caliber=308-win/)
+    await expect(page.getByTestId('product-patronenbox-308-win-50')).toBeVisible()
+    await expect(page.getByTestId('product-patronenbox-9mm-luger-50')).toBeHidden()
   })
 
-  test('prefers-reduced-motion: content is fully visible without animation', async ({ browser }) => {
+  test('prefers-reduced-motion: content is fully visible without animation', async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ reducedMotion: 'reduce' })
     const page = await context.newPage()
     await gotoHydrated(page, '/')
-    // Headline words render immediately (no opacity-0 leftovers)
     await expect(page.getByTestId('animated-headline')).toBeVisible()
-    const counter = page.getByTestId('stat-counter').first()
-    await counter.scrollIntoViewIfNeeded()
-    await expect(counter).toContainText(/12[.,]?500/)
+    await expect(page.getByTestId('hero-cta-products')).toBeVisible()
     await context.close()
   })
 
   test('checkout stays animation-free', async ({ page }) => {
     await gotoHydrated(page, '/checkout')
-    // No GSAP scroll-triggered elements on the checkout route
+    // No GSAP scroll-triggered elements on checkout route
     expect(await page.locator('[data-animate]').count()).toBe(0)
   })
 })

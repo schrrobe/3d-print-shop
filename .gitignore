@@ -58,3 +58,8 @@ docs/agent-handoff/codex-review.md
 docs/agent-handoff/final-diff-review.md
 docs/agent-handoff/*.tmp.md
 docs/agent-handoff/*.draft.md
+
+# Impeccable local artifacts (screenshots, caches, decision logs)
+apps/web/.impeccable/review/
+apps/web/.impeccable/questions/
+apps/web/.impeccable/hook.cache.json

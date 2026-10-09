@@ -1,5 +1,7 @@
 import {
   AMS_SLOT_STATUSES,
+  BOX_CAPACITIES,
+  CALIBER_GROUPS,
   CARRIERS,
   COLOR_ZONE_SLOTS,
   COMPLAINT_REASONS,
@@ -207,20 +209,47 @@ export const productColorSlotInputSchema = z.object({
   defaultColorId: cuidSchema.nullable().optional(),
 })
 
+export const slugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be kebab-case')
+
+export const boxCapacitySchema = z
+  .number()
+  .int()
+  .refine((v) => (BOX_CAPACITIES as readonly number[]).includes(v), 'Capacity must be 50 or 100')
+
 export const productCreateSchema = z.object({
-  slug: z
-    .string()
-    .trim()
-    .min(1)
-    .max(120)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be kebab-case'),
+  slug: slugSchema,
   priceCents: priceCentsSchema,
   active: z.boolean().default(false),
+  /** Patronen pro Box (50/100), null = keine Größe */
+  capacity: boxCapacitySchema.nullable().optional(),
+  /** Gruppiert 50/100-Varianten einer Kaliberbox; leer = keine Familie */
+  familyKey: slugSchema.nullable().optional(),
+  caliberSlugs: z.array(slugSchema).max(20).optional(),
   translations: z.array(productTranslationSchema).min(1),
   colorSlots: z.array(productColorSlotInputSchema).max(4),
 })
 
 export const productUpdateSchema = productCreateSchema.partial()
+
+export const caliberGroupSchema = z.enum(CALIBER_GROUPS)
+
+export const caliberCreateSchema = z.object({
+  slug: slugSchema,
+  name: z.string().trim().min(1).max(60),
+  group: caliberGroupSchema,
+  sortOrder: z.number().int().min(0).max(10_000).default(0),
+})
+export type CaliberCreateInput = z.infer<typeof caliberCreateSchema>
+
+/** GET /api/products query (public catalog). */
+export const productListQuerySchema = z.object({
+  caliber: slugSchema.optional(),
+})
 
 export const colorCreateSchema = z.object({
   name: z.string().trim().min(1).max(100),

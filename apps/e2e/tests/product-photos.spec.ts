@@ -106,9 +106,9 @@ test.describe('product photos', () => {
     expect(await detail.getByTestId('product-gallery-main').getAttribute('srcset')).toContain(
       '1200w',
     )
+    // Without an uploaded GLB there is no 3D viewer; the live box drawing leads instead.
     await expect(detail.getByTestId('model-viewer')).toHaveCount(0)
-    // The configurator (3D model + colours) lives in its own section below.
-    await expect(page.getByTestId('configurator').getByTestId('model-viewer')).toBeVisible()
+    await expect(detail.getByTestId('box-drawing')).toBeVisible()
   })
 
   test('admin can delete a product photo', async ({ page }) => {
@@ -124,36 +124,18 @@ test.describe('product photos', () => {
     await expect(page.getByTestId('product-photo')).toHaveCount(0)
   })
 
-  test('seeded product shows a multi-photo gallery with the configurator below it', async ({
+  // Seeded cartridge boxes only carry a schematic SVG: the live drawing replaces it, no gallery.
+  test('seeded product shows the live drawing with configurator and purchase panel', async ({
     page,
   }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     const detail = page.getByTestId('product-detail')
-    await expect(detail.getByTestId('product-gallery')).toBeVisible()
-    await expect(page.getByTestId('product-gallery-thumb').first()).toBeVisible()
-    expect(await page.getByTestId('product-gallery-thumb').count()).toBeGreaterThan(1)
+    await expect(detail.getByTestId('box-drawing')).toBeVisible()
+    await expect(detail.getByTestId('product-gallery')).toHaveCount(0)
 
-    // Configurator moved one section down and still holds the colour picker.
     await expect(page.getByTestId('purchase-panel')).toBeVisible()
-    await expect(page.getByTestId('purchase-configuration-summary')).toBeVisible()
-    await expect(page.getByTestId('configurator')).toBeVisible()
+    await expect(page.getByTestId('purchase-configuration-summary')).toContainText('9 mm Luger')
     await expect(page.getByTestId('configurator').getByTestId('color-picker')).toBeVisible()
-
-    await page
-      .getByTestId('configurator-accordion')
-      .getByRole('button', { name: /Konfigurator/ })
-      .click()
-    await expect(page.getByTestId('configurator').getByTestId('color-picker')).toBeHidden()
-    await page.evaluate(() => window.scrollTo(0, 0))
-    const scrollBeforePreviewClick = await page.evaluate(() => window.scrollY)
-    await page
-      .getByTestId('purchase-configuration-summary')
-      .getByTestId('configuration-preview')
-      .click()
-    await expect(page.getByTestId('configurator').getByTestId('color-picker')).toBeVisible()
-    await expect
-      .poll(() => page.evaluate(() => window.scrollY))
-      .toBeGreaterThan(scrollBeforePreviewClick)
   })
 
   test('deleting a product removes uploaded photo files', async () => {
@@ -188,7 +170,9 @@ test.describe('product photos', () => {
   test('server rejects more than four photos', async () => {
     const admin = await adminApiContext()
     const anon = await apiContext()
-    const { product } = (await (await anon.get('/api/products/spiral-vase')).json()) as {
+    const { product } = (await (
+      await anon.get('/api/products/patronenbox-9mm-luger-50')
+    ).json()) as {
       product: { id: string; assets: { id: string; type: string }[] }
     }
     await anon.dispose()

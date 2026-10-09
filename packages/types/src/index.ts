@@ -130,6 +130,14 @@ export const COLOR_ZONE_SLOTS = [
 export type ColorZoneSlot = (typeof COLOR_ZONE_SLOTS)[number]
 export const MAX_COLOR_ZONES = 4
 
+/** Kaliber-Gruppen (Prisma enum CaliberGroup). */
+export const CALIBER_GROUPS = ['HANDGUN', 'RIFLE', 'RIMFIRE'] as const
+export type CaliberGroup = (typeof CALIBER_GROUPS)[number]
+
+/** Box-Größen (Patronen pro Box). */
+export const BOX_CAPACITIES = [50, 100] as const
+export type BoxCapacity = (typeof BOX_CAPACITIES)[number]
+
 /** Max product gallery photos per product (enforced client- and server-side). */
 export const MAX_PRODUCT_IMAGES = 4
 
@@ -273,11 +281,22 @@ export interface AdminColorDto {
   active: boolean
 }
 
+export interface AdminCaliberDto {
+  id: string
+  slug: string
+  name: string
+  group: CaliberGroup
+  sortOrder: number
+}
+
 export interface AdminProductDetailDto {
   id: string
   slug: string
   priceCents: number
   active: boolean
+  capacity: number | null
+  familyKey: string | null
+  calibers: AdminCaliberDto[]
   translations: ProductTranslationDto[]
   assets: ProductAssetDto[]
   colorSlots: ProductColorSlotDto[]

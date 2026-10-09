@@ -1,3 +1,4 @@
+import { productListQuerySchema } from '@print-shop/validators'
 import type { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
@@ -12,7 +13,9 @@ export const productsRouter = Router()
 productsRouter.get('/', async (req, res, next) => {
   try {
     const q = (typeof req.query.q === 'string' ? req.query.q.trim() : '').slice(0, 100)
+    const { caliber } = productListQuerySchema.parse({ caliber: req.query.caliber })
     const where: Prisma.ProductWhereInput = { active: true }
+    if (caliber) where.calibers = { some: { slug: caliber } }
     if (q) {
       where.OR = [
         { slug: { contains: q, mode: 'insensitive' } },
@@ -46,7 +49,15 @@ productsRouter.get('/:slug', async (req, res, next) => {
       include: publicProductInclude,
     })
     if (!product) throw notFound('Product not found')
-    res.json({ product })
+    // 50/100 size variants of the same box (always includes the product itself)
+    const siblings = product.familyKey
+      ? await prisma.product.findMany({
+          where: { familyKey: product.familyKey, active: true },
+          select: { slug: true, capacity: true, priceCents: true },
+          orderBy: [{ capacity: 'asc' }, { slug: 'asc' }],
+        })
+      : [{ slug: product.slug, capacity: product.capacity, priceCents: product.priceCents }]
+    res.json({ product: { ...product, siblings } })
   } catch (err) {
     next(err)
   }

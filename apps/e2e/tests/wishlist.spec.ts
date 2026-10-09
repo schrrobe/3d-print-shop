@@ -3,7 +3,7 @@ import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('wishlist (guest, localStorage)', () => {
   test('add a configuration, persist across reload, move to cart', async ({ page }) => {
-    await gotoHydrated(page, '/products/spiral-vase')
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
     await page.getByTestId('product-wishlist').click()
 
     await gotoHydrated(page, '/wishlist')
@@ -30,7 +30,7 @@ test.describe('wishlist (guest, localStorage)', () => {
   })
 
   test('wishlist toggle on the product page reflects membership', async ({ page }) => {
-    await gotoHydrated(page, '/products/desk-organizer')
+    await gotoHydrated(page, '/products/patronenbox-308-win-100')
     const button = page.getByTestId('product-wishlist')
     await expect(button).toHaveAttribute('aria-pressed', 'false')
     await button.click()

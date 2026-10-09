@@ -1,41 +1,11 @@
 {
   "nav": {
     "home": "Home",
-    "products": "Producten",
-    "upload": "Jouw model",
     "cart": "Winkelwagen",
     "support": "Support"
   },
-  "hero": {
-    "eyebrow": "3D-printen uit Berlijn",
-    "title": "Jouw ideeën. Geprint in jouw kleuren.",
-    "subtitle": "Configureer kant-en-klare ontwerpen in je favoriete kleuren — of upload je eigen 3D-model en ontvang een individuele offerte.",
-    "ctaProducts": "Producten bekijken",
-    "ctaUpload": "Model uploaden"
-  },
-  "stats": {
-    "printed": "geprinte onderdelen",
-    "colors": "kleuren",
-    "hours": "printuren"
-  },
-  "features": {
-    "title": "Zo werkt het",
-    "configure": {
-      "title": "Configureren",
-      "text": "Kies een product en stel je kleurcombinatie live in 3D samen."
-    },
-    "print": {
-      "title": "Printen",
-      "text": "We printen op Bambu Lab-machines met merkfilament."
-    },
-    "ship": {
-      "title": "Bezorgen",
-      "text": "Levering in 3–5 werkdagen, gratis vanaf €150."
-    }
-  },
   "products": {
-    "title": "Producten",
-    "all": "Alle producten",
+    "title": "Patroonboxen",
     "configure": "Kleuren configureren",
     "addToCart": "In winkelwagen",
     "search": {
@@ -48,13 +18,10 @@
     "added": "Toegevoegd aan winkelwagen",
     "manufacturingNotice": {
       "title": "Productie-informatie",
-      "imagesTitle": "Opmerking over de productafbeeldingen",
-      "production": "Elke munitiekist wordt met 3D-printtechnologie vervaardigd. Lichte laaglijnen of minimale oppervlakteafwijkingen zijn productiegebonden en typisch voor additieve productie. Ze vormen geen gebrek en hebben geen invloed op functie, stabiliteit of duurzaamheid.",
-      "ammunition": "De munitie die op de productafbeeldingen wordt getoond, dient uitsluitend ter illustratie en maakt geen deel uit van het aanbod."
+      "production": "Elke munitiekist wordt met 3D-printtechnologie vervaardigd. Lichte laaglijnen of minimale oppervlakteafwijkingen zijn productiegebonden en typisch voor additieve productie. Ze vormen geen gebrek en hebben geen invloed op functie, stabiliteit of duurzaamheid."
     },
     "viewer": {
-      "hint": "Sleep om te draaien · Scroll om te zoomen",
-      "fallback": "3D-voorbeeld"
+      "hint": "Sleep om te draaien · Scroll om te zoomen"
     }
   },
   "cart": {
@@ -143,29 +110,6 @@
       "refunded": "Terugbetaald"
     }
   },
-  "upload": {
-    "title": "Laat je eigen model printen",
-    "subtitle": "Upload je 3MF- of STL-bestand (max. 50 MB). We beoordelen het en sturen je een individuele offerte.",
-    "dropzone": "Sleep bestanden hierheen of klik",
-    "accepted": "Toegestaan: .stl, .3mf · max. 50 MB",
-    "name": "Naam",
-    "description": "Beschrijving (materiaal, kleur, aantal, doel …)",
-    "quantity": "Aantal",
-    "termsAcceptance": "Ik accepteer de",
-    "termsAnd": "en de",
-    "termsContent": "Ik bevestig dat ik de noodzakelijke rechten op het geüploade model heb, geen onrechtmatige inhoud of inhoud die rechten van derden schendt upload en begrijp dat bestanden pas na beoordeling van de offerte in productie gaan.",
-    "termsVersion": "Versie: {version}.",
-    "submit": "Aanvraag versturen",
-    "successTitle": "Aanvraag ontvangen!",
-    "successText": "We beoordelen je model en nemen per e-mail contact op met een offerte.",
-    "steps": {
-      "upload": "Uploaden",
-      "review": "Beoordeling",
-      "quote": "Offerte",
-      "payment": "Betaling",
-      "production": "Productie"
-    }
-  },
   "quote": {
     "title": "Jouw offerte",
     "price": "Offerteprijs",
@@ -196,8 +140,7 @@
     "imprint": "Colofon",
     "privacy": "Privacy",
     "terms": "Voorwaarden",
-    "withdrawal": "Herroeping",
-    "claim": "3D-printen, made in Berlin."
+    "withdrawal": "Herroeping"
   },
   "legal": {
     "imprintTitle": "Colofon",
@@ -250,19 +193,15 @@
   },
   "seo": {
     "home": {
-      "title": "3D Print Shop — Individuele 3D-prints in jouw kleuren",
-      "description": "Configureerbare 3D-geprinte producten met live kleurvoorbeeld, upload je eigen modellen en ontvang een offerte. Gratis verzending vanaf € 150."
+      "title": "kaliberbox.de — Patroonboxen voor jouw kaliber, in jouw kleuren",
+      "description": "Passende patroonboxen voor 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win en 7,62×39 — voor 50 of 100 patronen, kleur van box en opschrift naar keuze. Gratis verzending vanaf € 150."
     },
     "products": {
-      "description": "Alle 3D-geprinte producten in één overzicht — kleuren volledig configureerbaar met 3D-voorbeeld in de browser."
+      "description": "Alle patroonboxen per kaliber — voor 50 en 100 patronen, kleuren naar keuze, op bestelling geprint."
     },
     "cart": {
       "title": "Winkelwagen",
       "description": "Je winkelwagen bij de 3D Print Shop — verzending € 6,99, gratis vanaf € 150."
-    },
-    "upload": {
-      "title": "Upload je model",
-      "description": "Upload een STL- of 3MF-bestand en ontvang een individuele offerte voor je 3D-print."
     },
     "support": {
       "title": "Support",
@@ -410,8 +349,175 @@
   "reviews": {
     "title": "Beoordelingen",
     "empty": "Nog geen beoordelingen.",
-    "count": "{count} beoordelingen",
+    "count": "Geen beoordelingen | {count} beoordeling | {count} beoordelingen",
     "ratingLabel": "{rating} van de 5 sterren",
     "photoAlt": "Reviewfoto van {name}"
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Naar inhoud"
+    },
+    "nav": {
+      "main": "Hoofdnavigatie",
+      "menu": "Menu",
+      "openMenu": "Menu openen",
+      "closeMenu": "Menu sluiten",
+      "homeLabel": "kaliberbox.de – startpagina",
+      "boxes": "Patroonboxen",
+      "wishlist": "Verlanglijst",
+      "cartWithCount": "Winkelwagen, {count} artikelen",
+      "language": "Taal",
+      "languageCurrent": "Taal: {language}",
+      "theme": "Weergave",
+      "themes": {
+        "light": "Licht",
+        "dark": "Donker",
+        "system": "Systeem"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Kort wapen",
+      "RIFLE": "Lang wapen",
+      "RIMFIRE": "Randvuur"
+    },
+    "home": {
+      "title": "Welk kaliber?",
+      "lead": "Passende patroonboxen, geprint in jouw kleuren. Kies je kaliber – wij doen de rest.",
+      "pickLegend": "Kaliber kiezen",
+      "cta": "Boxen voor {caliber}",
+      "ctaAll": "Alle patroonboxen",
+      "howTitle": "Zo komt je box bij jou",
+      "steps": {
+        "caliber": {
+          "title": "Kaliber en maat",
+          "text": "Elke box is ontworpen voor precies één kaliber – in een versie voor 50 of 100 patronen."
+        },
+        "colors": {
+          "title": "Jouw kleuren",
+          "text": "Kies de kleur van box en opschrift uit onze filamenten. De preview toont het resultaat direct."
+        },
+        "print": {
+          "title": "Op bestelling geprint",
+          "text": "We printen je box zodra je bestelling binnen is en sturen hem naar je adres."
+        }
+      },
+      "boxesTitle": "Alle kalibers",
+      "boxesAll": "Alles bekijken",
+      "gift": {
+        "title": "Een cadeau dat past.",
+        "text": "Voor sportschutters en jagers die alles al hebben – behalve orde in de munitielade.",
+        "tips": {
+          "ask": "Je hebt alleen het kaliber nodig – dat staat op elk doosje patronen.",
+          "box": "50 of 100 patronen? Ook dat staat op het doosje.",
+          "note": "Vink bij het afrekenen „Dit is een cadeau” aan – we noteren het bij je bestelling."
+        }
+      }
+    },
+    "list": {
+      "lead": "Eén box per kaliber, in een versie voor 50 en 100 patronen.",
+      "titleFor": "Patroonboxen voor {caliber}",
+      "filterLegend": "Filteren op kaliber",
+      "allCalibers": "Alle kalibers",
+      "searchLabel": "Zoeken",
+      "count": "Geen boxen | 1 box | {count} boxen",
+      "reset": "Filters wissen"
+    },
+    "caliberMissing": {
+      "title": "Jouw kaliber ontbreekt?",
+      "text": "Laat ons weten voor welk kaliber je een box nodig hebt. We verzamelen de wensen en breiden het assortiment daarop uit.",
+      "cta": "Kaliber aanvragen",
+      "link": "Kaliber aanvragen",
+      "subject": "Kaliberwens: {caliber}"
+    },
+    "product": {
+      "kind": "Patroonbox",
+      "fromPrice": "vanaf {price}",
+      "sizesShort": "{sizes} patronen",
+      "rounds": "{count} patronen",
+      "sizeLegend": "Maat",
+      "priceNote": "Eindprijs, excl. verzending",
+      "summary": "{caliber} · {capacity} patronen · box {box} · opschrift {label}",
+      "drawingAlt": "Schematische tekening van de patroonbox {caliber} voor {capacity} patronen in {box} met opschrift in {label}",
+      "drawingCaption": "Schematisch, niet op schaal",
+      "drawingSibling": "andere maat",
+      "contentsTitle": "Inhoud",
+      "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod."
+    },
+    "configurator": {
+      "noColor": "Geen kleur gekozen"
+    },
+    "quantity": {
+      "decrease": "Aantal verlagen",
+      "increase": "Aantal verhogen"
+    },
+    "legalNotice": {
+      "title": "Opmerking over opslag",
+      "text": "De patroonboxen zijn bedoeld om te ordenen en te sorteren. Ze vervangen geen afsluitbare bewaarplaats of wapenkluis zoals § 36 van de Duitse wapenwet (WaffG) die voorschrijft voor het bewaren van munitie.",
+      "short": "Voor orde in de wapenkluis – geen vervanging van de wettelijk verplichte opslag (§ 36 WaffG)."
+    },
+    "voucher": {
+      "label": "Kortingscode"
+    },
+    "totals": {
+      "vatNote": "Op grond van § 19 UStG wordt geen btw berekend."
+    },
+    "form": {
+      "optional": "optioneel"
+    },
+    "cart": {
+      "emptyText": "Kies je kaliber en stel je box samen.",
+      "itemsLabel": "Artikelen in winkelwagen ({count})",
+      "unitPrice": "{price} per stuk",
+      "editItem": "{name} bewerken",
+      "removeItem": "{name} verwijderen",
+      "continue": "Verder winkelen"
+    },
+    "checkout": {
+      "contactTitle": "Contact",
+      "addressTitle": "Bezorgadres",
+      "emailHint": "Voor je orderbevestiging en verzendinformatie.",
+      "phone": "Telefoon",
+      "company": "Bedrijf",
+      "note": "Opmerking bij de bestelling",
+      "gift": "Dit is een cadeau",
+      "giftHint": "We noteren het bij je bestelling.",
+      "showSummary": "Besteloverzicht tonen",
+      "hideSummary": "Besteloverzicht verbergen",
+      "legal": "Met je bestelling ga je akkoord met onze {terms}. Informatie over het herroepingsrecht vind je in de {withdrawal}, over privacy in de {privacy}.",
+      "withdrawalLink": "herroepingsinformatie",
+      "payHints": {
+        "stripe": "Veilig betalen via Stripe, bijv. met creditcard.",
+        "bank_transfer": "Je ontvangt de bankgegevens na je bestelling.",
+        "bitcoin": "Betaling naar een Bitcoin-adres na je bestelling."
+      },
+      "errors": {
+        "summary": "Controleer de gemarkeerde velden ({count}).",
+        "email": "Vul je e-mailadres in.",
+        "emailFormat": "Vul een geldig e-mailadres in, bijv. naam{'@'}voorbeeld.nl.",
+        "firstName": "Vul je voornaam in.",
+        "lastName": "Vul je achternaam in.",
+        "street": "Vul straat en huisnummer in.",
+        "zip": "Vul je postcode in.",
+        "zipFormat": "De postcode moet 3 tot 12 tekens lang zijn.",
+        "city": "Vul je woonplaats in."
+      }
+    },
+    "wishlist": {
+      "lead": "Bewaarde configuraties blijven op dit apparaat.",
+      "emptyText": "Tik op het hartje op een productpagina om een configuratie te bewaren.",
+      "shareItem": "{name} delen",
+      "removeItem": "{name} van de verlanglijst verwijderen"
+    },
+    "success": {
+      "hit": "Roos"
+    },
+    "footer": {
+      "claim": "Patroonboxen voor jouw kaliber – op bestelling geprint, in jouw kleuren.",
+      "shop": "Winkel",
+      "shopNav": "Winkelnavigatie",
+      "legal": "Juridisch",
+      "legalNav": "Juridisch",
+      "vat": "Kleine ondernemer volgens § 19 UStG"
+    }
   }
 }
