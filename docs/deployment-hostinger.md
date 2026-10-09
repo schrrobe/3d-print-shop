@@ -21,24 +21,34 @@ User `kaliberbox`), ausgenommen `/api/webhooks/`.
 
 1. PR nach `main` mergen → Workflow **Release & Deploy** baut beide Images (Tag = Commit-SHA)
    und rollt sie auf dev aus.
-2. release-please pflegt parallel einen Release-PR (Version + `CHANGELOG.md`) aus den
-   Conventional Commits (`feat:` → Minor, `fix:` → Patch, `feat!:` → Breaking).
-3. Release-PR mergen → GitHub-Release `vX.Y.Z` → dasselbe API-Image, das gerade auf dev
-   läuft, wird als `vX.Y.Z` getaggt, das Web-Image mit Prod-URL neu gebaut, beides auf
-   prod ausgerollt.
+2. release-please pflegt **je Paket einen eigenen Release-PR** (Version + `CHANGELOG.md` im
+   Paketordner) aus den Conventional Commits (`feat:` → Minor, `fix:` → Patch,
+   `feat!:` → Breaking). Ein Commit gehört zu dem Paket, dessen Dateien er ändert.
+3. Release-PRs mergen:
+   - **API** (`api-vX.Y.Z`) → dasselbe API-Image, das gerade auf dev läuft, wird
+     umgetaggt und auf prod ausgerollt. Nur der API-Container wird neu gestartet.
+   - **Web** (`web-vX.Y.Z`) → Web-Image mit Prod-URL neu gebaut, nur der Web-Container
+     wird neu gestartet. Kommen API und Web im selben Push, geht die API zuerst live.
+   - **`packages/*`** (`utils-v…`, `validators-v…` …) → kein Deploy. Über das Plugin
+     `node-workspace` bekommen die abhängigen Apps automatisch einen Patch-Bump in
+     ihrem eigenen Release-PR.
+
+Neue Frontend-Features, die neue API-Endpunkte brauchen: **zuerst den API-Release-PR
+mergen**, dann den Web-PR. release-please prüft das nicht. Beim allerersten prod-Deploy
+muss die API zuerst released werden (Web wartet auf eine gesunde API).
 
 PR-Titel müssen deshalb Conventional Commits sein (Squash-Merge übernimmt den Titel).
 
 ## Bausteine
 
-| Datei                                  | Zweck                                                                     |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| `Dockerfile`                           | Targets `api` (tsx, `prisma migrate deploy` beim Start) und `web` (Nitro) |
-| `deploy/docker-compose.yml`            | Postgres + API + Web je Umgebung, Ports nur auf `127.0.0.1`               |
-| `deploy/deploy.sh`                     | auf dem VPS `/usr/local/bin/kaliberbox-deploy <prod\|dev> <tag>`          |
-| `deploy/nginx-*.conf`                  | nginx-Sites inkl. Basic-Auth für dev                                      |
-| `deploy/setup-vps.sh`                  | einmaliges, idempotentes Server-Setup                                     |
-| `.github/workflows/release-deploy.yml` | Build, release-please, Deploy                                             |
+| Datei                                  | Zweck                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| `Dockerfile`                           | Targets `api` (tsx, `prisma migrate deploy` beim Start) und `web` (Nitro)   |
+| `deploy/docker-compose.yml`            | Postgres + API + Web je Umgebung, Ports nur auf `127.0.0.1`                 |
+| `deploy/deploy.sh`                     | auf dem VPS `/usr/local/bin/kaliberbox-deploy <prod\|dev> <ref> [api\|web]` |
+| `deploy/nginx-*.conf`                  | nginx-Sites inkl. Basic-Auth für dev                                        |
+| `deploy/setup-vps.sh`                  | einmaliges, idempotentes Server-Setup                                       |
+| `.github/workflows/release-deploy.yml` | Build, release-please, Deploy                                               |
 
 Auf dem Server:
 
@@ -61,11 +71,13 @@ Passwörter oder Zertifikate).
 ## Häufige Handgriffe
 
 ```bash
-# Manuell (re)deployen — Image muss in ghcr existieren
-sudo -u kaliberbox kaliberbox-deploy dev <commit-sha>
+# Manuell (re)deployen — Images müssen in ghcr existieren
+# (API-Image-Tag = <ref>, Web-Image-Tag = <ref>-<env>)
+sudo -u kaliberbox kaliberbox-deploy dev <commit-sha>          # beide
+sudo -u kaliberbox kaliberbox-deploy prod api-v0.2.0 api       # nur API
 
-# Rollback: älteren Tag deployen
-sudo -u kaliberbox kaliberbox-deploy prod v0.2.0
+# Rollback: älteren Tag nur für den betroffenen Dienst deployen
+sudo -u kaliberbox kaliberbox-deploy prod web-v0.3.1 web
 
 # Logs / Status
 cd /opt/kaliberbox/prod && sudo -u kaliberbox docker compose logs -f api

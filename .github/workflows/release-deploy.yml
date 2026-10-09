@@ -1,8 +1,11 @@
 name: Release & Deploy
 
-# Every push to main builds images and deploys dev(.api).kaliberbox.de. Merging the
-# release-please PR creates a release; that commit — already running on dev — is
-# then promoted to kaliberbox.de / api.kaliberbox.de.
+# Every push to main builds both images and deploys dev(.api).kaliberbox.de.
+# release-please keeps one release PR per package. Merging the api PR (tag api-vX.Y.Z)
+# promotes the API image already running on dev to api.kaliberbox.de; merging the web
+# PR (web-vX.Y.Z) builds the web image with the prod URL and ships it to kaliberbox.de.
+# Release PRs for packages/* only bump versions; node-workspace carries those changes
+# into the api/web release PRs that depend on them.
 on:
   push:
     branches: [main]
@@ -24,8 +27,10 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      api_release: ${{ steps.release.outputs['apps/api--release_created'] }}
+      api_tag: ${{ steps.release.outputs['apps/api--tag_name'] }}
+      web_release: ${{ steps.release.outputs['apps/web--release_created'] }}
+      web_tag: ${{ steps.release.outputs['apps/web--tag_name'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -79,19 +84,17 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           printf '%s' "$GH_TOKEN" | ssh "kaliberbox@$DEPLOY_HOST" dev "$GITHUB_SHA"
 
-  # Prod ships the exact API image that just went live on dev; only the web image
-  # is rebuilt because Nuxt bakes the site URL in at build time.
-  deploy-prod:
+  # Same digest that just went live on dev, retagged.
+  deploy-prod-api:
     needs: [release-please, deploy-dev]
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.api_release == 'true'
     runs-on: ubuntu-latest
     environment:
-      name: production
-      url: https://kaliberbox.de
+      name: production-api
+      url: https://api.kaliberbox.de/health
     env:
-      TAG: ${{ needs.release-please.outputs.tag_name }}
+      TAG: ${{ needs.release-please.outputs.api_tag }}
     steps:
-      - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -100,6 +103,39 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Promote API image
         run: docker buildx imagetools create -t "$REGISTRY/kaliberbox-api:$TAG" "$REGISTRY/kaliberbox-api:$GITHUB_SHA"
+      - name: Deploy ${{ env.TAG }} to prod
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s' "$GH_TOKEN" | ssh "kaliberbox@$DEPLOY_HOST" prod "$TAG" api
+
+  # Rebuilt because Nuxt bakes the site URL in. Waits for the API when both are released
+  # by the same push, so a new frontend never goes live before the API it calls.
+  deploy-prod-web:
+    needs: [release-please, deploy-dev, deploy-prod-api]
+    if: >-
+      always() && needs.release-please.outputs.web_release == 'true'
+      && needs.deploy-dev.result == 'success' && needs.deploy-prod-api.result != 'failure'
+    runs-on: ubuntu-latest
+    environment:
+      name: production-web
+      url: https://kaliberbox.de
+    env:
+      TAG: ${{ needs.release-please.outputs.web_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Web image (prod)
         uses: docker/build-push-action@v6
         with:
@@ -119,4 +155,4 @@ jobs:
           install -d -m 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          printf '%s' "$GH_TOKEN" | ssh "kaliberbox@$DEPLOY_HOST" prod "$TAG"
+          printf '%s' "$GH_TOKEN" | ssh "kaliberbox@$DEPLOY_HOST" prod "$TAG" web
