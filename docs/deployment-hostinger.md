@@ -1,85 +1,105 @@
-# Deployment auf Hostinger
+# Deployment auf Hostinger (VPS)
 
-Empfohlen: **Hostinger VPS** (Shared/Webhosting reicht nicht — Node-Prozesse, PostgreSQL
-und Webhooks werden benötigt).
+Der VPS `186.240.146.22` (teilt sich den Host mit shapeandflow, siehe `/opt/README.md`
+auf dem Server) trägt beide Umgebungen als eigene Docker-Compose-Projekte:
 
-## Setup (Ubuntu-VPS)
+| Umgebung | Frontend (Nuxt)           | Backend (API)                 | Ports Web/API | Deploy                          |
+| -------- | ------------------------- | ----------------------------- | ------------- | ------------------------------- |
+| prod     | https://kaliberbox.de     | https://api.kaliberbox.de     | `3100/3101`   | GitHub-Release (release-please) |
+| dev      | https://dev.kaliberbox.de | https://api.dev.kaliberbox.de | `3110/3111`   | jeder Push auf `main`           |
+
+Frontend und Backend sind getrennte Images (`ghcr.io/schrrobe/kaliberbox-web`,
+`ghcr.io/schrrobe/kaliberbox-api`) und Container mit eigenem Host. Der Shop-Host leitet
+`/api/` zusätzlich an die API weiter, damit der Browser same-origin bleibt (Admin-Cookies,
+kein CORS, Produktbilder trotz helmet-CORP). Webhooks zeigen auf den API-Host, z. B.
+`https://api.kaliberbox.de/api/webhooks/stripe`.
+
+Beide dev-Hosts sind per HTTP-Basic-Auth geschützt (`/etc/nginx/kaliberbox-dev.htpasswd`,
+User `kaliberbox`), ausgenommen `/api/webhooks/`.
+
+## Ablauf
+
+1. PR nach `main` mergen → Workflow **Release & Deploy** baut beide Images (Tag = Commit-SHA)
+   und rollt sie auf dev aus.
+2. release-please pflegt parallel einen Release-PR (Version + `CHANGELOG.md`) aus den
+   Conventional Commits (`feat:` → Minor, `fix:` → Patch, `feat!:` → Breaking).
+3. Release-PR mergen → GitHub-Release `vX.Y.Z` → dasselbe API-Image, das gerade auf dev
+   läuft, wird als `vX.Y.Z` getaggt, das Web-Image mit Prod-URL neu gebaut, beides auf
+   prod ausgerollt.
+
+PR-Titel müssen deshalb Conventional Commits sein (Squash-Merge übernimmt den Titel).
+
+## Bausteine
+
+| Datei                                  | Zweck                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `Dockerfile`                           | Targets `api` (tsx, `prisma migrate deploy` beim Start) und `web` (Nitro) |
+| `deploy/docker-compose.yml`            | Postgres + API + Web je Umgebung, Ports nur auf `127.0.0.1`               |
+| `deploy/deploy.sh`                     | auf dem VPS `/usr/local/bin/kaliberbox-deploy <prod\|dev> <tag>`          |
+| `deploy/nginx-*.conf`                  | nginx-Sites inkl. Basic-Auth für dev                                      |
+| `deploy/setup-vps.sh`                  | einmaliges, idempotentes Server-Setup                                     |
+| `.github/workflows/release-deploy.yml` | Build, release-please, Deploy                                             |
+
+Auf dem Server:
+
+```
+/opt/kaliberbox/<env>/.env                 # Compose- und API-Konfiguration (kaliberbox, 600)
+/opt/kaliberbox/<env>/web.env              # optional: NUXT_PUBLIC_* für das Frontend
+/opt/kaliberbox/<env>/docker-compose.yml   # wird bei jedem Deploy aus dem Tag geladen
+```
+
+Daten liegen in Docker-Volumes (`kaliberbox-<env>_pgdata`, `_uploads`, `_invoices`).
+Der CI-Key in `/home/kaliberbox/.ssh/authorized_keys` darf ausschließlich
+`kaliberbox-deploy` aufrufen; das GITHUB_TOKEN für ghcr kommt per stdin und wird nur in
+einem temporären `DOCKER_CONFIG` benutzt.
+
+Änderungen an `deploy/nginx-*.conf`, `deploy/deploy.sh` oder `deploy/setup-vps.sh` werden
+**nicht** automatisch ausgerollt: Dateien auf den Server kopieren und
+`sudo bash setup-vps.sh <ci-key.pub>` erneut ausführen (überschreibt keine env-Dateien,
+Passwörter oder Zertifikate).
+
+## Häufige Handgriffe
 
 ```bash
-# 1. Grundausstattung
-apt update && apt install -y git nginx certbot python3-certbot-nginx
-curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && apt install -y nodejs
-corepack enable && corepack prepare pnpm@11 --activate
-# Docker für PostgreSQL (oder Managed-DB nutzen)
-curl -fsSL https://get.docker.com | sh
+# Manuell (re)deployen — Image muss in ghcr existieren
+sudo -u kaliberbox kaliberbox-deploy dev <commit-sha>
 
-# 2. Projekt
-git clone https://github.com/<user>/3d-print-shop.git /opt/print-shop
-cd /opt/print-shop
-cp .env.example .env        # echte Werte eintragen (Secrets NIE committen)
-pnpm install --frozen-lockfile
-docker compose up -d db
-pnpm --filter @print-shop/api prisma:deploy
-# Einmalig: BOOTSTRAP_ADMIN_EMAIL/PASSWORD in .env setzen, dann:
-pnpm --filter @print-shop/api prisma:bootstrap-admin
+# Rollback: älteren Tag deployen
+sudo -u kaliberbox kaliberbox-deploy prod v0.2.0
 
-# 3. Builds
-pnpm --filter @print-shop/web build            # → apps/web/.output
+# Logs / Status
+cd /opt/kaliberbox/prod && sudo -u kaliberbox docker compose logs -f api
+docker ps --filter name=kaliberbox
+
+# psql
+docker exec -it kaliberbox-postgres-prod psql -U kaliberbox
+
+# Admin einmalig anlegen (BOOTSTRAP_ADMIN_* in .env setzen, danach wieder entfernen)
+docker exec kaliberbox-api-prod node_modules/.bin/tsx prisma/bootstrap-admin.ts
+
+# Demo-Daten auf dev
+docker exec kaliberbox-api-dev node_modules/.bin/tsx prisma/seed.ts
 ```
 
-## Prozesse (systemd oder pm2)
+Migrationen laufen bei jedem API-Start (`prisma migrate deploy`). Kein
+`CREATE INDEX CONCURRENTLY` in Migrationen — das bricht den Start ab.
 
-```ini
-# /etc/systemd/system/print-shop-api.service
-[Service]
-WorkingDirectory=/opt/print-shop/apps/api
-EnvironmentFile=/opt/print-shop/.env
-Environment=NODE_ENV=production
-ExecStart=/usr/bin/pnpm start
-Restart=always
+Backups: `kaliberbox-postgres-{prod,dev}` sind im nächtlichen `/usr/local/bin/pg-backup.sh`
+eingetragen (`/var/backups/postgres/kaliberbox-<env>_*.sql.gz`). Uploads und Rechnungen
+liegen in Volumes und sind darin **nicht** enthalten.
 
-# /etc/systemd/system/print-shop-web.service
-[Service]
-WorkingDirectory=/opt/print-shop/apps/web
-Environment=NODE_ENV=production PORT=3000
-ExecStart=/usr/bin/node .output/server/index.mjs
-Restart=always
-```
+## GitHub-Secrets
 
-## Nginx-Reverse-Proxy
-
-```nginx
-server {
-  server_name shop.example.com;
-  client_max_body_size 60m;                      # 50-MB-Uploads + Overhead
-
-  location /api/ {
-    proxy_pass http://127.0.0.1:3001;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-  location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-}
-```
-
-TLS: `certbot --nginx -d shop.example.com`.
+`DEPLOY_SSH_KEY` (privater CI-Key), `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan` des VPS),
+`DEPLOY_HOST` (`186.240.146.22`). Unter _Settings → Actions → General_ muss
+„Allow GitHub Actions to create and approve pull requests“ aktiv sein (release-please).
 
 ## Produktions-Checkliste
 
-- [ ] `JWT_SECRET` neu generieren (`openssl rand -hex 32`), `COOKIE_SECURE=true`
-- [ ] Starkes `POSTGRES_PASSWORD`; Compose bindet PostgreSQL nur an `127.0.0.1`
-- [ ] `RESEND_API_KEY` + verifizierte Absenderdomain
-- [ ] Stripe-Live-Keys + Webhook auf `https://…/api/webhooks/stripe`
+- [ ] `/opt/kaliberbox/prod/.env`: Stripe-Live-Keys, Firmen-/Bankdaten (`COMPANY_*`,
+      `BANK_*`), Resend — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
+- [ ] `/opt/kaliberbox/prod/web.env`: `NUXT_PUBLIC_COMPANY_*` fürs Impressum
+- [ ] Stripe-Webhook auf `https://api.kaliberbox.de/api/webhooks/stripe`
 - [ ] Bitcoin bleibt mit `BITCOIN_ENABLED=false` aus, bis ein echter Provider implementiert ist
-- [ ] Admin einmalig über `prisma:bootstrap-admin` anlegen; `prisma:seed` ist in Produktion gesperrt
-- [ ] Rechtstexte (Impressum/Datenschutz/AGB) + USt-Angaben auf Rechnungen
-- [ ] Backups: `pg_dump`-Cron + `uploads/`- und `invoices/`-Verzeichnisse sichern
-- [ ] `UPLOAD_DIR`/`INVOICE_DIR` auf persistente Pfade außerhalb des Repos legen
+- [ ] Admin einmalig über `bootstrap-admin` anlegen; `prisma:seed` ist in Produktion gesperrt
+- [ ] Backup der Volumes `uploads`/`invoices`
