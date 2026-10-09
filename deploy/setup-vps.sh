@@ -15,11 +15,16 @@ printf 'restrict,command="/usr/local/bin/kaliberbox-deploy" %s\n' "$CI_PUBKEY" \
   | install -o kaliberbox -g kaliberbox -m 600 /dev/stdin /home/kaliberbox/.ssh/authorized_keys
 
 # --- per-environment config --------------------------------------------------
-write_env() { # <env> <web-port> <api-port> <node-env> <site-url> <api-url>
+write_env() { # <env> <web-port> <api-port> <db-port> <node-env> <site-url> <api-url>
   local dir=/opt/kaliberbox/$1
   install -d -o kaliberbox -g kaliberbox -m 750 "$dir"
-  [[ -e $dir/.env ]] && return
-  local db_pw jwt
+  [[ -e $dir/.env ]] || create_env "$@"
+  # Added after the first setup, so also appended to existing files.
+  grep -q '^DB_PORT_PUBLISH=' "$dir/.env" || echo "DB_PORT_PUBLISH=$4" >>"$dir/.env"
+}
+
+create_env() {
+  local dir=/opt/kaliberbox/$1 db_pw jwt
   db_pw=$(openssl rand -hex 24)
   jwt=$(openssl rand -hex 32)
   # Printed once, at creation, so the operator can store them.
@@ -34,16 +39,16 @@ API_PORT_PUBLISH=$3
 POSTGRES_PASSWORD=$db_pw
 
 # API (see apps/api/src/env.ts and .env.example for every option)
-NODE_ENV=$4
-WEB_URL=$5
-API_URL=$6
+NODE_ENV=$5
+WEB_URL=$6
+API_URL=$7
 JWT_SECRET=$jwt
 COOKIE_SECURE=true
 BITCOIN_ENABLED=false
 EOF
 }
-write_env dev 3110 3111 development https://dev.kaliberbox.de https://api.dev.kaliberbox.de
-write_env prod 3100 3101 production https://kaliberbox.de https://api.kaliberbox.de
+write_env dev 3110 3111 3112 development https://dev.kaliberbox.de https://api.dev.kaliberbox.de
+write_env prod 3100 3101 3102 production https://kaliberbox.de https://api.kaliberbox.de
 
 # --- nginx + certificates ------------------------------------------------------
 htpasswd=/etc/nginx/kaliberbox-dev.htpasswd

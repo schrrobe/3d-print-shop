@@ -3,10 +3,10 @@
 Der VPS `186.240.146.22` (teilt sich den Host mit shapeandflow, siehe `/opt/README.md`
 auf dem Server) trägt beide Umgebungen als eigene Docker-Compose-Projekte:
 
-| Umgebung | Frontend (Nuxt)           | Backend (API)                 | Ports Web/API | Deploy                          |
-| -------- | ------------------------- | ----------------------------- | ------------- | ------------------------------- |
-| prod     | https://kaliberbox.de     | https://api.kaliberbox.de     | `3100/3101`   | GitHub-Release (release-please) |
-| dev      | https://dev.kaliberbox.de | https://api.dev.kaliberbox.de | `3110/3111`   | jeder Push auf `main`           |
+| Umgebung | Frontend (Nuxt)           | Backend (API)                 | Ports Web/API/DB | Deploy                          |
+| -------- | ------------------------- | ----------------------------- | ---------------- | ------------------------------- |
+| prod     | https://kaliberbox.de     | https://api.kaliberbox.de     | `3100/3101/3102` | GitHub-Release (release-please) |
+| dev      | https://dev.kaliberbox.de | https://api.dev.kaliberbox.de | `3110/3111/3112` | jeder Push auf `main`           |
 
 Frontend und Backend sind getrennte Images (`ghcr.io/schrrobe/kaliberbox-web`,
 `ghcr.io/schrrobe/kaliberbox-api`) und Container mit eigenem Host. Der Shop-Host leitet
@@ -87,6 +87,19 @@ Migrationen laufen bei jedem API-Start (`prisma migrate deploy`). Kein
 Backups: `kaliberbox-postgres-{prod,dev}` sind im nächtlichen `/usr/local/bin/pg-backup.sh`
 eingetragen (`/var/backups/postgres/kaliberbox-<env>_*.sql.gz`). Uploads und Rechnungen
 liegen in Volumes und sind darin **nicht** enthalten.
+
+## Datenbank
+
+Jede Umgebung hat ihren eigenen Postgres-Container (`kaliberbox-postgres-<env>`, DB und
+User `kaliberbox`, Passwort = `POSTGRES_PASSWORD` in der env-Datei). Das Schema legt die
+API bei jedem Start per `prisma migrate deploy` an bzw. migriert es.
+
+Postgres lauscht nur auf `127.0.0.1` des VPS (prod `3102`, dev `3112`). GUI-Clients wie
+DBeaver verbinden sich per SSH-Tunnel:
+
+- **Main:** Host `localhost`, Port `3102`/`3112`, Database `kaliberbox`, User `kaliberbox`
+- **SSH:** Host `186.240.146.22`, Port `22`, User `robert`, Public Key mit expliziter
+  Key-Datei — fail2ban sperrt nach 3 Fehlversuchen für eine Stunde
 
 ## GitHub-Secrets
 
