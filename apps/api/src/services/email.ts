@@ -3,8 +3,14 @@ import { Resend } from 'resend'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 
-/** Shared Resend client — null in dev mode (no key). Also used by the inbound webhook. */
+/** Resend client — only used by the inbound ticket-reply webhook; outbound mail goes via Brevo. */
 export const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
+
+/** 'Print Shop <noreply@x.de>' → { name, email }; a bare address → { email }. */
+function parseAddress(value: string): { name?: string; email: string } {
+  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(value)
+  return match?.[2] ? { name: match[1] || undefined, email: match[2] } : { email: value.trim() }
+}
 
 export interface EmailAttachment {
   filename: string
@@ -17,7 +23,7 @@ export interface SendEmailOptions {
 }
 
 /**
- * Sends via Resend when RESEND_API_KEY is configured; otherwise logs to the
+ * Sends via Brevo when BREVO_API_KEY is configured; otherwise logs to the
  * console and the EmailLog table (dev mode). Every attempt is recorded.
  */
 export async function sendEmail(
@@ -27,7 +33,7 @@ export async function sendEmail(
   attachments: EmailAttachment[] = [],
   options: SendEmailOptions = {},
 ): Promise<void> {
-  if (!resend) {
+  if (!env.BREVO_API_KEY) {
     console.info(`[email:dev] to=${to} template=${template} subject="${rendered.subject}"`)
     await prisma.emailLog.create({
       data: {
@@ -46,15 +52,27 @@ export async function sendEmail(
   }
 
   try {
-    await resend.emails.send({
-      from: env.EMAIL_FROM,
-      to,
-      subject: rendered.subject,
-      html: rendered.html,
-      text: rendered.text,
-      replyTo: options.replyTo,
-      attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: parseAddress(env.EMAIL_FROM),
+        to: [{ email: to }],
+        subject: rendered.subject,
+        htmlContent: rendered.html,
+        textContent: rendered.text,
+        replyTo: options.replyTo ? { email: options.replyTo } : undefined,
+        attachment: attachments.length
+          ? attachments.map((a) => ({ name: a.filename, content: a.content.toString('base64') }))
+          : undefined,
+      }),
     })
+    // fetch does not throw on HTTP errors — surface them so they are logged as failed.
+    if (!res.ok) throw new Error(`Brevo ${res.status}: ${await res.text()}`)
     await prisma.emailLog.create({
       data: { to, template, subject: rendered.subject, status: 'sent' },
     })

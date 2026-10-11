@@ -22,6 +22,7 @@ const envSchema = z
       .transform((v) => v === 'true'),
     UPLOAD_DIR: z.string().default('./uploads'),
     UPLOAD_MAX_BYTES: z.coerce.number().int().default(52_428_800),
+    BREVO_API_KEY: z.string().optional().default(''),
     RESEND_API_KEY: z.string().optional().default(''),
     EMAIL_FROM: z.string().default('Print Shop <noreply@example.com>'),
     ADMIN_NOTIFICATION_EMAIL: z.string().default('admin@example.com'),
