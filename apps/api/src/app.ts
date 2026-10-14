@@ -50,6 +50,7 @@ import { ticketsRouter } from './routes/public/tickets.js'
 import { trackRouter } from './routes/public/track.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { vouchersRouter } from './routes/public/vouchers.js'
+import { withdrawalsRouter } from './routes/public/withdrawals.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
 export function createApp(): Express {
@@ -90,6 +91,7 @@ export function createApp(): Express {
   app.use('/api/consent', consentRouter)
   app.use('/api/payments', paymentsRouter)
   app.use('/api/tickets', ticketsRouter)
+  app.use('/api/withdrawals', withdrawalsRouter)
   app.use('/api/models', modelsRouter)
   app.use('/api/product-images', productImagesRouter)
   app.use('/api/complaints', complaintsRouter)

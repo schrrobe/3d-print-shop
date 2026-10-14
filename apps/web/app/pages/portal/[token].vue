@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PsButton, PsCard, PsInput, PsOrderStatusBadge, PsPrice, PsSection } from '@print-shop/ui'
 import type { Locale, OrderStatus } from '@print-shop/types'
+import { WITHDRAWAL_FUNCTION_PATH } from '@print-shop/utils'
 import { requestPortalLink, usePortal } from '~/composables/usePortal'
 
 /**
@@ -8,6 +9,7 @@ import { requestPortalLink, usePortal } from '~/composables/usePortal'
  * email. noindex + no-referrer so the token never leaks to a search index or
  * an outbound Referer header.
  */
+const localePath = useLocalePath()
 const { t, locale } = useI18n()
 const route = useRoute()
 const token = String(route.params.token)
@@ -155,6 +157,18 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                   data-testid="portal-order-complaint"
                 >
                   {{ t('portal.actions.complaint') }}
+                </NuxtLink>
+                <NuxtLink
+                  :to="
+                    localePath({
+                      path: WITHDRAWAL_FUNCTION_PATH,
+                      query: { order: order.orderNumber },
+                    })
+                  "
+                  class="inline-flex h-9 items-center justify-center rounded-button px-md text-label-small font-medium text-primary hover:bg-surface-muted"
+                  data-testid="portal-order-withdraw"
+                >
+                  {{ t('withdraw.button') }}
                 </NuxtLink>
               </div>
               <div v-if="order.complaints.length" class="mt-md text-caption text-secondary">

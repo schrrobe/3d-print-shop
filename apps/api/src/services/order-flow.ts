@@ -25,6 +25,7 @@ export function orderEmailData(order: Order & { items: OrderItem[] }): OrderEmai
     orderNumber: order.orderNumber,
     firstName: order.firstName,
     totalCents: order.totalCents,
+    shippingCents: order.shippingCents,
     orderUrl: orderUrl(order),
     items: order.items.map((i) => ({
       name: i.name,

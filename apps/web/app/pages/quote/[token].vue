@@ -3,6 +3,7 @@ import { PsBadge, PsInput, PsPillButton, PsPrice, PsSection } from '@print-shop/
 
 /** Public quote page — customer accepts (→ payment link) or declines. */
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 // Private token URL — must never end up in a search index
 useHead({
@@ -164,13 +165,36 @@ async function decline() {
             <PsInput v-model="address.country" :label="t('checkout.country')" required />
           </div>
           <PsInput v-model="address.email" :label="t('checkout.email')" type="email" required />
+          <!-- Art. 246a § 1 Abs. 3 Nr. 1 EGBGB: no withdrawal right for made-to-spec work -->
+          <p class="text-body-regular text-primary" data-testid="quote-no-withdrawal">
+            {{ t('quote.noWithdrawal') }}
+          </p>
+          <p class="text-caption text-secondary" data-testid="quote-legal">
+            <i18n-t keypath="shop.checkout.legal" tag="span" scope="global">
+              <template #terms>
+                <NuxtLink :to="localePath('/legal/terms')" target="_blank" class="underline">{{
+                  t('footer.terms')
+                }}</NuxtLink>
+              </template>
+              <template #withdrawal>
+                <NuxtLink :to="localePath('/legal/withdrawal')" target="_blank" class="underline">{{
+                  t('shop.checkout.withdrawalLink')
+                }}</NuxtLink>
+              </template>
+              <template #privacy>
+                <NuxtLink :to="localePath('/legal/privacy')" target="_blank" class="underline">{{
+                  t('footer.privacy')
+                }}</NuxtLink>
+              </template>
+            </i18n-t>
+          </p>
           <PsPillButton
             type="submit"
             size="lg"
             :disabled="submitting || !hydrated"
             data-testid="quote-accept-submit"
           >
-            {{ t('quote.accept') }}
+            {{ t('quote.acceptBinding') }}
           </PsPillButton>
         </form>
       </template>

@@ -18,7 +18,7 @@
     "added": "Added to cart",
     "manufacturingNotice": {
       "title": "Manufacturing note",
-      "production": "Each ammunition box is manufactured using the 3D printing process. Slight layer lines or minimal surface variations are production-related and typical of additive manufacturing. They do not constitute a defect and have no effect on function, stability, or durability."
+      "production": "Each ammunition box is made by 3D printing. Fine layer lines and minimal surface differences are typical of additive manufacturing and do not affect function, stability or durability."
     },
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom"
@@ -120,7 +120,9 @@
     "accepted": "Quote accepted — continue to payment:",
     "payNow": "Pay now",
     "expired": "This quote has expired.",
-    "addressTitle": "Billing & shipping address"
+    "addressTitle": "Billing & shipping address",
+    "acceptBinding": "Accept quote with obligation to pay",
+    "noWithdrawal": "Important: this item is made individually to your specifications. There is no right of withdrawal for it (Section 312g (2) no. 1 German Civil Code). Your statutory warranty rights remain unaffected."
   },
   "consent": {
     "title": "Cookies & privacy",
@@ -132,22 +134,23 @@
     "necessary": "Necessary",
     "necessaryText": "Required for cart, checkout and language settings.",
     "statistics": "Statistics",
-    "statisticsText": "Google Analytics 4 — helps us improve the shop.",
+    "statisticsText": "Our own reach measurement and Google Analytics 4 — help us improve the shop.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — for more relevant ads."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API and ad click IDs — measure the success of our ads. Google Tag Manager only with statistics and marketing."
   },
   "footer": {
     "imprint": "Imprint",
     "privacy": "Privacy",
     "terms": "Terms",
-    "withdrawal": "Withdrawal"
+    "withdrawal": "Cancellation policy"
   },
   "legal": {
     "imprintTitle": "Imprint",
     "privacyTitle": "Privacy policy",
     "termsTitle": "Terms and conditions",
     "withdrawalTitle": "Cancellation policy",
-    "placeholder": "Placeholder — add legal content before going live."
+    "placeholder": "Placeholder — add legal content before going live.",
+    "germanOnly": "Only the German version of this legal text is binding. The contract language is German."
   },
   "common": {
     "loading": "Loading …",
@@ -170,7 +173,8 @@
       "payment": "Payment",
       "shipping": "Shipping",
       "product": "Product",
-      "other": "Other"
+      "other": "Other",
+      "withdrawal": "Withdrawal"
     },
     "successTitle": "Request received!",
     "successText": "We sent you an email with the link to your ticket. Your ticket number:",
@@ -290,7 +294,7 @@
       "title": "Open a complaint",
       "missingContext": "No valid order reference. Please open the complaint from your account area.",
       "goToPortal": "Go to my account",
-      "customMadeNote": "Note: personalised made-to-order items are excluded from the right of withdrawal. Complaints about defects and goodwill cases are of course still possible.",
+      "customMadeNote": "Complaints about defects are always possible, regardless of the right of withdrawal. To withdraw without a defect, please use \"Withdraw from contract\" in the footer.",
       "selectItems": "Affected items",
       "quantity": "Quantity",
       "reason": "Reason",
@@ -441,7 +445,12 @@
       "drawingCaption": "Schematic, not to scale",
       "drawingSibling": "other size",
       "contentsTitle": "What's included",
-      "contentsText": "One empty cartridge box. Ammunition is not part of the offer."
+      "contentsText": "One empty cartridge box. Ammunition is not part of the offer.",
+      "shippingTitle": "Shipping & delivery time",
+      "shippingText": "Shipping {cost} per order, free from {free} order value.",
+      "withdrawalTitle": "Right of withdrawal",
+      "withdrawalText": "Your colour choice does not affect your statutory 14-day right of withdrawal. You bear the cost of returning the goods.",
+      "manufacturerTitle": "Manufacturer"
     },
     "configurator": {
       "noColor": "No colour selected"
@@ -518,6 +527,26 @@
       "legal": "Legal",
       "legalNav": "Legal",
       "vat": "Small business under § 19 UStG"
-    }
+    },
+    "deliveryTime": "Delivery time from receipt of payment: Germany {de}, other countries {other} (working days)."
+  },
+  "withdraw": {
+    "button": "Withdraw from contract",
+    "title": "Withdraw from contract",
+    "intro": "Withdraw from your purchase online within the withdrawal period. You will immediately receive a confirmation of receipt by email.",
+    "name": "Your name",
+    "orderNumber": "Order number",
+    "email": "Email address for the confirmation of receipt",
+    "emailHint": "You can find the order number in your order confirmation.",
+    "scope": "What do you want to withdraw?",
+    "scopeAll": "The entire order",
+    "scopePartial": "Only some items",
+    "items": "Which items? (e.g. \"1× cartridge box 9mm Luger, 50 rounds\")",
+    "legalNote": "Clicking \"Confirm withdrawal\" sends your declaration of withdrawal. Details:",
+    "confirm": "Confirm withdrawal",
+    "error": "Your withdrawal could not be sent. Please try again or withdraw by email.",
+    "successTitle": "We received your withdrawal",
+    "successText": "Received: {date}. We sent the confirmation with the content of your declaration to {email}.",
+    "reference": "Reference:"
   }
 }

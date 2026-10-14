@@ -1,6 +1,7 @@
 import type { ConsentCategory } from '@print-shop/types'
 
-export const CONSENT_VERSION = '1.0'
+/** Bump whenever categories or providers change — every visitor is asked again. */
+export const CONSENT_VERSION = '1.1'
 export const CONSENT_STORAGE_KEY = 'print-shop-consent'
 
 export interface ConsentState {
@@ -39,8 +40,10 @@ export function canLoadTracker(category: ConsentCategory, state: ConsentState | 
 }
 
 /** GA4 requires statistics consent; Meta Pixel requires marketing consent. */
-export const canLoadGa4 = (state: ConsentState | null): boolean => canLoadTracker('statistics', state)
-export const canLoadMetaPixel = (state: ConsentState | null): boolean => canLoadTracker('marketing', state)
+export const canLoadGa4 = (state: ConsentState | null): boolean =>
+  canLoadTracker('statistics', state)
+export const canLoadMetaPixel = (state: ConsentState | null): boolean =>
+  canLoadTracker('marketing', state)
 
 /** GTM containers can fire arbitrary tags (analytics AND marketing) — require BOTH categories. */
 export const canLoadGtm = (state: ConsentState | null): boolean =>
@@ -55,7 +58,8 @@ export function parseStoredConsent(raw: string | null): ConsentState | null {
       parsed === null ||
       typeof parsed.statistics !== 'boolean' ||
       typeof parsed.marketing !== 'boolean' ||
-      typeof parsed.version !== 'string'
+      // Outdated consent text → treat as no consent so the banner asks again
+      parsed.version !== CONSENT_VERSION
     ) {
       return null
     }
@@ -64,7 +68,8 @@ export function parseStoredConsent(raw: string | null): ConsentState | null {
       statistics: parsed.statistics,
       marketing: parsed.marketing,
       version: parsed.version,
-      updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date(0).toISOString(),
+      updatedAt:
+        typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date(0).toISOString(),
     }
   } catch {
     return null

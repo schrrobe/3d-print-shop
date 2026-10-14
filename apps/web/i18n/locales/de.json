@@ -18,7 +18,7 @@
     "added": "Zum Warenkorb hinzugefügt",
     "manufacturingNotice": {
       "title": "Hinweis zur Herstellung",
-      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Leichte Schichtlinien oder minimale Oberflächenabweichungen sind produktionsbedingt und typisch für die additive Fertigung. Sie stellen keinen Mangel dar und haben keinen Einfluss auf Funktion, Stabilität oder Haltbarkeit."
+      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Feine Schichtlinien und minimale Oberflächenunterschiede sind typisch für die additive Fertigung und beeinträchtigen Funktion, Stabilität und Haltbarkeit nicht."
     },
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen"
@@ -120,7 +120,9 @@
     "accepted": "Angebot angenommen — weiter zur Zahlung:",
     "payNow": "Jetzt bezahlen",
     "expired": "Dieses Angebot ist abgelaufen.",
-    "addressTitle": "Rechnungs- & Lieferadresse"
+    "addressTitle": "Rechnungs- & Lieferadresse",
+    "acceptBinding": "Angebot zahlungspflichtig annehmen",
+    "noWithdrawal": "Wichtig: Diese Anfertigung wird nach deinen Vorgaben individuell hergestellt. Ein Widerrufsrecht besteht dafür nicht (§ 312g Abs. 2 Nr. 1 BGB). Deine gesetzlichen Mängelrechte bleiben unberührt."
   },
   "consent": {
     "title": "Cookies & Datenschutz",
@@ -132,22 +134,23 @@
     "necessary": "Notwendig",
     "necessaryText": "Für Warenkorb, Checkout und Spracheinstellung erforderlich.",
     "statistics": "Statistik",
-    "statisticsText": "Google Analytics 4 — hilft uns, den Shop zu verbessern.",
+    "statisticsText": "Eigene Reichweitenmessung und Google Analytics 4 — helfen uns, den Shop zu verbessern.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — für relevantere Werbung."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API und Werbe-Klickkennungen — messen den Erfolg unserer Anzeigen. Google Tag Manager nur mit Statistik und Marketing."
   },
   "footer": {
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
-    "withdrawal": "Widerruf"
+    "withdrawal": "Widerrufsbelehrung"
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Datenschutzerklärung",
     "termsTitle": "Allgemeine Geschäftsbedingungen",
     "withdrawalTitle": "Widerrufsbelehrung",
-    "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen."
+    "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen.",
+    "germanOnly": "Dieser Rechtstext ist nur auf Deutsch verbindlich. Vertragssprache ist Deutsch."
   },
   "common": {
     "loading": "Lädt …",
@@ -170,7 +173,8 @@
       "payment": "Zahlung",
       "shipping": "Versand",
       "product": "Produkt",
-      "other": "Sonstiges"
+      "other": "Sonstiges",
+      "withdrawal": "Widerruf"
     },
     "successTitle": "Anfrage erhalten!",
     "successText": "Wir haben dir eine E-Mail mit dem Link zu deinem Ticket geschickt. Deine Ticketnummer:",
@@ -290,7 +294,7 @@
       "title": "Reklamation eröffnen",
       "missingContext": "Kein gültiger Bestellbezug. Bitte öffne die Reklamation über deinen Kundenbereich.",
       "goToPortal": "Zum Kundenbereich",
-      "customMadeNote": "Hinweis: Personalisierte Sonderanfertigungen sind vom Widerruf ausgeschlossen. Reklamationen bei Mängeln oder Kulanzfälle sind selbstverständlich möglich.",
+      "customMadeNote": "Reklamationen wegen Mängeln sind immer möglich, unabhängig vom Widerrufsrecht. Willst du ohne Mangel vom Vertrag zurücktreten, nutze bitte „Vertrag widerrufen“ im Footer.",
       "selectItems": "Betroffene Positionen",
       "quantity": "Menge",
       "reason": "Grund",
@@ -435,13 +439,18 @@
       "sizesShort": "{sizes} Schuss",
       "rounds": "{count} Schuss",
       "sizeLegend": "Größe",
-      "priceNote": "Endpreis, zzgl. Versand",
+      "priceNote": "Endpreis, zzgl. Versandkosten",
       "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
       "drawingCaption": "Schematische Darstellung, nicht maßstäblich",
       "drawingSibling": "andere Größe",
       "contentsTitle": "Lieferumfang",
-      "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots."
+      "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots.",
+      "shippingTitle": "Versand & Lieferzeit",
+      "shippingText": "Versandkosten {cost} je Bestellung, ab {free} Warenwert versandkostenfrei.",
+      "withdrawalTitle": "Widerrufsrecht",
+      "withdrawalText": "Auch mit deiner Farbwahl hast du das gesetzliche Widerrufsrecht von 14 Tagen. Die Kosten der Rücksendung trägst du.",
+      "manufacturerTitle": "Hersteller"
     },
     "configurator": {
       "noColor": "Keine Farbe gewählt"
@@ -518,6 +527,26 @@
       "legal": "Rechtliches",
       "legalNav": "Rechtliches",
       "vat": "Kleinunternehmer gemäß § 19 UStG"
-    }
+    },
+    "deliveryTime": "Lieferzeit ab Zahlungseingang: Deutschland {de}, übrige Lieferländer {other}."
+  },
+  "withdraw": {
+    "button": "Vertrag widerrufen",
+    "title": "Vertrag widerrufen",
+    "intro": "Hier kannst du deinen Kaufvertrag innerhalb der Widerrufsfrist online widerrufen. Du erhältst sofort eine Eingangsbestätigung per E-Mail.",
+    "name": "Dein Name",
+    "orderNumber": "Bestellnummer",
+    "email": "E-Mail-Adresse für die Eingangsbestätigung",
+    "emailHint": "Die Bestellnummer findest du in deiner Bestellbestätigung.",
+    "scope": "Was möchtest du widerrufen?",
+    "scopeAll": "Die gesamte Bestellung",
+    "scopePartial": "Nur einzelne Artikel",
+    "items": "Welche Artikel? (z. B. „1× Patronenbox 9mm Luger, 50 Schuss“)",
+    "legalNote": "Mit „Widerruf bestätigen“ sendest du deine Widerrufserklärung verbindlich ab. Einzelheiten:",
+    "confirm": "Widerruf bestätigen",
+    "error": "Dein Widerruf konnte nicht übermittelt werden. Bitte versuche es erneut oder widerrufe per E-Mail.",
+    "successTitle": "Dein Widerruf ist eingegangen",
+    "successText": "Eingang: {date}. Die Bestätigung mit dem Inhalt deiner Erklärung haben wir an {email} gesendet.",
+    "reference": "Vorgangsnummer:"
   }
 }

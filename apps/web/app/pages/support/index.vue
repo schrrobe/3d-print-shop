@@ -2,6 +2,9 @@
 import { TICKET_CATEGORIES } from '@print-shop/types'
 import { PsInput, PsPillButton, PsSection, PsTextarea } from '@print-shop/ui'
 
+// Withdrawals go through the dedicated § 356a BGB function, not the support form.
+const supportCategories = TICKET_CATEGORIES.filter((c) => c !== 'withdrawal')
+
 /** Public support form → creates a ticket with a token link for the customer. */
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -108,7 +111,7 @@ async function submit() {
           class="rounded-card border border-subtle bg-surface-elevated px-md py-md-sm text-body-regular text-primary"
           data-testid="support-category"
         >
-          <option v-for="c in TICKET_CATEGORIES" :key="c" :value="c">
+          <option v-for="c in supportCategories" :key="c" :value="c">
             {{ t(`support.categories.${c}`) }}
           </option>
         </select>

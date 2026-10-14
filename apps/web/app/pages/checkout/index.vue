@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { canLoadTracker, formatCents } from '@print-shop/utils'
+import {
+  canLoadTracker,
+  DELIVERY_COUNTRIES,
+  DELIVERY_TIME_DE,
+  DELIVERY_TIME_OTHER,
+  formatCents,
+} from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 
 /**
@@ -35,10 +41,9 @@ onMounted(() => {
 })
 
 // ponytail: fixed delivery-country list; move to config/API when shipping rates differ per country
-const COUNTRIES = ['DE', 'AT', 'CH', 'NL', 'BE', 'LU', 'FR', 'DK', 'PL', 'CZ', 'IT', 'ES'] as const
 const countryOptions = computed(() => {
   const names = new Intl.DisplayNames([locale.value], { type: 'region' })
-  return COUNTRIES.map((code) => ({ code, name: names.of(code) ?? code }))
+  return DELIVERY_COUNTRIES.map((code) => ({ code, name: names.of(code) ?? code }))
 })
 
 const form = reactive({
@@ -422,7 +427,8 @@ const summaryOpen = ref(false)
         class="flex h-fit flex-col gap-6 bg-paper-raised p-5 outline outline-1 outline-rule md:p-6 lg:sticky lg:top-24"
       >
         <h2 class="kb-heading hidden text-[1.5rem] lg:block">{{ t('checkout.summary') }}</h2>
-        <ul class="hidden divide-y divide-rule border-y border-rule lg:block">
+        <!-- § 312j Abs. 2 BGB: essential item data directly above the order button on every viewport -->
+        <ul class="divide-y divide-rule border-y border-rule" data-testid="checkout-items">
           <li v-for="item in cart.items" :key="item.key" class="flex justify-between gap-3 py-3">
             <span>
               <span class="kb-num">{{ item.quantity }}×</span> {{ item.name }}
@@ -434,6 +440,9 @@ const summaryOpen = ref(false)
           </li>
         </ul>
         <ShopTotals prefix="checkout" />
+        <p class="text-sm text-ink-2" data-testid="checkout-delivery-time">
+          {{ t('shop.deliveryTime', { de: DELIVERY_TIME_DE, other: DELIVERY_TIME_OTHER }) }}
+        </p>
         <ShopVoucherForm />
 
         <p

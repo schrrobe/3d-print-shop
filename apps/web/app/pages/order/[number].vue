@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { PsButton, PsOrderStatusBadge, PsPrice, PsSection } from '@print-shop/ui'
 import type { Locale, OrderStatus } from '@print-shop/types'
+import { WITHDRAWAL_FUNCTION_PATH } from '@print-shop/utils'
 
 /** Guest order status page (order number + access token from email/confirmation). */
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 // Private token URL — must never end up in a search index
 useHead({
@@ -171,6 +173,14 @@ async function checkBitcoin() {
         📦 {{ order.carrier?.toUpperCase() }} ·
         <span class="font-mono">{{ order.trackingNumber }}</span>
       </p>
+
+      <NuxtLink
+        :to="localePath({ path: WITHDRAWAL_FUNCTION_PATH, query: { order: order.orderNumber } })"
+        class="mt-2xl inline-flex text-body-regular underline"
+        data-testid="order-withdraw"
+      >
+        {{ t('withdraw.button') }}
+      </NuxtLink>
     </div>
   </PsSection>
 </template>

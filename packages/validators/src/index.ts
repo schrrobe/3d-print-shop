@@ -74,9 +74,7 @@ export const checkoutSchema = z.object({
    * events (drives the marketing outbox fan-out). Optional so older clients
    * stay valid — missing means no consent (fail-closed).
    */
-  consent: z
-    .object({ statistics: z.boolean(), marketing: z.boolean() })
-    .optional(),
+  consent: z.object({ statistics: z.boolean(), marketing: z.boolean() }).optional(),
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
 
@@ -352,6 +350,17 @@ export const ticketMessageSchema = z.object({
   body: z.string().trim().min(1).max(4000),
 })
 export type TicketMessageInput = z.infer<typeof ticketMessageSchema>
+
+/** § 356a BGB withdrawal declaration: name, contract id, channel for the receipt. */
+export const withdrawalSchema = z.object({
+  name: z.string().trim().min(1).max(150),
+  orderNumber: z.string().trim().min(1).max(40),
+  email: z.string().trim().email().max(254),
+  /** Empty = whole contract; otherwise the withdrawn part in the customer's words. */
+  items: z.string().trim().max(1000).optional(),
+  locale: localeSchema.default('de'),
+})
+export type WithdrawalInput = z.infer<typeof withdrawalSchema>
 
 export const ticketUpdateSchema = z.object({
   priority: z.enum(TICKET_PRIORITIES).optional(),

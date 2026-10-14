@@ -82,12 +82,14 @@ export async function recordClientBatch(
     const meta = batch.session
     if (meta) {
       const host = referrerHost(meta.referrer)
+      // Ad click ids are marketing data: dropped server-side without marketing consent
+      const clickIds = batch.consent.marketing ? meta.clickIds : undefined
       const channel = classifyChannel({
         utmSource: meta.utm?.source,
         utmMedium: meta.utm?.medium,
-        fbclid: meta.clickIds?.fbclid,
-        ttclid: meta.clickIds?.ttclid,
-        gclid: meta.clickIds?.gclid,
+        fbclid: clickIds?.fbclid,
+        ttclid: clickIds?.ttclid,
+        gclid: clickIds?.gclid,
         referrerHost: host,
       })
       const landingPath = sanitizeTrackingPath(meta.landingPath, '/') ?? '/'
@@ -101,16 +103,22 @@ export async function recordClientBatch(
         utmCampaign: meta.utm?.campaign ?? null,
         utmTerm: meta.utm?.term ?? null,
         utmContent: meta.utm?.content ?? null,
-        fbclid: meta.clickIds?.fbclid ?? null,
-        ttclid: meta.clickIds?.ttclid ?? null,
-        gclid: meta.clickIds?.gclid ?? null,
+        fbclid: clickIds?.fbclid ?? null,
+        ttclid: clickIds?.ttclid ?? null,
+        gclid: clickIds?.gclid ?? null,
         channel,
         userAgent: ctx.userAgent?.slice(0, 255) ?? null,
         deviceType: deviceTypeFromUserAgent(ctx.userAgent),
       }
       await tx.trackingSession.upsert({
         where: { id: batch.sessionId },
-        create: { id: batch.sessionId, visitorId: batch.visitorId, startedAt: now, lastEventAt: now, ...touchpoint },
+        create: {
+          id: batch.sessionId,
+          visitorId: batch.visitorId,
+          startedAt: now,
+          lastEventAt: now,
+          ...touchpoint,
+        },
         // Touchpoint is captured once (first batch wins); later batches only bump activity.
         update: { lastEventAt: now, visitorId: batch.visitorId ?? undefined },
       })

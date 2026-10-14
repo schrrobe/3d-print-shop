@@ -68,6 +68,11 @@ describe('consent logic (GDPR opt-in)', () => {
     expect(parseStoredConsent(JSON.stringify({ statistics: true }))).toBeNull()
   })
 
+  it('treats consent for an outdated text version as missing (banner asks again)', () => {
+    const stale = JSON.stringify({ statistics: true, marketing: true, version: '0.9' })
+    expect(parseStoredConsent(stale)).toBeNull()
+  })
+
   it('stamps version and timestamp', () => {
     const now = new Date('2026-07-02T12:00:00Z')
     const consent = createConsent({ statistics: true, marketing: false }, now)

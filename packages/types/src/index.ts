@@ -105,7 +105,14 @@ export type TicketStatus = (typeof TICKET_STATUSES)[number]
 export const TICKET_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number]
 
-export const TICKET_CATEGORIES = ['order', 'payment', 'shipping', 'product', 'other'] as const
+export const TICKET_CATEGORIES = [
+  'order',
+  'payment',
+  'shipping',
+  'product',
+  'other',
+  'withdrawal',
+] as const
 export type TicketCategory = (typeof TICKET_CATEGORIES)[number]
 
 export const TICKET_AUTHOR_TYPES = ['customer', 'staff'] as const

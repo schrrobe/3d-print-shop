@@ -10,6 +10,7 @@ import {
   renderQuoteAvailable,
   renderShippingConfirmation,
   renderUploadReceived,
+  renderWithdrawalReceived,
 } from '../src/index.js'
 
 const orderData = {
@@ -102,5 +103,33 @@ describe('email templates', () => {
         'de',
       ).html,
     ).toBeTruthy()
+  })
+
+  it('order confirmation carries the cancellation policy, model form and AGB (§ 312f BGB)', () => {
+    const mail = renderOrderConfirmation({ ...orderData, shippingCents: 699 }, 'de')
+    for (const part of [mail.html, mail.text].map((p) => p.toLowerCase())) {
+      expect(part).toContain('widerrufsbelehrung')
+      expect(part).toContain('muster-widerrufsformular')
+      expect(part).toContain('allgemeine geschäftsbedingungen')
+      expect(part).toContain('https://shop.example/withdraw')
+    }
+    expect(mail.html).toContain('Versandkosten')
+  })
+
+  it('withdrawal receipt states content plus date and time of receipt (§ 356a Abs. 4 BGB)', () => {
+    const mail = renderWithdrawalReceived(
+      {
+        name: 'Erika <b>',
+        orderNumber: 'KB-1',
+        email: 'e@example.com',
+        ticketNumber: 'TIC-1',
+        receivedAt: '14. Oktober 2026 um 13:05:09',
+      },
+      'de',
+    )
+    expect(mail.text).toContain('Hiermit widerrufe ich den Vertrag zur Bestellung KB-1.')
+    expect(mail.text).toContain('14. Oktober 2026 um 13:05:09')
+    expect(mail.text).toContain('gesamter Vertrag')
+    expect(mail.html).not.toContain('<b>')
   })
 })

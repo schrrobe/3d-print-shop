@@ -77,9 +77,10 @@ const envSchema = z
     META_INSTAGRAM_ACCESS_TOKEN: z.string().optional().default(''),
     // --- Conversion tracking ---
     // Nightly retention/reconciliation worker (opt-in; single-instance assumption).
+    // On by default: the privacy policy promises these retention periods
     TRACKING_RETENTION_CRON_ENABLED: z
       .enum(['true', 'false'])
-      .default('false')
+      .default('true')
       .transform((v) => v === 'true'),
     TRACKING_RETENTION_CRON_INTERVAL_SECONDS: z.coerce.number().int().min(60).default(3600),
     /// Event row retention (~13 months); older events are purged nightly.
@@ -177,7 +178,8 @@ const envSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['JWT_SECRET'],
-          message: 'JWT_SECRET must be a unique random value of at least 32 characters in production',
+          message:
+            'JWT_SECRET must be a unique random value of at least 32 characters in production',
         })
       }
       // Without the webhook secret, unsigned (forgeable) Stripe events would

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { WITHDRAWAL_FUNCTION_PATH } from '@print-shop/utils'
+
 const { t } = useI18n()
 const localePath = useLocalePath()
 const consent = useConsentStore()
@@ -91,6 +93,16 @@ const year = new Date().getFullYear()
               class="flex min-h-11 items-center hover:underline"
             >
               {{ t('footer.withdrawal') }}
+            </NuxtLink>
+          </li>
+          <li>
+            <!-- § 356a BGB: permanently available, highlighted withdrawal button -->
+            <NuxtLink
+              :to="localePath(WITHDRAWAL_FUNCTION_PATH)"
+              class="my-1 inline-flex min-h-11 items-center rounded-full border border-on-mirror px-4 font-semibold hover:bg-on-mirror/10"
+              data-testid="footer-withdraw"
+            >
+              {{ t('withdraw.button') }}
             </NuxtLink>
           </li>
           <li>

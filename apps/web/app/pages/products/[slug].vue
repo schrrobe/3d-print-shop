@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { PsProductGallery, useToast } from '@print-shop/ui'
-import { formatCents } from '@print-shop/utils'
+import {
+  DELIVERY_TIME_DE,
+  DELIVERY_TIME_OTHER,
+  FREE_SHIPPING_THRESHOLD_CENTS,
+  formatCents,
+  SHIPPING_FLAT_CENTS,
+} from '@print-shop/utils'
 import type { ColorSelection, Locale } from '@print-shop/types'
 import type { CartLine } from '~/stores/cart'
 import type { ApiProduct } from '~/composables/useShop'
@@ -15,6 +21,7 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const runtimeConfig = useRuntimeConfig()
+const company = runtimeConfig.public.company
 const cart = useCartStore()
 const toast = useToast()
 const { store: wishlist, shareConfiguration, loadConfiguration } = useWishlist()
@@ -513,7 +520,9 @@ useHead({
               <p class="kb-num text-[2rem] font-bold leading-none" data-testid="price">
                 {{ price(product.priceCents) }}
               </p>
-              <p class="mt-1 text-sm text-ink-2">{{ t('shop.product.priceNote') }}</p>
+              <a href="#shipping-info" class="mt-1 block text-sm text-ink-2 underline">{{
+                t('shop.product.priceNote')
+              }}</a>
             </div>
             <ShopQuantity v-model="quantity" :label="t('cart.quantity')" />
           </div>
@@ -565,6 +574,42 @@ useHead({
           >
             <dt class="font-bold">{{ t('shop.product.contentsTitle') }}</dt>
             <dd class="text-ink-2">{{ t('shop.product.contentsText') }}</dd>
+          </div>
+          <div
+            id="shipping-info"
+            class="grid gap-1 py-4 sm:grid-cols-[12rem_1fr]"
+            data-testid="product-shipping"
+          >
+            <dt class="font-bold">{{ t('shop.product.shippingTitle') }}</dt>
+            <dd class="text-ink-2">
+              {{
+                t('shop.product.shippingText', {
+                  cost: price(SHIPPING_FLAT_CENTS),
+                  free: price(FREE_SHIPPING_THRESHOLD_CENTS),
+                })
+              }}
+              {{ t('shop.deliveryTime', { de: DELIVERY_TIME_DE, other: DELIVERY_TIME_OTHER }) }}
+              <NuxtLink :to="localePath('/legal/terms')" class="underline">{{
+                t('footer.terms')
+              }}</NuxtLink>
+            </dd>
+          </div>
+          <div class="grid gap-1 py-4 sm:grid-cols-[12rem_1fr]" data-testid="product-withdrawal">
+            <dt class="font-bold">{{ t('shop.product.withdrawalTitle') }}</dt>
+            <dd class="text-ink-2">
+              {{ t('shop.product.withdrawalText') }}
+              <NuxtLink :to="localePath('/legal/withdrawal')" class="underline">{{
+                t('legal.withdrawalTitle')
+              }}</NuxtLink>
+            </dd>
+          </div>
+          <div class="grid gap-1 py-4 sm:grid-cols-[12rem_1fr]" data-testid="product-manufacturer">
+            <!-- Art. 19 GPSR (EU 2023/988): manufacturer name, postal + electronic address -->
+            <dt class="font-bold">{{ t('shop.product.manufacturerTitle') }}</dt>
+            <dd class="text-ink-2">
+              {{ company.name }}, {{ company.street }}, {{ company.zip }} {{ company.city }},
+              Deutschland · {{ company.email }}
+            </dd>
           </div>
         </dl>
 

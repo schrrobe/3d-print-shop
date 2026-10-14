@@ -159,6 +159,7 @@ enum TicketCategory {
   shipping
   product
   other
+  withdrawal
 }
 
 enum TicketAuthorType {
@@ -312,9 +313,9 @@ model Product {
   slug       String   @unique
   priceCents Int
   active     Boolean  @default(false)
-  /// Sonderanfertigung (made-to-order / farblich personalisiert): kein Widerruf,
-  /// nur Reklamation/Kulanz. Steuert den Hinweis im Reklamations-Formular.
-  customMade Boolean  @default(true)
+  /// Echte Einzelanfertigung nach Kundenvorgabe (§ 312g Abs. 2 Nr. 1 BGB): kein
+  /// Widerruf. Farb-/Größenwahl aus dem Shop-Sortiment zählt NICHT dazu.
+  customMade Boolean  @default(false)
   /// Patronen pro Box (50 / 100); null bei Produkten ohne Kapazität
   capacity   Int?
   /// Produkte mit gleichem familyKey sind Größenvarianten (50/100) derselben Kaliberbox

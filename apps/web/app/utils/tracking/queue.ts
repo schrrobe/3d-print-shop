@@ -1,4 +1,9 @@
-import { CONSENT_STORAGE_KEY, uuidv7, type ClientEventName } from '@print-shop/utils'
+import {
+  CONSENT_STORAGE_KEY,
+  parseStoredConsent,
+  uuidv7,
+  type ClientEventName,
+} from '@print-shop/utils'
 
 /**
  * First-party tracking transport. Browser-only. Batches behavioural events and
@@ -132,7 +137,8 @@ function ensureSessionId(): string {
   return id
 }
 
-function captureSessionMeta(): SessionMeta {
+/** Ad click ids serve marketing attribution → only captured with marketing consent. */
+function captureSessionMeta(marketing: boolean): SessionMeta {
   const url = new URL(window.location.href)
   const q = (key: string, max: number) => url.searchParams.get(key)?.slice(0, max) || null
   let referrer: string | null = null
@@ -155,7 +161,9 @@ function captureSessionMeta(): SessionMeta {
       term: q('utm_term', 200),
       content: q('utm_content', 200),
     },
-    clickIds: { fbclid: q('fbclid', 512), ttclid: q('ttclid', 512), gclid: q('gclid', 512) },
+    clickIds: marketing
+      ? { fbclid: q('fbclid', 512), ttclid: q('ttclid', 512), gclid: q('gclid', 512) }
+      : { fbclid: null, ttclid: null, gclid: null },
   }
 }
 
@@ -211,10 +219,8 @@ export function createTracker(): Tracker {
 
   function consentSnapshot(): TrackingBatch['consent'] {
     try {
-      const raw = localGet(CONSENT_STORAGE_KEY)
-      const consent = raw
-        ? (JSON.parse(raw) as { statistics?: boolean; marketing?: boolean })
-        : null
+      // parseStoredConsent drops outdated consent versions
+      const consent = parseStoredConsent(localGet(CONSENT_STORAGE_KEY))
       return {
         statistics: consent?.statistics === true,
         marketing: consent?.marketing === true,
@@ -236,13 +242,14 @@ export function createTracker(): Tracker {
 
   function buildBatch(events: QueuedEvent[]): TrackingBatch {
     if (!sid) throw new Error('Tracking session is not enabled')
+    const consent = consentSnapshot()
     return {
       v: 1,
       sessionId: sid,
       visitorId: vid,
-      consent: consentSnapshot(),
+      consent,
       events,
-      ...(!sessionMetaSent() ? { session: captureSessionMeta() } : {}),
+      ...(!sessionMetaSent() ? { session: captureSessionMeta(consent.marketing) } : {}),
     }
   }
 

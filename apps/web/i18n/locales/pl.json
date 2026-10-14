@@ -18,7 +18,7 @@
     "added": "Dodano do koszyka",
     "manufacturingNotice": {
       "title": "Informacja o produkcji",
-      "production": "Każde pudełko na amunicję jest wykonywane metodą druku 3D. Delikatne linie warstw lub minimalne różnice powierzchni wynikają z procesu produkcji i są typowe dla wytwarzania addytywnego. Nie stanowią wady i nie mają wpływu na funkcję, stabilność ani trwałość."
+      "production": "Każde pudełko na amunicję jest wykonywane w technologii druku 3D. Drobne linie warstw i minimalne różnice powierzchni są typowe dla produkcji addytywnej i nie wpływają na funkcję, stabilność ani trwałość."
     },
     "viewer": {
       "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć"
@@ -120,7 +120,9 @@
     "accepted": "Wycena zaakceptowana — przejdź do płatności:",
     "payNow": "Zapłać teraz",
     "expired": "Ta wycena wygasła.",
-    "addressTitle": "Adres rozliczeniowy i dostawy"
+    "addressTitle": "Adres rozliczeniowy i dostawy",
+    "acceptBinding": "Przyjmij ofertę z obowiązkiem zapłaty",
+    "noWithdrawal": "Ważne: ten artykuł jest wykonywany indywidualnie według Twoich wytycznych. Prawo odstąpienia nie przysługuje (§ 312g ust. 2 pkt 1 BGB). Ustawowe prawa z tytułu wad pozostają bez zmian."
   },
   "consent": {
     "title": "Pliki cookie i prywatność",
@@ -132,22 +134,23 @@
     "necessary": "Niezbędne",
     "necessaryText": "Wymagane do koszyka, kasy i ustawień języka.",
     "statistics": "Statystyka",
-    "statisticsText": "Google Analytics 4 — pomaga nam ulepszać sklep.",
+    "statisticsText": "Własny pomiar zasięgu i Google Analytics 4 — pomagają nam ulepszać sklep.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — dla trafniejszych reklam."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API i identyfikatory kliknięć reklam — mierzą skuteczność naszych reklam. Google Tag Manager tylko przy zgodzie na statystykę i marketing."
   },
   "footer": {
     "imprint": "Impressum",
     "privacy": "Prywatność",
     "terms": "Regulamin",
-    "withdrawal": "Odstąpienie"
+    "withdrawal": "Prawo odstąpienia"
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Polityka prywatności",
     "termsTitle": "Regulamin",
     "withdrawalTitle": "Prawo odstąpienia",
-    "placeholder": "Placeholder — uzupełnij treści prawne przed startem."
+    "placeholder": "Placeholder — uzupełnij treści prawne przed startem.",
+    "germanOnly": "Wiążąca jest wyłącznie niemiecka wersja tego tekstu prawnego. Językiem umowy jest niemiecki."
   },
   "common": {
     "loading": "Ładowanie …",
@@ -170,7 +173,8 @@
       "payment": "Płatność",
       "shipping": "Wysyłka",
       "product": "Produkt",
-      "other": "Inne"
+      "other": "Inne",
+      "withdrawal": "Odstąpienie"
     },
     "successTitle": "Otrzymaliśmy zapytanie!",
     "successText": "Wysłaliśmy Ci e-mail z linkiem do Twojego zgłoszenia. Numer zgłoszenia:",
@@ -290,7 +294,7 @@
       "title": "Zgłoś reklamację",
       "missingContext": "Brak prawidłowego odniesienia do zamówienia. Otwórz reklamację z poziomu swojego konta.",
       "goToPortal": "Przejdź do konta",
-      "customMadeNote": "Uwaga: spersonalizowane produkty na zamówienie są wyłączone z prawa odstąpienia. Reklamacje wad oraz rozpatrzenie w ramach dobrej woli są oczywiście możliwe.",
+      "customMadeNote": "Reklamacje z powodu wad są zawsze możliwe, niezależnie od prawa odstąpienia. Aby odstąpić bez wady, użyj „Odstąp od umowy” w stopce.",
       "selectItems": "Pozycje objęte reklamacją",
       "quantity": "Ilość",
       "reason": "Powód",
@@ -441,7 +445,12 @@
       "drawingCaption": "Schemat, nie w skali",
       "drawingSibling": "inny rozmiar",
       "contentsTitle": "Zawartość",
-      "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty."
+      "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty.",
+      "shippingTitle": "Wysyłka i czas dostawy",
+      "shippingText": "Koszt wysyłki {cost} za zamówienie, darmowa wysyłka od {free}.",
+      "withdrawalTitle": "Prawo odstąpienia",
+      "withdrawalText": "Również przy wybranych kolorach przysługuje Ci ustawowe 14-dniowe prawo odstąpienia. Koszty odesłania ponosisz Ty.",
+      "manufacturerTitle": "Producent"
     },
     "configurator": {
       "noColor": "Nie wybrano koloru"
@@ -518,6 +527,26 @@
       "legal": "Informacje prawne",
       "legalNav": "Informacje prawne",
       "vat": "Mały przedsiębiorca zgodnie z § 19 UStG"
-    }
+    },
+    "deliveryTime": "Czas dostawy od otrzymania płatności: Niemcy {de}, pozostałe kraje {other} (dni robocze)."
+  },
+  "withdraw": {
+    "button": "Odstąp od umowy",
+    "title": "Odstąp od umowy",
+    "intro": "Tutaj możesz online odstąpić od umowy w terminie na odstąpienie. Od razu otrzymasz e-mailem potwierdzenie otrzymania.",
+    "name": "Imię i nazwisko",
+    "orderNumber": "Numer zamówienia",
+    "email": "Adres e-mail do potwierdzenia otrzymania",
+    "emailHint": "Numer zamówienia znajdziesz w potwierdzeniu zamówienia.",
+    "scope": "Od czego chcesz odstąpić?",
+    "scopeAll": "Od całego zamówienia",
+    "scopePartial": "Tylko od wybranych artykułów",
+    "items": "Które artykuły? (np. „1× pudełko 9mm Luger, 50 nabojów”)",
+    "legalNote": "Klikając „Potwierdź odstąpienie”, wysyłasz oświadczenie o odstąpieniu. Szczegóły:",
+    "confirm": "Potwierdź odstąpienie",
+    "error": "Nie udało się wysłać odstąpienia. Spróbuj ponownie lub odstąp e-mailem.",
+    "successTitle": "Otrzymaliśmy Twoje odstąpienie",
+    "successText": "Otrzymano: {date}. Potwierdzenie z treścią oświadczenia wysłaliśmy na adres {email}.",
+    "reference": "Numer sprawy:"
   }
 }

@@ -18,7 +18,7 @@
     "added": "Přidáno do košíku",
     "manufacturingNotice": {
       "title": "Upozornění k výrobě",
-      "production": "Každý box na munici je vyráběn metodou 3D tisku. Jemné vrstvy nebo minimální povrchové odchylky jsou dány výrobním procesem a jsou typické pro aditivní výrobu. Nepředstavují vadu a nemají vliv na funkci, stabilitu ani životnost."
+      "production": "Každá krabička na střelivo se vyrábí 3D tiskem. Jemné linie vrstev a minimální rozdíly povrchu jsou typické pro aditivní výrobu a neovlivňují funkci, stabilitu ani životnost."
     },
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit"
@@ -120,7 +120,9 @@
     "accepted": "Nabídka přijata — pokračujte k platbě:",
     "payNow": "Zaplatit nyní",
     "expired": "Tato nabídka vypršela.",
-    "addressTitle": "Fakturační a doručovací adresa"
+    "addressTitle": "Fakturační a doručovací adresa",
+    "acceptBinding": "Přijmout nabídku s povinností platby",
+    "noWithdrawal": "Důležité: tato položka se vyrábí individuálně podle tvého zadání. Právo na odstoupení nevzniká (§ 312g odst. 2 č. 1 BGB). Tvá zákonná práva z vad zůstávají nedotčena."
   },
   "consent": {
     "title": "Cookies a soukromí",
@@ -132,22 +134,23 @@
     "necessary": "Nezbytné",
     "necessaryText": "Vyžadováno pro košík, pokladnu a nastavení jazyka.",
     "statistics": "Statistika",
-    "statisticsText": "Google Analytics 4 — pomáhá nám obchod zlepšovat.",
+    "statisticsText": "Vlastní měření návštěvnosti a Google Analytics 4 — pomáhají nám zlepšovat obchod.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — pro relevantnější reklamu."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API a ID kliknutí z reklam — měří úspěšnost našich reklam. Google Tag Manager jen se souhlasem se statistikou i marketingem."
   },
   "footer": {
     "imprint": "Impressum",
     "privacy": "Soukromí",
     "terms": "Obchodní podmínky",
-    "withdrawal": "Odstoupení"
+    "withdrawal": "Odstoupení od smlouvy"
   },
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Zásady ochrany osobních údajů",
     "termsTitle": "Obchodní podmínky",
     "withdrawalTitle": "Poučení o odstoupení",
-    "placeholder": "Placeholder — právní obsah doplňte před spuštěním."
+    "placeholder": "Placeholder — právní obsah doplňte před spuštěním.",
+    "germanOnly": "Závazná je pouze německá verze tohoto právního textu. Jazykem smlouvy je němčina."
   },
   "common": {
     "loading": "Načítání …",
@@ -170,7 +173,8 @@
       "payment": "Platba",
       "shipping": "Doprava",
       "product": "Produkt",
-      "other": "Ostatní"
+      "other": "Ostatní",
+      "withdrawal": "Odstoupení"
     },
     "successTitle": "Dotaz přijat!",
     "successText": "Poslali jsme vám e-mail s odkazem na váš tiket. Číslo tiketu:",
@@ -290,7 +294,7 @@
       "title": "Otevřít reklamaci",
       "missingContext": "Chybí platný odkaz na objednávku. Otevřete reklamaci ze svého zákaznického účtu.",
       "goToPortal": "Přejít na účet",
-      "customMadeNote": "Upozornění: personalizované výrobky na zakázku jsou vyloučeny z práva na odstoupení. Reklamace vad a vyřízení z dobré vůle jsou samozřejmě možné.",
+      "customMadeNote": "Reklamace vad jsou možné vždy, nezávisle na právu na odstoupení. Chceš-li odstoupit bez vady, použij „Odstoupit od smlouvy“ v patičce.",
       "selectItems": "Dotčené položky",
       "quantity": "Množství",
       "reason": "Důvod",
@@ -441,7 +445,12 @@
       "drawingCaption": "Schéma, ne v měřítku",
       "drawingSibling": "jiná velikost",
       "contentsTitle": "Obsah balení",
-      "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky."
+      "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky.",
+      "shippingTitle": "Doprava a dodací lhůta",
+      "shippingText": "Poštovné {cost} za objednávku, od {free} zdarma.",
+      "withdrawalTitle": "Právo na odstoupení",
+      "withdrawalText": "I při vlastní volbě barev máš zákonné 14denní právo na odstoupení. Náklady na vrácení neseš ty.",
+      "manufacturerTitle": "Výrobce"
     },
     "configurator": {
       "noColor": "Barva nevybrána"
@@ -518,6 +527,26 @@
       "legal": "Právní informace",
       "legalNav": "Právní informace",
       "vat": "Drobný podnikatel podle § 19 UStG"
-    }
+    },
+    "deliveryTime": "Dodací lhůta od přijetí platby: Německo {de}, ostatní země {other} (pracovní dny)."
+  },
+  "withdraw": {
+    "button": "Odstoupit od smlouvy",
+    "title": "Odstoupit od smlouvy",
+    "intro": "Zde můžeš ve lhůtě pro odstoupení online odstoupit od smlouvy. Ihned dostaneš e-mailem potvrzení o přijetí.",
+    "name": "Tvé jméno",
+    "orderNumber": "Číslo objednávky",
+    "email": "E-mail pro potvrzení o přijetí",
+    "emailHint": "Číslo objednávky najdeš v potvrzení objednávky.",
+    "scope": "Od čeho chceš odstoupit?",
+    "scopeAll": "Od celé objednávky",
+    "scopePartial": "Jen od některých položek",
+    "items": "Které položky? (např. „1× krabička 9mm Luger, 50 nábojů“)",
+    "legalNote": "Kliknutím na „Potvrdit odstoupení“ odešleš prohlášení o odstoupení. Podrobnosti:",
+    "confirm": "Potvrdit odstoupení",
+    "error": "Odstoupení se nepodařilo odeslat. Zkus to znovu nebo odstup e-mailem.",
+    "successTitle": "Tvé odstoupení jsme přijali",
+    "successText": "Přijato: {date}. Potvrzení s obsahem tvého prohlášení jsme poslali na {email}.",
+    "reference": "Číslo případu:"
   }
 }

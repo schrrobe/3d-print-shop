@@ -153,7 +153,7 @@ export async function runTrackingMaintenanceTick(): Promise<MaintenanceResult | 
   }
 }
 
-/** Interval worker, opt-in via TRACKING_RETENTION_CRON_ENABLED=true. */
+/** Interval worker; disable with TRACKING_RETENTION_CRON_ENABLED=false. */
 export function startTrackingMaintenanceCron(): NodeJS.Timeout | null {
   if (!env.TRACKING_RETENTION_CRON_ENABLED) return null
   const intervalMs = env.TRACKING_RETENTION_CRON_INTERVAL_SECONDS * 1000

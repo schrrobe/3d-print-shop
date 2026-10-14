@@ -18,7 +18,7 @@
     "added": "Ajouté au panier",
     "manufacturingNotice": {
       "title": "Remarque sur la fabrication",
-      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De légères lignes de couche ou de minimes variations de surface sont liées à la production et typiques de la fabrication additive. Elles ne constituent pas un défaut et n'ont aucune incidence sur la fonction, la stabilité ou la durabilité."
+      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De fines lignes de couche et de légères différences de surface sont typiques de la fabrication additive et n'affectent ni la fonction, ni la stabilité, ni la durabilité."
     },
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer"
@@ -120,7 +120,9 @@
     "accepted": "Devis accepté — passez au paiement :",
     "payNow": "Payer maintenant",
     "expired": "Ce devis a expiré.",
-    "addressTitle": "Adresse de facturation et de livraison"
+    "addressTitle": "Adresse de facturation et de livraison",
+    "acceptBinding": "Accepter le devis avec obligation de paiement",
+    "noWithdrawal": "Important : cet article est fabriqué individuellement selon tes indications. Il n'existe pas de droit de rétractation (§ 312g al. 2 n° 1 BGB). Tes droits légaux en cas de défaut restent inchangés."
   },
   "consent": {
     "title": "Cookies et confidentialité",
@@ -132,22 +134,23 @@
     "necessary": "Nécessaires",
     "necessaryText": "Requis pour le panier, le paiement et la langue.",
     "statistics": "Statistiques",
-    "statisticsText": "Google Analytics 4 — nous aide à améliorer la boutique.",
+    "statisticsText": "Notre propre mesure d'audience et Google Analytics 4 — nous aident à améliorer la boutique.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — pour des publicités plus pertinentes."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API et identifiants de clic publicitaires — mesurent l'efficacité de nos annonces. Google Tag Manager uniquement avec statistiques et marketing."
   },
   "footer": {
     "imprint": "Mentions légales",
     "privacy": "Confidentialité",
     "terms": "CGV",
-    "withdrawal": "Rétractation"
+    "withdrawal": "Droit de rétractation"
   },
   "legal": {
     "imprintTitle": "Mentions légales",
     "privacyTitle": "Politique de confidentialité",
     "termsTitle": "Conditions générales de vente",
     "withdrawalTitle": "Droit de rétractation",
-    "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne."
+    "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne.",
+    "germanOnly": "Seule la version allemande de ce texte juridique fait foi. La langue du contrat est l'allemand."
   },
   "common": {
     "loading": "Chargement …",
@@ -170,7 +173,8 @@
       "payment": "Paiement",
       "shipping": "Livraison",
       "product": "Produit",
-      "other": "Autre"
+      "other": "Autre",
+      "withdrawal": "Rétractation"
     },
     "successTitle": "Demande reçue !",
     "successText": "Nous vous avons envoyé un e-mail avec le lien vers votre ticket. Votre numéro de ticket :",
@@ -290,7 +294,7 @@
       "title": "Ouvrir une réclamation",
       "missingContext": "Aucune référence de commande valide. Veuillez ouvrir la réclamation depuis votre espace client.",
       "goToPortal": "Aller à mon espace",
-      "customMadeNote": "Remarque : les articles personnalisés fabriqués sur commande sont exclus du droit de rétractation. Les réclamations pour défauts et les gestes commerciaux restent bien entendu possibles.",
+      "customMadeNote": "Les réclamations pour défaut sont toujours possibles, indépendamment du droit de rétractation. Pour te rétracter sans défaut, utilise « Résilier le contrat » en bas de page.",
       "selectItems": "Articles concernés",
       "quantity": "Quantité",
       "reason": "Motif",
@@ -441,7 +445,12 @@
       "drawingCaption": "Schéma, pas à l’échelle",
       "drawingSibling": "autre taille",
       "contentsTitle": "Contenu",
-      "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre."
+      "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre.",
+      "shippingTitle": "Livraison et délai",
+      "shippingText": "Frais de port {cost} par commande, offerts dès {free} d'achat.",
+      "withdrawalTitle": "Droit de rétractation",
+      "withdrawalText": "Même avec ton choix de couleurs, tu disposes du droit légal de rétractation de 14 jours. Les frais de retour sont à ta charge.",
+      "manufacturerTitle": "Fabricant"
     },
     "configurator": {
       "noColor": "Aucune couleur choisie"
@@ -518,6 +527,26 @@
       "legal": "Mentions légales",
       "legalNav": "Mentions légales",
       "vat": "Petite entreprise selon le § 19 UStG"
-    }
+    },
+    "deliveryTime": "Délai de livraison à réception du paiement : Allemagne {de}, autres pays {other} (jours ouvrables)."
+  },
+  "withdraw": {
+    "button": "Résilier le contrat",
+    "title": "Résilier le contrat",
+    "intro": "Exerce ici en ligne ton droit de rétractation pendant le délai prévu. Tu recevras immédiatement un accusé de réception par e-mail.",
+    "name": "Ton nom",
+    "orderNumber": "Numéro de commande",
+    "email": "Adresse e-mail pour l'accusé de réception",
+    "emailHint": "Le numéro de commande figure dans ta confirmation de commande.",
+    "scope": "Que souhaites-tu résilier ?",
+    "scopeAll": "Toute la commande",
+    "scopePartial": "Seulement certains articles",
+    "items": "Quels articles ? (p. ex. « 1× boîte 9mm Luger, 50 cartouches »)",
+    "legalNote": "En cliquant sur « Confirmer la rétractation », tu envoies ta déclaration. Détails :",
+    "confirm": "Confirmer la rétractation",
+    "error": "Ta rétractation n'a pas pu être envoyée. Réessaie ou envoie-la par e-mail.",
+    "successTitle": "Ta rétractation a bien été reçue",
+    "successText": "Reçue le : {date}. Nous avons envoyé la confirmation avec le contenu de ta déclaration à {email}.",
+    "reference": "Référence :"
   }
 }

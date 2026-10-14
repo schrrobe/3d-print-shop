@@ -1,4 +1,16 @@
 import process from 'node:process'
+import type { LegalCompany } from '@print-shop/utils'
+
+/** Company data for the legal documents, same env vars as the footer. */
+export function companyFromEnv(): LegalCompany {
+  return {
+    name: process.env.COMPANY_NAME?.trim() || 'Print Shop GmbH',
+    street: process.env.COMPANY_STREET?.trim() ?? '',
+    zip: process.env.COMPANY_ZIP?.trim() ?? '',
+    city: process.env.COMPANY_CITY?.trim() ?? '',
+    email: process.env.COMPANY_EMAIL?.trim() ?? '',
+  }
+}
 
 function companyFooter(): string {
   const name = process.env.COMPANY_NAME?.trim() || 'Print Shop GmbH'

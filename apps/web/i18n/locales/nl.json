@@ -18,7 +18,7 @@
     "added": "Toegevoegd aan winkelwagen",
     "manufacturingNotice": {
       "title": "Productie-informatie",
-      "production": "Elke munitiekist wordt met 3D-printtechnologie vervaardigd. Lichte laaglijnen of minimale oppervlakteafwijkingen zijn productiegebonden en typisch voor additieve productie. Ze vormen geen gebrek en hebben geen invloed op functie, stabiliteit of duurzaamheid."
+      "production": "Elke munitiedoos wordt met 3D-printing gemaakt. Fijne laaglijnen en minimale oppervlakteverschillen zijn typisch voor additieve productie en hebben geen invloed op functie, stabiliteit of duurzaamheid."
     },
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen"
@@ -120,7 +120,9 @@
     "accepted": "Offerte geaccepteerd — ga door naar betaling:",
     "payNow": "Nu betalen",
     "expired": "Deze offerte is verlopen.",
-    "addressTitle": "Factuur- en bezorgadres"
+    "addressTitle": "Factuur- en bezorgadres",
+    "acceptBinding": "Offerte met betalingsverplichting accepteren",
+    "noWithdrawal": "Belangrijk: dit artikel wordt individueel volgens jouw specificaties gemaakt. Er geldt geen herroepingsrecht (§ 312g lid 2 nr. 1 BGB). Je wettelijke rechten bij gebreken blijven onverminderd."
   },
   "consent": {
     "title": "Cookies & privacy",
@@ -132,22 +134,23 @@
     "necessary": "Noodzakelijk",
     "necessaryText": "Vereist voor winkelwagen, afrekenen en taalinstelling.",
     "statistics": "Statistiek",
-    "statisticsText": "Google Analytics 4 — helpt ons de shop te verbeteren.",
+    "statisticsText": "Eigen bereiksmeting en Google Analytics 4 — helpen ons de shop te verbeteren.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel — voor relevantere advertenties."
+    "marketingText": "Meta Pixel, Meta Conversions API, TikTok Events API en advertentie-klik-ID’s — meten het succes van onze advertenties. Google Tag Manager alleen met statistiek en marketing."
   },
   "footer": {
     "imprint": "Colofon",
     "privacy": "Privacy",
     "terms": "Voorwaarden",
-    "withdrawal": "Herroeping"
+    "withdrawal": "Herroepingsrecht"
   },
   "legal": {
     "imprintTitle": "Colofon",
     "privacyTitle": "Privacyverklaring",
     "termsTitle": "Algemene voorwaarden",
     "withdrawalTitle": "Herroepingsrecht",
-    "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang."
+    "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang.",
+    "germanOnly": "Alleen de Duitse versie van deze juridische tekst is bindend. De contracttaal is Duits."
   },
   "common": {
     "loading": "Laden …",
@@ -170,7 +173,8 @@
       "payment": "Betaling",
       "shipping": "Verzending",
       "product": "Product",
-      "other": "Overig"
+      "other": "Overig",
+      "withdrawal": "Herroeping"
     },
     "successTitle": "Verzoek ontvangen!",
     "successText": "We hebben je een e-mail gestuurd met de link naar je ticket. Je ticketnummer:",
@@ -290,7 +294,7 @@
       "title": "Klacht indienen",
       "missingContext": "Geen geldige orderreferentie. Open de klacht via je klantomgeving.",
       "goToPortal": "Naar mijn klantomgeving",
-      "customMadeNote": "Let op: gepersonaliseerde maatwerkartikelen zijn uitgesloten van het herroepingsrecht. Klachten over gebreken en coulance zijn uiteraard wel mogelijk.",
+      "customMadeNote": "Klachten over gebreken zijn altijd mogelijk, los van het herroepingsrecht. Wil je zonder gebrek herroepen, gebruik dan „Overeenkomst herroepen” in de footer.",
       "selectItems": "Betrokken artikelen",
       "quantity": "Aantal",
       "reason": "Reden",
@@ -441,7 +445,12 @@
       "drawingCaption": "Schematisch, niet op schaal",
       "drawingSibling": "andere maat",
       "contentsTitle": "Inhoud",
-      "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod."
+      "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod.",
+      "shippingTitle": "Verzending & levertijd",
+      "shippingText": "Verzendkosten {cost} per bestelling, gratis vanaf {free} bestelwaarde.",
+      "withdrawalTitle": "Herroepingsrecht",
+      "withdrawalText": "Ook met je kleurkeuze heb je het wettelijke herroepingsrecht van 14 dagen. De kosten van terugzending zijn voor jou.",
+      "manufacturerTitle": "Fabrikant"
     },
     "configurator": {
       "noColor": "Geen kleur gekozen"
@@ -518,6 +527,26 @@
       "legal": "Juridisch",
       "legalNav": "Juridisch",
       "vat": "Kleine ondernemer volgens § 19 UStG"
-    }
+    },
+    "deliveryTime": "Levertijd na ontvangst van de betaling: Duitsland {de}, overige landen {other} (werkdagen)."
+  },
+  "withdraw": {
+    "button": "Overeenkomst herroepen",
+    "title": "Overeenkomst herroepen",
+    "intro": "Herroep hier binnen de herroepingstermijn online je aankoop. Je ontvangt direct een ontvangstbevestiging per e-mail.",
+    "name": "Je naam",
+    "orderNumber": "Bestelnummer",
+    "email": "E-mailadres voor de ontvangstbevestiging",
+    "emailHint": "Het bestelnummer staat in je orderbevestiging.",
+    "scope": "Wat wil je herroepen?",
+    "scopeAll": "De hele bestelling",
+    "scopePartial": "Alleen bepaalde artikelen",
+    "items": "Welke artikelen? (bijv. „1× patronendoos 9mm Luger, 50 patronen”)",
+    "legalNote": "Met „Herroeping bevestigen” verstuur je je herroepingsverklaring. Details:",
+    "confirm": "Herroeping bevestigen",
+    "error": "Je herroeping kon niet worden verzonden. Probeer het opnieuw of herroep per e-mail.",
+    "successTitle": "Je herroeping is ontvangen",
+    "successText": "Ontvangen: {date}. We hebben de bevestiging met de inhoud van je verklaring naar {email} gestuurd.",
+    "reference": "Referentie:"
   }
 }

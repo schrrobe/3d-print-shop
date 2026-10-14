@@ -2,6 +2,7 @@
 import { PsDialog } from '@print-shop/ui'
 
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const consent = useConsentStore()
 
 onMounted(() => consent.hydrate())
@@ -44,7 +45,16 @@ function saveSettings() {
       >
         <div class="max-w-[42rem]">
           <h2 class="font-bold">{{ t('consent.title') }}</h2>
-          <p class="mt-1 text-sm text-ink-2">{{ t('consent.text') }}</p>
+          <p class="mt-1 text-sm text-ink-2">
+            {{ t('consent.text') }}
+            <NuxtLink :to="localePath('/legal/privacy')" class="underline">{{
+              t('footer.privacy')
+            }}</NuxtLink>
+            ·
+            <NuxtLink :to="localePath('/legal/imprint')" class="underline">{{
+              t('footer.imprint')
+            }}</NuxtLink>
+          </p>
         </div>
         <div class="grid grid-cols-2 gap-2 md:flex md:shrink-0">
           <button

@@ -11,10 +11,36 @@ import type { AnalyticsPlugin } from 'analytics'
  * is covered by consent. Until then this plugin only fetches the (public)
  * tracking IDs and watches the consent store.
  *
- * Withdrawal is best-effort: plugins are disabled (no further events), GA gets
- * its `ga-disable-<id>` kill switch and the pixel `fbq('consent','revoke')` —
- * but already injected third-party scripts persist until the next full reload.
+ * Scripts are not loaded while the current route carries an access token
+ * (order/portal/success pages) or is admin — they load on the next normal page.
+ *
+ * Withdrawal: plugins are disabled immediately, then third-party cookies and
+ * analytics-lib storage are deleted and the page reloads, so no injected
+ * script (incl. a GTM container) keeps running (Art. 7 Abs. 3 DSGVO).
  */
+
+/** Cookies set by gtag/GTM/Meta Pixel. */
+const THIRD_PARTY_COOKIE = /^(_ga|_gid|_gat|_gcl|_fbp|_fbc)/
+/** Keys persisted by the `analytics` core library. */
+const ANALYTICS_LIB_KEYS = ['__anon_id', '__user_id', '__user_traits']
+
+function purgeThirdPartyStorage(): void {
+  const hostParts = location.hostname.split('.')
+  // Cookies may be scoped to the host or any parent domain (GA uses the eTLD+1)
+  const domains = hostParts.map((_, i) => hostParts.slice(i).join('.')).slice(0, -1)
+  for (const cookie of document.cookie.split(';')) {
+    const name = cookie.split('=', 1)[0]!.trim()
+    if (!THIRD_PARTY_COOKIE.test(name) && !ANALYTICS_LIB_KEYS.includes(name)) continue
+    const expire = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+    document.cookie = expire
+    for (const domain of domains) document.cookie = `${expire}; domain=.${domain}`
+  }
+  try {
+    for (const key of ANALYTICS_LIB_KEYS) localStorage.removeItem(key)
+  } catch {
+    // storage blocked → nothing persisted there
+  }
+}
 
 interface AnalyticsInstance {
   page: () => Promise<unknown>
@@ -70,6 +96,7 @@ export default defineNuxtPlugin(() => {
 
     if (!instance) {
       if (allowed.size === 0 || initializing) return
+      if (isSensitiveTrackingPath(router.currentRoute.value.fullPath)) return
       initializing = true
       try {
         // First consent grant: only now any tracking code enters the page
@@ -98,7 +125,12 @@ export default defineNuxtPlugin(() => {
             plugins.push(
               googleAnalytics({
                 measurementIds: [s.ga4MeasurementId as string],
-                gtagConfig: { anonymize_ip: true },
+                // Statistics consent only: no Google Signals / ad personalisation
+                gtagConfig: {
+                  anonymize_ip: true,
+                  allow_google_signals: false,
+                  allow_ad_personalization_signals: false,
+                },
                 enabled,
               }),
             )
@@ -120,6 +152,7 @@ export default defineNuxtPlugin(() => {
 
     // Instance exists: diff consent per provider → enable/disable
     const wasAnyEnabled = anyEnabled()
+    let revoked = false
     for (const provider of configured) {
       const shouldEnable = allowed.has(provider.name)
       if ((enabledState.get(provider.name) ?? false) === shouldEnable) continue
@@ -141,7 +174,13 @@ export default defineNuxtPlugin(() => {
           ;(instance.plugins['meta-pixel'] as { revoke?: () => void } | undefined)?.revoke?.()
         }
         await instance.plugins.disable(provider.name, () => {})
+        revoked = true
       }
+    }
+    if (revoked) {
+      purgeThirdPartyStorage()
+      location.reload()
+      return
     }
     // Consent granted mid-session with everything previously off → send the pageview
     // that init would have sent. (Providers enabled additionally to an already
@@ -157,6 +196,8 @@ export default defineNuxtPlugin(() => {
   })
 
   router.afterEach((to) => {
+    // Load deferred by a sensitive landing route → catch up on the first normal page
+    if (!instance) void syncProviders()
     // Exactly one pageview per navigation (lastTrackedPath dedups init + afterEach)
     trackPage(to.fullPath)
   })

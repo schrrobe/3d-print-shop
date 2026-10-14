@@ -7,7 +7,13 @@
 type FbqFn = (...args: unknown[]) => void
 
 interface FbqWindow extends Window {
-  fbq?: FbqFn & { callMethod?: FbqFn; queue?: unknown[][]; push?: FbqFn; loaded?: boolean; version?: string }
+  fbq?: FbqFn & {
+    callMethod?: FbqFn
+    queue?: unknown[][]
+    push?: FbqFn
+    loaded?: boolean
+    version?: string
+  }
   _fbq?: unknown
 }
 
@@ -57,6 +63,8 @@ export default function metaPixelPlugin(config: MetaPixelPluginConfig) {
     initialize: () => {
       injectFbqStub()
       fbq('consent', 'grant')
+      // No automatic event detection (button/form metadata) — only explicit events
+      fbq('set', 'autoConfig', false, config.pixelId)
       fbq('init', config.pixelId)
     },
     page: () => {

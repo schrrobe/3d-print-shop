@@ -6,6 +6,7 @@ const STATIC_PATHS = [
   '/legal/imprint',
   '/legal/privacy',
   '/legal/terms',
+  '/legal/withdrawal',
 ]
 
 /** Locale-prefixed URL (strategy prefix_except_default: de has no prefix). */

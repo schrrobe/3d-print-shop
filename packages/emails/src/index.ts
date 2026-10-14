@@ -1,6 +1,14 @@
 import type { Locale } from '@print-shop/types'
-import { formatCents } from '@print-shop/utils'
-import { button, emailLayout, escapeHtml, paragraph } from './layout.js'
+import {
+  DELIVERY_TIME_DE,
+  DELIVERY_TIME_OTHER,
+  formatCents,
+  legalDocumentText,
+  termsDocument,
+  withdrawalDocument,
+  type LegalDocument,
+} from '@print-shop/utils'
+import { button, companyFromEnv, emailLayout, escapeHtml, paragraph } from './layout.js'
 
 export interface RenderedEmail {
   subject: string
@@ -28,6 +36,7 @@ export type EmailTemplateName =
   | 'review_request'
   | 'review_submitted'
   | 'review_approved'
+  | 'withdrawal_received'
 
 /**
  * i18n: de + en are fully translated; the remaining shop locales (pl, fr, nl, cs)
@@ -41,8 +50,35 @@ export interface OrderEmailData {
   orderNumber: string
   firstName: string
   totalCents: number
+  /** Shown as its own line in the order confirmation (contract summary). */
+  shippingCents?: number
   orderUrl: string
   items: { name: string; quantity: number; unitPriceCents: number }[]
+}
+
+function legalDocumentHtml(doc: LegalDocument): string {
+  const body = doc.sections
+    .map(
+      (s) =>
+        `<p style="font-size:13px;font-weight:600;margin:12px 0 4px 0;">${escapeHtml(s.heading)}</p>` +
+        [...s.paragraphs, ...(s.form ?? [])]
+          .map(
+            (p) =>
+              `<p style="font-size:12px;line-height:1.5;margin:0 0 6px 0;color:#333;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`,
+          )
+          .join(''),
+    )
+    .join('')
+  return `<div style="border-top:1px solid #eee;margin-top:24px;padding-top:8px;"><p style="font-size:15px;font-weight:600;margin:8px 0;">${escapeHtml(doc.title)}</p><p style="font-size:12px;color:#5e5e5e;margin:0;">${escapeHtml(doc.updatedAt)}</p>${body}</div>`
+}
+
+/**
+ * AGB + Widerrufsbelehrung incl. Muster-Widerrufsformular in German (contract
+ * language) — the contract confirmation on a durable medium (§ 312f Abs. 2 BGB).
+ */
+function contractDocuments(shopUrl: string): LegalDocument[] {
+  const company = companyFromEnv()
+  return [withdrawalDocument(company, shopUrl), termsDocument(company, shopUrl)]
 }
 
 function itemsTable(items: OrderEmailData['items'], locale: Locale): string {
@@ -62,9 +98,12 @@ export function renderOrderConfirmation(data: OrderEmailData, locale: Locale): R
     `Order confirmation ${data.orderNumber}`,
   )
   const title = pick(locale, 'Danke für deine Bestellung!', 'Thank you for your order!')
+  const docs = contractDocuments(new URL(data.orderUrl).origin)
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -74,11 +113,32 @@ export function renderOrderConfirmation(data: OrderEmailData, locale: Locale): R
       ) +
       itemsTable(data.items, locale) +
       paragraph(
-        pick(locale, 'Gesamtbetrag: ', 'Total: ') + `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+        pick(locale, 'Gesamtbetrag: ', 'Total: ') +
+          `<strong>${formatCents(data.totalCents, locale)}</strong>`,
       ) +
-      button(data.orderUrl, pick(locale, 'Bestellung ansehen', 'View order')),
+      (data.shippingCents !== undefined
+        ? paragraph(
+            pick(locale, 'Versandkosten: ', 'Shipping: ') +
+              (data.shippingCents === 0
+                ? pick(locale, 'kostenlos', 'free')
+                : formatCents(data.shippingCents, locale)),
+          )
+        : '') +
+      paragraph(
+        pick(locale, 'Gesamtbetrag: ', 'Total: ') +
+          `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+      ) +
+      paragraph(
+        pick(
+          locale,
+          `Lieferzeit ab Zahlungseingang: Deutschland ${DELIVERY_TIME_DE}, übrige Lieferländer ${DELIVERY_TIME_OTHER}. Mit dieser E-Mail nehmen wir deine Bestellung an. Unten findest du unsere Widerrufsbelehrung mit Muster-Widerrufsformular und unsere AGB.`,
+          `Delivery time from receipt of payment: Germany ${DELIVERY_TIME_DE}, other countries ${DELIVERY_TIME_OTHER} (working days). With this email we accept your order. Our cancellation policy with model withdrawal form and our terms (German, the contract language) are below.`,
+        ),
+      ) +
+      button(data.orderUrl, pick(locale, 'Bestellung ansehen', 'View order')) +
+      docs.map(legalDocumentHtml).join(''),
   )
-  const text = `${title}\n${data.orderNumber}\n${data.orderUrl}`
+  const text = [title, data.orderNumber, data.orderUrl, ...docs.map(legalDocumentText)].join('\n\n')
   return { subject, html, text }
 }
 
@@ -109,7 +169,11 @@ export interface UploadReceivedData {
 }
 
 export function renderUploadReceived(data: UploadReceivedData, locale: Locale): RenderedEmail {
-  const subject = pick(locale, 'Deine Upload-Anfrage ist eingegangen', 'We received your upload request')
+  const subject = pick(
+    locale,
+    'Deine Upload-Anfrage ist eingegangen',
+    'We received your upload request',
+  )
   const title = pick(locale, 'Upload erhalten', 'Upload received')
   const html = emailLayout(
     title,
@@ -160,7 +224,11 @@ export interface QuoteAcceptedData {
 }
 
 export function renderQuoteAccepted(data: QuoteAcceptedData, locale: Locale): RenderedEmail {
-  const subject = pick(locale, 'Angebot angenommen — jetzt bezahlen', 'Quote accepted — complete payment')
+  const subject = pick(
+    locale,
+    'Angebot angenommen — jetzt bezahlen',
+    'Quote accepted — complete payment',
+  )
   const title = pick(locale, 'Angebot angenommen', 'Quote accepted')
   const html = emailLayout(
     title,
@@ -272,7 +340,10 @@ export interface AdminNotificationData {
   adminUrl: string
 }
 
-export function renderAdminNotification(data: AdminNotificationData, _locale: Locale): RenderedEmail {
+export function renderAdminNotification(
+  data: AdminNotificationData,
+  _locale: Locale,
+): RenderedEmail {
   const subject = `[Admin] ${data.event}`
   const html = emailLayout(
     data.event,
@@ -375,7 +446,9 @@ export function renderComplaintReceived(data: ComplaintEmailData, locale: Locale
   const title = pick(locale, 'Reklamation eingegangen', 'Complaint received')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -402,7 +475,9 @@ export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Local
   const title = pick(locale, 'Reklamation aktualisiert', 'Complaint updated')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -413,7 +488,11 @@ export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Local
       (data.message ? paragraph(escapeHtml(data.message)) : '') +
       button(data.complaintUrl, pick(locale, 'Details ansehen', 'View details')),
   )
-  return { subject, html, text: `${title}: ${data.complaintNumber} — ${data.statusLabel}\n${data.complaintUrl}` }
+  return {
+    subject,
+    html,
+    text: `${title}: ${data.complaintNumber} — ${data.statusLabel}\n${data.complaintUrl}`,
+  }
 }
 
 // ---------- Customer portal (magic link) ----------
@@ -465,7 +544,9 @@ export function renderReviewRequest(data: ReviewRequestData, locale: Locale): Re
   const title = pick(locale, 'Deine Meinung zählt', 'Your opinion matters')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -489,7 +570,9 @@ export function renderReviewSubmitted(data: ReviewSubmittedData, locale: Locale)
   const title = pick(locale, 'Bewertung eingegangen', 'Review received')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -512,7 +595,9 @@ export function renderReviewApproved(data: ReviewApprovedData, locale: Locale): 
   const title = pick(locale, 'Bewertung freigegeben', 'Review published')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -523,4 +608,76 @@ export function renderReviewApproved(data: ReviewApprovedData, locale: Locale): 
       button(data.productUrl, pick(locale, 'Produkt ansehen', 'View product')),
   )
   return { subject, html, text: `${title}: ${data.productName}\n${data.productUrl}` }
+}
+
+export interface WithdrawalReceivedData {
+  name: string
+  orderNumber: string
+  email: string
+  /** Withdrawn part in the customer's words; empty = whole contract. */
+  items?: string
+  ticketNumber: string
+  /** Pre-formatted date and time of receipt (Europe/Berlin). */
+  receivedAt: string
+}
+
+/** § 356a Abs. 4 BGB receipt: content of the declaration + date and time of receipt. */
+export function renderWithdrawalReceived(
+  data: WithdrawalReceivedData,
+  locale: Locale,
+): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Eingangsbestätigung deines Widerrufs (Bestellung ${data.orderNumber})`,
+    `Confirmation of receipt of your withdrawal (order ${data.orderNumber})`,
+  )
+  const title = pick(locale, 'Dein Widerruf ist eingegangen', 'We received your withdrawal')
+  const scope =
+    data.items ||
+    pick(
+      locale,
+      'gesamter Vertrag (alle Artikel der Bestellung)',
+      'entire contract (all items of the order)',
+    )
+  const rows: [string, string][] = [
+    [pick(locale, 'Eingegangen am', 'Received on'), data.receivedAt],
+    [pick(locale, 'Name', 'Name'), data.name],
+    [pick(locale, 'Bestellnummer', 'Order number'), data.orderNumber],
+    [pick(locale, 'Widerrufen', 'Withdrawn'), scope],
+    [pick(locale, 'Bestätigung an', 'Confirmation sent to'), data.email],
+    [pick(locale, 'Vorgangsnummer', 'Reference'), data.ticketNumber],
+  ]
+  const declaration = pick(
+    locale,
+    `Hiermit widerrufe ich den Vertrag zur Bestellung ${data.orderNumber}.`,
+    `I hereby withdraw from the contract for order ${data.orderNumber}.`,
+  )
+  const table = `<table style="width:100%;font-size:14px;margin:12px 0;">${rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:4px 8px 4px 0;color:#5e5e5e;vertical-align:top;">${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`,
+    )
+    .join('')}</table>`
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.name)},`, `Hi ${escapeHtml(data.name)},`)) +
+      paragraph(
+        pick(
+          locale,
+          'wir bestätigen den Eingang deiner Widerrufserklärung mit folgendem Inhalt:',
+          'we confirm receipt of your declaration of withdrawal with the following content:',
+        ),
+      ) +
+      paragraph(`<strong>${escapeHtml(declaration)}</strong>`) +
+      table +
+      paragraph(
+        pick(
+          locale,
+          'Bitte sende die Ware innerhalb von 14 Tagen an die Adresse aus der Widerrufsbelehrung zurück. Wir melden uns mit allen Details zur Erstattung.',
+          'Please return the goods within 14 days to the address stated in the cancellation policy. We will contact you with details on the refund.',
+        ),
+      ),
+  )
+  const text = [title, declaration, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n')
+  return { subject, html, text }
 }
