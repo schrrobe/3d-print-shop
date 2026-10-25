@@ -51,7 +51,7 @@ devRouter.post('/bitcoin/:paymentId/advance', async (req, res, next) => {
 /**
  * Simulates an inbound ticket reply mail — exercises the full shared pipeline
  * (address parse → lookup → auto-reply check → quote stripping → status/dedupe),
- * bypassing only the svix signature and the Resend body fetch.
+ * bypassing only the Brevo webhook token check.
  */
 devRouter.post('/inbound-ticket-email', async (req, res, next) => {
   try {

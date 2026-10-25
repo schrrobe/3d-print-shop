@@ -22,13 +22,19 @@ const envSchema = z
       .transform((v) => v === 'true'),
     UPLOAD_DIR: z.string().default('./uploads'),
     UPLOAD_MAX_BYTES: z.coerce.number().int().default(52_428_800),
-    RESEND_API_KEY: z.string().optional().default(''),
-    /// SMTP fallback when RESEND_API_KEY is empty — local/dev point it at Mailpit (port 1025).
+    // Outgoing mail via SMTP (Brevo). Empty SMTP_HOST → dev mode (EmailLog only).
     SMTP_HOST: z.string().optional().default(''),
-    SMTP_PORT: z.coerce.number().int().default(1025),
+    SMTP_PORT: z.coerce.number().int().default(587),
+    SMTP_SECURE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    SMTP_USER: z.string().optional().default(''),
+    SMTP_PASS: z.string().optional().default(''),
     EMAIL_FROM: z.string().default('Print Shop <noreply@example.com>'),
     ADMIN_NOTIFICATION_EMAIL: z.string().default('admin@example.com'),
-    RESEND_WEBHOOK_SECRET: z.string().optional().default(''),
+    // Bearer token configured on the Brevo inbound parsing webhook.
+    BREVO_INBOUND_WEBHOOK_TOKEN: z.string().optional().default(''),
     TICKET_REPLY_DOMAIN: z.string().optional().default(''),
     STRIPE_SECRET_KEY: z.string().optional().default(''),
     STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),

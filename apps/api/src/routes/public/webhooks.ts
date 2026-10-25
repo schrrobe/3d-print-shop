@@ -1,9 +1,9 @@
-import { Router, raw } from 'express'
+import { timingSafeEqual } from 'node:crypto'
+import { Router, json, raw } from 'express'
 import type Stripe from 'stripe'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest } from '../../middleware/error.js'
-import { resend } from '../../services/email.js'
 import { markOrderPaid } from '../../services/order-flow.js'
 import { processInboundTicketEmail } from '../../services/ticket.js'
 import { constructStripeWebhookEvent } from '../../services/payments/stripe.js'
@@ -52,63 +52,63 @@ webhooksRouter.post('/stripe', raw({ type: 'application/json' }), async (req, re
   }
 })
 
+/** Brevo inbound mailbox; Headers values are a string or a list for repeated headers. */
+interface BrevoInboundItem {
+  MessageId: string
+  From?: { Address?: string | null }
+  To?: { Address?: string | null }[]
+  Recipients?: { Address?: string | null }[]
+  RawTextBody?: string | null
+  RawHtmlBody?: string | null
+  Headers?: Record<string, string | string[]>
+}
+
 /**
- * Resend inbound webhook (email.received) — customer replies to ticket mails.
- * Raw body: svix signature verification needs the exact bytes. Skipped-but-
- * processed cases return 200 so Resend does not retry them.
+ * Brevo inbound parsing webhook (inboundEmailProcessed) — customer replies to
+ * ticket mails. Brevo does not sign webhooks; it sends the bearer token
+ * configured on the webhook. Skipped-but-processed items still return 200 so
+ * Brevo does not retry them.
  */
-webhooksRouter.post(
-  '/resend-inbound',
-  raw({ type: 'application/json' }),
-  async (req, res, next) => {
-    try {
-      if (!env.RESEND_WEBHOOK_SECRET || !env.TICKET_REPLY_DOMAIN || !resend) {
-        res.status(503).json({ error: 'Inbound email is not configured' })
-        return
-      }
+webhooksRouter.post('/brevo-inbound', json({ limit: '5mb' }), async (req, res, next) => {
+  try {
+    if (!env.BREVO_INBOUND_WEBHOOK_TOKEN || !env.TICKET_REPLY_DOMAIN) {
+      res.status(503).json({ error: 'Inbound email is not configured' })
+      return
+    }
 
-      const payload = (req.body as Buffer).toString('utf8')
-      try {
-        resend.webhooks.verify({
-          payload,
-          headers: {
-            id: req.get('svix-id') ?? '',
-            timestamp: req.get('svix-timestamp') ?? '',
-            signature: req.get('svix-signature') ?? '',
-          },
-          webhookSecret: env.RESEND_WEBHOOK_SECRET,
-        })
-      } catch {
-        throw badRequest('Webhook verification failed')
-      }
+    const expected = Buffer.from(`Bearer ${env.BREVO_INBOUND_WEBHOOK_TOKEN}`)
+    const given = Buffer.from(req.get('authorization') ?? '')
+    if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+      res.status(401).json({ error: 'Unauthorized' })
+      return
+    }
 
-      const event = JSON.parse(payload) as {
-        type: string
-        data: { email_id: string; from: string; to: string[] }
-      }
-      if (event.type !== 'email.received') {
-        res.json({ received: true })
-        return
-      }
-
-      // The webhook payload carries metadata only — fetch the body separately.
-      const { data: mail } = await resend.emails.receiving.get(event.data.email_id)
+    const items = (req.body as { items?: BrevoInboundItem[] } | undefined)?.items ?? []
+    for (const mail of items) {
       const result = await processInboundTicketEmail({
-        to: event.data.to,
-        text: mail?.text ?? null,
-        html: mail?.html ?? null,
-        headers: (mail?.headers ?? {}) as Record<string, string>,
-        inboundEmailId: event.data.email_id,
+        // RCPT TO first: plus-addresses survive there even when To is rewritten.
+        to: [...(mail.Recipients ?? []), ...(mail.To ?? [])]
+          .map((m) => m.Address)
+          .filter((a): a is string => Boolean(a)),
+        text: mail.RawTextBody ?? null,
+        html: mail.RawHtmlBody ?? null,
+        headers: Object.fromEntries(
+          Object.entries(mail.Headers ?? {}).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v.join(', ') : v,
+          ]),
+        ),
+        inboundEmailId: mail.MessageId,
         replyDomain: env.TICKET_REPLY_DOMAIN,
       })
       console.info(
-        `[inbound-email] from=${event.data.from.slice(0, 3)}*** → ${result.outcome}${
+        `[inbound-email] from=${(mail.From?.Address ?? '').slice(0, 3)}*** → ${result.outcome}${
           result.outcome === 'skipped' ? `:${result.reason}` : ''
         }`,
       )
-      res.json({ received: true })
-    } catch (err) {
-      next(err)
     }
-  },
-)
+    res.json({ received: true })
+  } catch (err) {
+    next(err)
+  }
+})

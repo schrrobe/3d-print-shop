@@ -95,7 +95,7 @@ docker exec kaliberbox-api-dev node_modules/.bin/tsx prisma/seed.ts
 
 **Mailpit auf dev:** fängt alle Mails ab, nichts geht an echte Adressen. In
 `/opt/kaliberbox/dev/.env`: `COMPOSE_PROFILES=mailpit`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`,
-`RESEND_API_KEY=` (leer — Resend hat Vorrang). Dann `kaliberbox-deploy dev <ref>` und
+`SMTP_USER=`/`SMTP_PASS=` (leer). Dann `kaliberbox-deploy dev <ref>` und
 `deploy/nginx-dev.kaliberbox.de.conf` übernehmen (`sudo nginx -t && sudo systemctl reload nginx`).
 Postfach: https://dev.kaliberbox.de/mailpit/ (dev-Basic-Auth); Mails nur im Speicher.
 
@@ -128,7 +128,7 @@ DBeaver verbinden sich per SSH-Tunnel:
 ## Produktions-Checkliste
 
 - [ ] `/opt/kaliberbox/prod/.env`: Stripe-Live-Keys, Firmen-/Bankdaten (`COMPANY_*`,
-      `BANK_*`), Resend — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
+      `BANK_*`), Brevo-SMTP — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
 - [ ] `/opt/kaliberbox/prod/web.env`: `NUXT_PUBLIC_COMPANY_*` fürs Impressum
 - [ ] Stripe-Webhook auf `https://api.kaliberbox.de/api/webhooks/stripe`
 - [ ] Bitcoin bleibt mit `BITCOIN_ENABLED=false` aus, bis ein echter Provider implementiert ist
