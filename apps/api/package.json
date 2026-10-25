@@ -16,6 +16,7 @@
     "prisma:validate": "prisma validate",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:bootstrap-admin": "tsx prisma/bootstrap-admin.ts",
+    "prisma:seed-products": "tsx prisma/seed-products.ts",
     "prisma:reset-data": "tsx prisma/reset-data.ts"
   },
   "prisma": {
