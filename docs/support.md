@@ -57,7 +57,7 @@ Seed-User für die Support-Rolle: `support@example.com` (Dev-Passwort wie Admin)
 | `ticket_reply` | Kunde | Staff-Antwort |
 | `ticket_customer_reply` | Bearbeiter, sonst `ADMIN_NOTIFICATION_EMAIL` | Kundenantwort |
 
-Ohne `RESEND_API_KEY` werden alle Mails geloggt (`EmailLog`, `GET /api/dev/emails`).
+Ohne `SMTP_HOST` werden alle Mails geloggt (`EmailLog`, `GET /api/dev/emails`).
 
 ## E-Mail-Antworten (Inbound)
 
@@ -76,7 +76,7 @@ Status-Automatik (Reopen) + interne Benachrichtigung.
 **Setup:**
 1. Subdomain (z. B. `reply.example.com`) mit MX-Record auf Resend Receiving einrichten
 2. In Resend einen Webhook für `email.received` auf `https://<api>/api/webhooks/resend-inbound` anlegen
-3. `TICKET_REPLY_DOMAIN` und `RESEND_WEBHOOK_SECRET` (whsec_…) in `.env` setzen —
+3. `TICKET_REPLY_DOMAIN`, `RESEND_API_KEY` und `RESEND_WEBHOOK_SECRET` (whsec_…) in `.env` setzen —
    beide leer = Feature aus (Webhook antwortet 503, Reply-To entfällt, Web-Antworten
    funktionieren weiter)
 

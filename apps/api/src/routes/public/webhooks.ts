@@ -1,14 +1,17 @@
 import { Router, raw } from 'express'
+import { Resend } from 'resend'
 import type Stripe from 'stripe'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest } from '../../middleware/error.js'
-import { resend } from '../../services/email.js'
 import { markOrderPaid } from '../../services/order-flow.js'
 import { processInboundTicketEmail } from '../../services/ticket.js'
 import { constructStripeWebhookEvent } from '../../services/payments/stripe.js'
 
 export const webhooksRouter = Router()
+
+/** Resend client for inbound ticket replies only — outgoing mail goes via SMTP. */
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
 
 /**
  * Stripe webhook — mounted with a raw body parser (signature verification
