@@ -109,11 +109,11 @@ useSeo({
         </h2>
         <p class="mt-sm">
           Wir versenden transaktionale E-Mails, etwa Bestellbestätigungen, Rechnungen, Angebots- und
-          Versandinformationen sowie Antworten auf Supportanfragen, über Brevo; E-Mail-Antworten auf
-          Support-Tickets empfangen wir über Resend. Dabei werden insbesondere E-Mail-Adresse, Name,
-          Bestell- bzw. Vorgangsdaten und der Inhalt der Nachricht verarbeitet. Rechtsgrundlage ist
-          Art. 6 Abs. 1 lit. b DSGVO; für die technische Dokumentation und Missbrauchsabwehr Art. 6
-          Abs. 1 lit. f DSGVO.
+          Versandinformationen sowie Antworten auf Supportanfragen, über Brevo; auch
+          E-Mail-Antworten auf Support-Tickets empfangen wir über Brevo. Dabei werden insbesondere
+          E-Mail-Adresse, Name, Bestell- bzw. Vorgangsdaten und der Inhalt der Nachricht
+          verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; für die technische
+          Dokumentation und Missbrauchsabwehr Art. 6 Abs. 1 lit. f DSGVO.
         </p>
         <p class="mt-sm">
           Für den Kundenbereich senden wir einen persönlichen Zugangslink an die angegebene

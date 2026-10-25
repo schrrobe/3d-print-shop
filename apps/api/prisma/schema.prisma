@@ -841,7 +841,7 @@ model TicketMessage {
   userId         String?
   user           User?            @relation("TicketMessageAuthor", fields: [userId], references: [id])
   body           String
-  /// Resend email_id of the inbound mail that created this message (dedupe on webhook retries)
+  /// Message-ID of the inbound mail (Brevo inbound parsing) that created this message (dedupe on webhook retries)
   inboundEmailId String?          @unique
   createdAt      DateTime         @default(now())
 

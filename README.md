@@ -2,7 +2,7 @@
 
 DSGVO-konformer Onlineshop für 3D-Druck-Artikel: konfigurierbare Standardprodukte mit
 Live-3D-Farbvorschau, Upload eigener Modelle mit individuellem Angebot & Zahlungslink,
-Support-Ticketsystem mit Token-Zugriff und Inbound-E-Mail-Antworten (Resend Receiving),
+Support-Ticketsystem mit Token-Zugriff und Inbound-E-Mail-Antworten (Brevo Inbound Parsing),
 Adminbereich mit Rollen, Drucker-/Produktionsverwaltung, interne Rechnungserstellung.
 
 ## Tech-Stack

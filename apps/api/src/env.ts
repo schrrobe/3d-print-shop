@@ -33,9 +33,8 @@ const envSchema = z
     SMTP_PASS: z.string().optional().default(''),
     EMAIL_FROM: z.string().default('Print Shop <noreply@example.com>'),
     ADMIN_NOTIFICATION_EMAIL: z.string().default('admin@example.com'),
-    // Inbound ticket replies still use Resend Receiving.
-    RESEND_API_KEY: z.string().optional().default(''),
-    RESEND_WEBHOOK_SECRET: z.string().optional().default(''),
+    // Bearer token configured on the Brevo inbound parsing webhook.
+    BREVO_INBOUND_WEBHOOK_TOKEN: z.string().optional().default(''),
     TICKET_REPLY_DOMAIN: z.string().optional().default(''),
     STRIPE_SECRET_KEY: z.string().optional().default(''),
     STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),

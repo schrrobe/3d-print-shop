@@ -73,7 +73,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: '5. Email, customer area and support',
         paragraphs: [
-          'Transactional emails, including confirmations, invoices, quotes and support replies, are sent through Brevo; email replies to support tickets are received through Resend. Personal access links to the customer area are sent to the email address provided; their hashes and access events are stored to secure access. We process support requests, complaints and optional attachments in order to handle your request.',
+          'Transactional emails, including confirmations, invoices, quotes and support replies, are sent and email replies to support tickets are received through Brevo. Personal access links to the customer area are sent to the email address provided; their hashes and access events are stored to secure access. We process support requests, complaints and optional attachments in order to handle your request.',
         ],
       },
       {
@@ -255,7 +255,7 @@ const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Commandes, paiement et service',
         paragraphs: [
-          'Nous traitons les coordonnées, données de commande, de paiement et de livraison pour exécuter le contrat, facturer et expédier (art. 6, paragraphe 1, points b et c, RGPD). Stripe traite les paiements par carte ; les données nécessaires sont transmises à DHL ou Hermes. Notre nœud Bitcoin traite les adresses et transactions nécessaires ; les transactions blockchain sont publiques. Les e-mails transactionnels sont envoyés via Brevo ; les réponses par e-mail aux tickets d’assistance sont reçues via Resend. Les accès au portail client, demandes d’assistance, réclamations, fichiers STL/3MF et offres sont traités pour fournir le service ; les fichiers ne sont pas publiés.',
+          'Nous traitons les coordonnées, données de commande, de paiement et de livraison pour exécuter le contrat, facturer et expédier (art. 6, paragraphe 1, points b et c, RGPD). Stripe traite les paiements par carte ; les données nécessaires sont transmises à DHL ou Hermes. Notre nœud Bitcoin traite les adresses et transactions nécessaires ; les transactions blockchain sont publiques. Les e-mails transactionnels sont envoyés via Brevo, qui reçoit également les réponses par e-mail aux tickets d’assistance. Les accès au portail client, demandes d’assistance, réclamations, fichiers STL/3MF et offres sont traités pour fournir le service ; les fichiers ne sont pas publiés.',
         ],
       },
       {
@@ -353,7 +353,7 @@ const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Bestellingen, betaling en dienstverlening',
         paragraphs: [
-          'Wij verwerken contact-, bestel-, betaal- en bezorggegevens om de overeenkomst uit te voeren, facturen op te stellen en goederen te verzenden (art. 6 lid 1 onder b en c AVG). Stripe verwerkt kaartbetalingen; noodzakelijke gegevens gaan naar DHL of Hermes. Onze eigen Bitcoin-node verwerkt benodigde betaaladressen en transacties; blockchaintransacties zijn openbaar. Transactionele e-mails worden via Brevo verzonden; e-mailantwoorden op supporttickets ontvangen wij via Resend. Toegang tot het klantenportaal, supportvragen, klachten, bijlagen, STL/3MF-bestanden en offertes worden verwerkt om de dienst te leveren; bestanden worden niet gepubliceerd.',
+          'Wij verwerken contact-, bestel-, betaal- en bezorggegevens om de overeenkomst uit te voeren, facturen op te stellen en goederen te verzenden (art. 6 lid 1 onder b en c AVG). Stripe verwerkt kaartbetalingen; noodzakelijke gegevens gaan naar DHL of Hermes. Onze eigen Bitcoin-node verwerkt benodigde betaaladressen en transacties; blockchaintransacties zijn openbaar. Transactionele e-mails worden via Brevo verzonden; e-mailantwoorden op supporttickets ontvangen wij eveneens via Brevo. Toegang tot het klantenportaal, supportvragen, klachten, bijlagen, STL/3MF-bestanden en offertes worden verwerkt om de dienst te leveren; bestanden worden niet gepubliceerd.',
         ],
       },
       {
@@ -453,7 +453,7 @@ const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Zamówienia, płatności i obsługa',
         paragraphs: [
-          'Przetwarzamy dane kontaktowe, zamówienia, płatności i dostawy, aby wykonać umowę, wystawić faktury i wysłać towar (art. 6 ust. 1 lit. b i c RODO). Stripe obsługuje płatności kartą; konieczne dane przekazujemy DHL lub Hermes. Nasz własny węzeł Bitcoin przetwarza wymagane adresy płatnicze i transakcje; transakcje blockchain są publiczne. E-maile transakcyjne wysyłamy przez Brevo; odpowiedzi e-mail na zgłoszenia wsparcia odbieramy przez Resend. Dostęp do portalu klienta, zgłoszenia wsparcia, reklamacje, załączniki, pliki STL/3MF i oferty przetwarzamy w celu świadczenia usługi; pliki nie są publikowane.',
+          'Przetwarzamy dane kontaktowe, zamówienia, płatności i dostawy, aby wykonać umowę, wystawić faktury i wysłać towar (art. 6 ust. 1 lit. b i c RODO). Stripe obsługuje płatności kartą; konieczne dane przekazujemy DHL lub Hermes. Nasz własny węzeł Bitcoin przetwarza wymagane adresy płatnicze i transakcje; transakcje blockchain są publiczne. E-maile transakcyjne wysyłamy przez Brevo; przez Brevo odbieramy również odpowiedzi e-mail na zgłoszenia wsparcia. Dostęp do portalu klienta, zgłoszenia wsparcia, reklamacje, załączniki, pliki STL/3MF i oferty przetwarzamy w celu świadczenia usługi; pliki nie są publikowane.',
         ],
       },
       {
@@ -551,7 +551,7 @@ const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Objednávky, platby a služby',
         paragraphs: [
-          'Zpracováváme kontaktní, objednávkové, platební a doručovací údaje pro plnění smlouvy, vystavení faktur a odeslání zboží (čl. 6 odst. 1 písm. b a c GDPR). Stripe zpracovává platby kartou; nutné údaje předáváme DHL nebo Hermes. Náš vlastní bitcoinový uzel zpracovává potřebné platební adresy a transakce; blockchainové transakce jsou veřejné. Transakční e-maily odesíláme přes Brevo; e-mailové odpovědi na požadavky podpory přijímáme přes Resend. Přístupy do zákaznického portálu, podporu, reklamace, přílohy, soubory STL/3MF a nabídky zpracováváme pro poskytování služby; soubory nezveřejňujeme.',
+          'Zpracováváme kontaktní, objednávkové, platební a doručovací údaje pro plnění smlouvy, vystavení faktur a odeslání zboží (čl. 6 odst. 1 písm. b a c GDPR). Stripe zpracovává platby kartou; nutné údaje předáváme DHL nebo Hermes. Náš vlastní bitcoinový uzel zpracovává potřebné platební adresy a transakce; blockchainové transakce jsou veřejné. Transakční e-maily odesíláme přes Brevo; přes Brevo přijímáme také e-mailové odpovědi na požadavky podpory. Přístupy do zákaznického portálu, podporu, reklamace, přílohy, soubory STL/3MF a nabídky zpracováváme pro poskytování služby; soubory nezveřejňujeme.',
         ],
       },
       {
