@@ -25,7 +25,7 @@ test.describe('invoices', () => {
     await gotoHydrated(page, '/admin/invoices')
     await expect(page.getByTestId('admin-invoices')).toBeVisible()
     const firstNumber = page.locator('tbody tr').first().locator('td').first()
-    await expect(firstNumber).toContainText(/RE-\d{4}-\d{5}/)
+    await expect(firstNumber).toContainText(/RE-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)
 
     // PDF download works
     const ctx = await adminApiContext()

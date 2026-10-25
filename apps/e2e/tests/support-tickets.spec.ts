@@ -42,7 +42,7 @@ test.describe('support tickets', () => {
 
     await expect(page.getByTestId('support-success')).toBeVisible()
     const ticketNumber = (await page.getByTestId('support-ticket-number').textContent()) ?? ''
-    expect(ticketNumber).toMatch(/^TIC-\d{4}-\d{5}$/)
+    expect(ticketNumber).toMatch(/^TIC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}$/)
 
     await page.getByTestId('support-ticket-link').click()
     await page.waitForURL(/\/support\/ticket\//)

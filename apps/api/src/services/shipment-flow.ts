@@ -15,7 +15,7 @@ import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { notifyShipped } from './order-flow.js'
 import { allJobsQcCleared } from './qc.js'
 
-/** Sequential per-year shipment number (VER-2026-00001). */
+/** Per-year shipment number (VER-2026-7Q3K9X). */
 export async function nextShipmentNumber(): Promise<string> {
   return (await nextSequentialNumber(prisma.shipmentCounter, 'VER')).number
 }

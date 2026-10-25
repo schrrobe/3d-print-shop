@@ -6,7 +6,7 @@ import { prisma } from '../lib/prisma.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { sendEmail } from './email.js'
 
-/** Sequential per-year complaint number (REK-2026-00001), same locking as invoices. */
+/** Per-year complaint number (REK-2026-7Q3K9X), same locking as invoices. */
 export async function nextComplaintNumber(): Promise<string> {
   return (await nextSequentialNumber(prisma.complaintCounter, 'REK')).number
 }

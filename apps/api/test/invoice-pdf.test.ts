@@ -42,6 +42,7 @@ function makeInvoice(over: Partial<Invoice> = {}): Invoice {
     locale: 'de',
     subtotalCents: 5000,
     shippingCents: 490,
+    discountCents: 0,
     totalCents: 5490,
     paymentMethod: 'bank_transfer',
     pdfPath: null,
@@ -232,10 +233,24 @@ describe('renderInvoicePdf', () => {
     )
     const pages = pageCount(pdf)
     expect(pages).toBeGreaterThanOrEqual(2)
-    // The 'Beschreibung' column header is redrawn at the top of every page, so
+    // The 'Einzelpreis' column header is redrawn at the top of every page, so
     // it must appear once per page — proving the header actually repeats.
-    const headerCount = (extractText(pdf).match(/Beschreibung/g) ?? []).length
+    const headerCount = (extractText(pdf).match(/Einzelpreis/g) ?? []).length
     expect(headerCount).toBe(pages)
+  })
+
+  it('prints the voucher row only when a discount was applied', async () => {
+    const discounted = await renderToBuffer(
+      {
+        invoice: makeInvoice({ discountCents: 500, totalCents: 4990 }),
+        order: makeOrder({ voucherCode: 'SOMMER10' }),
+        company,
+      },
+      { compress: false },
+    )
+    const plain = await renderToBuffer({ invoice: makeInvoice(), order: makeOrder(), company }, { compress: false })
+    expect(extractText(discounted)).toContain('SOMMER10')
+    expect(extractText(plain)).not.toContain('Gutschein')
   })
 
   it('renders the unpaid bank-transfer variant with a GiroCode', async () => {
