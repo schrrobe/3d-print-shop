@@ -57,7 +57,7 @@ Seed-User für die Support-Rolle: `support@example.com` (Dev-Passwort wie Admin)
 | `ticket_reply` | Kunde | Staff-Antwort |
 | `ticket_customer_reply` | Bearbeiter, sonst `ADMIN_NOTIFICATION_EMAIL` | Kundenantwort |
 
-Ohne `RESEND_API_KEY` werden alle Mails geloggt (`EmailLog`, `GET /api/dev/emails`).
+Ohne `SMTP_HOST` werden alle Mails geloggt (`EmailLog`, `GET /api/dev/emails`).
 
 ## E-Mail-Antworten (Inbound)
 
@@ -67,16 +67,15 @@ Routing über Plus-Adresse als Capability: Ausgehende Ticket-Mails (`ticket_crea
 der Inbound-Handler parst die Empfängeradresse und findet darüber das Ticket.
 Gleiche Vertrauensbasis wie die Token-Seite, Gate ist die Webhook-Signatur.
 
-Ablauf: Mail an `reply.<domain>` → Resend (MX) → Webhook `email.received` →
-`POST /api/webhooks/resend-inbound` (Svix-Signaturprüfung auf Raw-Body) →
-Body-Fetch per `resend.emails.receiving.get(email_id)` → Zitat-Stripping
+Ablauf: Mail an `reply.<domain>` → Brevo Inbound Parsing (MX) → Webhook `inboundEmailProcessed` →
+`POST /api/webhooks/brevo-inbound` (Bearer-Token-Prüfung; Text/HTML/Header kommen direkt im Payload) → Zitat-Stripping
 (`extractReplyText` in `packages/utils/src/email-reply.ts`) → Kundennachricht +
 Status-Automatik (Reopen) + interne Benachrichtigung.
 
 **Setup:**
-1. Subdomain (z. B. `reply.example.com`) mit MX-Record auf Resend Receiving einrichten
-2. In Resend einen Webhook für `email.received` auf `https://<api>/api/webhooks/resend-inbound` anlegen
-3. `TICKET_REPLY_DOMAIN` und `RESEND_WEBHOOK_SECRET` (whsec_…) in `.env` setzen —
+1. Subdomain (z. B. `reply.example.com`) mit MX-Records `inbound1.sendinblue.com.` (Prio 10) und `inbound2.sendinblue.com.` (Prio 20) einrichten
+2. Inbound-Webhook per Brevo-API anlegen (`POST https://api.brevo.com/v3/webhooks` mit `type: "inbound"`, `events: ["inboundEmailProcessed"]`, `domain: "reply.example.com"`, `url: "https://<api>/api/webhooks/brevo-inbound"`, `auth: { type: "bearer", token: "<token>" }`)
+3. `TICKET_REPLY_DOMAIN` und `BREVO_INBOUND_WEBHOOK_TOKEN` (derselbe Token, z. B. `openssl rand -hex 32`) in `.env` setzen —
    beide leer = Feature aus (Webhook antwortet 503, Reply-To entfällt, Web-Antworten
    funktionieren weiter)
 
@@ -86,7 +85,7 @@ Status-Automatik (Reopen) + interne Benachrichtigung.
 |---|---|
 | Geschlossenes Ticket | ignoriert (200, keine Auto-Antwort — Loop-Schutz) |
 | Auto-Reply/Bounce (`Auto-Submitted`, `Precedence: bulk`, `X-Autoreply`) | ignoriert |
-| Webhook-Retry (gleiche `email_id`) | Dedupe via `TicketMessage.inboundEmailId @unique` |
+| Webhook-Retry (gleiche `Message-ID`) | Dedupe via `TicketMessage.inboundEmailId @unique` |
 | Absender ≠ Ticket-E-Mail | akzeptiert — Token ist die Capability, From ist spoofbar |
 | Nur-HTML-Mail | Best-effort-Konvertierung zu Text |
 | MTA lowercased Local-Part | case-insensitiver Token-Fallback-Lookup |
@@ -95,7 +94,7 @@ Status-Automatik (Reopen) + interne Benachrichtigung.
 keine `In-Reply-To`/`References`-Threading-Header auf Outbound-Mails.
 
 Dev/Test ohne Keys: `POST /api/dev/inbound-ticket-email {token, text, headers?}`
-simuliert die komplette Pipeline (nur Signatur + Resend-Fetch werden umgangen).
+simuliert die komplette Pipeline (nur die Token-Prüfung wird umgangen).
 
 ## Tests
 

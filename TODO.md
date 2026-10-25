@@ -35,7 +35,7 @@ Stand: 2026-07-13.
 - [ ] **Stripe:** Live-Keys setzen + Webhook registrieren (`docs/payments.md`). Ohne Keys Mock-Modus.
 - [ ] **Bitcoin:** echte Blockchain-API statt Mock-Provider anbinden; periodischen Sync (Cron)
       ergänzen (`docs/payments.md`).
-- [ ] **Resend (E-Mails):** `RESEND_API_KEY` setzen + Absenderdomain verifizieren.
+- [ ] **Brevo (E-Mails):** `SMTP_*` setzen + Absenderdomain verifizieren.
       Ohne Key: Dev-Log (`GET /api/dev/emails`).
 - [ ] **Social Media Planner:** `SOCIAL_PUBLISHING_PROVIDER=meta` + `META_*`-Vars für echtes
       Publishing (`docs/social-media-planner.md`). Sonst Mock.

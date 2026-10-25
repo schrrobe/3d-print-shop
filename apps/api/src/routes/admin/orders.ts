@@ -14,8 +14,17 @@ import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.j
 
 export const adminOrdersRouter = Router()
 
-/** Checkout-time IP/cookies exist only for the purchase CAPI hand-off — never shown in admin. */
-const OMIT_TRACKING = { trackingAttribution: true } as const
+/**
+ * Kept out of every admin order response:
+ * - checkout-time IP/cookies exist only for the purchase CAPI hand-off — never shown in admin;
+ * - commission data is sales-channels:read only (admin).
+ */
+const ORDER_OMIT = {
+  trackingAttribution: true,
+  salesChannelId: true,
+  commissionBaseCents: true,
+  commissionCents: true,
+} as const
 
 adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, next) => {
   try {
@@ -23,7 +32,7 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
     const orders = await prisma.order.findMany({
       where: status ? { status: status as never } : undefined,
       include: { items: true, payments: true, invoice: { select: { number: true } } },
-      omit: OMIT_TRACKING,
+      omit: ORDER_OMIT,
       orderBy: { createdAt: 'desc' },
       take: 200,
     })
@@ -37,7 +46,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   try {
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
-      omit: OMIT_TRACKING,
+      omit: ORDER_OMIT,
       include: {
         items: true,
         payments: { include: { bitcoinPayment: true } },
@@ -79,7 +88,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     const updated = await prisma.order.update({
       where: { id: order.id },
       data: { status },
-      omit: OMIT_TRACKING,
+      omit: ORDER_OMIT,
     })
     if (status === 'in_production') await notifyProductionStarted(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
@@ -194,7 +203,7 @@ adminOrdersRouter.post(
       })
       const updated = await prisma.order.findUniqueOrThrow({
         where: { id: order.id },
-        omit: OMIT_TRACKING,
+        omit: ORDER_OMIT,
       })
       await audit(req, 'order.shipped', { type: 'order', id: order.id }, input)
       res.json({ order: updated })

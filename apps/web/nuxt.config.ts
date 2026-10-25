@@ -77,6 +77,8 @@ export default defineNuxtConfig({
     },
     routeRules: {
       '/api/**': { proxy: `${process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api'}/**` },
+      // Sales-channel links: the API counts the click, sets the ref cookie, redirects
+      '/r/**': { redirect: { to: '/api/r/**', statusCode: 302 } },
     },
   },
 

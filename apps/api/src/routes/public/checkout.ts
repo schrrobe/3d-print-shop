@@ -19,6 +19,7 @@ import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
 import { createStripeCheckoutSession } from '../../services/payments/stripe.js'
+import { REF_COOKIE, attributeSalesChannel, commissionFor } from '../../services/sales-channels.js'
 import { emitOrderCreated } from '../../services/tracking/events.js'
 
 export const checkoutRouter = Router()
@@ -183,6 +184,14 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
 
     const totals = calcCartTotalsWithVoucher(orderItems, voucher)
+    // Commission base = goods after discount, without shipping; frozen on the order.
+    const salesChannel = await attributeSalesChannel(
+      prisma,
+      voucher?.id ?? null,
+      (req.cookies as Record<string, string> | undefined)?.[REF_COOKIE],
+      new Date(),
+    )
+    const commissionBaseCents = totals.subtotalCents - totals.discountCents
     const orderNumber = generateOrderNumber()
     const accessToken = randomToken()
     const initialStatus =
@@ -276,6 +285,9 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             trackingAttribution: input.consent?.marketing
               ? { ...input.attribution, ip: req.ip, userAgent: req.get('user-agent') }
               : undefined,
+            salesChannelId: salesChannel?.id,
+            commissionBaseCents: salesChannel ? commissionBaseCents : null,
+            commissionCents: salesChannel ? commissionFor(salesChannel, commissionBaseCents) : null,
             items: { create: orderItems },
             payments: { create: paymentData },
           },

@@ -46,7 +46,7 @@ const priceLabel = computed(() =>
         :box-hex="colorsFor.box"
         :label-hex="colorsFor.label"
         :caliber-label="family.caliberName"
-        :socket-scale="socketScale(family.lead.calibers?.[0]?.slug)"
+        :rifle="family.group === 'RIFLE'"
       />
     </span>
     <component

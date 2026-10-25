@@ -50,7 +50,8 @@
       "expired": "Dieser Gutschein ist abgelaufen",
       "exhausted": "Dieser Gutschein wurde bereits vollständig eingelöst",
       "min_order_not_met": "Mindestbestellwert {amount} nicht erreicht"
-    }
+    },
+    "voucherFromLink": "Gutschein {code} wurde in deinen Warenkorb übernommen"
   },
   "checkout": {
     "title": "Kasse",
@@ -439,7 +440,6 @@
       "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
       "drawingCaption": "Schematische Darstellung, nicht maßstäblich",
-      "drawingSibling": "andere Größe",
       "contentsTitle": "Lieferumfang",
       "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots."
     },

@@ -50,7 +50,8 @@
       "expired": "Deze kortingscode is verlopen",
       "exhausted": "Deze kortingscode is al volledig gebruikt",
       "min_order_not_met": "Minimale bestelwaarde {amount} niet bereikt"
-    }
+    },
+    "voucherFromLink": "Kortingscode {code} is aan je winkelwagen toegevoegd"
   },
   "checkout": {
     "title": "Afrekenen",
@@ -439,7 +440,6 @@
       "summary": "{caliber} · {capacity} patronen · box {box} · opschrift {label}",
       "drawingAlt": "Schematische tekening van de patroonbox {caliber} voor {capacity} patronen in {box} met opschrift in {label}",
       "drawingCaption": "Schematisch, niet op schaal",
-      "drawingSibling": "andere maat",
       "contentsTitle": "Inhoud",
       "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod."
     },

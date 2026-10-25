@@ -4,7 +4,7 @@ import { apiContext, createQuoteViaApi } from '../helpers/api.js'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
-/** Emails run in dev-log mode (no RESEND_API_KEY) — asserted via the EmailLog. */
+/** Emails run in dev-log mode (no SMTP_HOST) — asserted via the EmailLog. */
 async function emailsFor(to: string): Promise<string[]> {
   const ctx = await apiContext()
   const response = await ctx.get(`/api/dev/emails?to=${encodeURIComponent(to)}`)
