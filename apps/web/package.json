@@ -22,6 +22,8 @@
     "@print-shop/ui": "workspace:*",
     "@print-shop/utils": "workspace:*",
     "@print-shop/validators": "workspace:*",
+    "@unovis/ts": "^1.7.1",
+    "@unovis/vue": "^1.7.1",
     "analytics": "^0.8.19",
     "chart.js": "^4.4.7",
     "gsap": "^3.13.0",
