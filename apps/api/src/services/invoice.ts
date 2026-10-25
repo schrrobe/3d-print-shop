@@ -16,7 +16,7 @@ import {
 } from './invoice-pdf.js'
 
 /**
- * Creates the invoice row with a sequential, per-year invoice number.
+ * Creates the invoice row with an obfuscated per-year invoice number.
  * The InvoiceCounter row update is atomic (row lock during UPDATE), so
  * concurrent payments cannot produce duplicate numbers.
  */

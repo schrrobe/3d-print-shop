@@ -21,6 +21,8 @@ write_env() { # <env> <web-port> <api-port> <db-port> <node-env> <site-url> <api
   [[ -e $dir/.env ]] || create_env "$@"
   # Added after the first setup, so also appended to existing files.
   grep -q '^DB_PORT_PUBLISH=' "$dir/.env" || echo "DB_PORT_PUBLISH=$4" >>"$dir/.env"
+  # Obfuscates RE/REK/VER/TIC numbers. Generated once; never rotate it.
+  grep -q '^DOCUMENT_NUMBER_KEY=' "$dir/.env" || echo "DOCUMENT_NUMBER_KEY=$(openssl rand -hex 32)" >>"$dir/.env"
 }
 
 create_env() {

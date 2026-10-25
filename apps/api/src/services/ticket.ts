@@ -2,32 +2,21 @@ import type { Prisma, TicketStatus } from '@prisma/client'
 import { renderTicketCustomerReply } from '@print-shop/emails'
 import {
   extractReplyText,
-  formatInvoiceNumber,
   isAutoReply,
-  nextInvoiceSequence,
   parseTicketReplyAddress,
   statusAfterCustomerReply,
 } from '@print-shop/utils'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { sendEmail } from './email.js'
 
 /**
- * Allocates the next sequential ticket number (TIC-YYYY-NNNNN) inside the given
- * transaction, advancing the per-year counter. Shared by the public support
- * form and the complaint→ticket flow so numbering and counter locking live in
- * one place.
+ * Allocates the next ticket number (TIC-2026-7Q3K9X) inside the given
+ * transaction. Shared by the public support form and the complaint→ticket flow.
  */
 export async function allocateTicketNumber(tx: Prisma.TransactionClient): Promise<string> {
-  const year = new Date().getFullYear()
-  const existing = await tx.ticketCounter.findUnique({ where: { year } })
-  const nextSeq = nextInvoiceSequence(existing, year)
-  await tx.ticketCounter.upsert({
-    where: { year: nextSeq.year },
-    create: { year: nextSeq.year, lastSequence: nextSeq.sequence },
-    update: { lastSequence: nextSeq.sequence },
-  })
-  return formatInvoiceNumber('TIC', nextSeq.year, nextSeq.sequence)
+  return (await nextSequentialNumber(tx.ticketCounter, 'TIC')).number
 }
 
 /** Max body length — mirrors ticketMessageSchema (inbound mail bypasses zod). */

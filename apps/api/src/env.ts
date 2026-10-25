@@ -50,6 +50,9 @@ const envSchema = z
     BANK_BIC: z.string().default('XXXXDEXXXXX'),
     INVOICE_DIR: z.string().default('./invoices'),
     INVOICE_PREFIX: z.string().default('RE'),
+    /// HMAC key obfuscating RE/REK/VER/TIC numbers. NEVER change once documents
+    /// exist — new numbers could collide with issued ones.
+    DOCUMENT_NUMBER_KEY: z.string().min(16).default('dev-only-document-number-key'),
     // --- Invoice PDF: company identity (placeholders — set real values before go-live) ---
     COMPANY_NAME: z.string().default('Print Shop GmbH'),
     COMPANY_STREET: z.string().default('Musterstraße 1'),
@@ -145,6 +148,15 @@ const envSchema = z
           code: z.ZodIssueCode.custom,
           path: ['STRIPE_SECRET_KEY'],
           message: 'Stripe secret and webhook keys are required in production',
+        })
+      }
+      // The repo is public: with the dev key anyone could invert document
+      // numbers back to the shop's order volume.
+      if (val.DOCUMENT_NUMBER_KEY === 'dev-only-document-number-key') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DOCUMENT_NUMBER_KEY'],
+          message: 'DOCUMENT_NUMBER_KEY must be set to a unique secret in production',
         })
       }
       if (/printshop:(?:printshop|change-me-local)@/i.test(val.DATABASE_URL)) {

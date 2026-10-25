@@ -37,7 +37,8 @@ pnpm dev                      # web: http://localhost:3000 · api: http://localh
 ## Environment-Variablen
 
 Alle Variablen mit Erklärung in [`.env.example`](.env.example). Wichtige Gruppen:
-`DATABASE_URL` · `JWT_SECRET`/`COOKIE_SECURE` (Sessions) · `SMTP_*`/`EMAIL_FROM`
+`DATABASE_URL` · `JWT_SECRET`/`COOKIE_SECURE` (Sessions) · `DOCUMENT_NUMBER_KEY`
+(verschleiert RE/REK/VER/TIC-Nummern; nie ändern) · `SMTP_*`/`EMAIL_FROM`
 (E-Mails; leer = Dev-Log-Modus) · `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` (leer =
 Mock-Modus außerhalb Produktion) · `BITCOIN_ENABLED`/`BITCOIN_PROVIDER`/`BITCOIN_XPUB` ·
 `BOOTSTRAP_ADMIN_*` (einmaliger Produktions-Admin) · `BANK_*` (Bankdaten) ·
