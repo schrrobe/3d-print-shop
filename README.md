@@ -24,7 +24,7 @@ pnpm install
 cp .env.example .env          # Platzhalter — niemals echte Secrets committen
 cp .env.example apps/api/.env
 
-pnpm db:up                    # PostgreSQL (Docker, Port 15433)
+pnpm db:up                    # PostgreSQL (Docker, Port 15433) + Mailpit (http://localhost:8025)
 pnpm db:migrate               # Prisma-Migrationen
 ALLOW_DEMO_SEED=true pnpm db:seed  # Beispieldaten (nur Entwicklung/CI)
 
@@ -101,6 +101,8 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 - **Brevo (E-Mails, SMTP):** ohne `SMTP_HOST` werden Mails im Dev-Modus geloggt
   (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
   `packages/emails`; Absenderdomain bei Brevo verifizieren, dann `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_USER` (Login) und `SMTP_PASS` (SMTP-Schlüssel) in `.env` setzen.
+  Lokal/dev ohne Brevo: `SMTP_HOST=localhost`, `SMTP_PORT=1025` → Mailpit
+  (lokal http://localhost:8025, dev https://dev.kaliberbox.de/mailpit/).
 - **Stripe:** ohne Keys Mock-Modus (Success-Seite mit „Zahlung simulieren"). Live-Betrieb:
   Keys setzen + Webhook registrieren — [docs/payments.md](docs/payments.md).
 - **Bitcoin:** eigene Wallet, bezahlt ab 2 Blockbestätigungen. MVP nutzt einen Mock-Provider;
