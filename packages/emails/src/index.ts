@@ -52,7 +52,7 @@ function itemsTable(items: OrderEmailData['items'], locale: Locale): string {
         `<tr><td style="padding:4px 8px 4px 0;">${i.quantity}× ${escapeHtml(i.name)}</td><td style="text-align:right;">${formatCents(i.unitPriceCents * i.quantity, locale)}</td></tr>`,
     )
     .join('')
-  return `<table style="width:100%;font-size:14px;margin:12px 0;">${rows}</table>`
+  return `<table style="width:100%;font-size:16px;margin:12px 0;font-variant-numeric:tabular-nums;">${rows}</table>`
 }
 
 export function renderOrderConfirmation(data: OrderEmailData, locale: Locale): RenderedEmail {
