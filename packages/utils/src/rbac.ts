@@ -43,6 +43,8 @@ export const PERMISSIONS = [
   'reviews:moderate',
   'vouchers:read',
   'vouchers:write',
+  'sales-channels:read',
+  'sales-channels:write',
   'settings:read',
   'settings:write',
   'tracking:read',
@@ -62,6 +64,7 @@ export type Permission = (typeof PERMISSIONS)[number]
  * Shipments: shipping owns the flow, production/support read.
  * Reviews: product_manager & support moderate.
  * Vouchers: only admin manages (vouchers:write), support reads for order questions.
+ * Sales channels (influencer links + commission): admin only.
  * Settings: shop-wide config incl. tracking IDs (GDPR-relevant) — admin only.
  * Conversion analytics: admin & product_manager read the tracking dashboard (tracking:read).
  */

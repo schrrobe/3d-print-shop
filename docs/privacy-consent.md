@@ -39,6 +39,23 @@ Besucherdaten** an Meta — übertragen werden nur Post-Inhalte (Caption, Produk
 Produktlinks). Er ist damit unabhängig vom Meta **Pixel** (Kategorie „marketing“,
 Opt-in-pflichtig). Access Tokens liegen ausschließlich serverseitig.
 
+## Verkaufskanäle (Influencer-Links)
+
+Admin legt unter `/admin/sales-channels` Links `/r/<code>` an.
+Ein Klick setzt das First-Party-Cookie `ps_ref` (httpOnly, SameSite=Lax, 30 Tage) mit
+**nur** Link-Code und Klickzeit und leitet aufs Ziel weiter. Gezählt wird nur „ein
+Klick“ — ohne IP, User-Agent oder Besucher-ID; Bots/Link-Vorschauen zählen nicht.
+
+Das Cookie wird **ohne Einwilligung** gesetzt: Es dient ausschließlich der
+Provisionsabrechnung mit dem Partner, bildet kein Profil, wird an keinen Dritten
+übertragen und enthält keine Geräte- oder Personendaten. Bewusste Ausnahme von „kein
+Tracking vor Opt-in“ (gleiche Abwägung wie bei storylo) — keine Rechtsberatung; bei
+Zweifeln das Setzen an die Kategorie `marketing` koppeln.
+
+Zuordnung: Gutschein des Kanals schlägt Cookie, sonst letzter Klick innerhalb von 30
+Tagen. Provisionsbasis (Warenwert nach Rabatt, ohne Versand) und Provision werden beim
+Checkout an der Bestellung festgeschrieben.
+
 ## Weitere DSGVO-Punkte
 
 - Gastbestellung: nur vertragsnotwendige Daten, kein Konto.
