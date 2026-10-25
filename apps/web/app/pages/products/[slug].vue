@@ -350,18 +350,11 @@ useHead({
               :box-hex="drawingColors.box"
               :label-hex="drawingColors.label"
               :caliber-label="caliberName"
-              :show-sibling="siblings.length > 1"
-              :socket-scale="socketScale(caliber?.slug)"
+              :rifle="caliber?.group === 'RIFLE'"
               :description="drawingDescription"
             />
-            <figcaption class="mt-3 flex flex-wrap justify-between gap-2 text-sm text-ink-2">
-              <span>{{ t('shop.product.drawingCaption') }}</span>
-              <span v-if="siblings.length > 1" class="inline-flex items-center gap-2">
-                <svg width="22" height="8" aria-hidden="true">
-                  <line x1="0" y1="4" x2="22" y2="4" stroke="currentColor" stroke-dasharray="4 3" />
-                </svg>
-                {{ t('shop.product.drawingSibling') }}
-              </span>
+            <figcaption class="mt-3 text-sm text-ink-2">
+              {{ t('shop.product.drawingCaption') }}
             </figcaption>
           </figure>
 

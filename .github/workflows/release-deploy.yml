@@ -1,11 +1,11 @@
 name: Release & Deploy
 
 # Every push to main builds both images and deploys dev(.api).kaliberbox.de.
-# release-please keeps one release PR per package. Merging the api PR (tag api-vX.Y.Z)
-# promotes the API image already running on dev to api.kaliberbox.de; merging the web
-# PR (web-vX.Y.Z) builds the web image with the prod URL and ships it to kaliberbox.de.
-# Release PRs for packages/* only bump versions; node-workspace carries those changes
-# into the api/web release PRs that depend on them.
+# release-please keeps a single release PR for all packages. Merging it tags every
+# bumped package: api-vX.Y.Z promotes the API image already running on dev to
+# api.kaliberbox.de; web-vX.Y.Z builds the web image with the prod URL and ships it
+# to kaliberbox.de. packages/* only bump versions; node-workspace carries those
+# changes into api/web when they depend on them.
 on:
   push:
     branches: [main]

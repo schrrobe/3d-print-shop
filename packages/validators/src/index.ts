@@ -131,6 +131,29 @@ export const voucherUpdateSchema = voucherBaseSchema
   .refine(validRangeCheck, { message: 'validFrom must be before validUntil', path: ['validUntil'] })
 export type VoucherUpdateInput = z.infer<typeof voucherUpdateSchema>
 
+// ---------- Sales channels ----------
+
+export const salesChannelSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^[a-z0-9-]{2,32}$/, '2–32 Zeichen: a–z, 0–9, -'),
+    name: z.string().trim().min(1).max(120),
+    productId: z.string().min(1).nullable().default(null),
+    voucherId: z.string().min(1).nullable().default(null),
+    commissionType: z.enum(['percent', 'fixed']),
+    /** percent: basis points (1000 = 10 %), fixed: cents per order */
+    commissionValue: z.number().int().min(0).max(100_000_000),
+    active: z.boolean().default(true),
+  })
+  .refine((v) => v.commissionType !== 'percent' || v.commissionValue <= 10_000, {
+    message: 'Provision max. 100 %',
+    path: ['commissionValue'],
+  })
+export type SalesChannelInput = z.infer<typeof salesChannelSchema>
+
 // ---------- Upload / quote request ----------
 
 export const uploadRequestSchema = z.object({

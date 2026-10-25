@@ -23,20 +23,19 @@ const orderData = {
 describe('email templates', () => {
   afterEach(() => vi.unstubAllEnvs())
 
-  it('uses the configured company details in the header and footer', () => {
+  it('uses the configured company details in the footer', () => {
     vi.stubEnv('COMPANY_NAME', 'Robert Schreiner')
     vi.stubEnv('COMPANY_STREET', 'Kapitelwiese 14')
     vi.stubEnv('COMPANY_ZIP', '44263')
     vi.stubEnv('COMPANY_CITY', 'Dortmund')
 
     const rendered = renderOrderConfirmation(orderData, 'de')
-    expect(rendered.html).toContain('● Robert Schreiner')
     expect(rendered.html).toContain('Robert Schreiner · Kapitelwiese 14 · 44263 Dortmund')
   })
 
-  it('uses the same default company name in the header and footer', () => {
+  it('renders the shop wordmark and default company name', () => {
     const rendered = renderOrderConfirmation(orderData, 'de')
-    expect(rendered.html).toContain('● Print Shop GmbH')
+    expect(rendered.html).toContain('>kaliber</span>')
     expect(rendered.html).toContain('Print Shop GmbH')
   })
 

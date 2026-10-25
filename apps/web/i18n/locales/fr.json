@@ -50,7 +50,8 @@
       "expired": "Ce bon a expiré",
       "exhausted": "Ce bon a déjà été entièrement utilisé",
       "min_order_not_met": "Montant minimum de commande {amount} non atteint"
-    }
+    },
+    "voucherFromLink": "Le bon de réduction {code} a été ajouté à ton panier"
   },
   "checkout": {
     "title": "Paiement",
@@ -439,7 +440,6 @@
       "summary": "{caliber} · {capacity} cartouches · boîte {box} · marquage {label}",
       "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",
       "drawingCaption": "Schéma, pas à l’échelle",
-      "drawingSibling": "autre taille",
       "contentsTitle": "Contenu",
       "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre."
     },

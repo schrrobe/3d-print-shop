@@ -29,6 +29,7 @@ import { adminTicketsRouter } from './routes/admin/tickets.js'
 import { adminTrackingRouter } from './routes/admin/tracking-stats.js'
 import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
+import { adminSalesChannelsRouter } from './routes/admin/sales-channels.js'
 import { checkoutRouter } from './routes/public/checkout.js'
 import { trackingSettingsRouter } from './routes/public/tracking-settings.js'
 import { calibersRouter } from './routes/public/calibers.js'
@@ -50,6 +51,7 @@ import { ticketsRouter } from './routes/public/tickets.js'
 import { trackRouter } from './routes/public/track.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { vouchersRouter } from './routes/public/vouchers.js'
+import { salesChannelRedirectRouter } from './routes/public/sales-channels.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
 export function createApp(): Express {
@@ -84,6 +86,7 @@ export function createApp(): Express {
   app.use('/api/calibers', calibersRouter)
   app.use('/api/checkout', checkoutRouter)
   app.use('/api/vouchers', vouchersRouter)
+  app.use('/api/r', salesChannelRedirectRouter)
   app.use('/api/orders', ordersRouter)
   app.use('/api/upload-requests', uploadsRouter)
   app.use('/api/quotes', quotesRouter)
@@ -123,6 +126,7 @@ export function createApp(): Express {
   app.use('/api/admin/shipments', requireAuth, adminShipmentsRouter)
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)
   app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
+  app.use('/api/admin/sales-channels', requireAuth, adminSalesChannelsRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
   app.use('/api/admin/tracking', requireAuth, adminTrackingRouter)
 

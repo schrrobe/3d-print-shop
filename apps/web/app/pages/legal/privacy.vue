@@ -59,6 +59,15 @@ useSeo({
           sowie Art. 6 Abs. 1 lit. f DSGVO.
         </p>
         <p class="mt-sm">
+          Kommst du über einen Partner-Link (z. B. eines Influencers, Adresse beginnt mit
+          <code>/r/</code>) zu uns, setzen wir das Cookie <code>ps_ref</code> für 30 Tage. Es
+          enthält nur den Link-Code und den Zeitpunkt des Klicks und dient ausschließlich dazu, eine
+          Bestellung dem Partner für dessen Provision zuzuordnen. Den Klick zählen wir ohne
+          IP-Adresse, Geräte- oder Browserdaten; das Cookie wird an keine Dritten übermittelt. Die
+          Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (Abrechnung mit unseren
+          Vertriebspartnern).
+        </p>
+        <p class="mt-sm">
           Deine Auswahl wird im Browser gespeichert. Zusätzlich dokumentieren wir die Einwilligung
           mit einer zufällig erzeugten Kennung, der gewählten Kategorien, Versionsnummer, Sprache,
           Zeitpunkt und dem übermittelten User-Agent, um sie nachweisen zu können. Du kannst eine
@@ -109,9 +118,10 @@ useSeo({
         </h2>
         <p class="mt-sm">
           Wir versenden transaktionale E-Mails, etwa Bestellbestätigungen, Rechnungen, Angebots- und
-          Versandinformationen sowie Antworten auf Supportanfragen, über Resend. Dabei werden
-          insbesondere E-Mail-Adresse, Name, Bestell- bzw. Vorgangsdaten und der Inhalt der
-          Nachricht verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; für die technische
+          Versandinformationen sowie Antworten auf Supportanfragen, über Brevo; auch
+          E-Mail-Antworten auf Support-Tickets empfangen wir über Brevo. Dabei werden insbesondere
+          E-Mail-Adresse, Name, Bestell- bzw. Vorgangsdaten und der Inhalt der Nachricht
+          verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; für die technische
           Dokumentation und Missbrauchsabwehr Art. 6 Abs. 1 lit. f DSGVO.
         </p>
         <p class="mt-sm">

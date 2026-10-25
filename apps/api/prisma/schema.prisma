@@ -331,6 +331,7 @@ model Product {
   socialPosts         SocialMediaPost[]
   reviews             Review[]
   savedConfigurations SavedConfiguration[]
+  salesChannels       SalesChannel[]
 
   @@index([familyKey])
 }
@@ -445,7 +446,47 @@ model Voucher {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
+  orders       Order[]
+  salesChannel SalesChannel?
+}
+
+enum CommissionType {
+  percent
+  fixed
+}
+
+/// Shareable sales link (/r/<code>) for influencers & co. Clicks and attributed
+/// orders are measured per channel; see docs/privacy-consent.md for the cookie.
+model SalesChannel {
+  id              String         @id @default(cuid())
+  /// Lowercase slug used in the link
+  code            String         @unique
+  name            String
+  /// Landing product; null = home page
+  productId       String?
+  product         Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  /// Redeeming this voucher attributes the order to the channel (beats the cookie)
+  voucherId       String?        @unique
+  voucher         Voucher?       @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  commissionType  CommissionType
+  /// percent: basis points (1000 = 10 %), fixed: cents per order
+  commissionValue Int
+  active          Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  clicks SalesChannelClick[]
   orders Order[]
+}
+
+/// One counted link click — deliberately without IP, user agent or visitor id.
+model SalesChannelClick {
+  id             String       @id @default(cuid())
+  salesChannelId String
+  salesChannel   SalesChannel @relation(fields: [salesChannelId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([salesChannelId, createdAt])
 }
 
 // ---------- Orders ----------
@@ -499,9 +540,16 @@ model Order {
 
   trackingEvents TrackingEvent[]
   attribution    OrderAttribution?
+  /// Attributed sales channel; commission is frozen at checkout so later rule
+  /// changes never rewrite past payouts.
+  salesChannelId      String?
+  salesChannel        SalesChannel? @relation(fields: [salesChannelId], references: [id])
+  commissionBaseCents Int?
+  commissionCents     Int?
 
   @@index([voucherId])
   @@index([trackingSessionId])
+  @@index([salesChannelId])
 }
 
 model OrderItem {
@@ -841,7 +889,7 @@ model TicketMessage {
   userId         String?
   user           User?            @relation("TicketMessageAuthor", fields: [userId], references: [id])
   body           String
-  /// Resend email_id of the inbound mail that created this message (dedupe on webhook retries)
+  /// Message-ID of the inbound mail (Brevo inbound parsing) that created this message (dedupe on webhook retries)
   inboundEmailId String?          @unique
   createdAt      DateTime         @default(now())
 

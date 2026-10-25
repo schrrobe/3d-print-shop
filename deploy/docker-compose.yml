@@ -79,6 +79,19 @@ services:
       retries: 3
       start_period: 20s
 
+  # dev only (COMPOSE_PROFILES=mailpit + SMTP_HOST=mailpit in .env): catches all mail, nothing leaves.
+  # Inbox behind the dev basic auth at https://dev.kaliberbox.de/mailpit/ · in-memory, gone after restart.
+  mailpit:
+    image: axllent/mailpit:v1.31.5
+    container_name: kaliberbox-mailpit-${STACK_ENV}
+    restart: unless-stopped
+    profiles: [mailpit]
+    environment:
+      MP_WEBROOT: /mailpit/
+      MP_MAX_MESSAGES: '500'
+    ports:
+      - '127.0.0.1:${MAILPIT_PORT_PUBLISH:-3114}:8025'
+
 volumes:
   pgdata:
   uploads:

@@ -50,7 +50,8 @@
       "expired": "Ten kupon wygasł",
       "exhausted": "Ten kupon został już w pełni wykorzystany",
       "min_order_not_met": "Nie osiągnięto minimalnej wartości zamówienia {amount}"
-    }
+    },
+    "voucherFromLink": "Kod rabatowy {code} został dodany do koszyka"
   },
   "checkout": {
     "title": "Kasa",
@@ -439,7 +440,6 @@
       "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
       "drawingCaption": "Schemat, nie w skali",
-      "drawingSibling": "inny rozmiar",
       "contentsTitle": "Zawartość",
       "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty."
     },

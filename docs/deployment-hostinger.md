@@ -21,21 +21,21 @@ User `kaliberbox`), ausgenommen `/api/webhooks/`.
 
 1. PR nach `main` mergen → Workflow **Release & Deploy** baut beide Images (Tag = Commit-SHA)
    und rollt sie auf dev aus.
-2. release-please pflegt **je Paket einen eigenen Release-PR** (Version + `CHANGELOG.md` im
-   Paketordner) aus den Conventional Commits (`feat:` → Minor, `fix:` → Patch,
-   `feat!:` → Breaking). Ein Commit gehört zu dem Paket, dessen Dateien er ändert.
-3. Release-PRs mergen:
+2. release-please pflegt **einen gemeinsamen Release-PR** für alle Pakete (Version +
+   `CHANGELOG.md` je Paketordner) aus den Conventional Commits (`feat:` → Minor,
+   `fix:` → Patch, `feat!:` → Breaking). Ein Commit gehört zu dem Paket, dessen Dateien
+   er ändert.
+3. Release-PR mergen → jedes gebumpte Paket bekommt sein eigenes Tag:
    - **API** (`api-vX.Y.Z`) → dasselbe API-Image, das gerade auf dev läuft, wird
      umgetaggt und auf prod ausgerollt. Nur der API-Container wird neu gestartet.
    - **Web** (`web-vX.Y.Z`) → Web-Image mit Prod-URL neu gebaut, nur der Web-Container
-     wird neu gestartet. Kommen API und Web im selben Push, geht die API zuerst live.
+     wird neu gestartet. Kommen API und Web im selben Release, geht die API zuerst live.
    - **`packages/*`** (`utils-v…`, `validators-v…` …) → kein Deploy. Über das Plugin
-     `node-workspace` bekommen die abhängigen Apps automatisch einen Patch-Bump in
-     ihrem eigenen Release-PR.
+     `node-workspace` bekommen die abhängigen Apps automatisch einen Patch-Bump im
+     selben Release-PR.
 
-Neue Frontend-Features, die neue API-Endpunkte brauchen: **zuerst den API-Release-PR
-mergen**, dann den Web-PR. release-please prüft das nicht. Beim allerersten prod-Deploy
-muss die API zuerst released werden (Web wartet auf eine gesunde API).
+Beim allerersten prod-Deploy muss die API zuerst released werden (Web wartet auf eine
+gesunde API).
 
 PR-Titel müssen deshalb Conventional Commits sein (Squash-Merge übernimmt den Titel).
 
@@ -93,6 +93,12 @@ docker exec kaliberbox-api-prod node_modules/.bin/tsx prisma/bootstrap-admin.ts
 docker exec kaliberbox-api-dev node_modules/.bin/tsx prisma/seed.ts
 ```
 
+**Mailpit auf dev:** fängt alle Mails ab, nichts geht an echte Adressen. In
+`/opt/kaliberbox/dev/.env`: `COMPOSE_PROFILES=mailpit`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`,
+`SMTP_USER=`/`SMTP_PASS=` (leer). Dann `kaliberbox-deploy dev <ref>` und
+`deploy/nginx-dev.kaliberbox.de.conf` übernehmen (`sudo nginx -t && sudo systemctl reload nginx`).
+Postfach: https://dev.kaliberbox.de/mailpit/ (dev-Basic-Auth); Mails nur im Speicher.
+
 Migrationen laufen bei jedem API-Start (`prisma migrate deploy`). Kein
 `CREATE INDEX CONCURRENTLY` in Migrationen — das bricht den Start ab.
 
@@ -122,7 +128,7 @@ DBeaver verbinden sich per SSH-Tunnel:
 ## Produktions-Checkliste
 
 - [ ] `/opt/kaliberbox/prod/.env`: Stripe-Live-Keys, Firmen-/Bankdaten (`COMPANY_*`,
-      `BANK_*`), Resend — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
+      `BANK_*`), Brevo-SMTP — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
 - [ ] `/opt/kaliberbox/prod/web.env`: `NUXT_PUBLIC_COMPANY_*` fürs Impressum
 - [ ] Stripe-Webhook auf `https://api.kaliberbox.de/api/webhooks/stripe`
 - [ ] Bitcoin bleibt mit `BITCOIN_ENABLED=false` aus, bis ein echter Provider implementiert ist

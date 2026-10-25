@@ -2,7 +2,7 @@
 
 DSGVO-konformer Onlineshop für 3D-Druck-Artikel: konfigurierbare Standardprodukte mit
 Live-3D-Farbvorschau, Upload eigener Modelle mit individuellem Angebot & Zahlungslink,
-Support-Ticketsystem mit Token-Zugriff und Inbound-E-Mail-Antworten (Resend Receiving),
+Support-Ticketsystem mit Token-Zugriff und Inbound-E-Mail-Antworten (Brevo Inbound Parsing),
 Adminbereich mit Rollen, Drucker-/Produktionsverwaltung, interne Rechnungserstellung.
 
 ## Tech-Stack
@@ -10,7 +10,7 @@ Adminbereich mit Rollen, Drucker-/Produktionsverwaltung, interne Rechnungserstel
 Monorepo (pnpm workspaces + Turborepo) · Nuxt 4 (Vue 3, TypeScript, Vite, SSR) ·
 Tailwind CSS 4 (CSS-first Design-Tokens) · Radix Vue · Storybook 9 · GSAP + ScrollTrigger ·
 three.js (GLB-Viewer) · vue-i18n (de/en/pl/fr/nl/cs) · Express 5 + TypeScript ·
-PostgreSQL 16 + Prisma 6 · Zod · Resend · Stripe · Bitcoin-Provider-Abstraktion ·
+PostgreSQL 16 + Prisma 6 · Zod · Brevo (SMTP) · Stripe · Bitcoin-Provider-Abstraktion ·
 Vitest · Playwright · GitHub Actions.
 
 Struktur und Details: [docs/architecture.md](docs/architecture.md)
@@ -24,7 +24,7 @@ pnpm install
 cp .env.example .env          # Platzhalter — niemals echte Secrets committen
 cp .env.example apps/api/.env
 
-pnpm db:up                    # PostgreSQL (Docker, Port 15433)
+pnpm db:up                    # PostgreSQL (Docker, Port 15433) + Mailpit (http://localhost:8025)
 pnpm db:migrate               # Prisma-Migrationen
 ALLOW_DEMO_SEED=true pnpm db:seed  # Beispieldaten (nur Entwicklung/CI)
 
@@ -37,7 +37,7 @@ pnpm dev                      # web: http://localhost:3000 · api: http://localh
 ## Environment-Variablen
 
 Alle Variablen mit Erklärung in [`.env.example`](.env.example). Wichtige Gruppen:
-`DATABASE_URL` · `JWT_SECRET`/`COOKIE_SECURE` (Sessions) · `RESEND_API_KEY`/`EMAIL_FROM`
+`DATABASE_URL` · `JWT_SECRET`/`COOKIE_SECURE` (Sessions) · `SMTP_*`/`EMAIL_FROM`
 (E-Mails; leer = Dev-Log-Modus) · `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` (leer =
 Mock-Modus außerhalb Produktion) · `BITCOIN_ENABLED`/`BITCOIN_PROVIDER`/`BITCOIN_XPUB` ·
 `BOOTSTRAP_ADMIN_*` (einmaliger Produktions-Admin) · `BANK_*` (Bankdaten) ·
@@ -98,9 +98,11 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
   Ablage unter `UPLOAD_DIR/products/`, öffentlich über `GET /api/product-images/:filename`.
   Auf der Produktseite oben als Galerie, der Konfigurator (3D-Modell + Farben) rückt eine
   Sektion tiefer. Ohne Fotos zeigt der Shop einen Platzhalter — [docs/product-photos.md](docs/product-photos.md).
-- **Resend (E-Mails):** ohne `RESEND_API_KEY` werden Mails im Dev-Modus geloggt
+- **Brevo (E-Mails, SMTP):** ohne `SMTP_HOST` werden Mails im Dev-Modus geloggt
   (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
-  `packages/emails`; Absenderdomain bei Resend verifizieren, dann Key in `.env` setzen.
+  `packages/emails`; Absenderdomain bei Brevo verifizieren, dann `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_USER` (Login) und `SMTP_PASS` (SMTP-Schlüssel) in `.env` setzen.
+  Lokal/dev ohne Brevo: `SMTP_HOST=localhost`, `SMTP_PORT=1025` → Mailpit
+  (lokal http://localhost:8025, dev https://dev.kaliberbox.de/mailpit/).
 - **Stripe:** ohne Keys Mock-Modus (Success-Seite mit „Zahlung simulieren"). Live-Betrieb:
   Keys setzen + Webhook registrieren — [docs/payments.md](docs/payments.md).
 - **Bitcoin:** eigene Wallet, bezahlt ab 2 Blockbestätigungen. MVP nutzt einen Mock-Provider;
