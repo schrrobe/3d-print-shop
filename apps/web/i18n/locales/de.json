@@ -50,7 +50,8 @@
       "expired": "Dieser Gutschein ist abgelaufen",
       "exhausted": "Dieser Gutschein wurde bereits vollständig eingelöst",
       "min_order_not_met": "Mindestbestellwert {amount} nicht erreicht"
-    }
+    },
+    "voucherFromLink": "Gutschein {code} wurde in deinen Warenkorb übernommen"
   },
   "checkout": {
     "title": "Kasse",

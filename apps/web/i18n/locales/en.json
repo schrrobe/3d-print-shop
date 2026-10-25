@@ -50,7 +50,8 @@
       "expired": "This voucher has expired",
       "exhausted": "This voucher has already been fully redeemed",
       "min_order_not_met": "Minimum order value {amount} not reached"
-    }
+    },
+    "voucherFromLink": "Voucher {code} has been added to your cart"
   },
   "checkout": {
     "title": "Checkout",

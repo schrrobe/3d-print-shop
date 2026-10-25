@@ -50,7 +50,8 @@
       "expired": "Ten kupon wygasł",
       "exhausted": "Ten kupon został już w pełni wykorzystany",
       "min_order_not_met": "Nie osiągnięto minimalnej wartości zamówienia {amount}"
-    }
+    },
+    "voucherFromLink": "Kod rabatowy {code} został dodany do koszyka"
   },
   "checkout": {
     "title": "Kasa",
