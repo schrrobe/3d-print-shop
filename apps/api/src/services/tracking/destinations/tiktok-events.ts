@@ -1,6 +1,7 @@
+import { CONVERSION_EVENTS } from '@print-shop/utils'
 import { env } from '../../../env.js'
-import type { PurchaseOutboxPayload, TrackingEventSender, TrackingSendResult } from './sender.js'
-import { TrackingSendError } from './sender.js'
+import type { OutboxPayload, TrackingEventSender, TrackingSendResult } from './sender.js'
+import { compact, TrackingSendError } from './sender.js'
 
 /**
  * TikTok Events API v1.3 (server-side web events).
@@ -25,14 +26,23 @@ interface TikTokResponseBody {
 export function mapTikTokError(httpStatus: number, body: unknown): TrackingSendError {
   const parsed = body as TikTokResponseBody | null
   const apiCode = parsed?.code
-  const message =
-    parsed?.message ?? `TikTok Events API request failed (HTTP ${httpStatus})`
+  const message = parsed?.message ?? `TikTok Events API request failed (HTTP ${httpStatus})`
 
   if (httpStatus === 429) {
-    return new TrackingSendError(`Rate limit reached: ${message}`, 'tiktok_rate_limited', true, httpStatus)
+    return new TrackingSendError(
+      `Rate limit reached: ${message}`,
+      'tiktok_rate_limited',
+      true,
+      httpStatus,
+    )
   }
   if (httpStatus >= 500) {
-    return new TrackingSendError(`TikTok server error: ${message}`, 'tiktok_server_error', true, httpStatus)
+    return new TrackingSendError(
+      `TikTok server error: ${message}`,
+      'tiktok_server_error',
+      true,
+      httpStatus,
+    )
   }
   return new TrackingSendError(
     `${message} (api code ${apiCode ?? 'unknown'})`,
@@ -44,7 +54,7 @@ export function mapTikTokError(httpStatus: number, body: unknown): TrackingSendE
 
 /** Pure request-body builder (exported for tests). Unset optionals are omitted, never null. */
 export function toTikTokBody(
-  payload: PurchaseOutboxPayload,
+  payload: OutboxPayload,
   cfg: { pixelCode: string; testEventCode?: string },
 ): Record<string, unknown> {
   return {
@@ -52,15 +62,26 @@ export function toTikTokBody(
     event_source_id: cfg.pixelCode,
     data: [
       {
-        event: 'CompletePayment',
+        event: CONVERSION_EVENTS[payload.eventName].tiktok,
         event_time: payload.eventTime,
         event_id: payload.eventId,
-        user: {
-          ...(payload.ttclid ? { ttclid: payload.ttclid } : {}),
-          ...(payload.clientUserAgent ? { user_agent: payload.clientUserAgent } : {}),
-        },
+        user: compact({
+          email: payload.emailHash,
+          ttclid: payload.ttclid,
+          ttp: payload.ttp,
+          ip: payload.clientIp,
+          user_agent: payload.clientUserAgent,
+        }),
         ...(payload.eventSourceUrl ? { page: { url: payload.eventSourceUrl } } : {}),
-        properties: { currency: payload.currency, value: payload.valueCents / 100 },
+        properties: compact({
+          currency: payload.currency,
+          value: payload.valueCents == null ? null : payload.valueCents / 100,
+          content_type: payload.contentId ? 'product' : null,
+          contents: payload.contentId
+            ? [{ content_id: payload.contentId, quantity: payload.numItems ?? 1 }]
+            : null,
+          order_id: payload.orderId,
+        }),
       },
     ],
     ...(cfg.testEventCode ? { test_event_code: cfg.testEventCode } : {}),
@@ -80,7 +101,7 @@ export class TikTokEventsSender implements TrackingEventSender {
     }
   }
 
-  async send(payload: PurchaseOutboxPayload): Promise<TrackingSendResult> {
+  async send(payload: OutboxPayload): Promise<TrackingSendResult> {
     let response: Response
     try {
       response = await fetch(TIKTOK_EVENTS_URL, {

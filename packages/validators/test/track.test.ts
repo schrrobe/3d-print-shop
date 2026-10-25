@@ -53,7 +53,43 @@ describe('trackBatchSchema', () => {
     expect(res.success).toBe(false)
   })
 
-  it('rejects batches without statistics consent', () => {
+  const pageView = {
+    eventId: '0197fa3f-2222-7222-8222-222222222222',
+    name: 'page_view',
+    occurredAt: new Date().toISOString(),
+  }
+  const marketingOnly = { statistics: false, marketing: true }
+
+  it('accepts marketing-only consent without a visitor id', () => {
+    const res = trackBatchSchema.safeParse({
+      ...base,
+      consent: marketingOnly,
+      attribution: { fbp: 'fb.1.1700000000000.123' },
+      events: [pageView],
+    })
+    expect(res.success).toBe(true)
+  })
+
+  it('rejects a visitor id without statistics consent', () => {
+    const res = trackBatchSchema.safeParse({
+      ...base,
+      visitorId: '0197fa3e-3333-7333-8333-333333333333',
+      consent: marketingOnly,
+      events: [pageView],
+    })
+    expect(res.success).toBe(false)
+  })
+
+  it('rejects ad-platform cookies without marketing consent', () => {
+    const res = trackBatchSchema.safeParse({
+      ...base,
+      attribution: { fbp: 'x' },
+      events: [pageView],
+    })
+    expect(res.success).toBe(false)
+  })
+
+  it('rejects batches without any consent', () => {
     const res = trackBatchSchema.safeParse({
       ...base,
       consent: { statistics: false, marketing: false },
@@ -141,9 +177,15 @@ describe('parseTrackBatch (per-event tolerance)', () => {
   })
 
   it('throws on a malformed envelope (bad session id / missing consent)', () => {
-    expect(() => parseTrackBatch({ ...base, sessionId: 'not-a-uuid', events: [validEvent] })).toThrow()
     expect(() =>
-      parseTrackBatch({ ...base, consent: { statistics: false, marketing: false }, events: [validEvent] }),
+      parseTrackBatch({ ...base, sessionId: 'not-a-uuid', events: [validEvent] }),
+    ).toThrow()
+    expect(() =>
+      parseTrackBatch({
+        ...base,
+        consent: { statistics: false, marketing: false },
+        events: [validEvent],
+      }),
     ).toThrow()
   })
 
@@ -152,7 +194,11 @@ describe('parseTrackBatch (per-event tolerance)', () => {
       ...base,
       events: [
         validEvent,
-        { eventId: '0197fa42-5555-7555-8555-555555555555', name: 'purchase', occurredAt: new Date().toISOString() },
+        {
+          eventId: '0197fa42-5555-7555-8555-555555555555',
+          name: 'purchase',
+          occurredAt: new Date().toISOString(),
+        },
       ],
     })
     expect(droppedInvalid).toBe(1)

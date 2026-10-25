@@ -65,17 +65,54 @@ export const trackSessionMetaSchema = z
   })
   .strict()
 
+/**
+ * Browser cookies the ad platforms match on (`_fbp`, `_fbc`, `_ttp`). Only sent
+ * with marketing consent; forwarded to Meta CAPI / TikTok Events, never stored
+ * on tracking rows.
+ */
+const cookieIdSchema = z.string().max(256).optional()
+export const trackingAttributionSchema = z
+  .object({ fbp: cookieIdSchema, fbc: cookieIdSchema, ttp: cookieIdSchema })
+  .strict()
+export type TrackingAttributionInput = z.infer<typeof trackingAttributionSchema>
+
+const consentSchema = z.object({ statistics: z.boolean(), marketing: z.boolean() }).strict()
+
+/**
+ * Ingest needs statistics OR marketing consent (marketing alone feeds the
+ * conversion APIs). The returning-visitor id is a statistics purpose, and the
+ * ad-platform cookies a marketing one — each is rejected without its category.
+ */
+function consentGate<
+  T extends {
+    visitorId: string | null
+    consent: { statistics: boolean; marketing: boolean }
+    attribution?: unknown
+  },
+>(b: T, ctx: z.RefinementCtx): void {
+  if (!b.consent.statistics && !b.consent.marketing) {
+    ctx.addIssue({ code: 'custom', path: ['consent'], message: 'Consent required' })
+  }
+  if (b.visitorId && !b.consent.statistics) {
+    ctx.addIssue({ code: 'custom', path: ['visitorId'], message: 'Requires statistics consent' })
+  }
+  if (b.attribution && !b.consent.marketing) {
+    ctx.addIssue({ code: 'custom', path: ['attribution'], message: 'Requires marketing consent' })
+  }
+}
+
 export const trackBatchSchema = z
   .object({
     v: z.literal(1),
     sessionId: uuidSchema,
     visitorId: uuidSchema.nullable(),
-    // A client that says statistics consent is absent must never be ingested.
-    consent: z.object({ statistics: z.literal(true), marketing: z.boolean() }).strict(),
+    consent: consentSchema,
+    attribution: trackingAttributionSchema.optional(),
     session: trackSessionMetaSchema.optional(),
     events: z.array(trackEventSchema).min(1).max(20),
   })
   .strict()
+  .superRefine(consentGate)
 
 /**
  * Envelope only: the trusted batch-level fields, with events left unvalidated so
@@ -87,11 +124,13 @@ const trackBatchEnvelopeSchema = z
     v: z.literal(1),
     sessionId: uuidSchema,
     visitorId: uuidSchema.nullable(),
-    consent: z.object({ statistics: z.literal(true), marketing: z.boolean() }).strict(),
+    consent: consentSchema,
+    attribution: trackingAttributionSchema.optional(),
     session: trackSessionMetaSchema.optional(),
     events: z.array(z.unknown()).min(1).max(20),
   })
   .strict()
+  .superRefine(consentGate)
 
 export interface ParsedTrackBatch {
   batch: TrackBatchInput

@@ -5,11 +5,13 @@ export interface TrackingSettings {
   metaPixelId: string | null
   ga4MeasurementId: string | null
   gtmContainerId: string | null
+  /** Same pixel code the server-side TikTok Events API uses (env TIKTOK_PIXEL_CODE). */
+  tiktokPixelId: string | null
 }
 
 export interface TrackingProvider {
   /** analytics-lib plugin name */
-  name: 'google-analytics' | 'google-tag-manager' | 'meta-pixel'
+  name: 'google-analytics' | 'google-tag-manager' | 'meta-pixel' | 'tiktok-pixel'
   settingKey: keyof TrackingSettings
   allowed: (state: ConsentState | null) => boolean
 }
@@ -18,6 +20,7 @@ export const TRACKING_PROVIDERS: readonly TrackingProvider[] = [
   { name: 'google-analytics', settingKey: 'ga4MeasurementId', allowed: canLoadGa4 },
   { name: 'google-tag-manager', settingKey: 'gtmContainerId', allowed: canLoadGtm },
   { name: 'meta-pixel', settingKey: 'metaPixelId', allowed: canLoadMetaPixel },
+  { name: 'tiktok-pixel', settingKey: 'tiktokPixelId', allowed: canLoadMetaPixel },
 ] as const
 
 /** Providers that have an ID configured, regardless of consent. */

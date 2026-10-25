@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type {
-  PurchaseOutboxPayload,
+  OutboxPayload,
   TrackingEventSender,
 } from '../src/services/tracking/destinations/sender.js'
 import { TrackingSendError } from '../src/services/tracking/destinations/sender.js'
@@ -22,7 +22,7 @@ interface FakeRow {
   sentAt: Date | null
 }
 
-function makePayload(overrides: Partial<PurchaseOutboxPayload> = {}): PurchaseOutboxPayload {
+function makePayload(overrides: Partial<OutboxPayload> = {}): OutboxPayload {
   return {
     v: 1,
     eventName: 'purchase',
@@ -99,9 +99,9 @@ function fakeDelegate(rows: FakeRow[]): TrackingOutboxDelegate & { rows: FakeRow
 }
 
 function successSender(destination = 'meta_capi'): TrackingEventSender & {
-  calls: PurchaseOutboxPayload[]
+  calls: OutboxPayload[]
 } {
-  const calls: PurchaseOutboxPayload[] = []
+  const calls: OutboxPayload[] = []
   return {
     destination: destination as TrackingEventSender['destination'],
     calls,
@@ -116,7 +116,12 @@ function failingSender(retryable: boolean): TrackingEventSender {
   return {
     destination: 'meta_capi',
     async send() {
-      throw new TrackingSendError('boom', retryable ? 'meta_rate_limited' : 'meta_invalid_request', retryable, retryable ? 429 : 400)
+      throw new TrackingSendError(
+        'boom',
+        retryable ? 'meta_rate_limited' : 'meta_invalid_request',
+        retryable,
+        retryable ? 429 : 400,
+      )
     },
   }
 }

@@ -7,15 +7,15 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, notFound } from '../../middleware/error.js'
-import {
-  markOrderPaid,
-  notifyProductionStarted,
-} from '../../services/order-flow.js'
+import { markOrderPaid, notifyProductionStarted } from '../../services/order-flow.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
+
+/** Checkout-time IP/cookies exist only for the purchase CAPI hand-off — never shown in admin. */
+const OMIT_TRACKING = { trackingAttribution: true } as const
 
 adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, next) => {
   try {
@@ -23,6 +23,7 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
     const orders = await prisma.order.findMany({
       where: status ? { status: status as never } : undefined,
       include: { items: true, payments: true, invoice: { select: { number: true } } },
+      omit: OMIT_TRACKING,
       orderBy: { createdAt: 'desc' },
       take: 200,
     })
@@ -36,6 +37,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   try {
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
+      omit: OMIT_TRACKING,
       include: {
         items: true,
         payments: { include: { bitcoinPayment: true } },
@@ -74,19 +76,31 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
     if (!order) throw notFound('Order not found')
     assertOrderTransition(order.status, status)
-    const updated = await prisma.order.update({ where: { id: order.id }, data: { status } })
+    const updated = await prisma.order.update({
+      where: { id: order.id },
+      data: { status },
+      omit: OMIT_TRACKING,
+    })
     if (status === 'in_production') await notifyProductionStarted(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
     // Conversion tracking — best-effort, must never break the status change.
     try {
       if (status === 'refunded') await emitRefund(prisma, order)
-      else if (status === 'cancelled' && (REVENUE_ORDER_STATUSES as readonly string[]).includes(order.status))
+      else if (
+        status === 'cancelled' &&
+        (REVENUE_ORDER_STATUSES as readonly string[]).includes(order.status)
+      )
         await emitCancel(prisma, order)
     } catch (err) {
       console.error('[tracking] refund/cancel emit failed:', err)
     }
-    await audit(req, 'order.status', { type: 'order', id: order.id }, { from: order.status, to: status })
+    await audit(
+      req,
+      'order.status',
+      { type: 'order', id: order.id },
+      { from: order.status, to: status },
+    )
     res.json({ order: updated })
   } catch (err) {
     next(err)
@@ -94,26 +108,30 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
 })
 
 /** Bank transfer: manually mark as paid (payments:write). */
-adminOrdersRouter.post('/:id/mark-paid', requirePermission('payments:write'), async (req, res, next) => {
-  try {
-    const { reference } = markPaidSchema.parse(req.body ?? {})
-    const order = await prisma.order.findUnique({
-      where: { id: String(req.params.id) },
-      include: { payments: true },
-    })
-    if (!order) throw notFound('Order not found')
-    const payment = order.payments.find((p) => p.status === 'pending')
-    if (!payment) throw badRequest('No pending payment on this order')
-    if (reference) {
-      await prisma.payment.update({ where: { id: payment.id }, data: { reference } })
+adminOrdersRouter.post(
+  '/:id/mark-paid',
+  requirePermission('payments:write'),
+  async (req, res, next) => {
+    try {
+      const { reference } = markPaidSchema.parse(req.body ?? {})
+      const order = await prisma.order.findUnique({
+        where: { id: String(req.params.id) },
+        include: { payments: true },
+      })
+      if (!order) throw notFound('Order not found')
+      const payment = order.payments.find((p) => p.status === 'pending')
+      if (!payment) throw badRequest('No pending payment on this order')
+      if (reference) {
+        await prisma.payment.update({ where: { id: payment.id }, data: { reference } })
+      }
+      await markOrderPaid(order.id, payment.id)
+      await audit(req, 'order.mark_paid', { type: 'order', id: order.id }, { reference })
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
     }
-    await markOrderPaid(order.id, payment.id)
-    await audit(req, 'order.mark_paid', { type: 'order', id: order.id }, { reference })
-    res.json({ ok: true })
-  } catch (err) {
-    next(err)
-  }
-})
+  },
+)
 
 /**
  * Shipping (legacy route, kept for compatibility): carrier + tracking, mark as
@@ -122,69 +140,83 @@ adminOrdersRouter.post('/:id/mark-paid', requirePermission('payments:write'), as
  * packed shipment exists, then ships it. shipShipment() is the single writer
  * for Order.carrier/trackingNumber/shippedAt.
  */
-adminOrdersRouter.post('/:id/shipping', requirePermission('orders:ship'), async (req, res, next) => {
-  try {
-    const input = shippingUpdateSchema.parse(req.body)
-    const order = await prisma.order.findUnique({
-      where: { id: String(req.params.id) },
-      include: { items: true, shipments: true },
-    })
-    if (!order) throw notFound('Order not found')
-    assertOrderTransition(order.status, 'shipped')
-
-    let shipment = order.shipments.find((s) => s.status === 'packed')
-    if (!shipment) {
-      const shipmentNumber = await nextShipmentNumber()
-      shipment = await prisma.$transaction(async (tx) => {
-        const created = await tx.shipment.create({
-          data: {
-            shipmentNumber,
-            orderId: order.id,
-            status: 'packed',
-            packedAt: new Date(),
-            createdById: req.user?.id ?? null,
-            items: {
-              create: order.items.map((item) => ({ orderItemId: item.id, quantity: item.quantity })),
-            },
-          },
-        })
-        await tx.shipmentStatusEvent.create({
-          data: {
-            shipmentId: created.id,
-            fromStatus: null,
-            toStatus: 'packed',
-            byUserId: req.user?.id ?? null,
-            note: 'legacy-route',
-          },
-        })
-        return created
+adminOrdersRouter.post(
+  '/:id/shipping',
+  requirePermission('orders:ship'),
+  async (req, res, next) => {
+    try {
+      const input = shippingUpdateSchema.parse(req.body)
+      const order = await prisma.order.findUnique({
+        where: { id: String(req.params.id) },
+        include: { items: true, shipments: true },
       })
-    }
+      if (!order) throw notFound('Order not found')
+      assertOrderTransition(order.status, 'shipped')
 
-    await shipShipment({
-      shipmentId: shipment.id,
-      carrier: input.carrier,
-      trackingNumber: input.trackingNumber,
-      byUserId: req.user?.id,
-      eventNote: 'legacy-route',
-    })
-    const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id } })
-    await audit(req, 'order.shipped', { type: 'order', id: order.id }, input)
-    res.json({ order: updated })
-  } catch (err) {
-    next(err)
-  }
-})
+      let shipment = order.shipments.find((s) => s.status === 'packed')
+      if (!shipment) {
+        const shipmentNumber = await nextShipmentNumber()
+        shipment = await prisma.$transaction(async (tx) => {
+          const created = await tx.shipment.create({
+            data: {
+              shipmentNumber,
+              orderId: order.id,
+              status: 'packed',
+              packedAt: new Date(),
+              createdById: req.user?.id ?? null,
+              items: {
+                create: order.items.map((item) => ({
+                  orderItemId: item.id,
+                  quantity: item.quantity,
+                })),
+              },
+            },
+          })
+          await tx.shipmentStatusEvent.create({
+            data: {
+              shipmentId: created.id,
+              fromStatus: null,
+              toStatus: 'packed',
+              byUserId: req.user?.id ?? null,
+              note: 'legacy-route',
+            },
+          })
+          return created
+        })
+      }
+
+      await shipShipment({
+        shipmentId: shipment.id,
+        carrier: input.carrier,
+        trackingNumber: input.trackingNumber,
+        byUserId: req.user?.id,
+        eventNote: 'legacy-route',
+      })
+      const updated = await prisma.order.findUniqueOrThrow({
+        where: { id: order.id },
+        omit: OMIT_TRACKING,
+      })
+      await audit(req, 'order.shipped', { type: 'order', id: order.id }, input)
+      res.json({ order: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /** Manual review request (deduped against the automatic trigger via EmailLog). */
-adminOrdersRouter.post('/:id/review-request', requirePermission('orders:write'), async (req, res, next) => {
-  try {
-    const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
-    if (!order) throw notFound('Order not found')
-    const result = await sendReviewRequestEmail(order.id)
-    await audit(req, 'order.review_request', { type: 'order', id: order.id }, result)
-    res.json(result)
-  } catch (err) {
-    next(err)
-  }
-})
+adminOrdersRouter.post(
+  '/:id/review-request',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
+      if (!order) throw notFound('Order not found')
+      const result = await sendReviewRequestEmail(order.id)
+      await audit(req, 'order.review_request', { type: 'order', id: order.id }, result)
+      res.json(result)
+    } catch (err) {
+      next(err)
+    }
+  },
+)

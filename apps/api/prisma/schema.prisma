@@ -486,6 +486,10 @@ model Order {
   /// First-party tracking session that placed the order (nullable: adblocked /
   /// consentless checkouts still succeed). Links behavioural data to the order.
   trackingSessionId String?
+  /// Marketing-consent-only conversion-API match data captured at checkout
+  /// ({ ip, userAgent, fbp, fbc, ttp }). Cleared once the purchase is
+  /// enqueued and by tracking retention (see services/tracking/retention.ts).
+  trackingAttribution Json?
 
   items       OrderItem[]
   payments    Payment[]

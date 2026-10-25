@@ -1,15 +1,23 @@
-import { orderEventId } from '@print-shop/utils'
-import type { Prisma } from '@prisma/client'
+import { createHash } from 'node:crypto'
+import {
+  CONVERSION_EVENTS,
+  isConversionEventName,
+  orderEventId,
+  sanitizeTrackingPath,
+  type ConversionEventName,
+} from '@print-shop/utils'
+import type { TrackEventInput } from '@print-shop/validators'
+import { Prisma } from '@prisma/client'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import type {
-  PurchaseOutboxPayload,
+  OutboxPayload,
   TrackingDestination,
   TrackingEventSender,
 } from './destinations/index.js'
 import {
   enabledDestinations,
-  purchaseOutboxPayloadSchema,
+  outboxPayloadSchema,
   trackingSenders,
   TrackingSendError,
 } from './destinations/index.js'
@@ -19,11 +27,11 @@ import { emitPurchase, getOrderConsent } from './events.js'
 /**
  * Transactional outbox for marketing destinations (Meta CAPI, TikTok Events).
  *
- * Enqueue happens in the same transaction as the purchase event so event and
- * outbox rows are atomic; the worker then delivers them out-of-band. Fan-out is
- * consent-gated (marketing) AND click-id-gated: without an fbclid/ttclid the
- * destination could never match the event (we send no hashed PII and no IP),
- * so no row is written at all — data minimization over vanity completeness.
+ * Purchases enqueue in the same transaction as the purchase event; browser
+ * conversion events (CONVERSION_EVENTS) enqueue right after ingest. The worker
+ * delivers out-of-band. Fan-out is marketing-consent-gated only: with consent
+ * the payload carries the match data storylo sends too — SHA-256 email
+ * (purchase), client IP, user agent and the _fbp/_fbc/_ttp cookies.
  *
  * Idempotency / double-send protection:
  * 1. Enqueue: @@unique([eventId, destination]) + skipDuplicates — webhook
@@ -48,87 +56,118 @@ type Db = Prisma.TransactionClient | typeof prisma
 
 // --- Enqueue ---------------------------------------------------------------
 
-export interface PurchaseFanoutInput {
-  orderId: string
-  totalCents: number
-  paidAt: Date
-  consent: ConsentSnapshot
-  session: {
-    fbclid: string | null
-    ttclid: string | null
-    userAgent: string | null
-    landingPath: string
-    startedAt: Date
-  } | null
-  destinations: TrackingDestination[]
-  webUrl?: string
+/** Match data captured from the browser request (checkout or event ingest). */
+export interface RequestAttribution {
+  ip?: string | null
+  userAgent?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  ttp?: string | null
 }
 
+/** Session columns that feed the click ids when the browser had no cookie yet. */
+export interface FanoutSession {
+  fbclid: string | null
+  ttclid: string | null
+  userAgent: string | null
+  landingPath: string
+  startedAt: Date
+}
+
+export type FanoutRow = { destination: TrackingDestination; payload: OutboxPayload }
+
+export const sha256Email = (email: string) =>
+  createHash('sha256').update(email.trim().toLowerCase()).digest('hex')
+
 /**
- * Pure fan-out core: which destinations get which frozen payload. No consent /
- * no session / no matching click id / destination not enabled ⇒ no row.
+ * Pure fan-out core shared by purchases and browser events: one frozen payload
+ * per enabled destination. TikTok has no server counterpart for page views.
  */
-export function buildPurchasePayloads(
-  input: PurchaseFanoutInput,
-): { destination: TrackingDestination; payload: PurchaseOutboxPayload }[] {
-  if (!input.consent.marketing || !input.session) return []
-  const webUrl = (input.webUrl ?? env.WEB_URL).replace(/\/$/, '')
-  const base = {
+export function buildFanoutRows(
+  base: Omit<
+    OutboxPayload,
+    'v' | 'fbc' | 'ttclid' | 'fbp' | 'ttp' | 'clientIp' | 'clientUserAgent'
+  >,
+  attribution: RequestAttribution | null,
+  session: FanoutSession | null,
+  destinations: TrackingDestination[],
+): FanoutRow[] {
+  const shared = {
+    ...base,
     v: 1 as const,
-    eventName: 'purchase' as const,
-    eventId: orderEventId('purchase', input.orderId),
-    orderId: input.orderId,
-    eventTime: Math.floor(input.paidAt.getTime() / 1000),
-    valueCents: input.totalCents,
-    currency: 'EUR',
-    // Checkout-created placeholder sessions carry landingPath '' — no real URL.
-    eventSourceUrl: input.session.landingPath ? `${webUrl}${input.session.landingPath}` : null,
-    clientUserAgent: input.session.userAgent,
+    clientIp: attribution?.ip ?? null,
+    clientUserAgent: attribution?.userAgent ?? session?.userAgent ?? null,
   }
-  const rows: { destination: TrackingDestination; payload: PurchaseOutboxPayload }[] = []
-  if (input.destinations.includes('meta_capi') && input.session.fbclid) {
+  const rows: FanoutRow[] = []
+  if (destinations.includes('meta_capi')) {
+    const fbc =
+      attribution?.fbc ??
+      // fbc click timestamp = when we first saw the fbclid (session start).
+      (session?.fbclid ? `fb.1.${session.startedAt.getTime()}.${session.fbclid}` : null)
     rows.push({
       destination: 'meta_capi',
-      payload: {
-        ...base,
-        // fbc click timestamp = when we first saw the fbclid (session start).
-        fbc: `fb.1.${input.session.startedAt.getTime()}.${input.session.fbclid}`,
-        ttclid: null,
-      },
+      payload: { ...shared, fbc, fbp: attribution?.fbp ?? null, ttclid: null },
     })
   }
-  if (input.destinations.includes('tiktok_events') && input.session.ttclid) {
+  if (destinations.includes('tiktok_events') && CONVERSION_EVENTS[base.eventName].tiktok) {
     rows.push({
       destination: 'tiktok_events',
-      payload: { ...base, fbc: null, ttclid: input.session.ttclid },
+      payload: {
+        ...shared,
+        fbc: null,
+        ttclid: session?.ttclid ?? null,
+        ttp: attribution?.ttp ?? null,
+      },
     })
   }
   return rows
 }
 
-/**
- * Freeze payloads and insert outbox rows (same tx as the purchase event — its
- * id is the FK target). Idempotent via the [eventId, destination] unique key.
- */
-export async function enqueuePurchaseOutbox(
-  db: Db,
-  order: { id: string; totalCents: number; trackingSessionId?: string | null },
-  paidAt: Date,
-  consent: ConsentSnapshot,
-): Promise<number> {
-  if (!consent.marketing || !order.trackingSessionId) return 0
-  const session = await db.trackingSession.findUnique({
-    where: { id: order.trackingSessionId },
-    select: { fbclid: true, ttclid: true, userAgent: true, landingPath: true, startedAt: true },
-  })
-  const rows = buildPurchasePayloads({
-    orderId: order.id,
-    totalCents: order.totalCents,
-    paidAt,
-    consent,
-    session,
-    destinations: enabledDestinations(),
-  })
+export interface PurchaseFanoutInput {
+  orderId: string
+  totalCents: number
+  email: string
+  itemCount?: number
+  paidAt: Date
+  consent: ConsentSnapshot
+  attribution: RequestAttribution | null
+  session: FanoutSession | null
+  destinations: TrackingDestination[]
+  webUrl?: string
+}
+
+/** No marketing consent / destination not enabled ⇒ no row. */
+export function buildPurchasePayloads(input: PurchaseFanoutInput): FanoutRow[] {
+  if (!input.consent.marketing) return []
+  const webUrl = (input.webUrl ?? env.WEB_URL).replace(/\/$/, '')
+  return buildFanoutRows(
+    {
+      eventName: 'purchase',
+      eventId: orderEventId('purchase', input.orderId),
+      orderId: input.orderId,
+      eventTime: Math.floor(input.paidAt.getTime() / 1000),
+      valueCents: input.totalCents,
+      currency: 'EUR',
+      // Checkout-created placeholder sessions carry landingPath '' — fall back to the checkout.
+      eventSourceUrl: `${webUrl}${input.session?.landingPath || '/checkout'}`,
+      emailHash: sha256Email(input.email),
+      numItems: input.itemCount ?? null,
+    },
+    input.attribution,
+    input.session,
+    input.destinations,
+  )
+}
+
+const FANOUT_SESSION_SELECT = {
+  fbclid: true,
+  ttclid: true,
+  userAgent: true,
+  landingPath: true,
+  startedAt: true,
+} as const
+
+async function insertOutboxRows(db: Db, rows: FanoutRow[]): Promise<number> {
   if (rows.length === 0) return 0
   const inserted = await db.trackingOutbox.createMany({
     data: rows.map((row) => ({
@@ -139,6 +178,149 @@ export async function enqueuePurchaseOutbox(
     skipDuplicates: true,
   })
   return inserted.count
+}
+
+/**
+ * Freeze payloads and insert outbox rows (same tx as the purchase event — its
+ * id is the FK target). Idempotent via the [eventId, destination] unique key.
+ * The checkout-time IP/cookies are cleared from the order once frozen.
+ */
+export async function enqueuePurchaseOutbox(
+  db: Db,
+  order: {
+    id: string
+    totalCents: number
+    email: string
+    trackingSessionId?: string | null
+    items?: { quantity: number }[]
+  },
+  paidAt: Date,
+  consent: ConsentSnapshot,
+): Promise<number> {
+  // Read here, not from the caller: admin order reads omit this field.
+  const { trackingAttribution } = (await db.order.findUnique({
+    where: { id: order.id },
+    select: { trackingAttribution: true },
+  })) ?? { trackingAttribution: null }
+  if (trackingAttribution != null) {
+    // Single use, consent or not: never keep it past the payment.
+    await db.order.update({
+      where: { id: order.id },
+      data: { trackingAttribution: Prisma.DbNull },
+    })
+  }
+  if (!consent.marketing) return 0
+  const session = order.trackingSessionId
+    ? await db.trackingSession.findUnique({
+        where: { id: order.trackingSessionId },
+        select: FANOUT_SESSION_SELECT,
+      })
+    : null
+  const rows = buildPurchasePayloads({
+    orderId: order.id,
+    totalCents: order.totalCents,
+    email: order.email,
+    itemCount: order.items?.reduce((n, i) => n + i.quantity, 0),
+    paidAt,
+    consent,
+    attribution: trackingAttribution as RequestAttribution | null,
+    session,
+    destinations: enabledDestinations(),
+  })
+  return insertOutboxRows(db, rows)
+}
+
+/** Commerce fields a browser conversion event may carry (from its allowlisted props). */
+function clientConversionFields(
+  name: ConversionEventName,
+  props: TrackEventInput['props'],
+): Pick<OutboxPayload, 'valueCents' | 'contentId' | 'numItems'> {
+  const p = props ?? {}
+  if (name === 'view_item') {
+    return { valueCents: p.priceCents ?? null, contentId: p.productId ?? null, numItems: null }
+  }
+  if (name === 'add_to_cart') {
+    const quantity = p.quantity ?? 1
+    return {
+      valueCents: p.unitPriceCents == null ? null : p.unitPriceCents * quantity,
+      contentId: p.productId ?? null,
+      numItems: quantity,
+    }
+  }
+  if (name === 'begin_checkout') {
+    return { valueCents: p.subtotalCents ?? null, contentId: null, numItems: p.itemCount ?? null }
+  }
+  return { valueCents: null, contentId: null, numItems: null }
+}
+
+/**
+ * Forward browser conversion events straight to Meta/TikTok (marketing consent
+ * is checked by the caller). Sent directly like storylo, not via the outbox,
+ * so the IP and cookies are never persisted for them — no retry; a lost
+ * behavioural event is acceptable, the browser pixel carries the same event id
+ * and Meta/TikTok dedupe the pair. Sensitive paths are never forwarded.
+ */
+export async function sendClientConversions(
+  db: Db,
+  input: {
+    sessionId: string
+    events: TrackEventInput[]
+    attribution: RequestAttribution
+    /** Click ids from this batch's session meta (marketing-only visitors have no session row). */
+    clickIds?: { fbclid?: string | null; ttclid?: string | null } | null
+    webUrl?: string
+    senders?: Partial<Record<TrackingDestination, TrackingEventSender>>
+  },
+): Promise<number> {
+  const events = input.events.flatMap((e) => {
+    const path = sanitizeTrackingPath(e.path ?? null)
+    return isConversionEventName(e.name) && path ? [{ ...e, name: e.name, path }] : []
+  })
+  const destinations = enabledDestinations()
+  if (events.length === 0 || destinations.length === 0) return 0
+  const session =
+    (await db.trackingSession.findUnique({
+      where: { id: input.sessionId },
+      select: FANOUT_SESSION_SELECT,
+    })) ??
+    (input.clickIds
+      ? {
+          fbclid: input.clickIds.fbclid ?? null,
+          ttclid: input.clickIds.ttclid ?? null,
+          userAgent: null,
+          landingPath: '',
+          startedAt: new Date(),
+        }
+      : null)
+  const webUrl = (input.webUrl ?? env.WEB_URL).replace(/\/$/, '')
+  const rows = events.flatMap((e) =>
+    buildFanoutRows(
+      {
+        eventName: e.name,
+        eventId: e.eventId,
+        orderId: null,
+        eventTime: Math.floor(e.occurredAt.getTime() / 1000),
+        currency: 'EUR',
+        eventSourceUrl: `${webUrl}${e.path}`,
+        ...clientConversionFields(e.name, e.props),
+      },
+      input.attribution,
+      session,
+      destinations,
+    ),
+  )
+  const senders = input.senders ?? trackingSenders
+  const results = await Promise.allSettled(
+    rows.map((row) => {
+      const sender = senders[row.destination]
+      return sender ? sender.send(row.payload) : Promise.resolve(null)
+    }),
+  )
+  for (const r of results) {
+    if (r.status === 'rejected')
+      console.warn('[tracking] client conversion send failed:', String(r.reason))
+  }
+  return results.filter((r) => r.status === 'fulfilled' && r.value).length
 }
 
 /**
@@ -155,6 +337,7 @@ export async function recordPurchaseWithOutbox(
     totalCents: number
     shippingCents: number
     discountCents: number
+    email: string
     trackingSessionId?: string | null
     items?: { quantity: number }[]
   },
@@ -274,7 +457,7 @@ export async function processDueOutboxRows(deps: OutboxWorkerDeps): Promise<Outb
     const settle = (data: Record<string, unknown>) =>
       deps.outbox.updateMany({ where: { id: row.id, status: 'sending' }, data })
 
-    const parsed = purchaseOutboxPayloadSchema.safeParse(row.payload)
+    const parsed = outboxPayloadSchema.safeParse(row.payload)
     if (!parsed.success) {
       await settle({
         status: 'failed',

@@ -43,7 +43,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Last updated: 13 July 2026',
+    updatedAt: 'Last updated: 25 October 2026',
     sections: [
       {
         heading: '1. Controller',
@@ -89,9 +89,11 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
         ],
       },
       {
-        heading: '8. Meta Pixel',
+        heading: '8. Meta Pixel and TikTok Pixel',
         paragraphs: [
-          'Meta Pixel is loaded only with your consent to the Marketing category. It processes online identifiers, IP address, browser/device data and interaction data to measure advertising, build audiences and attribute campaigns. Provider: Meta Platforms Ireland Limited; processing by Meta Platforms, Inc. in the USA may occur. You can withdraw consent in the cookie settings. Privacy information: https://www.facebook.com/privacy/policy/',
+          'Meta Pixel and TikTok Pixel are loaded only with your consent to the Marketing category. It processes online identifiers, IP address, browser/device data and interaction data to measure advertising, build audiences and attribute campaigns. Provider: Meta Platforms Ireland Limited; processing by Meta Platforms, Inc. in the USA may occur. You can withdraw consent in the cookie settings. Privacy information: https://www.facebook.com/privacy/policy/',
+          'With the same consent we also send the events page view, product view, add to cart, checkout start and purchase directly from our server to Meta (Conversions API) and TikTok (Events API). This transmits your IP address, user agent, the pixel cookies (_fbp, _fbc, _ttp) or ad click IDs, the event value and product, and for purchases your email address as a SHA-256 hash. Page views, product views, cart and checkout events are forwarded without being stored. For purchases we keep the IP and cookie data until payment (at most 30 days) and the resulting event until it has been transmitted, at most 90 days. With Marketing but without Statistics consent we do not store our own reach measurement.',
+          'TikTok Pixel provider: TikTok Technology Limited, 10 Earlsfort Terrace, Dublin 2, D02 T380, Ireland; processing in third countries (incl. USA, Singapore) cannot be ruled out. Privacy information: https://www.tiktok.com/legal/privacy-policy-eea',
         ],
       },
       {
@@ -244,7 +246,7 @@ const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Dernière mise à jour : 13 juillet 2026',
+    updatedAt: 'Dernière mise à jour : 25 octobre 2026',
     sections: [
       {
         heading: 'Responsable et hébergement',
@@ -261,7 +263,7 @@ const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Cookies, analyse et droits',
         paragraphs: [
-          'Les réglages nécessaires du panier, de la langue et du consentement sont stockés dans le navigateur. Google Analytics 4 ne se charge qu’avec le consentement Statistiques et Meta Pixel uniquement avec le consentement Marketing ; ces services peuvent traiter identifiants en ligne, IP, données d’appareil et d’utilisation, également aux États-Unis. Le consentement peut être retiré dans le footer. Les factures et données associées sont conservées dix ans ; les demandes non commandées sont généralement supprimées après douze mois. Vous disposez des droits d’accès, rectification, effacement, limitation, portabilité, opposition et retrait du consentement ; contactez info@prestige-webdesign.de ou l’autorité de Rhénanie-du-Nord–Westphalie.',
+          'Les réglages nécessaires du panier, de la langue et du consentement sont stockés dans le navigateur. Google Analytics 4 ne se charge qu’avec le consentement Statistiques et Meta Pixel ainsi que TikTok Pixel (y compris la transmission serveur vers Meta et TikTok avec IP, agent utilisateur, cookies et e-mail haché lors d’un achat, conservés 90 jours au maximum ; TikTok Technology Limited, Dublin, transferts possibles vers les États-Unis et Singapour) uniquement avec le consentement Marketing ; ces services peuvent traiter identifiants en ligne, IP, données d’appareil et d’utilisation, également aux États-Unis. Le consentement peut être retiré dans le footer. Les factures et données associées sont conservées dix ans ; les demandes non commandées sont généralement supprimées après douze mois. Vous disposez des droits d’accès, rectification, effacement, limitation, portabilité, opposition et retrait du consentement ; contactez info@prestige-webdesign.de ou l’autorité de Rhénanie-du-Nord–Westphalie.',
         ],
       },
     ],
@@ -342,7 +344,7 @@ const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Laatst bijgewerkt: 13 juli 2026',
+    updatedAt: 'Laatst bijgewerkt: 25 oktober 2026',
     sections: [
       {
         heading: 'Verwerkingsverantwoordelijke en hosting',
@@ -359,7 +361,7 @@ const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Cookies, analyse en rechten',
         paragraphs: [
-          'Noodzakelijke instellingen voor winkelwagen, taal en toestemming worden in de browser opgeslagen. Google Analytics 4 wordt alleen geladen met toestemming voor Statistiek en Meta Pixel alleen met toestemming voor Marketing; deze diensten kunnen online-identificatoren, IP-adres, apparaat- en gebruiksgegevens verwerken, ook in de VS. Toestemming kan in de footer worden ingetrokken. Facturen en bijbehorende gegevens worden tien jaar bewaard; niet-opgedragen aanvragen worden doorgaans na twaalf maanden verwijderd. Je hebt recht op inzage, rectificatie, verwijdering, beperking, overdraagbaarheid, bezwaar en intrekking van toestemming; neem contact op via info@prestige-webdesign.de of met de toezichthouder in Noordrijn-Westfalen.',
+          'Noodzakelijke instellingen voor winkelwagen, taal en toestemming worden in de browser opgeslagen. Google Analytics 4 wordt alleen geladen met toestemming voor Statistiek en Meta Pixel en TikTok Pixel (incl. servertransmissie naar Meta en TikTok met IP, user-agent, cookies en gehasht e-mailadres bij een aankoop, maximaal 90 dagen bewaard; TikTok Technology Limited, Dublin, mogelijke doorgifte naar de VS en Singapore) alleen met toestemming voor Marketing; deze diensten kunnen online-identificatoren, IP-adres, apparaat- en gebruiksgegevens verwerken, ook in de VS. Toestemming kan in de footer worden ingetrokken. Facturen en bijbehorende gegevens worden tien jaar bewaard; niet-opgedragen aanvragen worden doorgaans na twaalf maanden verwijderd. Je hebt recht op inzage, rectificatie, verwijdering, beperking, overdraagbaarheid, bezwaar en intrekking van toestemming; neem contact op via info@prestige-webdesign.de of met de toezichthouder in Noordrijn-Westfalen.',
         ],
       },
     ],
@@ -442,7 +444,7 @@ const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Ostatnia aktualizacja: 13 lipca 2026 r.',
+    updatedAt: 'Ostatnia aktualizacja: 25 października 2026 r.',
     sections: [
       {
         heading: 'Administrator i hosting',
@@ -459,7 +461,7 @@ const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Pliki cookies, analityka i prawa',
         paragraphs: [
-          'Niezbędne ustawienia koszyka, języka i zgody są zapisywane w przeglądarce. Google Analytics 4 ładuje się wyłącznie za zgodą na Statystyki, a Meta Pixel wyłącznie za zgodą na Marketing; usługi te mogą przetwarzać identyfikatory online, IP oraz dane urządzenia i użycia, także w USA. Zgodę można wycofać w stopce. Faktury i powiązane dane przechowujemy dziesięć lat; niezrealizowane zapytania zasadniczo usuwamy po dwunastu miesiącach. Przysługuje Ci prawo dostępu, sprostowania, usunięcia, ograniczenia, przenoszenia, sprzeciwu i cofnięcia zgody; skontaktuj się przez info@prestige-webdesign.de lub z organem nadzorczym Nadrenii Północnej-Westfalii.',
+          'Niezbędne ustawienia koszyka, języka i zgody są zapisywane w przeglądarce. Google Analytics 4 ładuje się wyłącznie za zgodą na Statystyki, a Meta Pixel i TikTok Pixel (wraz z przekazaniem serwerowym do Meta i TikTok z IP, user-agentem, plikami cookie i zahaszowanym e-mailem przy zakupie, przechowywanymi maks. 90 dni; TikTok Technology Limited, Dublin, możliwe przekazanie do USA i Singapuru) wyłącznie za zgodą na Marketing; usługi te mogą przetwarzać identyfikatory online, IP oraz dane urządzenia i użycia, także w USA. Zgodę można wycofać w stopce. Faktury i powiązane dane przechowujemy dziesięć lat; niezrealizowane zapytania zasadniczo usuwamy po dwunastu miesiącach. Przysługuje Ci prawo dostępu, sprostowania, usunięcia, ograniczenia, przenoszenia, sprzeciwu i cofnięcia zgody; skontaktuj się przez info@prestige-webdesign.de lub z organem nadzorczym Nadrenii Północnej-Westfalii.',
         ],
       },
     ],
@@ -540,7 +542,7 @@ const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Aktualizováno: 13. 7. 2026',
+    updatedAt: 'Aktualizováno: 25. 10. 2026',
     sections: [
       {
         heading: 'Správce a hosting',
@@ -557,7 +559,7 @@ const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Cookies, analýza a práva',
         paragraphs: [
-          'Nezbytná nastavení košíku, jazyka a souhlasu ukládáme v prohlížeči. Google Analytics 4 se načítá pouze se souhlasem pro Statistiky a Meta Pixel pouze se souhlasem pro Marketing; tyto služby mohou zpracovávat online identifikátory, IP a údaje o zařízení a užití, také v USA. Souhlas lze odvolat v patičce. Faktury a související údaje uchováváme deset let; nerealizované žádosti zpravidla mažeme po dvanácti měsících. Máš právo na přístup, opravu, výmaz, omezení, přenositelnost, námitku a odvolání souhlasu; kontaktuj info@prestige-webdesign.de nebo dozorový úřad v Severním Porýní-Vestfálsku.',
+          'Nezbytná nastavení košíku, jazyka a souhlasu ukládáme v prohlížeči. Google Analytics 4 se načítá pouze se souhlasem pro Statistiky a Meta Pixel a TikTok Pixel (včetně serverového přenosu do Meta a TikTok s IP, user-agentem, cookies a hashovaným e-mailem při nákupu, uchovávaných max. 90 dní; TikTok Technology Limited, Dublin, možný přenos do USA a Singapuru) pouze se souhlasem pro Marketing; tyto služby mohou zpracovávat online identifikátory, IP a údaje o zařízení a užití, také v USA. Souhlas lze odvolat v patičce. Faktury a související údaje uchováváme deset let; nerealizované žádosti zpravidla mažeme po dvanácti měsících. Máš právo na přístup, opravu, výmaz, omezení, přenositelnost, námitku a odvolání souhlasu; kontaktuj info@prestige-webdesign.de nebo dozorový úřad v Severním Porýní-Vestfálsku.',
         ],
       },
     ],

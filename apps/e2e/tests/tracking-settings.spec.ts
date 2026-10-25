@@ -7,7 +7,8 @@ const GA_ID = 'G-TEST123456'
 const GTM_ID = 'GTM-TEST123'
 const PIXEL_ID = '123456789012345'
 
-const TRACKER_URL = /googletagmanager\.com|google-analytics\.com|connect\.facebook\.net|facebook\.com/
+const TRACKER_URL =
+  /googletagmanager\.com|google-analytics\.com|connect\.facebook\.net|facebook\.com/
 
 async function putTrackingSettings(values: {
   metaPixelId: string | null
@@ -25,7 +26,11 @@ async function stubTrackers(page: Page): Promise<string[]> {
   const requests: string[] = []
   await page.route(TRACKER_URL, (route) => {
     requests.push(route.request().url())
-    void route.fulfill({ status: 200, contentType: 'application/javascript', body: '/* stubbed */' })
+    void route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: '/* stubbed */',
+    })
   })
   return requests
 }
@@ -55,7 +60,9 @@ test.describe('tracking settings', () => {
 
     // invalid GA4 ID → inline error, save blocked
     await page.getByTestId('tracking-ga4MeasurementId').locator('input').fill('not-a-ga4-id')
-    await expect(page.getByText('Ungültiges Format — GA4 Measurement ID erwartet', { exact: false })).toBeVisible()
+    await expect(
+      page.getByText('Ungültiges Format — GA4 Measurement ID erwartet', { exact: false }),
+    ).toBeVisible()
     await expect(page.getByTestId('tracking-save')).toBeDisabled()
 
     // valid IDs → double-tracking hint (GA4 + GTM), save succeeds
@@ -64,7 +71,9 @@ test.describe('tracking settings', () => {
     await page.getByTestId('tracking-metaPixelId').locator('input').fill(PIXEL_ID)
     await expect(page.getByTestId('double-tracking-warning')).toBeVisible()
     await page.getByTestId('tracking-save').click()
-    await expect(page.getByTestId('toast').getByText('Tracking-Einstellungen gespeichert')).toBeVisible()
+    await expect(
+      page.getByTestId('toast').getByText('Tracking-Einstellungen gespeichert'),
+    ).toBeVisible()
 
     // persisted after reload
     await gotoHydrated(page, '/admin/settings')
@@ -76,7 +85,9 @@ test.describe('tracking settings', () => {
     await page.getByTestId('tracking-gtmContainerId-clear').click()
     await expect(page.getByTestId('double-tracking-warning')).toBeHidden()
     await page.getByTestId('tracking-save').click()
-    await expect(page.getByTestId('toast').getByText('Tracking-Einstellungen gespeichert')).toBeVisible()
+    await expect(
+      page.getByTestId('toast').getByText('Tracking-Einstellungen gespeichert'),
+    ).toBeVisible()
     await gotoHydrated(page, '/admin/settings')
     await expect(page.getByTestId('tracking-gtmContainerId').locator('input')).toHaveValue('')
 
@@ -89,8 +100,14 @@ test.describe('tracking settings', () => {
     await ctx.dispose()
   })
 
-  test('no trackers before consent; accept-all loads all configured providers', async ({ page }) => {
-    await putTrackingSettings({ metaPixelId: PIXEL_ID, ga4MeasurementId: GA_ID, gtmContainerId: GTM_ID })
+  test('no trackers before consent; accept-all loads all configured providers', async ({
+    page,
+  }) => {
+    await putTrackingSettings({
+      metaPixelId: PIXEL_ID,
+      ga4MeasurementId: GA_ID,
+      gtmContainerId: GTM_ID,
+    })
     const requests = await stubTrackers(page)
 
     await gotoHydrated(page, '/')
@@ -105,7 +122,11 @@ test.describe('tracking settings', () => {
   })
 
   test('statistics-only consent loads GA4 but neither GTM nor Meta Pixel', async ({ page }) => {
-    await putTrackingSettings({ metaPixelId: PIXEL_ID, ga4MeasurementId: GA_ID, gtmContainerId: GTM_ID })
+    await putTrackingSettings({
+      metaPixelId: PIXEL_ID,
+      ga4MeasurementId: GA_ID,
+      gtmContainerId: GTM_ID,
+    })
     const requests = await stubTrackers(page)
 
     await gotoHydrated(page, '/')
@@ -119,10 +140,14 @@ test.describe('tracking settings', () => {
     expect(requests.some((u) => u.includes('facebook'))).toBe(false)
   })
 
-  test('stored consent initializes on revisit; one pageview per navigation; revoke stops tracking', async ({
+  test('stored consent initializes on revisit; one pageview per navigation; revoke purges and reloads', async ({
     page,
   }) => {
-    await putTrackingSettings({ metaPixelId: PIXEL_ID, ga4MeasurementId: GA_ID, gtmContainerId: GTM_ID })
+    await putTrackingSettings({
+      metaPixelId: PIXEL_ID,
+      ga4MeasurementId: GA_ID,
+      gtmContainerId: GTM_ID,
+    })
     const requests = await stubTrackers(page)
 
     await gotoHydrated(page, '/')
@@ -145,11 +170,13 @@ test.describe('tracking settings', () => {
     await page.getByTestId('open-consent-settings').click()
     await page.getByTestId('consent-statistics').uncheck()
     await page.getByTestId('consent-marketing').uncheck()
-    await page.getByTestId('consent-save').click()
+    requests.length = 0
+    await Promise.all([page.waitForEvent('load'), page.getByTestId('consent-save').click()])
 
+    // withdrawal reloads the page: the injected pixel is gone and nothing re-loads
     await page.goBack()
     await page.waitForURL((url) => !url.pathname.includes('/cart'))
-    // pixel got no further PageView after consent withdrawal
-    expect(await pixelPageViews(page)).toBe(2)
+    expect(await pixelPageViews(page)).toBe(0)
+    expect(requests).toEqual([])
   })
 })

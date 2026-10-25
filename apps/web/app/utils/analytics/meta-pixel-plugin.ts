@@ -2,12 +2,21 @@
  * Minimal Meta Pixel plugin for the `analytics` library.
  * Loaded exclusively after marketing consent (enforced by plugins/analytics.client.ts).
  * No advanced matching — never pass PII (email, name, phone, address) to fbq.
+ * `eventID` is shared with the server-side Conversions API so Meta dedupes the pair.
  */
+
+import { conversionEventData } from './conversion-data'
 
 type FbqFn = (...args: unknown[]) => void
 
 interface FbqWindow extends Window {
-  fbq?: FbqFn & { callMethod?: FbqFn; queue?: unknown[][]; push?: FbqFn; loaded?: boolean; version?: string }
+  fbq?: FbqFn & {
+    callMethod?: FbqFn
+    queue?: unknown[][]
+    push?: FbqFn
+    loaded?: boolean
+    version?: string
+  }
   _fbq?: unknown
 }
 
@@ -15,14 +24,6 @@ export interface MetaPixelPluginConfig {
   pixelId: string
   /** analytics-core flag: false = plugin registered but initialize() skipped */
   enabled?: boolean
-}
-
-/** Abstract shop event names → Meta Pixel standard events. */
-const STANDARD_EVENTS: Record<string, string> = {
-  'Product Viewed': 'ViewContent',
-  'Add To Cart': 'AddToCart',
-  'Begin Checkout': 'InitiateCheckout',
-  Purchase: 'Purchase',
 }
 
 const fbq = (...args: unknown[]) => {
@@ -56,16 +57,29 @@ export default function metaPixelPlugin(config: MetaPixelPluginConfig) {
     config,
     initialize: () => {
       injectFbqStub()
+      // No automatic click/form-field detection (e.g. the checkout email field).
+      fbq('set', 'autoConfig', false, config.pixelId)
       fbq('consent', 'grant')
       fbq('init', config.pixelId)
     },
-    page: () => {
-      fbq('track', 'PageView')
+    page: ({ payload }: { payload: { properties?: Record<string, unknown> } }) => {
+      const eventID = payload.properties?.event_id
+      fbq('track', 'PageView', {}, eventID ? { eventID } : undefined)
     },
     track: ({ payload }: { payload: { event: string; properties?: Record<string, unknown> } }) => {
-      const standard = STANDARD_EVENTS[payload.event]
-      if (standard) fbq('track', standard, payload.properties ?? {})
-      else fbq('trackCustom', payload.event, payload.properties ?? {})
+      const data = conversionEventData(payload.event, payload.properties)
+      if (!data) return
+      fbq(
+        'track',
+        data.meta,
+        {
+          currency: data.currency,
+          value: data.value,
+          ...(data.contentIds.length && { content_ids: data.contentIds, content_type: 'product' }),
+          num_items: data.numItems || undefined,
+        },
+        data.eventId ? { eventID: data.eventId } : undefined,
+      )
     },
     loaded: () => typeof window !== 'undefined' && Boolean((window as FbqWindow).fbq),
     methods: {

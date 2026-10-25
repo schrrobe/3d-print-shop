@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 
 export const trackingSettingsRouter = Router()
@@ -16,6 +17,7 @@ trackingSettingsRouter.get('/', async (_req, res, next) => {
       metaPixelId: row?.metaPixelId ?? null,
       ga4MeasurementId: row?.ga4MeasurementId ?? null,
       gtmContainerId: row?.gtmContainerId ?? null,
+      tiktokPixelId: env.TIKTOK_PIXEL_CODE || null,
     })
   } catch (err) {
     next(err)

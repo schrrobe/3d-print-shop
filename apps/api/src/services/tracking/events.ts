@@ -110,7 +110,13 @@ export async function recordClientBatch(
       }
       await tx.trackingSession.upsert({
         where: { id: batch.sessionId },
-        create: { id: batch.sessionId, visitorId: batch.visitorId, startedAt: now, lastEventAt: now, ...touchpoint },
+        create: {
+          id: batch.sessionId,
+          visitorId: batch.visitorId,
+          startedAt: now,
+          lastEventAt: now,
+          ...touchpoint,
+        },
         // Touchpoint is captured once (first batch wins); later batches only bump activity.
         update: { lastEventAt: now, visitorId: batch.visitorId ?? undefined },
       })

@@ -23,7 +23,7 @@ useSeo({
       class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
       data-testid="legal-privacy"
     >
-      <p>Stand: 13.07.2026</p>
+      <p>Stand: 25.10.2026</p>
 
       <section>
         <h2 class="text-heading-small text-primary">1. Verantwortlicher</h2>
@@ -164,26 +164,50 @@ useSeo({
       </section>
 
       <section>
-        <h2 class="text-heading-small text-primary">8. Meta Pixel</h2>
+        <h2 class="text-heading-small text-primary">8. Meta Pixel und TikTok Pixel</h2>
         <p class="mt-sm">
-          Das Meta Pixel wird nur geladen, wenn du in die Kategorie „Marketing“ eingewilligt hast.
-          Es ermöglicht Meta, Besuche und Aktionen auf dieser Website Marketingkampagnen zuzuordnen,
-          Zielgruppen zu bilden und die Wirksamkeit von Werbung zu messen. Dabei können insbesondere
-          Online-Kennungen, IP-Adresse, Browser- und Geräteinformationen sowie Informationen über
-          Seitenaufrufe und Interaktionen verarbeitet werden. Rechtsgrundlage sind deine
-          Einwilligung nach § 25 Abs. 1 TDDDG und Art. 6 Abs. 1 lit. a DSGVO.
+          Das Meta Pixel und das TikTok Pixel werden nur geladen, wenn du in die Kategorie
+          „Marketing“ eingewilligt hast. Sie ermöglichen Meta bzw. TikTok, Besuche und Aktionen auf
+          dieser Website Marketingkampagnen zuzuordnen, Zielgruppen zu bilden und die Wirksamkeit
+          von Werbung zu messen. Dabei können insbesondere Online-Kennungen, IP-Adresse, Browser-
+          und Geräteinformationen sowie Informationen über Seitenaufrufe und Interaktionen
+          verarbeitet werden. Rechtsgrundlage sind deine Einwilligung nach § 25 Abs. 1 TDDDG und
+          Art. 6 Abs. 1 lit. a DSGVO.
         </p>
         <p class="mt-sm">
-          Anbieter ist Meta Platforms Ireland Limited, Merrion Road, Dublin 4, D04 X2K5, Irland.
-          Eine Verarbeitung durch Meta Platforms, Inc. in den USA kann nicht ausgeschlossen werden.
-          Deine Einwilligung kannst du jederzeit über die Cookie-Einstellungen widerrufen. Weitere
-          Informationen enthält die
+          Mit derselben Einwilligung übermitteln wir die Ereignisse Seitenaufruf, Produktansicht,
+          Warenkorb, Kassenbeginn und Kauf zusätzlich direkt von unserem Server an Meta (Conversions
+          API) und TikTok (Events API), damit Werbeblocker und Browser-Einschränkungen die Messung
+          nicht verfälschen. Übermittelt werden dabei IP-Adresse, Browserkennung (User-Agent), die
+          Pixel-Cookies (_fbp, _fbc, _ttp) bzw. Klick-IDs aus Werbelinks, Wert und Produkt des
+          Ereignisses sowie beim Kauf deine E-Mail-Adresse als SHA-256-Hashwert. Seitenaufrufe,
+          Produktansichten, Warenkorb und Kassenbeginn leiten wir ohne Speicherung weiter. Für den
+          Kauf speichern wir IP- und Cookie-Daten bis zur Zahlung (höchstens 30 Tage) und die daraus
+          gebildete Meldung bis zur erfolgreichen Übermittlung, höchstens 90 Tage. Hast du nur in
+          „Marketing“, nicht aber in „Statistik“ eingewilligt, speichern wir keine eigene
+          Reichweitenmessung.
+        </p>
+        <p class="mt-sm">
+          Anbieter des TikTok Pixels ist TikTok Technology Limited, 10 Earlsfort Terrace, Dublin 2,
+          D02 T380, Irland; eine Verarbeitung in Drittländern (u. a. USA, Singapur) kann nicht
+          ausgeschlossen werden. Anbieter ist Meta Platforms Ireland Limited, Merrion Road, Dublin
+          4, D04 X2K5, Irland. Eine Verarbeitung durch Meta Platforms, Inc. in den USA kann nicht
+          ausgeschlossen werden. Deine Einwilligung kannst du jederzeit über die
+          Cookie-Einstellungen widerrufen. Weitere Informationen enthält die
           <a
             class="underline"
             href="https://www.facebook.com/privacy/policy/"
             rel="noopener noreferrer"
             target="_blank"
             >Datenschutzrichtlinie von Meta</a
+          >
+          bzw. die
+          <a
+            class="underline"
+            href="https://www.tiktok.com/legal/privacy-policy-eea"
+            rel="noopener noreferrer"
+            target="_blank"
+            >Datenschutzrichtlinie von TikTok</a
           >.
         </p>
       </section>

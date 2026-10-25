@@ -1,4 +1,5 @@
 import { REVENUE_ORDER_STATUSES } from '@print-shop/utils'
+import { Prisma } from '@prisma/client'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { computeAndPersistAttribution } from './attribution.js'
@@ -24,6 +25,7 @@ export interface MaintenanceResult {
 /** Outbox payloads carry frozen click ids — purge them on their own clock. */
 const OUTBOX_SENT_RETENTION_DAYS = 30
 const OUTBOX_FAILED_RETENTION_DAYS = 90
+const ORDER_ATTRIBUTION_RETENTION_DAYS = 30
 
 /** One maintenance pass against the real DB (also the manual-trigger path). */
 export async function runTrackingMaintenance(now: Date = new Date()): Promise<MaintenanceResult> {
@@ -57,6 +59,17 @@ export async function runTrackingMaintenance(now: Date = new Date()): Promise<Ma
     // The frozen aggregate/channel remains useful, but these identifiers must
     // not outlive the equivalent fields on TrackingSession.
     data: { lastClickId: null, lastSessionId: null },
+  })
+  // Checkout-time IP/cookies of orders that never got paid (paid ones are
+  // cleared at purchase enqueue). Past the outbox horizon nothing can use them.
+  const clearedOrderAttributions = await prisma.order.updateMany({
+    where: {
+      createdAt: {
+        lt: new Date(now.getTime() - ORDER_ATTRIBUTION_RETENTION_DAYS * 24 * 60 * 60_000),
+      },
+      trackingAttribution: { not: Prisma.DbNull },
+    },
+    data: { trackingAttribution: Prisma.DbNull },
   })
 
   // 3. Delete sessions/visitors with no remaining events and past the horizon.
@@ -135,7 +148,7 @@ export async function runTrackingMaintenance(now: Date = new Date()): Promise<Ma
     sessionsPurged: purgedSessions.count,
     visitorsPurged: purgedVisitors.count,
     sessionsAnonymized: anonymized.count,
-    attributionsAnonymized: anonymizedAttributions.count,
+    attributionsAnonymized: anonymizedAttributions.count + clearedOrderAttributions.count,
     purchasesHealed: healed,
     outboxPurged: purgedOutboxDelivered.count + purgedOutboxFailed.count,
   }

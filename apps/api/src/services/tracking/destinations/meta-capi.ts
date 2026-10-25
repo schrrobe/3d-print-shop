@@ -1,16 +1,17 @@
+import { CONVERSION_EVENTS } from '@print-shop/utils'
 import { env } from '../../../env.js'
-import type { PurchaseOutboxPayload, TrackingEventSender, TrackingSendResult } from './sender.js'
-import { TrackingSendError } from './sender.js'
+import type { OutboxPayload, TrackingEventSender, TrackingSendResult } from './sender.js'
+import { compact, TrackingSendError } from './sender.js'
 
 /**
  * Meta Conversions API (server-side events).
  *
- * POST /{pixel-id}/events with a JSON body. Deduplication against a future
+ * POST /{pixel-id}/events with a JSON body. Deduplication against the
  * browser pixel works via event_id + event_name; Meta also drops repeats of
  * the same server event, which is what makes outbox re-sends safe.
  *
- * Data minimization: user_data carries only fbc (reconstructed from the
- * session's fbclid) and client_user_agent — no hashed PII, no IP address.
+ * Marketing consent only. user_data: SHA-256 email (purchase), _fbp/_fbc,
+ * client IP and user agent — see docs/privacy-consent.md.
  */
 
 const CAPI_BASE = 'https://graph.facebook.com'
@@ -43,29 +44,44 @@ export function mapMetaCapiError(httpStatus: number, body: unknown): TrackingSen
     )
   }
   if (httpStatus >= 500) {
-    return new TrackingSendError(`Meta server error: ${message}`, 'meta_server_error', true, httpStatus)
+    return new TrackingSendError(
+      `Meta server error: ${message}`,
+      'meta_server_error',
+      true,
+      httpStatus,
+    )
   }
   return new TrackingSendError(message, 'meta_invalid_request', false, httpStatus)
 }
 
 /** Pure request-body builder (exported for tests). Unset optionals are omitted, never null. */
 export function toMetaEventsBody(
-  payload: PurchaseOutboxPayload,
+  payload: OutboxPayload,
   cfg: { accessToken: string; testEventCode?: string },
 ): Record<string, unknown> {
   return {
     data: [
       {
-        event_name: 'Purchase',
+        event_name: CONVERSION_EVENTS[payload.eventName].meta,
         event_time: payload.eventTime,
         event_id: payload.eventId,
         action_source: 'website',
         ...(payload.eventSourceUrl ? { event_source_url: payload.eventSourceUrl } : {}),
-        user_data: {
-          ...(payload.fbc ? { fbc: payload.fbc } : {}),
-          ...(payload.clientUserAgent ? { client_user_agent: payload.clientUserAgent } : {}),
-        },
-        custom_data: { currency: payload.currency, value: payload.valueCents / 100 },
+        user_data: compact({
+          em: payload.emailHash ? [payload.emailHash] : null,
+          fbp: payload.fbp,
+          fbc: payload.fbc,
+          client_ip_address: payload.clientIp,
+          client_user_agent: payload.clientUserAgent,
+        }),
+        custom_data: compact({
+          currency: payload.currency,
+          value: payload.valueCents == null ? null : payload.valueCents / 100,
+          content_ids: payload.contentId ? [payload.contentId] : null,
+          content_type: payload.contentId ? 'product' : null,
+          order_id: payload.orderId,
+          num_items: payload.numItems,
+        }),
       },
     ],
     access_token: cfg.accessToken,
@@ -86,7 +102,7 @@ export class MetaCapiSender implements TrackingEventSender {
     }
   }
 
-  async send(payload: PurchaseOutboxPayload): Promise<TrackingSendResult> {
+  async send(payload: OutboxPayload): Promise<TrackingSendResult> {
     const url = `${CAPI_BASE}/${env.META_GRAPH_API_VERSION}/${this.pixelId}/events`
     let response: Response
     try {

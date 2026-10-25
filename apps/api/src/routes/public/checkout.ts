@@ -272,6 +272,10 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             voucherId: voucher?.id,
             voucherCode: voucher?.code,
             trackingSessionId,
+            // Conversion-API match data — only with marketing consent; cleared on purchase enqueue.
+            trackingAttribution: input.consent?.marketing
+              ? { ...input.attribution, ip: req.ip, userAgent: req.get('user-agent') }
+              : undefined,
             items: { create: orderItems },
             payments: { create: paymentData },
           },
