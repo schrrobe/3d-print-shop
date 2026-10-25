@@ -13,7 +13,9 @@ test.describe('gdpr consent', () => {
     await gotoHydrated(page, '/')
     await expect(page.getByTestId('consent-banner')).toBeVisible()
     // No tracking scripts in the document and no tracker requests before consent
-    expect(await page.locator('script[src*="googletagmanager"], script[src*="facebook"]').count()).toBe(0)
+    expect(
+      await page.locator('script[src*="googletagmanager"], script[src*="facebook"]').count(),
+    ).toBe(0)
     expect(trackerRequests).toEqual([])
   })
 
@@ -60,7 +62,7 @@ test.describe('gdpr consent', () => {
     const response = await request.post('http://localhost:3001/api/consent', {
       data: {
         categories: { necessary: true, statistics: false, marketing: false },
-        version: '1.0',
+        version: '2.0',
         locale: 'de',
       },
     })

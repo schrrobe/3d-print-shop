@@ -11,6 +11,7 @@ const settings = (overrides: Partial<TrackingSettings> = {}): TrackingSettings =
   metaPixelId: null,
   ga4MeasurementId: null,
   gtmContainerId: null,
+  tiktokPixelId: null,
   ...overrides,
 })
 
@@ -68,6 +69,14 @@ describe('tracking provider mapping', () => {
       'google-tag-manager',
       'meta-pixel',
     ])
+  })
+
+  it('TikTok pixel is marketing-gated like the Meta pixel', () => {
+    const s = settings({ ga4MeasurementId: 'G-TEST123456', tiktokPixelId: 'CTEST123' })
+    const statsOnly = createConsent({ statistics: true, marketing: false })
+    const marketingOnly = createConsent({ statistics: false, marketing: true })
+    expect(names(allowedProviders(s, statsOnly))).toEqual(['google-analytics'])
+    expect(names(allowedProviders(s, marketingOnly))).toEqual(['tiktok-pixel'])
   })
 
   it('full consent but only GTM configured → only GTM', () => {

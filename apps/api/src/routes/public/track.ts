@@ -3,7 +3,9 @@ import { Router, text } from 'express'
 import { env } from '../../env.js'
 import { badRequest, forbidden } from '../../middleware/error.js'
 import { trackLimiter } from '../../middleware/rate-limit.js'
+import { prisma } from '../../lib/prisma.js'
 import { recordClientBatch } from '../../services/tracking/events.js'
+import { sendClientConversions } from '../../services/tracking/outbox.js'
 
 export const trackRouter = Router()
 const webOrigin = new URL(env.WEB_URL).origin
@@ -45,7 +47,21 @@ trackRouter.post('/events', async (req, res, next) => {
       throw badRequest('Invalid JSON body')
     }
     const { batch, droppedInvalid } = parseTrackBatch(raw)
-    const result = await recordClientBatch(batch, { userAgent: req.get('user-agent') ?? undefined })
+    const userAgent = req.get('user-agent') ?? undefined
+    // Reach measurement (stored rows) is a statistics purpose only; marketing-only
+    // visitors are forwarded to the conversion APIs without first-party storage.
+    const result = batch.consent.statistics
+      ? await recordClientBatch(batch, { userAgent })
+      : { accepted: 0, duplicates: 0, dropped: 0 }
+    if (batch.consent.marketing) {
+      // Fire-and-forget: response time must not depend on Meta/TikTok.
+      void sendClientConversions(prisma, {
+        sessionId: batch.sessionId,
+        events: batch.events,
+        attribution: { ...batch.attribution, ip: req.ip, userAgent },
+        clickIds: batch.session?.clickIds,
+      }).catch((err) => console.error('[tracking] client conversions failed:', err))
+    }
     res.status(202).json({ ...result, rejected: droppedInvalid })
   } catch (err) {
     next(err)

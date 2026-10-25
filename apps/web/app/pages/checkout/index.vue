@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { canLoadTracker, formatCents } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
+import { adPlatformCookies } from '~/utils/tracking/queue'
 
 /**
  * Checkout — deliberately animation-free (design rule: no strong animations
@@ -142,6 +143,10 @@ async function submit() {
           statistics: canLoadTracker('statistics', consentStore.consent),
           marketing: canLoadTracker('marketing', consentStore.consent),
         },
+        // _fbp/_fbc/_ttp for the server-side purchase event (marketing consent only).
+        attribution: canLoadTracker('marketing', consentStore.consent)
+          ? adPlatformCookies()
+          : undefined,
       },
     })
     checkoutKey.value = null

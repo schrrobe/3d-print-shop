@@ -1,5 +1,5 @@
 import type {
-  PurchaseOutboxPayload,
+  OutboxPayload,
   TrackingDestination,
   TrackingEventSender,
   TrackingSendResult,
@@ -16,8 +16,8 @@ export const MOCK_OUTBOX_FAILURE_MARKER = 'outbox-fail'
 export class MockTrackingSender implements TrackingEventSender {
   constructor(readonly destination: TrackingDestination) {}
 
-  async send(payload: PurchaseOutboxPayload): Promise<TrackingSendResult> {
-    if (payload.orderId.includes(MOCK_OUTBOX_FAILURE_MARKER)) {
+  async send(payload: OutboxPayload): Promise<TrackingSendResult> {
+    if (payload.orderId?.includes(MOCK_OUTBOX_FAILURE_MARKER)) {
       throw new TrackingSendError(
         `Mock send failed (orderId contains ${MOCK_OUTBOX_FAILURE_MARKER})`,
         'mock_simulated_failure',

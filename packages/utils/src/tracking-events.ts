@@ -52,6 +52,22 @@ export function orderEventId(name: ServerEventName, orderId: string): string {
   return `${name}:${orderId}`
 }
 
+/**
+ * Events mirrored to Meta/TikTok. Browser pixel and server (Conversions API /
+ * Events API) send the same event id, so the platforms dedupe the pair — names
+ * must match on both sides. TikTok page views are pixel-only (`ttq.page()`).
+ */
+export const CONVERSION_EVENTS = {
+  page_view: { meta: 'PageView', tiktok: null },
+  view_item: { meta: 'ViewContent', tiktok: 'ViewContent' },
+  add_to_cart: { meta: 'AddToCart', tiktok: 'AddToCart' },
+  begin_checkout: { meta: 'InitiateCheckout', tiktok: 'InitiateCheckout' },
+  purchase: { meta: 'Purchase', tiktok: 'CompletePayment' },
+} as const
+export type ConversionEventName = keyof typeof CONVERSION_EVENTS
+export const isConversionEventName = (name: string): name is ConversionEventName =>
+  Object.hasOwn(CONVERSION_EVENTS, name)
+
 /** Ordered funnel stages the dashboard reports (drop-off between adjacent stages). */
 export const FUNNEL_STAGES = [
   'page_view',

@@ -26,6 +26,7 @@ import {
   UPLOAD_TERMS_VERSION,
 } from '@print-shop/utils'
 import { z } from 'zod'
+import { trackingAttributionSchema } from './track.js'
 
 // ---------- Primitives ----------
 
@@ -74,9 +75,9 @@ export const checkoutSchema = z.object({
    * events (drives the marketing outbox fan-out). Optional so older clients
    * stay valid — missing means no consent (fail-closed).
    */
-  consent: z
-    .object({ statistics: z.boolean(), marketing: z.boolean() })
-    .optional(),
+  consent: z.object({ statistics: z.boolean(), marketing: z.boolean() }).optional(),
+  /** Ad-platform cookies for the server-side purchase event; ignored without marketing consent. */
+  attribution: trackingAttributionSchema.optional(),
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
 

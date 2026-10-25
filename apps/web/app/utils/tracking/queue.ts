@@ -8,7 +8,9 @@ import { CONSENT_STORAGE_KEY, uuidv7, type ClientEventName } from '@print-shop/u
  *  - failures: bounded complete batches in localStorage, preserving attribution
  *
  * All event ids are UUIDv7 so a re-send is a server-side no-op (dedup by PK).
- * Nothing here runs until the plugin calls `enable()` after statistics consent.
+ * Nothing here runs until the plugin calls `enable()` after statistics or
+ * marketing consent. The returning-visitor id needs statistics, the ad-platform
+ * cookies (`_fbp`, `_fbc`, `_ttp` → server-side CAPI) need marketing.
  */
 
 const ENDPOINT = '/api/t/events'
@@ -47,8 +49,20 @@ interface TrackingBatch {
   sessionId: string
   visitorId: string | null
   consent: { statistics: boolean; marketing: boolean }
+  attribution?: { fbp?: string; fbc?: string; ttp?: string }
   events: QueuedEvent[]
   session?: SessionMeta
+}
+
+function readCookie(name: string): string | undefined {
+  const hit = document.cookie.split('; ').find((c) => c.startsWith(`${name}=`))
+  return hit ? decodeURIComponent(hit.slice(name.length + 1)).slice(0, 256) : undefined
+}
+
+/** Ad-platform cookies for server-side match quality — callers gate on marketing consent. */
+export function adPlatformCookies(): TrackingBatch['attribution'] {
+  const a = { fbp: readCookie('_fbp'), fbc: readCookie('_fbc'), ttp: readCookie('_ttp') }
+  return a.fbp || a.fbc || a.ttp ? a : undefined
 }
 
 function localGet(key: string): string | null {
@@ -191,10 +205,15 @@ function saveRetryBatches(batches: TrackingBatch[]): void {
 }
 
 export interface Tracker {
-  track: (name: ClientEventName, props?: QueuedEvent['props'], path?: string) => void
+  /** Returns the event id (shared with the ad pixels), or null while disabled. */
+  track: (
+    name: ClientEventName,
+    props?: QueuedEvent['props'],
+    path?: string,
+    eventId?: string,
+  ) => string | null
   flush: () => Promise<void>
   sessionId: () => string | null
-  visitorId: () => string | null
   enable: () => void
   disable: () => void
 }
@@ -202,7 +221,6 @@ export interface Tracker {
 export function createTracker(): Tracker {
   let enabled = false
   let sid: string | null = null
-  let vid: string | null = null
   let buffer: QueuedEvent[] = []
   let timer: ReturnType<typeof setInterval> | null = null
   let generation = 0
@@ -234,16 +252,33 @@ export function createTracker(): Tracker {
     sessionSet(SID_META_SENT_KEY, '1')
   }
 
+  /** Strip what the given consent does not cover (the server would reject it). */
+  function withConsent(batch: TrackingBatch, consent: TrackingBatch['consent']): TrackingBatch {
+    if (!consent.statistics) localRemove(VID_KEY)
+    const { attribution, ...rest } = batch
+    return {
+      ...rest,
+      consent,
+      visitorId: consent.statistics ? batch.visitorId : null,
+      ...(consent.marketing && attribution ? { attribution } : {}),
+    }
+  }
+
   function buildBatch(events: QueuedEvent[]): TrackingBatch {
     if (!sid) throw new Error('Tracking session is not enabled')
-    return {
-      v: 1,
-      sessionId: sid,
-      visitorId: vid,
-      consent: consentSnapshot(),
-      events,
-      ...(!sessionMetaSent() ? { session: captureSessionMeta() } : {}),
-    }
+    const consent = consentSnapshot()
+    return withConsent(
+      {
+        v: 1,
+        sessionId: sid,
+        visitorId: consent.statistics ? ensureVisitorId() : null,
+        consent,
+        attribution: consent.marketing ? adPlatformCookies() : undefined,
+        events,
+        ...(!sessionMetaSent() ? { session: captureSessionMeta() } : {}),
+      },
+      consent,
+    )
   }
 
   function persistFailedBatch(batch: TrackingBatch, sendGeneration: number): void {
@@ -306,13 +341,14 @@ export function createTracker(): Tracker {
     // consent may since have been withdrawn, so re-send with the *current*
     // snapshot: a stale `marketing: true` must never trigger fan-out after revocation.
     const currentConsent = consentSnapshot()
-    const retries = loadRetryBatches().map((batch) => ({
-      ...batch,
-      consent: {
-        statistics: batch.consent.statistics && currentConsent.statistics,
-        marketing: batch.consent.marketing && currentConsent.marketing,
-      },
-    }))
+    const retries = loadRetryBatches()
+      .map((batch) =>
+        withConsent(batch, {
+          statistics: batch.consent.statistics && currentConsent.statistics,
+          marketing: batch.consent.marketing && currentConsent.marketing,
+        }),
+      )
+      .filter((batch) => batch.consent.statistics || batch.consent.marketing)
     localRemove(RETRY_KEY)
     const pending = buffer
     buffer = []
@@ -331,16 +367,22 @@ export function createTracker(): Tracker {
     await Promise.all([...alreadyRunning, ...launched])
   }
 
-  function track(name: ClientEventName, props?: QueuedEvent['props'], path?: string): void {
-    if (!enabled) return
+  function track(
+    name: ClientEventName,
+    props?: QueuedEvent['props'],
+    path?: string,
+    eventId: string = uuidv7(),
+  ): string | null {
+    if (!enabled) return null
     buffer.push({
-      eventId: uuidv7(),
+      eventId,
       name,
       occurredAt: new Date().toISOString(),
       path: path ?? window.location.pathname,
       props,
     })
     if (buffer.length >= FLUSH_AT) void flush()
+    return eventId
   }
 
   function enable(): void {
@@ -348,7 +390,6 @@ export function createTracker(): Tracker {
     generation += 1
     enabled = true
     sid = ensureSessionId()
-    vid = ensureVisitorId()
     metaSentInMemory = false
     timer = setInterval(() => void flush(), FLUSH_INTERVAL_MS)
     window.addEventListener('online', onOnline)
@@ -374,7 +415,6 @@ export function createTracker(): Tracker {
     sessionRemove(SID_META_SENT_KEY)
     metaSentInMemory = false
     sid = null
-    vid = null
   }
 
   function onOnline() {
@@ -391,7 +431,6 @@ export function createTracker(): Tracker {
     track,
     flush: () => flush(),
     sessionId: () => sid,
-    visitorId: () => vid,
     enable,
     disable,
   }

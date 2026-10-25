@@ -1,6 +1,7 @@
 import type { TrackingSettings } from '@print-shop/utils'
 import { allowedProviders, configuredProviders, isSensitiveTrackingPath } from '@print-shop/utils'
 import type { AnalyticsPlugin } from 'analytics'
+import { pageEventId } from '~/utils/tracking/page-event'
 
 /**
  * Consent-gated analytics bootstrap (GDPR).
@@ -11,13 +12,32 @@ import type { AnalyticsPlugin } from 'analytics'
  * is covered by consent. Until then this plugin only fetches the (public)
  * tracking IDs and watches the consent store.
  *
- * Withdrawal is best-effort: plugins are disabled (no further events), GA gets
- * its `ga-disable-<id>` kill switch and the pixel `fbq('consent','revoke')` —
- * but already injected third-party scripts persist until the next full reload.
+ * Google Consent Mode v2 starts every signal as "denied" and is updated per
+ * category. Withdrawing a category whose tracker already ran purges the
+ * tracker cookies and reloads, since injected third-party scripts cannot be
+ * unloaded in place.
  */
 
+/** Cookies set by GA / Meta / TikTok — deleted on consent withdrawal. */
+const TRACKER_COOKIE = /^(_ga|_gid|_gcl|_fbp|_fbc|_ttp|_tt_)/
+
+function purgeTrackerCookies(): void {
+  const host = location.hostname.split('.')
+  const domains = host.map((_, i) => host.slice(i).join('.')).slice(0, -1)
+  for (const c of document.cookie.split(';')) {
+    const name = c.split('=', 1)[0]!.trim()
+    if (!TRACKER_COOKIE.test(name)) continue
+    const expire = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+    document.cookie = expire
+    for (const d of domains) document.cookie = `${expire}; domain=.${d}`
+  }
+}
+
+type Gtag = (...args: unknown[]) => void
+const gtagWindow = () => window as unknown as { dataLayer?: unknown[]; gtag?: Gtag }
+
 interface AnalyticsInstance {
-  page: () => Promise<unknown>
+  page: (data?: Record<string, unknown>) => Promise<unknown>
   track: (event: string, properties?: Record<string, unknown>) => Promise<unknown>
   plugins: {
     enable: (name: string | string[]) => Promise<unknown>
@@ -36,17 +56,52 @@ export default defineNuxtPlugin(() => {
   let lastTrackedPath: string | null = null
   const enabledState = new Map<string, boolean>()
 
+  // Consent Mode v2 defaults before any Google tag can load. The GA/GTM plugins
+  // reuse this gtag/dataLayer instead of defining their own.
+  const w = gtagWindow()
+  w.dataLayer = w.dataLayer || []
+  w.gtag =
+    w.gtag ||
+    function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      w.dataLayer!.push(arguments)
+    }
+  w.gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    wait_for_update: 500,
+  })
+
+  function updateGoogleConsent() {
+    const c = consent.consent
+    const v = (granted: boolean | undefined) => (granted ? 'granted' : 'denied')
+    gtagWindow().gtag?.('consent', 'update', {
+      analytics_storage: v(c?.statistics),
+      ad_storage: v(c?.marketing),
+      ad_user_data: v(c?.marketing),
+      ad_personalization: v(c?.marketing),
+    })
+  }
+
   $fetch<TrackingSettings>('/api/tracking-settings')
     .then((res) => {
       settings.value = {
         metaPixelId: res.metaPixelId ?? null,
         ga4MeasurementId: res.ga4MeasurementId ?? null,
         gtmContainerId: res.gtmContainerId ?? null,
+        tiktokPixelId: res.tiktokPixelId ?? null,
       }
     })
     .catch(() => {
       // Settings unreachable → tracking silently stays off
-      settings.value = { metaPixelId: null, ga4MeasurementId: null, gtmContainerId: null }
+      settings.value = {
+        metaPixelId: null,
+        ga4MeasurementId: null,
+        gtmContainerId: null,
+        tiktokPixelId: null,
+      }
     })
 
   const anyEnabled = () => [...enabledState.values()].some(Boolean)
@@ -58,11 +113,13 @@ export default defineNuxtPlugin(() => {
     const pathname = path.split(/[?#]/, 1)[0] || '/'
     if (pathname === lastTrackedPath) return
     lastTrackedPath = pathname
-    void instance.page()
+    // Same id as the first-party page_view → Meta dedupes pixel vs. CAPI.
+    void instance.page({ event_id: pageEventId(pathname) })
   }
 
   async function syncProviders() {
     if (!consent.hydrated || !settings.value) return
+    updateGoogleConsent()
     const s = settings.value
     const configured = configuredProviders(s)
     if (configured.length === 0) return
@@ -78,11 +135,13 @@ export default defineNuxtPlugin(() => {
           { default: googleAnalytics },
           { default: googleTagManager },
           { default: metaPixelPlugin },
+          { default: tiktokPixelPlugin },
         ] = await Promise.all([
           import('analytics'),
           import('@analytics/google-analytics'),
           import('@analytics/google-tag-manager'),
           import('~/utils/analytics/meta-pixel-plugin'),
+          import('~/utils/analytics/tiktok-pixel-plugin'),
         ])
         // Consent may have changed during the async import window above. A
         // re-entrant syncProviders() triggered by that change bails out on the
@@ -104,9 +163,13 @@ export default defineNuxtPlugin(() => {
             )
           } else if (provider.name === 'google-tag-manager') {
             plugins.push(googleTagManager({ containerId: s.gtmContainerId as string, enabled }))
-          } else {
+          } else if (provider.name === 'meta-pixel') {
             plugins.push(
               metaPixelPlugin({ pixelId: s.metaPixelId as string, enabled }) as AnalyticsPlugin,
+            )
+          } else {
+            plugins.push(
+              tiktokPixelPlugin({ pixelId: s.tiktokPixelId as string, enabled }) as AnalyticsPlugin,
             )
           }
         }
@@ -118,7 +181,13 @@ export default defineNuxtPlugin(() => {
       return
     }
 
-    // Instance exists: diff consent per provider → enable/disable
+    // Instance exists. A withdrawn category whose tracker already ran: injected
+    // scripts cannot be unloaded, so drop their cookies and start clean.
+    if (configured.some((p) => enabledState.get(p.name) && !allowed.has(p.name))) {
+      purgeTrackerCookies()
+      location.reload()
+      return
+    }
     const wasAnyEnabled = anyEnabled()
     for (const provider of configured) {
       const shouldEnable = allowed.has(provider.name)
@@ -133,14 +202,6 @@ export default defineNuxtPlugin(() => {
         if (provider.name === 'meta-pixel') {
           ;(instance.plugins['meta-pixel'] as { grant?: () => void } | undefined)?.grant?.()
         }
-      } else {
-        if (provider.name === 'google-analytics') {
-          ;(window as unknown as Record<string, unknown>)[`ga-disable-${s.ga4MeasurementId}`] = true
-        }
-        if (provider.name === 'meta-pixel') {
-          ;(instance.plugins['meta-pixel'] as { revoke?: () => void } | undefined)?.revoke?.()
-        }
-        await instance.plugins.disable(provider.name, () => {})
       }
     }
     // Consent granted mid-session with everything previously off → send the pageview

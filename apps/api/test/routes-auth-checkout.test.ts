@@ -9,6 +9,7 @@ vi.mock('../src/lib/prisma.js', () => ({
     order: { findUnique: vi.fn() },
     product: { findMany: vi.fn() },
     color: { findMany: vi.fn() },
+    trackingSession: { findUnique: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn(),
   },
 }))
@@ -188,7 +189,7 @@ describe('POST /api/t/events', () => {
     occurredAt: new Date().toISOString(),
   }
 
-  it('rejects a batch without statistics consent', async () => {
+  it('rejects a batch without any consent', async () => {
     const res = await postJson('/api/t/events', {
       v: 1,
       sessionId: '0197fa3e-1111-7111-8111-111111111111',
@@ -218,6 +219,21 @@ describe('POST /api/t/events', () => {
     expect(await res.json()).toMatchObject({ error: 'forbidden' })
   })
 
+  it('stores nothing for a marketing-only batch (forwarded to the conversion APIs only)', async () => {
+    vi.mocked(prisma.$transaction).mockClear()
+    const res = await postJson('/api/t/events', {
+      v: 1,
+      sessionId: '0197fa3e-1111-7111-8111-111111111111',
+      visitorId: null,
+      consent: { statistics: false, marketing: true },
+      events: [event],
+    })
+
+    expect(res.status).toBe(202)
+    expect(await res.json()).toMatchObject({ accepted: 0 })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
   it('accepts a text/plain sendBeacon batch and answers 202', async () => {
     // navigator.sendBeacon posts the batch as a text/plain Blob, so the custom
     // body parser must accept text/plain and reach recordClientBatch (a tx).
@@ -226,9 +242,8 @@ describe('POST /api/t/events', () => {
       trackingSession: { upsert: vi.fn(), updateMany: vi.fn() },
       trackingEvent: { createMany: vi.fn().mockResolvedValue({ count: 1 }) },
     }
-    vi.mocked(prisma.$transaction).mockImplementation(
-      ((fn: (client: unknown) => unknown) => fn(tx)) as never,
-    )
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (client: unknown) => unknown) =>
+      fn(tx)) as never)
 
     const res = await fetch(`${baseUrl}/api/t/events`, {
       method: 'POST',
