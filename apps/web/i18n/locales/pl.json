@@ -439,7 +439,6 @@
       "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
       "drawingCaption": "Schemat, nie w skali",
-      "drawingSibling": "inny rozmiar",
       "contentsTitle": "Zawartość",
       "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty."
     },

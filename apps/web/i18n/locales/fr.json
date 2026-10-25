@@ -439,7 +439,6 @@
       "summary": "{caliber} · {capacity} cartouches · boîte {box} · marquage {label}",
       "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",
       "drawingCaption": "Schéma, pas à l’échelle",
-      "drawingSibling": "autre taille",
       "contentsTitle": "Contenu",
       "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre."
     },
