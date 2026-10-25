@@ -165,6 +165,66 @@ test.describe('sales channels', () => {
     expect(await stats(viaCookie.code)).toMatchObject({ clicks: 1, orders: 0 })
   })
 
+  test('the link puts the channel voucher into the cart automatically', async ({ page }) => {
+    const admin = await adminApiContext()
+    const voucherCode = `EMMA${run}`.toUpperCase()
+    const voucherRes = await admin.post('/api/admin/vouchers', {
+      data: { code: voucherCode, type: 'percent', value: 10, active: true },
+    })
+    const { voucher } = (await voucherRes.json()) as { voucher: { id: string } }
+    const channel = await createChannel(admin, {
+      code: `emma-${run}`,
+      name: 'Emma – Instagram',
+      productId: await productId(SLUG),
+      voucherId: voucher.id,
+    })
+    await admin.dispose()
+
+    await page.goto(`/r/${channel.code}`)
+    await page.waitForURL(new RegExp(`/products/${SLUG}`))
+    await page.waitForSelector('html[data-hydrated="true"]')
+    await expect(page.getByTestId('toast')).toContainText(voucherCode)
+    // The trigger param is removed once the voucher is in the cart.
+    await expect(page).not.toHaveURL(/gutschein=/)
+
+    const shop = new ShopPage(page)
+    await shop.acceptConsent()
+    await page.getByTestId('add-to-cart').click()
+    await gotoHydrated(page, '/cart')
+    await expect(page.getByTestId('voucher-row')).toContainText(voucherCode)
+    await expect(page.getByTestId('cart-discount')).toContainText('1,49')
+    await payCartWithStripe(page, `channel-autovoucher-${run}@example.com`)
+
+    expect(await stats(channel.code)).toMatchObject({ clicks: 1, orders: 1, revenueCents: 1341 })
+  })
+
+  test('the link skips the voucher when it is no longer redeemable', async () => {
+    const admin = await adminApiContext()
+    const voucherRes = await admin.post('/api/admin/vouchers', {
+      data: { code: `OFF${run}`.toUpperCase(), type: 'percent', value: 10, active: false },
+    })
+    const { voucher } = (await voucherRes.json()) as { voucher: { id: string } }
+    const channel = await createChannel(admin, {
+      code: `finn-${run}`,
+      name: 'Finn – Blog',
+      voucherId: voucher.id,
+    })
+    await admin.dispose()
+
+    const anon = await apiContext()
+    const res = await anon.get(`/api/r/${channel.code}`, { maxRedirects: 0 })
+    expect(res.status()).toBe(302)
+    expect(res.headers().location).not.toContain('gutschein=')
+    // anon now carries the ref cookie, but the inactive voucher is not handed out.
+    expect(await (await anon.get('/api/vouchers/referral')).json()).toEqual({ voucher: null })
+    await anon.dispose()
+
+    // Without a ref cookie the endpoint never reveals any voucher.
+    const fresh = await apiContext()
+    expect(await (await fresh.get('/api/vouchers/referral')).json()).toEqual({ voucher: null })
+    await fresh.dispose()
+  })
+
   test('unknown codes go home; inactive channels redirect without counting', async ({ page }) => {
     await page.goto('/r/does-not-exist')
     await page.waitForURL((url) => url.pathname === '/')

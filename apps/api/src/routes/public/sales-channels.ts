@@ -2,7 +2,13 @@ import { Router } from 'express'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { trackLimiter } from '../../middleware/rate-limit.js'
-import { REF_COOKIE, REF_WINDOW_S, isBot, refCode } from '../../services/sales-channels.js'
+import {
+  REF_COOKIE,
+  REF_WINDOW_S,
+  channelVoucherDto,
+  isBot,
+  refCode,
+} from '../../services/sales-channels.js'
 
 /** `/r/<code>` on the web is redirected here (nuxt routeRules). */
 export const salesChannelRedirectRouter = Router()
@@ -14,14 +20,16 @@ salesChannelRedirectRouter.get('/:code', trackLimiter, async (req, res, next) =>
     const code = String(req.params.code).toLowerCase()
     const channel = await prisma.salesChannel.findUnique({
       where: { code },
-      include: { product: { select: { slug: true, active: true } } },
+      include: { product: { select: { slug: true, active: true } }, voucher: true },
     })
     if (!channel) {
       res.redirect(302, `${site}/`)
       return
     }
     // Inactive product would 404 — land on the home page instead.
-    const target = channel.product?.active ? `${site}/products/${channel.product.slug}` : `${site}/`
+    const target = new URL(
+      channel.product?.active ? `${site}/products/${channel.product.slug}` : `${site}/`,
+    )
     // Inactive channel: the link still works but neither counts nor attributes.
     if (channel.active) {
       // A returning visitor (cookie already set for this code) is not a new click.
@@ -39,8 +47,11 @@ salesChannelRedirectRouter.get('/:code', trackLimiter, async (req, res, next) =>
         maxAge: REF_WINDOW_S * 1000,
         path: '/',
       })
+      // The shop picks this up and pre-fills the cart (GET /api/vouchers/referral).
+      const voucher = channelVoucherDto(channel.voucher)
+      if (voucher) target.searchParams.set('gutschein', voucher.code)
     }
-    res.redirect(302, target)
+    res.redirect(302, target.toString())
   } catch (err) {
     next(err)
   }

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   REF_WINDOW_S,
   attributeSalesChannel,
+  channelVoucherDto,
   commissionFor,
   isBot,
   refCode,
@@ -104,5 +105,44 @@ describe('attributeSalesChannel', () => {
     await expect(attributeSalesChannel(client, null, undefined, now)).resolves.toBeNull()
     await expect(attributeSalesChannel(client, null, 'garbage', now)).resolves.toBeNull()
     expect(findFirst).not.toHaveBeenCalled()
+  })
+})
+
+describe('channelVoucherDto', () => {
+  const now = new Date('2026-10-25T12:00:00Z')
+  const voucher = {
+    id: 'v1',
+    code: 'ANNA10',
+    type: 'percent' as const,
+    value: 10,
+    active: true,
+    validFrom: null,
+    validUntil: null,
+    maxRedemptions: null,
+    redemptionCount: 0,
+    minOrderCents: 2500,
+    note: 'intern',
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  it('exposes only the cart fields of a redeemable voucher', () => {
+    expect(channelVoucherDto(voucher, now)).toEqual({
+      code: 'ANNA10',
+      type: 'percent',
+      value: 10,
+      minOrderCents: 2500,
+    })
+  })
+
+  it('ignores the minimum order value (the cart handles it softly)', () => {
+    expect(channelVoucherDto({ ...voucher, minOrderCents: 1_000_000 }, now)).not.toBeNull()
+  })
+
+  it('returns null for missing, inactive, expired or used-up vouchers', () => {
+    expect(channelVoucherDto(null, now)).toBeNull()
+    expect(channelVoucherDto({ ...voucher, active: false }, now)).toBeNull()
+    expect(channelVoucherDto({ ...voucher, validUntil: new Date('2026-10-01') }, now)).toBeNull()
+    expect(channelVoucherDto({ ...voucher, maxRedemptions: 1, redemptionCount: 1 }, now)).toBeNull()
   })
 })

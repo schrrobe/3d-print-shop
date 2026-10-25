@@ -52,6 +52,10 @@ Provisionsabrechnung mit dem Partner, bildet kein Profil, wird an keinen Dritten
 Tracking vor Opt-in“ (gleiche Abwägung wie bei storylo) — keine Rechtsberatung; bei
 Zweifeln das Setzen an die Kategorie `marketing` koppeln.
 
+Ist dem Kanal ein einlösbarer Gutschein zugeordnet, hängt der Link `?gutschein=<CODE>` an;
+das Plugin `referral-voucher.client.ts` holt ihn über `GET /api/vouchers/referral` (nur mit
+gültigem `ps_ref`) und legt ihn in den Warenkorb.
+
 Zuordnung: Gutschein des Kanals schlägt Cookie, sonst letzter Klick innerhalb von 30
 Tagen. Provisionsbasis (Warenwert nach Rabatt, ohne Versand) und Provision werden beim
 Checkout an der Bestellung festgeschrieben.

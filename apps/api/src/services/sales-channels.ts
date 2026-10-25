@@ -1,4 +1,6 @@
-import type { CommissionType, Prisma, SalesChannel } from '@prisma/client'
+import type { CommissionType, Prisma, SalesChannel, Voucher } from '@prisma/client'
+import type { VoucherDto } from '@print-shop/types'
+import { checkVoucher } from '@print-shop/utils'
 
 /**
  * First-party ref cookie "<code>.<click unix seconds>". Set without consent: it
@@ -52,4 +54,14 @@ export async function attributeSalesChannel(
   }
   const code = refCode(refCookie, now)
   return code ? db.salesChannel.findFirst({ where: { code, active: true } }) : null
+}
+
+/**
+ * The channel voucher as cart DTO, if it is redeemable right now. The minimum
+ * order value is ignored here — the cart handles it softly, checkout hard.
+ */
+export function channelVoucherDto(voucher: Voucher | null, now = new Date()): VoucherDto | null {
+  if (!voucher || !checkVoucher(voucher, Number.MAX_SAFE_INTEGER, now).ok) return null
+  const { code, type, value, minOrderCents } = voucher
+  return { code, type, value, minOrderCents }
 }
