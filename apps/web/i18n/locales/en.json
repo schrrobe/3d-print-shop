@@ -440,7 +440,6 @@
       "summary": "{caliber} · {capacity} rounds · box {box} · label {label}",
       "drawingAlt": "Schematic drawing of the {caliber} cartridge box for {capacity} rounds in {box} with label in {label}",
       "drawingCaption": "Schematic, not to scale",
-      "drawingSibling": "other size",
       "contentsTitle": "What's included",
       "contentsText": "One empty cartridge box. Ammunition is not part of the offer."
     },

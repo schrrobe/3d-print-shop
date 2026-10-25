@@ -440,7 +440,6 @@
       "summary": "{caliber} · {capacity} nábojů · krabička {box} · popisek {label}",
       "drawingAlt": "Schéma krabičky na náboje {caliber} na {capacity} nábojů v barvě {box} s popiskem v barvě {label}",
       "drawingCaption": "Schéma, ne v měřítku",
-      "drawingSibling": "jiná velikost",
       "contentsTitle": "Obsah balení",
       "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky."
     },

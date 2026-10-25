@@ -440,7 +440,6 @@
       "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
       "drawingCaption": "Schematische Darstellung, nicht maßstäblich",
-      "drawingSibling": "andere Größe",
       "contentsTitle": "Lieferumfang",
       "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots."
     },
