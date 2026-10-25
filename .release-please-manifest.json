@@ -1,10 +1,10 @@
 {
-  "apps/api": "0.0.1",
+  "apps/api": "0.1.0",
   "apps/web": "0.0.1",
   "packages/config": "0.0.1",
-  "packages/emails": "0.0.1",
+  "packages/emails": "0.0.2",
   "packages/types": "0.0.1",
-  "packages/ui": "0.0.1",
+  "packages/ui": "0.0.2",
   "packages/utils": "0.0.1",
   "packages/validators": "0.0.1"
 }
