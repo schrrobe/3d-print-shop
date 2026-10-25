@@ -122,7 +122,7 @@ DBeaver verbinden sich per SSH-Tunnel:
 ## Produktions-Checkliste
 
 - [ ] `/opt/kaliberbox/prod/.env`: Stripe-Live-Keys, Firmen-/Bankdaten (`COMPANY_*`,
-      `BANK_*`), Resend — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
+      `BANK_*`), Brevo-SMTP — die API verweigert mit `NODE_ENV=production` den Start mit Platzhaltern
 - [ ] `/opt/kaliberbox/prod/web.env`: `NUXT_PUBLIC_COMPANY_*` fürs Impressum
 - [ ] Stripe-Webhook auf `https://api.kaliberbox.de/api/webhooks/stripe`
 - [ ] Bitcoin bleibt mit `BITCOIN_ENABLED=false` aus, bis ein echter Provider implementiert ist

@@ -1,10 +1,17 @@
 import type { RenderedEmail } from '@print-shop/emails'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 
-/** Shared Resend client — null in dev mode (no key). Also used by the inbound webhook. */
-export const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
+/** SMTP transport (Brevo: smtp-relay.brevo.com:587) — null in dev mode (no SMTP_HOST). */
+const transport = env.SMTP_HOST
+  ? nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE,
+      auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
+    })
+  : null
 
 export interface EmailAttachment {
   filename: string
@@ -17,7 +24,7 @@ export interface SendEmailOptions {
 }
 
 /**
- * Sends via Resend when RESEND_API_KEY is configured; otherwise logs to the
+ * Sends via SMTP (Brevo) when SMTP_HOST is configured; otherwise logs to the
  * console and the EmailLog table (dev mode). Every attempt is recorded.
  */
 export async function sendEmail(
@@ -27,7 +34,7 @@ export async function sendEmail(
   attachments: EmailAttachment[] = [],
   options: SendEmailOptions = {},
 ): Promise<void> {
-  if (!resend) {
+  if (!transport) {
     console.info(`[email:dev] to=${to} template=${template} subject="${rendered.subject}"`)
     await prisma.emailLog.create({
       data: {
@@ -46,7 +53,7 @@ export async function sendEmail(
   }
 
   try {
-    await resend.emails.send({
+    await transport.sendMail({
       from: env.EMAIL_FROM,
       to,
       subject: rendered.subject,
