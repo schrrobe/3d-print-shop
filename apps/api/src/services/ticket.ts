@@ -107,7 +107,7 @@ function stripHtmlNaive(html: string): string {
     .replace(/&#39;/g, "'")
 }
 
-/** Full inbound pipeline shared by the Resend webhook and the dev simulator. */
+/** Full inbound pipeline shared by the Brevo webhook and the dev simulator. */
 export async function processInboundTicketEmail(input: {
   to: string[]
   text: string | null

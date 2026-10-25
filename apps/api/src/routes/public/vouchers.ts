@@ -1,9 +1,15 @@
-import { calcSubtotalCents, calcVoucherDiscountCents, checkVoucher, normalizeVoucherCode } from '@print-shop/utils'
+import {
+  calcSubtotalCents,
+  calcVoucherDiscountCents,
+  checkVoucher,
+  normalizeVoucherCode,
+} from '@print-shop/utils'
 import { voucherValidateSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
+import { REF_COOKIE, channelVoucherDto, refCode } from '../../services/sales-channels.js'
 
 export const vouchersRouter = Router()
 
@@ -52,6 +58,29 @@ vouchersRouter.post('/validate', sensitiveLimiter, async (req, res, next) => {
       },
       discountCents: calcVoucherDiscountCents(found, subtotalCents),
     })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * Voucher of the sales channel whose link this visitor clicked (ps_ref cookie),
+ * so the shop can pre-fill the cart. Only channel vouchers are exposed, and only
+ * to visitors who came through that channel's link.
+ */
+vouchersRouter.get('/referral', sensitiveLimiter, async (req, res, next) => {
+  try {
+    const code = refCode(
+      (req.cookies as Record<string, string> | undefined)?.[REF_COOKIE],
+      new Date(),
+    )
+    const channel = code
+      ? await prisma.salesChannel.findFirst({
+          where: { code, active: true },
+          include: { voucher: true },
+        })
+      : null
+    res.json({ voucher: channelVoucherDto(channel?.voucher ?? null) })
   } catch (err) {
     next(err)
   }

@@ -27,7 +27,7 @@ Browser ──> Nuxt (3000) ──/api/**-Proxy──> Express (3001) ──Pris
                                               │
                                               ├── StripeService (echt oder Mock)
                                               ├── BitcoinProvider (Interface, Mock im MVP)
-                                              ├── EmailService (Resend oder Dev-Log → EmailLog)
+                                              ├── EmailService (Brevo-SMTP oder Dev-Log → EmailLog)
                                               └── PDF-Rechnungen (pdfkit → INVOICE_DIR)
 ```
 

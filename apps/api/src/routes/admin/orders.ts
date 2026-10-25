@@ -17,12 +17,16 @@ import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.j
 
 export const adminOrdersRouter = Router()
 
+/** Commission data is sales-channels:read only (admin) — keep it out of order views. */
+const omitCommission = { salesChannelId: true, commissionBaseCents: true, commissionCents: true } as const
+
 adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, next) => {
   try {
     const status = req.query.status ? String(req.query.status) : undefined
     const orders = await prisma.order.findMany({
       where: status ? { status: status as never } : undefined,
       include: { items: true, payments: true, invoice: { select: { number: true } } },
+      omit: omitCommission,
       orderBy: { createdAt: 'desc' },
       take: 200,
     })
@@ -36,6 +40,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   try {
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
+      omit: omitCommission,
       include: {
         items: true,
         payments: { include: { bitcoinPayment: true } },
