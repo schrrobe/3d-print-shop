@@ -23,6 +23,9 @@ const envSchema = z
     UPLOAD_DIR: z.string().default('./uploads'),
     UPLOAD_MAX_BYTES: z.coerce.number().int().default(52_428_800),
     RESEND_API_KEY: z.string().optional().default(''),
+    /// SMTP fallback when RESEND_API_KEY is empty — local/dev point it at Mailpit (port 1025).
+    SMTP_HOST: z.string().optional().default(''),
+    SMTP_PORT: z.coerce.number().int().default(1025),
     EMAIL_FROM: z.string().default('Print Shop <noreply@example.com>'),
     ADMIN_NOTIFICATION_EMAIL: z.string().default('admin@example.com'),
     RESEND_WEBHOOK_SECRET: z.string().optional().default(''),

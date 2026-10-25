@@ -93,6 +93,12 @@ docker exec kaliberbox-api-prod node_modules/.bin/tsx prisma/bootstrap-admin.ts
 docker exec kaliberbox-api-dev node_modules/.bin/tsx prisma/seed.ts
 ```
 
+**Mailpit auf dev:** fängt alle Mails ab, nichts geht an echte Adressen. In
+`/opt/kaliberbox/dev/.env`: `COMPOSE_PROFILES=mailpit`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`,
+`RESEND_API_KEY=` (leer — Resend hat Vorrang). Dann `kaliberbox-deploy dev <ref>` und
+`deploy/nginx-dev.kaliberbox.de.conf` übernehmen (`sudo nginx -t && sudo systemctl reload nginx`).
+Postfach: https://dev.kaliberbox.de/mailpit/ (dev-Basic-Auth); Mails nur im Speicher.
+
 Migrationen laufen bei jedem API-Start (`prisma migrate deploy`). Kein
 `CREATE INDEX CONCURRENTLY` in Migrationen — das bricht den Start ab.
 

@@ -1,10 +1,17 @@
 import type { RenderedEmail } from '@print-shop/emails'
+import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 
 /** Shared Resend client — null in dev mode (no key). Also used by the inbound webhook. */
 export const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
+
+/** Mailpit catcher for local/dev — only used when Resend is not configured. */
+const smtp =
+  !resend && env.SMTP_HOST
+    ? nodemailer.createTransport({ host: env.SMTP_HOST, port: env.SMTP_PORT, secure: false })
+    : null
 
 export interface EmailAttachment {
   filename: string
@@ -17,8 +24,9 @@ export interface SendEmailOptions {
 }
 
 /**
- * Sends via Resend when RESEND_API_KEY is configured; otherwise logs to the
- * console and the EmailLog table (dev mode). Every attempt is recorded.
+ * Sends via Resend when RESEND_API_KEY is configured, else via SMTP (Mailpit)
+ * when SMTP_HOST is set; otherwise logs to the console and the EmailLog table
+ * (dev mode). Every attempt is recorded.
  */
 export async function sendEmail(
   to: string,
@@ -27,7 +35,7 @@ export async function sendEmail(
   attachments: EmailAttachment[] = [],
   options: SendEmailOptions = {},
 ): Promise<void> {
-  if (!resend) {
+  if (!resend && !smtp) {
     console.info(`[email:dev] to=${to} template=${template} subject="${rendered.subject}"`)
     await prisma.emailLog.create({
       data: {
@@ -45,16 +53,18 @@ export async function sendEmail(
     return
   }
 
+  const message = {
+    from: env.EMAIL_FROM,
+    to,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+    replyTo: options.replyTo,
+    attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
+  }
   try {
-    await resend.emails.send({
-      from: env.EMAIL_FROM,
-      to,
-      subject: rendered.subject,
-      html: rendered.html,
-      text: rendered.text,
-      replyTo: options.replyTo,
-      attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
-    })
+    if (resend) await resend.emails.send(message)
+    else await smtp!.sendMail(message)
     await prisma.emailLog.create({
       data: { to, template, subject: rendered.subject, status: 'sent' },
     })

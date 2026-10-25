@@ -24,7 +24,7 @@ pnpm install
 cp .env.example .env          # Platzhalter — niemals echte Secrets committen
 cp .env.example apps/api/.env
 
-pnpm db:up                    # PostgreSQL (Docker, Port 15433)
+pnpm db:up                    # PostgreSQL (Docker, Port 15433) + Mailpit (http://localhost:8025)
 pnpm db:migrate               # Prisma-Migrationen
 ALLOW_DEMO_SEED=true pnpm db:seed  # Beispieldaten (nur Entwicklung/CI)
 
@@ -98,8 +98,9 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
   Ablage unter `UPLOAD_DIR/products/`, öffentlich über `GET /api/product-images/:filename`.
   Auf der Produktseite oben als Galerie, der Konfigurator (3D-Modell + Farben) rückt eine
   Sektion tiefer. Ohne Fotos zeigt der Shop einen Platzhalter — [docs/product-photos.md](docs/product-photos.md).
-- **Resend (E-Mails):** ohne `RESEND_API_KEY` werden Mails im Dev-Modus geloggt
-  (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
+- **Resend (E-Mails):** ohne `RESEND_API_KEY`, aber mit `SMTP_HOST` gehen Mails an Mailpit
+  (lokal http://localhost:8025, dev https://dev.kaliberbox.de/mailpit/); ohne beides werden sie
+  nur geloggt (Konsole + `EmailLog`-Tabelle, einsehbar via `GET /api/dev/emails`). 16 Templates in
   `packages/emails`; Absenderdomain bei Resend verifizieren, dann Key in `.env` setzen.
 - **Stripe:** ohne Keys Mock-Modus (Success-Seite mit „Zahlung simulieren"). Live-Betrieb:
   Keys setzen + Webhook registrieren — [docs/payments.md](docs/payments.md).
