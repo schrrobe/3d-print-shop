@@ -126,6 +126,7 @@ type CompanyField =
   | 'accountHolder'
   | 'iban'
   | 'bic'
+  | 'invoiceBcc'
 
 interface CompanySettingsDto {
   settings: Record<CompanyField, string | null>
@@ -133,7 +134,7 @@ interface CompanySettingsDto {
   missing: CompanyField[]
 }
 
-const companyFields: { key: CompanyField; label: string; type?: string }[] = [
+const companyFields: { key: CompanyField; label: string; type?: string; hint?: string }[] = [
   { key: 'name', label: 'Firmenname' },
   { key: 'owner', label: 'Inhaber' },
   { key: 'street', label: 'Straße & Hausnummer' },
@@ -146,6 +147,12 @@ const companyFields: { key: CompanyField; label: string; type?: string }[] = [
   { key: 'accountHolder', label: 'Kontoinhaber' },
   { key: 'iban', label: 'IBAN' },
   { key: 'bic', label: 'BIC' },
+  {
+    key: 'invoiceBcc',
+    label: 'Rechnungen in Blindkopie (BCC) an',
+    type: 'email',
+    hint: 'Optional. Jede Rechnungs-E-Mail geht zusätzlich unsichtbar an diese Adresse, z. B. Buchhaltung.',
+  },
 ]
 
 const { data: companyData, refresh: refreshCompany } = await useFetch<CompanySettingsDto>(
@@ -261,17 +268,22 @@ function saveCompany() {
       </div>
 
       <form class="grid gap-md sm:grid-cols-2" @submit.prevent="saveCompany">
-        <PsInput
+        <div
           v-for="field in companyFields"
           :key="field.key"
-          v-model="companyForm[field.key]"
-          :label="field.label"
-          :type="field.type ?? 'text'"
-          :placeholder="companyData?.effective[field.key] ?? ''"
-          :disabled="!auth.can('settings:write')"
-          :name="`company-${field.key}`"
-          :data-testid="`company-${field.key}`"
-        />
+          :class="['space-y-xs', field.hint && 'sm:col-span-2']"
+        >
+          <PsInput
+            v-model="companyForm[field.key]"
+            :label="field.label"
+            :type="field.type ?? 'text'"
+            :placeholder="companyData?.effective[field.key] ?? ''"
+            :disabled="!auth.can('settings:write')"
+            :name="`company-${field.key}`"
+            :data-testid="`company-${field.key}`"
+          />
+          <p v-if="field.hint" class="text-xs text-secondary">{{ field.hint }}</p>
+        </div>
         <div v-if="auth.can('settings:write')" class="sm:col-span-2">
           <PsButton type="submit" :loading="savingCompany" data-testid="company-save">
             Speichern

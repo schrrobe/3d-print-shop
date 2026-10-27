@@ -378,6 +378,7 @@ export const companySettingsSchema = z.object({
   accountHolder: optionalText(z.string().max(200)),
   iban: optionalText(z.string().toUpperCase().regex(IBAN_REGEX, 'Invalid IBAN')),
   bic: optionalText(z.string().toUpperCase().regex(BIC_REGEX, 'Invalid BIC')),
+  invoiceBcc: optionalText(z.string().email().max(254)),
 })
 export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
 

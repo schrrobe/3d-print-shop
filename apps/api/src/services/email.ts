@@ -21,6 +21,8 @@ export interface EmailAttachment {
 export interface SendEmailOptions {
   /** Reply-To header, e.g. the ticket+<token> inbound address. */
   replyTo?: string
+  /** Blind copy, e.g. invoices to the bookkeeping inbox. */
+  bcc?: string
 }
 
 /**
@@ -46,6 +48,7 @@ export async function sendEmail(
           text: rendered.text,
           attachments: attachments.map((a) => a.filename),
           replyTo: options.replyTo ?? null,
+          bcc: options.bcc ?? null,
         },
       },
     })
@@ -60,6 +63,7 @@ export async function sendEmail(
       html: rendered.html,
       text: rendered.text,
       replyTo: options.replyTo,
+      bcc: options.bcc,
       attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
     })
     await prisma.emailLog.create({

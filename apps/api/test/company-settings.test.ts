@@ -15,6 +15,7 @@ const real = {
   accountHolder: 'Robert Schreiner',
   iban: 'DE89 3704 0044 0532 0130 00',
   bic: 'COBADEFFXXX',
+  invoiceBcc: '',
 }
 
 describe('company settings', () => {
@@ -46,5 +47,9 @@ describe('company settings', () => {
     expect(parsed.iban).toBe('DE89 3704 0044 0532 0130 00')
     expect(parsed.bic).toBe('COBADEFFXXX')
     expect(companySettingsSchema.safeParse({ ...real, iban: 'not-an-iban' }).success).toBe(false)
+    expect(parsed.invoiceBcc).toBeNull()
+    expect(companySettingsSchema.safeParse({ ...real, invoiceBcc: 'buchhaltung' }).success).toBe(
+      false,
+    )
   })
 })

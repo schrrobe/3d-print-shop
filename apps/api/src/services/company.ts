@@ -17,6 +17,8 @@ export interface Company {
   accountHolder: string
   iban: string
   bic: string
+  /** Optional: every invoice email goes here as BCC (e.g. bookkeeping inbox). */
+  invoiceBcc: string
 }
 
 export type CompanyField = keyof Company
@@ -35,6 +37,7 @@ export const COMPANY_COLUMNS = {
   accountHolder: 'bankAccountHolder',
   iban: 'bankIban',
   bic: 'bankBic',
+  invoiceBcc: 'invoiceBccEmail',
 } as const satisfies Record<CompanyField, keyof ShopSettings>
 
 export function companyFromEnv(): Company {
@@ -51,11 +54,12 @@ export function companyFromEnv(): Company {
     accountHolder: env.BANK_ACCOUNT_HOLDER,
     iban: env.BANK_IBAN,
     bic: env.BANK_BIC,
+    invoiceBcc: '',
   }
 }
 
 /** Example defaults from env.ts — must never reach a real invoice (§14 UStG, GiroCode). */
-const PLACEHOLDERS: Company = {
+const PLACEHOLDERS: Omit<Company, 'invoiceBcc'> = {
   name: 'Print Shop GmbH',
   owner: 'Max Mustermann',
   street: 'Musterstraße 1',
@@ -72,7 +76,7 @@ const PLACEHOLDERS: Company = {
 
 /** Fields that are still the example default, or empty (website may stay empty). */
 export function missingCompanyFields(c: Company): CompanyField[] {
-  return (Object.keys(PLACEHOLDERS) as CompanyField[]).filter(
+  return (Object.keys(PLACEHOLDERS) as (keyof typeof PLACEHOLDERS)[]).filter(
     (k) => c[k] === PLACEHOLDERS[k] || (k !== 'website' && c[k].trim() === ''),
   )
 }

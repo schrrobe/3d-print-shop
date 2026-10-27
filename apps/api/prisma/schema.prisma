@@ -962,6 +962,8 @@ model ShopSettings {
   bankAccountHolder  String?
   bankIban           String?
   bankBic            String?
+  /// Optional BCC recipient for every invoice email (e.g. bookkeeping inbox).
+  invoiceBccEmail    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

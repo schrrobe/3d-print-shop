@@ -11,6 +11,7 @@ import { assertOrderTransition } from '@print-shop/utils'
 import type { Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { company } from './company.js'
 import { sendEmail } from './email.js'
 import { createInvoiceForOrder, generateInvoicePdf } from './invoice.js'
 import { computeAndPersistAttribution } from './tracking/attribution.js'
@@ -123,6 +124,7 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         paidOrder.locale,
       ),
       [{ filename: `${invoice.number}.pdf`, content: pdf }],
+      { bcc: company().invoiceBcc || undefined },
     )
   }
 }
