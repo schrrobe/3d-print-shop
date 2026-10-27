@@ -53,7 +53,8 @@ const envSchema = z
     /// HMAC key obfuscating RE/REK/VER/TIC numbers. NEVER change once documents
     /// exist — new numbers could collide with issued ones.
     DOCUMENT_NUMBER_KEY: z.string().min(16).default('dev-only-document-number-key'),
-    // --- Invoice PDF: company identity (placeholders — set real values before go-live) ---
+    // --- Invoice PDF: company identity. Fallback only — admin settings override these
+    // (services/company.ts); placeholders block orders in production. ---
     COMPANY_NAME: z.string().default('Print Shop GmbH'),
     COMPANY_STREET: z.string().default('Musterstraße 1'),
     COMPANY_ZIP: z.string().default('12345'),
@@ -166,39 +167,17 @@ const envSchema = z
           message: 'DATABASE_URL still contains the example database password',
         })
       }
-      // These identity/bank fields are printed on legally-binding invoices
-      // (§14 UStG mandatory details) and encoded into the GiroCode. Fail fast
-      // at boot rather than let placeholder defaults reach a real invoice.
-      const placeholders: Record<string, string> = {
-        COMPANY_NAME: 'Print Shop GmbH',
-        COMPANY_STREET: 'Musterstraße 1',
-        COMPANY_ZIP: '12345',
-        COMPANY_CITY: 'Berlin',
-        COMPANY_EMAIL: 'info@example.com',
-        COMPANY_PHONE: '+49 30 0000000',
-        COMPANY_WEBSITE: 'www.example.com',
-        COMPANY_TAX_NUMBER: '12/345/67890',
-        COMPANY_OWNER: 'Max Mustermann',
-        BANK_ACCOUNT_HOLDER: 'Print Shop GmbH',
-        BANK_IBAN: 'DE00 0000 0000 0000 0000 00',
-        BANK_BIC: 'XXXXDEXXXXX',
-      }
-      for (const [key, placeholder] of Object.entries(placeholders)) {
-        if (val[key as keyof typeof val] === placeholder) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: [key],
-            message: `${key} must be set to a real value in production (still the placeholder default)`,
-          })
-        }
-      }
+      // COMPANY_*/BANK_* placeholders no longer block boot: the values can be
+      // set in the admin settings, and services/company.ts refuses new orders
+      // in production until they are complete.
       // Session cookies are signed with this secret — the dev default or a
       // short value would make admin sessions forgeable.
       if (val.JWT_SECRET === 'dev-only-secret-change-me' || val.JWT_SECRET.length < 32) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['JWT_SECRET'],
-          message: 'JWT_SECRET must be a unique random value of at least 32 characters in production',
+          message:
+            'JWT_SECRET must be a unique random value of at least 32 characters in production',
         })
       }
       // Without the webhook secret, unsigned (forgeable) Stripe events would

@@ -1,5 +1,6 @@
 import type { BitcoinPayment, Invoice, Order, OrderItem, Payment, PrinterJob } from '@prisma/client'
 import { env } from '../env.js'
+import { company } from './company.js'
 
 type OrderForDto = Order & {
   items: OrderItem[]
@@ -42,9 +43,9 @@ export function publicOrderDto(order: OrderForDto) {
       bank:
         p.method === 'bank_transfer'
           ? {
-              accountHolder: env.BANK_ACCOUNT_HOLDER,
-              iban: env.BANK_IBAN,
-              bic: env.BANK_BIC,
+              accountHolder: company().accountHolder,
+              iban: company().iban,
+              bic: company().bic,
               reference: p.reference ?? order.orderNumber,
             }
           : undefined,

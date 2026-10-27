@@ -947,6 +947,21 @@ model ShopSettings {
   metaCapiEnabled    Boolean @default(false)
   tiktokEventsEnabled Boolean @default(false)
   tiktokPixelCode    String?
+  /// Invoice letterhead + bank details (§14 UStG). NULL = fall back to the
+  /// COMPANY_ / BANK_ env value. Not secret (printed on every invoice), but
+  /// never add these to the public /api/tracking-settings response.
+  companyName        String?
+  companyOwner       String?
+  companyStreet      String?
+  companyZip         String?
+  companyCity        String?
+  companyEmail       String?
+  companyPhone       String?
+  companyWebsite     String?
+  companyTaxNumber   String?
+  bankAccountHolder  String?
+  bankIban           String?
+  bankBic            String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

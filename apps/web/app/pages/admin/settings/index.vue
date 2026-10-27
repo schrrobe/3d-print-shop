@@ -100,12 +100,87 @@ function save() {
           gtmContainerId: form.gtmContainerId,
         },
       }),
-    { success: 'Tracking-Einstellungen gespeichert', error: 'Speichern fehlgeschlagen — Eingaben prüfen' },
+    {
+      success: 'Tracking-Einstellungen gespeichert',
+      error: 'Speichern fehlgeschlagen — Eingaben prüfen',
+    },
   )
 }
 
 function clearField(key: (typeof fields)[number]['key']) {
   form[key] = ''
+}
+
+// ---------- Firma & Bankverbindung ----------
+
+type CompanyField =
+  | 'name'
+  | 'owner'
+  | 'street'
+  | 'zip'
+  | 'city'
+  | 'email'
+  | 'phone'
+  | 'website'
+  | 'taxNumber'
+  | 'accountHolder'
+  | 'iban'
+  | 'bic'
+
+interface CompanySettingsDto {
+  settings: Record<CompanyField, string | null>
+  effective: Record<CompanyField, string>
+  missing: CompanyField[]
+}
+
+const companyFields: { key: CompanyField; label: string; type?: string }[] = [
+  { key: 'name', label: 'Firmenname' },
+  { key: 'owner', label: 'Inhaber' },
+  { key: 'street', label: 'Straße & Hausnummer' },
+  { key: 'zip', label: 'PLZ' },
+  { key: 'city', label: 'Ort' },
+  { key: 'email', label: 'E-Mail', type: 'email' },
+  { key: 'phone', label: 'Telefon', type: 'tel' },
+  { key: 'website', label: 'Website (optional)' },
+  { key: 'taxNumber', label: 'Steuernummer' },
+  { key: 'accountHolder', label: 'Kontoinhaber' },
+  { key: 'iban', label: 'IBAN' },
+  { key: 'bic', label: 'BIC' },
+]
+
+const { data: companyData, refresh: refreshCompany } = await useFetch<CompanySettingsDto>(
+  '/api/admin/settings/company',
+  { credentials: 'include', server: false },
+)
+
+const companyForm = reactive(
+  Object.fromEntries(companyFields.map((f) => [f.key, ''])) as Record<CompanyField, string>,
+)
+const { run: runCompany, pending: savingCompany } = useAdminAction({ refresh: refreshCompany })
+
+watch(
+  () => companyData.value?.settings,
+  (settings) => {
+    if (!settings) return
+    for (const f of companyFields) companyForm[f.key] = settings[f.key] ?? ''
+  },
+  { immediate: true },
+)
+
+const missingLabels = computed(() =>
+  (companyData.value?.missing ?? []).map((k) => companyFields.find((f) => f.key === k)?.label ?? k),
+)
+
+function saveCompany() {
+  return runCompany(
+    () =>
+      $fetch('/api/admin/settings/company', {
+        method: 'PUT',
+        credentials: 'include',
+        body: { ...companyForm },
+      }),
+    { success: 'Firmendaten gespeichert', error: 'Speichern fehlgeschlagen — Eingaben prüfen' },
+  )
 }
 </script>
 
@@ -167,6 +242,41 @@ function clearField(key: (typeof fields)[number]['key']) {
         >
           Speichern
         </PsButton>
+      </form>
+    </section>
+    <section class="mt-lg rounded-lg border border-default bg-surface-raised p-lg">
+      <h2 class="text-lg font-medium">Firma &amp; Bankverbindung</h2>
+      <p class="mb-lg mt-xs text-sm text-secondary">
+        Erscheint auf Rechnungen, Lieferscheinen und in den Überweisungsdaten. Leere Felder nutzen
+        den Wert aus der Server-Konfiguration (als Platzhalter angezeigt).
+      </p>
+
+      <div
+        v-if="missingLabels.length"
+        data-testid="company-missing-warning"
+        class="mb-lg rounded-md border border-amber-300 bg-amber-50 p-md text-sm text-amber-900"
+      >
+        <strong>Unvollständig:</strong> {{ missingLabels.join(', ') }}. Im Live-Betrieb nimmt der
+        Shop keine Bestellungen an, bis diese Angaben gesetzt sind.
+      </div>
+
+      <form class="grid gap-md sm:grid-cols-2" @submit.prevent="saveCompany">
+        <PsInput
+          v-for="field in companyFields"
+          :key="field.key"
+          v-model="companyForm[field.key]"
+          :label="field.label"
+          :type="field.type ?? 'text'"
+          :placeholder="companyData?.effective[field.key] ?? ''"
+          :disabled="!auth.can('settings:write')"
+          :name="`company-${field.key}`"
+          :data-testid="`company-${field.key}`"
+        />
+        <div v-if="auth.can('settings:write')" class="sm:col-span-2">
+          <PsButton type="submit" :loading="savingCompany" data-testid="company-save">
+            Speichern
+          </PsButton>
+        </div>
       </form>
     </section>
   </div>

@@ -7,6 +7,7 @@ import QRCode from 'qrcode'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
+import { company } from './company.js'
 import {
   buildEpcQrPayload,
   renderInvoicePdf,
@@ -60,21 +61,10 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
   }
 }
 
-function companyFromEnv(): CompanyInfo {
+function invoiceCompany(): CompanyInfo {
   return {
-    name: env.COMPANY_NAME,
-    street: env.COMPANY_STREET,
-    zip: env.COMPANY_ZIP,
-    city: env.COMPANY_CITY,
-    email: env.COMPANY_EMAIL,
-    phone: env.COMPANY_PHONE,
-    website: env.COMPANY_WEBSITE,
-    taxNumber: env.COMPANY_TAX_NUMBER,
-    owner: env.COMPANY_OWNER,
+    ...company(),
     logoPath: env.INVOICE_LOGO_PATH,
-    iban: env.BANK_IBAN,
-    bic: env.BANK_BIC,
-    accountHolder: env.BANK_ACCOUNT_HOLDER,
     paymentTermsDays: env.PAYMENT_TERMS_DAYS,
     vatExempt: env.COMPANY_VAT_EXEMPT,
   }
@@ -87,7 +77,7 @@ export async function generateInvoicePdf(
 ): Promise<string> {
   await mkdir(env.INVOICE_DIR, { recursive: true })
   const filePath = path.join(env.INVOICE_DIR, `${invoice.number}.pdf`)
-  const company = companyFromEnv()
+  const company = invoiceCompany()
 
   let qrPng: Buffer | undefined
   if (shouldShowGiroCode(invoice, order.payments)) {

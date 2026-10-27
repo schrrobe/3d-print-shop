@@ -353,6 +353,34 @@ export const trackingSettingsSchema = z.object({
 })
 export type TrackingSettingsInput = z.infer<typeof trackingSettingsSchema>
 
+// ---------- Admin: company settings ----------
+
+export const IBAN_REGEX = /^[A-Z]{2}\d{2}(?: ?[A-Z0-9]){11,30}$/
+export const BIC_REGEX = /^[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$/
+
+/** Empty string or null clears the value (API falls back to the env default). Trims whitespace. */
+const optionalText = (schema: z.ZodString) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? (v.trim() === '' ? null : v.trim()) : v),
+    schema.nullable(),
+  )
+
+export const companySettingsSchema = z.object({
+  name: optionalText(z.string().max(200)),
+  owner: optionalText(z.string().max(200)),
+  street: optionalText(z.string().max(200)),
+  zip: optionalText(z.string().max(20)),
+  city: optionalText(z.string().max(100)),
+  email: optionalText(z.string().email().max(254)),
+  phone: optionalText(z.string().max(50)),
+  website: optionalText(z.string().max(200)),
+  taxNumber: optionalText(z.string().max(50)),
+  accountHolder: optionalText(z.string().max(200)),
+  iban: optionalText(z.string().toUpperCase().regex(IBAN_REGEX, 'Invalid IBAN')),
+  bic: optionalText(z.string().toUpperCase().regex(BIC_REGEX, 'Invalid BIC')),
+})
+export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
+
 // ---------- Payments ----------
 
 export const markPaidSchema = z.object({
