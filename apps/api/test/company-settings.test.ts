@@ -61,6 +61,15 @@ describe('company settings', () => {
       'XX89 3704 0044 0532 0130 00',
     ])
       expect(companySettingsSchema.safeParse({ ...real, iban }).success).toBe(false)
+    // SWIFT registry examples for the SEPA countries added in 2023+.
+    for (const iban of [
+      'AL47 2121 1009 0000 0002 3569 8741',
+      'MD24 AG00 0225 1000 1310 4168',
+      'ME25 5050 0001 2345 6789 51',
+      'MK07 2501 2000 0058 984',
+      'RS35 2600 0560 1001 6113 79',
+    ])
+      expect(companySettingsSchema.safeParse({ ...real, iban }).success).toBe(true)
     expect(parsed.invoiceBcc).toBeNull()
     expect(companySettingsSchema.safeParse({ ...real, invoiceBcc: 'buchhaltung' }).success).toBe(
       false,
