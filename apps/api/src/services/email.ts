@@ -21,6 +21,8 @@ export interface EmailAttachment {
 export interface SendEmailOptions {
   /** Reply-To header, e.g. the ticket+<token> inbound address. */
   replyTo?: string
+  /** Blind copy, e.g. invoices to the bookkeeping inbox. */
+  bcc?: string
 }
 
 /**
@@ -46,6 +48,7 @@ export async function sendEmail(
           text: rendered.text,
           attachments: attachments.map((a) => a.filename),
           replyTo: options.replyTo ?? null,
+          bcc: options.bcc ?? null,
         },
       },
     })
@@ -53,17 +56,29 @@ export async function sendEmail(
   }
 
   try {
-    await transport.sendMail({
+    const info = await transport.sendMail({
       from: env.EMAIL_FROM,
       to,
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,
       replyTo: options.replyTo,
+      bcc: options.bcc,
       attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
     })
+    // Partial rejection (e.g. only the BCC) resolves instead of throwing — keep it visible.
+    const rejected: string[] = info.rejected
+    if (rejected.length > 0) {
+      console.error(`[email] recipients rejected for template=${template}:`, rejected)
+    }
     await prisma.emailLog.create({
-      data: { to, template, subject: rendered.subject, status: 'sent' },
+      data: {
+        to,
+        template,
+        subject: rendered.subject,
+        status: rejected.includes(to) ? 'failed' : 'sent',
+        error: rejected.length > 0 ? `rejected: ${rejected.join(', ')}` : null,
+      },
     })
   } catch (err) {
     console.error(`[email] send failed for template=${template}:`, err)

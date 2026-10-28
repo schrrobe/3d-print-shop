@@ -6,6 +6,7 @@ import { prisma } from '../../lib/prisma.js'
 import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
+import { assertCompanyComplete } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
 import { createStripePaymentLink } from '../../services/payments/stripe.js'
 
@@ -130,6 +131,7 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
         })
         throw conflict('Quote expired')
       }
+      assertCompanyComplete()
       const address = addressSchema.parse(req.body?.address ?? {})
       const orderNumber = generateOrderNumber()
       const accessToken = randomToken()

@@ -353,6 +353,52 @@ export const trackingSettingsSchema = z.object({
 })
 export type TrackingSettingsInput = z.infer<typeof trackingSettingsSchema>
 
+// ---------- Admin: company settings ----------
+
+export const IBAN_REGEX = /^[A-Z]{2}\d{2}(?: ?[A-Z0-9]){11,30}$/
+export const BIC_REGEX = /^[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$/
+
+// ponytail: SEPA countries only (GiroCode/bank transfer target), extend when non-SEPA payouts matter.
+const IBAN_LENGTHS: Record<string, number> = Object.fromEntries(
+  'AD24 AL28 AT20 BE16 BG22 CH21 CY28 CZ24 DE22 DK18 EE20 ES24 FI18 FR27 GB22 GI23 GR27 HR21 HU28 IE22 IS26 IT27 LI21 LT20 LU20 LV21 MC27 MD24 ME22 MK19 MT31 NL18 NO15 PL28 PT25 RO24 RS22 SE24 SI19 SK24 SM27 VA22'
+    .split(' ')
+    .map((e) => [e.slice(0, 2), Number(e.slice(2))]),
+)
+
+/** Known country, matching length and valid MOD-97-10 check digits (ISO 13616). */
+export function isValidIban(value: string): boolean {
+  const iban = value.replace(/ /g, '')
+  if (!IBAN_REGEX.test(value) || iban.length !== IBAN_LENGTHS[iban.slice(0, 2)]) return false
+  const digits = (iban.slice(4) + iban.slice(0, 4)).replace(/[A-Z]/g, (ch) =>
+    String(ch.charCodeAt(0) - 55),
+  )
+  return BigInt(digits) % 97n === 1n
+}
+
+/** Empty string or null clears the value (API falls back to the env default). Trims whitespace. */
+const optionalText = (schema: z.ZodType<string>) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? (v.trim() === '' ? null : v.trim()) : v),
+    schema.nullable(),
+  )
+
+export const companySettingsSchema = z.object({
+  name: optionalText(z.string().max(200)),
+  owner: optionalText(z.string().max(200)),
+  street: optionalText(z.string().max(200)),
+  zip: optionalText(z.string().max(20)),
+  city: optionalText(z.string().max(100)),
+  email: optionalText(z.string().email().max(254)),
+  phone: optionalText(z.string().max(50)),
+  website: optionalText(z.string().max(200)),
+  taxNumber: optionalText(z.string().max(50)),
+  accountHolder: optionalText(z.string().max(200)),
+  iban: optionalText(z.string().toUpperCase().refine(isValidIban, 'Invalid IBAN')),
+  bic: optionalText(z.string().toUpperCase().regex(BIC_REGEX, 'Invalid BIC')),
+  invoiceBcc: optionalText(z.string().email().max(254)),
+})
+export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
+
 // ---------- Payments ----------
 
 export const markPaidSchema = z.object({

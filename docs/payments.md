@@ -24,7 +24,7 @@ Echtbetrieb: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` setzen; Webhook-Endpoi
 ## Banküberweisung
 
 Checkout mit `paymentMethod: "bank_transfer"` → Order-Status **`awaiting_bank_transfer`**,
-Kunde sieht Bankdaten (aus `BANK_*`-env) inkl. Verwendungszweck = Bestellnummer.
+Kunde sieht Bankdaten (aus Admin → Einstellungen, Fallback `BANK_*`-env) inkl. Verwendungszweck = Bestellnummer.
 Admin bucht den Zahlungseingang manuell: `POST /api/admin/orders/:id/mark-paid`
 (Permission `payments:write`, auditiert).
 

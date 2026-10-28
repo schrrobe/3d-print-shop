@@ -21,9 +21,9 @@ Stand: 2026-07-13.
 
 ## Rechnung / Steuer
 
-- [ ] **Firmen- & Rechnungsdaten** in `.env` mit echten Werten füllen (Platzhalter-Defaults
-      in `apps/api/src/env.ts`): `COMPANY_NAME/STREET/ZIP/CITY/EMAIL/PHONE/WEBSITE`,
-      `COMPANY_TAX_NUMBER` (Steuernummer), `COMPANY_OWNER`, `BANK_IBAN/BIC/ACCOUNT_HOLDER`.
+- [ ] **Firmen- & Rechnungsdaten** unter Admin → Einstellungen → „Firma & Bankverbindung“
+      pflegen (Fallback: `COMPANY_*`/`BANK_*` in `.env`). Bis alles gesetzt ist, nimmt prod
+      keine Bestellungen an.
 - [ ] **Logo** hinterlegen: PNG/JPEG-Pfad in `INVOICE_LOGO_PATH` setzen (sonst Text-Briefkopf).
 - [ ] **Steuermodell prüfen:** aktuell Kleinunternehmer § 19 UStG (kein USt-Ausweis).
       Bei Regelbesteuerung → USt-Spalte + Steuerblock nachrüsten (Schema-Migration nötig).

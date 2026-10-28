@@ -12,6 +12,7 @@ import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { badRequest, conflict, notFound } from '../middleware/error.js'
+import { company } from './company.js'
 import { notifyShipped } from './order-flow.js'
 import { allJobsQcCleared } from './qc.js'
 
@@ -209,9 +210,8 @@ type ShipmentWithRefs = Shipment & {
 const CARRIER_LABELS: Record<string, string> = { dhl: 'DHL', hermes: 'Hermes' }
 
 function companyAddress(): string {
-  return [env.COMPANY_NAME, env.COMPANY_STREET, `${env.COMPANY_ZIP} ${env.COMPANY_CITY}`].join(
-    ' · ',
-  )
+  const c = company()
+  return [c.name, c.street, `${c.zip} ${c.city}`].join(' · ')
 }
 
 function shipmentPdfDir(): string {
@@ -230,7 +230,7 @@ async function renderShipmentPdf(
   const stream = createWriteStream(filePath)
   doc.pipe(stream)
 
-  doc.fontSize(18).text(env.COMPANY_NAME)
+  doc.fontSize(18).text(company().name)
   doc.fontSize(9).fillColor('#5e5e5e').text(companyAddress())
   doc.moveDown(2)
 

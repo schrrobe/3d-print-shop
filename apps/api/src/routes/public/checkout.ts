@@ -15,6 +15,7 @@ import { prisma } from '../../lib/prisma.js'
 import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
+import { assertCompanyComplete, company } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
@@ -72,9 +73,9 @@ function checkoutResponse(order: Prisma.OrderGetPayload<{ include: typeof checko
     paymentResponse = {
       method: 'bank_transfer',
       bank: {
-        accountHolder: env.BANK_ACCOUNT_HOLDER,
-        iban: env.BANK_IBAN,
-        bic: env.BANK_BIC,
+        accountHolder: company().accountHolder,
+        iban: company().iban,
+        bic: company().bic,
         reference: payment.reference ?? order.orderNumber,
         amountCents: payment.amountCents,
       },
@@ -128,6 +129,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       res.json(checkoutResponse(previous))
       return
     }
+    assertCompanyComplete()
 
     const products = await prisma.product.findMany({
       where: { id: { in: input.items.map((i) => i.productId) }, active: true },
