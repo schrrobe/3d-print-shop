@@ -20,7 +20,8 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
     {
-      command: 'pnpm --filter @print-shop/api start',
+      // The API reads ShopSettings on boot and Playwright starts it before global-setup runs.
+      command: 'pnpm --filter @print-shop/api prisma:deploy && pnpm --filter @print-shop/api start',
       url: 'http://localhost:3001/health',
       reuseExistingServer: !process.env.CI,
       cwd: '../..',

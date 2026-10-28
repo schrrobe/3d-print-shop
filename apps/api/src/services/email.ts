@@ -56,7 +56,7 @@ export async function sendEmail(
   }
 
   try {
-    await transport.sendMail({
+    const info = await transport.sendMail({
       from: env.EMAIL_FROM,
       to,
       subject: rendered.subject,
@@ -66,8 +66,19 @@ export async function sendEmail(
       bcc: options.bcc,
       attachments: attachments.map((a) => ({ filename: a.filename, content: a.content })),
     })
+    // Partial rejection (e.g. only the BCC) resolves instead of throwing — keep it visible.
+    const rejected: string[] = info.rejected
+    if (rejected.length > 0) {
+      console.error(`[email] recipients rejected for template=${template}:`, rejected)
+    }
     await prisma.emailLog.create({
-      data: { to, template, subject: rendered.subject, status: 'sent' },
+      data: {
+        to,
+        template,
+        subject: rendered.subject,
+        status: rejected.includes(to) ? 'failed' : 'sent',
+        error: rejected.length > 0 ? `rejected: ${rejected.join(', ')}` : null,
+      },
     })
   } catch (err) {
     console.error(`[email] send failed for template=${template}:`, err)

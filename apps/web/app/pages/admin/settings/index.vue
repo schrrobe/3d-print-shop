@@ -179,6 +179,8 @@ const missingLabels = computed(() =>
 )
 
 function saveCompany() {
+  // Before the GET lands the form is all blanks — saving would wipe every stored value.
+  if (!companyData.value) return
   return runCompany(
     () =>
       $fetch('/api/admin/settings/company', {
@@ -285,7 +287,12 @@ function saveCompany() {
           <p v-if="field.hint" class="text-xs text-secondary">{{ field.hint }}</p>
         </div>
         <div v-if="auth.can('settings:write')" class="sm:col-span-2">
-          <PsButton type="submit" :loading="savingCompany" data-testid="company-save">
+          <PsButton
+            type="submit"
+            :loading="savingCompany"
+            :disabled="!companyData"
+            data-testid="company-save"
+          >
             Speichern
           </PsButton>
         </div>

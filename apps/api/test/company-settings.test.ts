@@ -36,6 +36,13 @@ describe('company settings', () => {
     expect(mergeCompany(null, real)).toEqual(real)
   })
 
+  it('drops the placeholder website so a blank website does not block orders', () => {
+    const merged = mergeCompany(null, { ...real, website: 'www.example.com' })
+    expect(merged.website).toBe('')
+    expect(missingCompanyFields(merged)).toEqual([])
+    expect(missingCompanyFields({ ...real, website: 'www.example.com' })).toEqual([])
+  })
+
   it('normalizes input: blank clears, IBAN/BIC uppercased and validated', () => {
     const parsed = companySettingsSchema.parse({
       ...real,
@@ -47,6 +54,13 @@ describe('company settings', () => {
     expect(parsed.iban).toBe('DE89 3704 0044 0532 0130 00')
     expect(parsed.bic).toBe('COBADEFFXXX')
     expect(companySettingsSchema.safeParse({ ...real, iban: 'not-an-iban' }).success).toBe(false)
+    // Right shape, wrong check digits / wrong length / unknown country.
+    for (const iban of [
+      'DE00 0000 0000 0000 0000 01',
+      'DE89 3704 0044 0532 0130 0',
+      'XX89 3704 0044 0532 0130 00',
+    ])
+      expect(companySettingsSchema.safeParse({ ...real, iban }).success).toBe(false)
     expect(parsed.invoiceBcc).toBeNull()
     expect(companySettingsSchema.safeParse({ ...real, invoiceBcc: 'buchhaltung' }).success).toBe(
       false,
