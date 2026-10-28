@@ -221,6 +221,14 @@ const envSchema = z
         message: 'BITCOIN_ENABLED requires a real provider in production',
       })
     }
+    // Embedded Checkout: a real session is useless if the browser can't load Stripe.js.
+    if (val.STRIPE_SECRET_KEY && !val.STRIPE_PUBLISHABLE_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['STRIPE_PUBLISHABLE_KEY'],
+        message: 'STRIPE_PUBLISHABLE_KEY is required when STRIPE_SECRET_KEY is set',
+      })
+    }
     // Tracking destinations: a half-configured credential pair is always a
     // mistake — fail at boot instead of silently skipping every send.
     const destinationPairs = [

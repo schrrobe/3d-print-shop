@@ -166,13 +166,19 @@ async function submit() {
     })
     checkoutKey.value = null
     cart.clear()
+    const orderPath = localePath(`/order/${response.orderNumber}?token=${response.accessToken}`)
     if (response.payment.method === 'stripe' && response.payment.clientSecret) {
-      await mountStripe(response)
+      // The order exists and the cart is gone — if Stripe.js won't start, the
+      // order page's "pay now" resumes the session (and survives reloads).
+      await mountStripe(response).catch((err) => {
+        console.error(err)
+        return router.push(orderPath)
+      })
     } else if (response.payment.method === 'stripe' && response.payment.redirectUrl) {
       // Mock mode redirects straight to the success page
       window.location.href = response.payment.redirectUrl
     } else {
-      await router.push(localePath(`/order/${response.orderNumber}?token=${response.accessToken}`))
+      await router.push(orderPath)
     }
   } catch (err) {
     // Stale voucher from localStorage (expired/exhausted meanwhile): drop it,
