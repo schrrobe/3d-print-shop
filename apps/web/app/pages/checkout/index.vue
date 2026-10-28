@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { StripeEmbeddedCheckout } from '@stripe/stripe-js'
 import { canLoadTracker, formatCents } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 import { adPlatformCookies } from '~/utils/tracking/queue'
@@ -101,28 +100,18 @@ interface CheckoutResponse {
   payment: { method: string; redirectUrl?: string; clientSecret?: string; publishableKey?: string }
 }
 
-// Embedded Stripe Checkout: the payment form renders in an iframe right here,
-// the customer never leaves the shop (except for redirect-only methods).
 const stripeOrder = ref<CheckoutResponse | null>(null)
-const stripeMount = ref<HTMLElement | null>(null)
-let embeddedCheckout: StripeEmbeddedCheckout | null = null
-onBeforeUnmount(() => embeddedCheckout?.destroy())
+const { mountEl: stripeMount, mount: mountStripeCheckout } = useStripeEmbedded()
 
 async function mountStripe(response: CheckoutResponse) {
   stripeOrder.value = response
-  const { loadStripe } = await import('@stripe/stripe-js')
-  const stripe = await loadStripe(response.payment.publishableKey ?? '')
-  if (!stripe) throw new Error('Stripe.js failed to load')
-  embeddedCheckout = await stripe.initEmbeddedCheckout({
-    clientSecret: response.payment.clientSecret,
-    onComplete: () => {
-      void router.push(
-        localePath(`/checkout/success?order=${response.orderNumber}&token=${response.accessToken}`),
-      )
+  await mountStripeCheckout(
+    {
+      clientSecret: response.payment.clientSecret ?? '',
+      publishableKey: response.payment.publishableKey ?? '',
     },
-  })
-  await nextTick()
-  if (stripeMount.value) embeddedCheckout.mount(stripeMount.value)
+    response,
+  )
 }
 
 async function submit() {

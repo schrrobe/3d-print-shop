@@ -109,6 +109,11 @@
       "completed": "Afgerond",
       "cancelled": "Geannuleerd",
       "refunded": "Terugbetaald"
+    },
+    "stripe": {
+      "title": "Betaling openstaand",
+      "hint": "Je betaling is nog niet afgerond.",
+      "payNow": "Nu betalen"
     }
   },
   "quote": {

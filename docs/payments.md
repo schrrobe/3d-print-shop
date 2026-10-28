@@ -14,6 +14,11 @@ E-Mails `payment_received` + `invoice`. Idempotent (Webhook-Retries sicher).
   verlässt den Shop nicht. Karten schließen in-place ab (`onComplete` → `/checkout/success`),
   nur Redirect-Methoden kehren über `return_url` zurück (`redirect_on_completion: if_required`).
   Im Mock-Modus kommt stattdessen `redirectUrl` direkt zur Success-Seite.
+- **Jetzt bezahlen**: Bricht der Kunde ab (Order `awaiting_payment`), zeigt die Bestellseite
+  einen Button → `POST /api/orders/:orderNumber/stripe-session?token=…`. Offene embedded Session
+  wird wiederverwendet; abgelaufene (bzw. alte hosted Sessions, die vorher expired werden)
+  werden durch eine neue ersetzt. Der Tausch von `stripeSessionId` ist gegen parallele Requests
+  abgesichert, weil der Webhook nur die gespeicherte Session kennt.
 - **Upload-Angebote**: Angebotsannahme erstellt einen **Payment Link**.
 - **Webhook** `POST /api/webhooks/stripe` verarbeitet `checkout.session.completed`
   (raw body, Signaturprüfung mit `STRIPE_WEBHOOK_SECRET`).

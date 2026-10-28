@@ -32,6 +32,36 @@ test.describe('checkout with stripe (mock)', () => {
     }).toPass({ timeout: 30_000 })
   })
 
+  test('unpaid stripe order can be paid later from the order page', async ({ page }) => {
+    const shop = new ShopPage(page)
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
+    await gotoHydrated(page, '/checkout')
+    await shop.fillCheckoutAddress('stripe-later-e2e@example.com')
+    await page.getByTestId('payment-stripe').click()
+    await page.getByTestId('submit-order').click()
+    await page.waitForURL(/\/checkout\/success/)
+
+    // Customer leaves without paying, comes back via the order link
+    await page.waitForSelector('html[data-hydrated="true"]')
+    await page.getByTestId('view-order').click()
+    await page.waitForURL(/\/order\//)
+    await page.waitForSelector('html[data-hydrated="true"]')
+    await page.getByTestId('stripe-pay-now').click()
+
+    // Mock mode reopens the payment via the success page
+    await page.waitForURL(/\/checkout\/success.*mock=1/)
+    await page.waitForSelector('html[data-hydrated="true"]')
+    await page.getByTestId('simulate-payment').click()
+    await expect(page.getByTestId('simulate-payment')).toBeHidden()
+    await page.getByTestId('view-order').click()
+    await page.waitForURL(/\/order\//)
+    await expect(async () => {
+      await page.reload()
+      await expect(page.getByTestId('order-status')).toContainText('Bezahlt', { timeout: 2000 })
+    }).toPass({ timeout: 30_000 })
+    await expect(page.getByTestId('stripe-pay')).toBeHidden()
+  })
+
   test('validation: missing address blocks submit', async ({ page }) => {
     const shop = new ShopPage(page)
     await shop.addProductToCart('patronenbox-9mm-luger-50')

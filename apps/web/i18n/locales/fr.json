@@ -109,6 +109,11 @@
       "completed": "Terminée",
       "cancelled": "Annulée",
       "refunded": "Remboursée"
+    },
+    "stripe": {
+      "title": "Paiement en attente",
+      "hint": "Votre paiement n'a pas encore été finalisé.",
+      "payNow": "Payer maintenant"
     }
   },
   "quote": {

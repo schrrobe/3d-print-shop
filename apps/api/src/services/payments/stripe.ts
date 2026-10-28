@@ -21,7 +21,7 @@ export type StripeEmbeddedResult =
   | { sessionId: string; clientSecret: string; url?: never }
   | { sessionId: string; url: string; clientSecret?: never }
 
-interface CheckoutParams {
+export interface CheckoutParams {
   orderNumber: string
   accessToken: string
   amountCents: number
@@ -71,6 +71,35 @@ export async function getStripeClientSecret(sessionId: string): Promise<string> 
   const session = await stripe.checkout.sessions.retrieve(sessionId)
   if (!session.client_secret) throw new Error('Stripe session has no client secret')
   return session.client_secret
+}
+
+/**
+ * Reopens payment for an unpaid order: reuses the open embedded session,
+ * otherwise expires/replaces it (expired, or a pre-embedded hosted session).
+ * Returns null when the old session is already complete (webhook pending).
+ */
+export async function resumeStripeCheckoutSession(
+  sessionId: string,
+  params: CheckoutParams,
+): Promise<{ sessionId: string; clientSecret: string } | null> {
+  if (!stripe) throw new Error('Stripe is not configured')
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  if (session.status === 'complete') return null
+  if (session.status === 'open') {
+    if (session.ui_mode === 'embedded' && session.client_secret) {
+      return { sessionId, clientSecret: session.client_secret }
+    }
+    // Close the hosted session so the order can't be paid twice.
+    await stripe.checkout.sessions.expire(sessionId)
+  }
+  const fresh = await createStripeCheckoutSession(params)
+  if (!fresh.clientSecret) throw new Error('Stripe returned no client secret')
+  return { sessionId: fresh.sessionId, clientSecret: fresh.clientSecret }
+}
+
+/** Expires a session we created but could not attach to the order (lost race). */
+export async function expireStripeCheckoutSession(sessionId: string): Promise<void> {
+  await stripe?.checkout.sessions.expire(sessionId)
 }
 
 /** Payment link for accepted quotes (Stripe Payment Links or mock). */

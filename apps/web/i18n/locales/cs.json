@@ -109,6 +109,11 @@
       "completed": "Dokončeno",
       "cancelled": "Zrušeno",
       "refunded": "Vráceno"
+    },
+    "stripe": {
+      "title": "Platba čeká",
+      "hint": "Vaše platba ještě nebyla dokončena.",
+      "payNow": "Zaplatit nyní"
     }
   },
   "quote": {

@@ -68,6 +68,45 @@ async function checkBitcoin() {
   })
   await refresh()
 }
+
+/** "Pay now" for an unpaid Stripe order — reopens the embedded checkout here. */
+const stripePayment = computed(() =>
+  order.value.status === 'awaiting_payment'
+    ? order.value.payments.find((p) => p.method === 'stripe' && p.status === 'pending')
+    : undefined,
+)
+const { mountEl: stripeMount, mount: mountStripe } = useStripeEmbedded()
+const stripeOpen = ref(false)
+const stripeLoading = ref(false)
+const stripeError = ref('')
+
+async function payNow() {
+  stripeLoading.value = true
+  stripeError.value = ''
+  try {
+    const session = await $fetch<{
+      clientSecret?: string
+      publishableKey?: string
+      redirectUrl?: string
+    }>(`/api/orders/${orderNumber}/stripe-session`, { method: 'POST', query: { token } })
+    if (session.redirectUrl) {
+      // Mock mode: straight to the success page
+      window.location.href = session.redirectUrl
+      return
+    }
+    stripeOpen.value = true
+    await mountStripe(
+      { clientSecret: session.clientSecret ?? '', publishableKey: session.publishableKey ?? '' },
+      { orderNumber, accessToken: token },
+    )
+  } catch (err) {
+    stripeOpen.value = false
+    stripeError.value = t('common.error')
+    console.error(err)
+  } finally {
+    stripeLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -165,6 +204,28 @@ async function checkBitcoin() {
         >
           {{ t('order.bitcoin.check') }}
         </PsButton>
+      </div>
+
+      <div
+        v-if="stripePayment"
+        class="mt-2xl rounded-card border border-brand/40 bg-brand/5 p-lg"
+        data-testid="stripe-pay"
+      >
+        <h2 class="text-label-medium">{{ t('order.stripe.title') }}</h2>
+        <p class="mt-md text-body-regular">{{ t('order.stripe.hint') }}</p>
+        <p v-if="stripeError" class="mt-md text-body-regular text-danger" role="alert">
+          {{ stripeError }}
+        </p>
+        <PsButton
+          v-if="!stripeOpen"
+          class="mt-md"
+          :disabled="stripeLoading"
+          data-testid="stripe-pay-now"
+          @click="payNow"
+        >
+          {{ t('order.stripe.payNow') }}
+        </PsButton>
+        <div v-else ref="stripeMount" class="mt-md min-h-96" />
       </div>
 
       <p v-if="order.trackingNumber" class="mt-2xl text-body-regular" data-testid="tracking">
