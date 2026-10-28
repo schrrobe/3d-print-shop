@@ -38,6 +38,8 @@ const envSchema = z
     TICKET_REPLY_DOMAIN: z.string().optional().default(''),
     STRIPE_SECRET_KEY: z.string().optional().default(''),
     STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
+    // Public key for the embedded checkout; handed to the browser via /api/checkout.
+    STRIPE_PUBLISHABLE_KEY: z.string().optional().default(''),
     BITCOIN_PROVIDER: z.enum(['mock', 'blockchain-api']).default('mock'),
     BITCOIN_ENABLED: z
       .enum(['true', 'false'])
@@ -144,11 +146,11 @@ const envSchema = z
           message: 'WEB_URL must use HTTPS in production',
         })
       }
-      if (!val.STRIPE_SECRET_KEY || !val.STRIPE_WEBHOOK_SECRET) {
+      if (!val.STRIPE_SECRET_KEY || !val.STRIPE_WEBHOOK_SECRET || !val.STRIPE_PUBLISHABLE_KEY) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['STRIPE_SECRET_KEY'],
-          message: 'Stripe secret and webhook keys are required in production',
+          message: 'Stripe secret, publishable and webhook keys are required in production',
         })
       }
       // The repo is public: with the dev key anyone could invert document
@@ -195,6 +197,14 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['BITCOIN_PROVIDER'],
         message: 'BITCOIN_ENABLED requires a real provider in production',
+      })
+    }
+    // Embedded Checkout: a real session is useless if the browser can't load Stripe.js.
+    if (val.STRIPE_SECRET_KEY && !val.STRIPE_PUBLISHABLE_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['STRIPE_PUBLISHABLE_KEY'],
+        message: 'STRIPE_PUBLISHABLE_KEY is required when STRIPE_SECRET_KEY is set',
       })
     }
     // Tracking destinations: a half-configured credential pair is always a

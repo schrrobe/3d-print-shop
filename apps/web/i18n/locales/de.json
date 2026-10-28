@@ -109,6 +109,11 @@
       "completed": "Abgeschlossen",
       "cancelled": "Storniert",
       "refunded": "Erstattet"
+    },
+    "stripe": {
+      "title": "Zahlung ausstehend",
+      "hint": "Deine Zahlung wurde noch nicht abgeschlossen.",
+      "payNow": "Jetzt bezahlen"
     }
   },
   "quote": {

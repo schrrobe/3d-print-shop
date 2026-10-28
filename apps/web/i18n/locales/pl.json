@@ -109,6 +109,11 @@
       "completed": "Zakończone",
       "cancelled": "Anulowane",
       "refunded": "Zwrócone"
+    },
+    "stripe": {
+      "title": "Płatność oczekująca",
+      "hint": "Twoja płatność nie została jeszcze zakończona.",
+      "payNow": "Zapłać teraz"
     }
   },
   "quote": {

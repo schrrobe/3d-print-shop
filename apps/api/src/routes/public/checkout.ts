@@ -19,7 +19,10 @@ import { assertCompanyComplete, company } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
 import { sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
-import { createStripeCheckoutSession } from '../../services/payments/stripe.js'
+import {
+  createStripeCheckoutSession,
+  getStripeClientSecret,
+} from '../../services/payments/stripe.js'
 import { REF_COOKIE, attributeSalesChannel, commissionFor } from '../../services/sales-channels.js'
 import { emitOrderCreated } from '../../services/tracking/events.js'
 
@@ -61,14 +64,26 @@ const checkoutOrderInclude = {
   payments: { include: { bitcoinPayment: true } },
 } as const
 
-function checkoutResponse(order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>) {
+async function checkoutResponse(
+  order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>,
+  stripeClientSecret?: string,
+) {
   const payment = order.payments[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
   let paymentResponse: Record<string, unknown>
   if (payment.method === 'stripe') {
-    if (!payment.stripePaymentLinkUrl) throw new Error('Stripe checkout URL is missing')
-    paymentResponse = { method: 'stripe', redirectUrl: payment.stripePaymentLinkUrl }
+    if (payment.stripePaymentLinkUrl) {
+      // Mock mode (and hosted sessions from before embedded checkout)
+      paymentResponse = { method: 'stripe', redirectUrl: payment.stripePaymentLinkUrl }
+    } else {
+      if (!payment.stripeSessionId) throw new Error('Stripe session is missing')
+      paymentResponse = {
+        method: 'stripe',
+        publishableKey: env.STRIPE_PUBLISHABLE_KEY,
+        clientSecret: stripeClientSecret ?? (await getStripeClientSecret(payment.stripeSessionId)),
+      }
+    }
   } else if (payment.method === 'bank_transfer') {
     paymentResponse = {
       method: 'bank_transfer',
@@ -126,7 +141,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       include: checkoutOrderInclude,
     })
     if (previous) {
-      res.json(checkoutResponse(previous))
+      res.json(await checkoutResponse(previous))
       return
     }
     assertCompanyComplete()
@@ -200,6 +215,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       input.paymentMethod === 'bank_transfer' ? 'awaiting_bank_transfer' : 'awaiting_payment'
 
     let paymentData: Prisma.PaymentCreateWithoutOrderInput
+    let stripeClientSecret: string | undefined
     if (input.paymentMethod === 'stripe') {
       const session = await createStripeCheckoutSession({
         orderNumber,
@@ -209,12 +225,13 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         locale: input.locale,
         description: `Bestellung ${orderNumber}`,
       })
+      stripeClientSecret = session.clientSecret
       paymentData = {
         method: 'stripe',
         status: 'pending',
         amountCents: totals.totalCents,
         stripeSessionId: session.sessionId,
-        stripePaymentLinkUrl: session.url,
+        stripePaymentLinkUrl: session.url ?? null,
       }
     } else if (input.paymentMethod === 'bank_transfer') {
       paymentData = {
@@ -336,7 +353,9 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       )
     }
 
-    res.status(created ? 201 : 200).json(checkoutResponse(order))
+    res
+      .status(created ? 201 : 200)
+      .json(await checkoutResponse(order, created ? stripeClientSecret : undefined))
   } catch (err) {
     next(err)
   }

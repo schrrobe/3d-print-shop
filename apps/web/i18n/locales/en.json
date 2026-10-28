@@ -109,6 +109,11 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "refunded": "Refunded"
+    },
+    "stripe": {
+      "title": "Payment pending",
+      "hint": "Your payment has not been completed yet.",
+      "payNow": "Pay now"
     }
   },
   "quote": {
