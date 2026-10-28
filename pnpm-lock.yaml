@@ -180,6 +180,9 @@ importers:
       '@print-shop/validators':
         specifier: workspace:*
         version: link:../../packages/validators
+      '@stripe/stripe-js':
+        specifier: ^7.10.0
+        version: 7.10.0
       '@unovis/ts':
         specifier: ^1.7.1
         version: 1.7.1
@@ -2406,6 +2409,10 @@ packages:
     peerDependencies:
       storybook: ^9.1.20
       vue: ^3.0.0
+
+  '@stripe/stripe-js@7.10.0':
+    resolution: {integrity: sha512-LKrDpCop593iWnPxOHgjYmZGngOdgzPYLjyVzUdQ7f7bSnAEKkBMEwsOmWRrq40TR8KG96woms5xPUmffZkJ0Q==}
+    engines: {node: '>=12.16'}
 
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
@@ -8700,6 +8707,8 @@ snapshots:
       type-fest: 2.19.0
       vue: 3.5.39(typescript@5.9.3)
       vue-component-type-helpers: 3.3.13
+
+  '@stripe/stripe-js@7.10.0': {}
 
   '@swc/helpers@0.5.23':
     dependencies:

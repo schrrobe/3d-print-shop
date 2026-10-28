@@ -9,7 +9,11 @@ E-Mails `payment_received` + `invoice`. Idempotent (Webhook-Retries sicher).
 `apps/api/src/services/payments/stripe.ts`
 
 - **Standardprodukte**: `POST /api/checkout` mit `paymentMethod: "stripe"` erstellt eine
-  Checkout Session; Kunde wird zu Stripe (bzw. im Mock direkt zur Success-Seite) geleitet.
+  **Embedded** Checkout Session (`ui_mode: embedded`). Die Antwort liefert `clientSecret` +
+  `publishableKey`; `/checkout` mountet das Stripe-Formular direkt auf der Seite, der Kunde
+  verlässt den Shop nicht. Karten schließen in-place ab (`onComplete` → `/checkout/success`),
+  nur Redirect-Methoden kehren über `return_url` zurück (`redirect_on_completion: if_required`).
+  Im Mock-Modus kommt stattdessen `redirectUrl` direkt zur Success-Seite.
 - **Upload-Angebote**: Angebotsannahme erstellt einen **Payment Link**.
 - **Webhook** `POST /api/webhooks/stripe` verarbeitet `checkout.session.completed`
   (raw body, Signaturprüfung mit `STRIPE_WEBHOOK_SECRET`).
@@ -18,7 +22,8 @@ Ohne `STRIPE_SECRET_KEY` läuft der **Mock-Modus**: deterministische `mock_cs_*`
 Abschluss über `POST /api/dev/stripe/complete/:sessionId` (nutzt die Success-Seite als
 „Zahlung simulieren"-Button; Grundlage der E2E-Tests).
 
-Echtbetrieb: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` setzen; Webhook-Endpoint
+Echtbetrieb: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` setzen
+(API-env, in Produktion Pflicht); Webhook-Endpoint
 `https://<domain>/api/webhooks/stripe` im Stripe-Dashboard registrieren.
 
 ## Banküberweisung

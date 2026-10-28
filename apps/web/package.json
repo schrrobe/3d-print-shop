@@ -22,6 +22,7 @@
     "@print-shop/ui": "workspace:*",
     "@print-shop/utils": "workspace:*",
     "@print-shop/validators": "workspace:*",
+    "@stripe/stripe-js": "^7.10.0",
     "@unovis/ts": "^1.7.1",
     "@unovis/vue": "^1.7.1",
     "analytics": "^0.8.19",
