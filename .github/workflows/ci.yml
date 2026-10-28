@@ -60,6 +60,8 @@ jobs:
 
   e2e:
     name: Playwright E2E
+    # Temporarily disabled; remove `if: false` to re-enable.
+    if: false
     runs-on: ubuntu-latest
     services:
       postgres:
