@@ -94,6 +94,11 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @print-shop/e2e exec playwright install chromium --with-deps
 
+      # Playwright boots the API before global-setup, and the API reads ShopSettings
+      # on start — migrate first, like the prod container does.
+      - name: Prisma migrate deploy
+        run: pnpm --filter @print-shop/api prisma:deploy
+
       - name: Run e2e tests
         run: pnpm e2e
 
