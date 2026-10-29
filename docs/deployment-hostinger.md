@@ -103,7 +103,8 @@ Migrationen laufen bei jedem API-Start (`prisma migrate deploy`). Kein
 `CREATE INDEX CONCURRENTLY` in Migrationen — das bricht den Start ab.
 
 Backups: `kaliberbox-postgres-{prod,dev}` sind im nächtlichen `/usr/local/bin/pg-backup.sh`
-eingetragen (`/var/backups/postgres/kaliberbox-<env>_*.sql.gz`). Uploads und Rechnungen
+eingetragen (`/var/backups/postgres/kaliberbox-<env>_*.sql.gz`). Aufbewahrung: prod 14 Tage
+(`KEEP_DAYS`), dev 3 Tage (`DEV_KEEP_DAYS`). Uploads und Rechnungen
 liegen in Volumes und sind darin **nicht** enthalten.
 
 ## Datenbank
