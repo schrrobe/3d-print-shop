@@ -52,11 +52,12 @@ anders angegeben, beginnt die Frist mit der letzten sachlichen Bearbeitung.
 3. Dateien werden zuerst aus den privaten Verzeichnissen entfernt, danach die
    verknüpften Datenbankdaten gelöscht oder anonymisiert. Fehlschläge werden
    protokolliert und erneut bearbeitet.
-4. Backups werden nicht einzeln verändert: Sie sind verschlüsselt und
-   zugriffsbeschränkt. Ihre Aufbewahrungsdauer und das Verfahren für eine
-   Wiederherstellung werden vor dem Produktivbetrieb verbindlich im
-   Sicherungskonzept festgelegt; bis dahin wird keine maximale Löschfrist für
-   Sicherungen zugesagt.
+4. Backups werden nicht einzeln verändert: Sie sind zugriffsbeschränkt (nur
+   root, `chmod 600`) und laufen automatisch aus. Datenbank-Sicherungen
+   (nächtlicher `pg_dumpall`) werden für Produktion 14 Tage, für die
+   Dev-Umgebung 3 Tage aufbewahrt und danach gelöscht. Gelöschte Daten sind
+   damit spätestens 14 Tage nach ihrer Löschung auch aus den Sicherungen
+   entfernt.
 5. Quartalsweise wird das Löschprotokoll geprüft. Die Prüfergebnisse und
    Ausnahmen werden für 3 Jahre dokumentiert.
 
