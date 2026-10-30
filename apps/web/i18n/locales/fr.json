@@ -40,6 +40,7 @@
     "saveChanges": "Enregistrer les modifications",
     "edit": "Modifier",
     "voucherLabel": "Bon de réduction ({code})",
+    "prepaymentDiscount": "Remise paiement anticipé ({percent} %)",
     "voucherPlaceholder": "Code de réduction",
     "voucherApply": "Utiliser",
     "voucherRemove": "Retirer",
@@ -68,7 +69,7 @@
     "note": "Remarque (facultatif)",
     "payment": "Moyen de paiement",
     "payStripe": "Carte / Stripe",
-    "payBank": "Virement bancaire",
+    "payBank": "Paiement anticipé (virement)",
     "payBitcoin": "Bitcoin",
     "submit": "Commander avec obligation de paiement",
     "summary": "Récapitulatif",
@@ -85,6 +86,7 @@
     "title": "Commande {number}",
     "status": "Statut",
     "items": "Articles",
+    "invoiceDownload": "Télécharger la facture {number}",
     "bank": {
       "title": "Merci de virer à :",
       "holder": "Titulaire du compte",
@@ -492,7 +494,7 @@
       "withdrawalLink": "information sur la rétractation",
       "payHints": {
         "stripe": "Paiement sécurisé via Stripe, par ex. par carte bancaire.",
-        "bank_transfer": "Vous recevez les coordonnées bancaires après la commande.",
+        "bank_transfer": "{percent} % de remise sur les articles. Vous recevez les coordonnées bancaires et la facture après la commande.",
         "bitcoin": "Paiement vers une adresse Bitcoin après la commande."
       },
       "errors": {

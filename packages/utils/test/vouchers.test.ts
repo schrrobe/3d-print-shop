@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   calcCartTotalsWithVoucher,
+  calcPrepaymentDiscountCents,
   calcVoucherDiscountCents,
   checkVoucher,
   normalizeVoucherCode,
@@ -143,5 +144,14 @@ describe('calcCartTotalsWithVoucher', () => {
     )
     expect(totals.discountCents).toBe(100)
     expect(totals.totalCents).toBe(699)
+  })
+})
+
+describe('calcPrepaymentDiscountCents', () => {
+  it('takes 5 % of goods after voucher, never shipping', () => {
+    expect(calcPrepaymentDiscountCents({ subtotalCents: 10000, discountCents: 0 })).toBe(500)
+    expect(calcPrepaymentDiscountCents({ subtotalCents: 10000, discountCents: 1000 })).toBe(450)
+    expect(calcPrepaymentDiscountCents({ subtotalCents: 1999, discountCents: 0 })).toBe(100)
+    expect(calcPrepaymentDiscountCents({ subtotalCents: 500, discountCents: 500 })).toBe(0)
   })
 })

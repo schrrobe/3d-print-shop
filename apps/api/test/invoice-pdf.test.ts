@@ -269,6 +269,22 @@ describe('renderInvoicePdf', () => {
     expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
   })
 
+  it('renders Vorkasse: discount row, immediate due date, invoice number as reference', async () => {
+    const pdf = await renderToBuffer(
+      {
+        invoice: makeInvoice({ totalCents: 5240 }),
+        order: makeOrder({ prepaymentDiscountCents: 250 }),
+        company,
+      },
+      { compress: false },
+    )
+    const text = extractText(pdf)
+    expect(text).toContain('Vorkasse-Rabatt 5 %')
+    expect(text).toContain('Zahlungsziel: sofort')
+    expect(text).toMatch(/Rechnungsbetrag in Höhe von 52,40/)
+    expect(text).toMatch(/Rechnungsnummer RE-2026-00001 als Verwendungszweck/)
+  })
+
   it('renders paid invoices and the English locale', async () => {
     const pdf = await renderToBuffer({
       invoice: makeInvoice({ locale: 'en', paymentMethod: 'stripe' } as Partial<Invoice>),

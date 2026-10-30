@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { canLoadTracker, formatCents } from '@print-shop/utils'
+import {
+  calcPrepaymentDiscountCents,
+  canLoadTracker,
+  formatCents,
+  PREPAYMENT_DISCOUNT_PERCENT,
+} from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 import { adPlatformCookies } from '~/utils/tracking/queue'
 
@@ -207,7 +212,7 @@ const paymentOptions = computed(() => {
     bank_transfer: {
       value: 'bank_transfer' as const,
       label: t('checkout.payBank'),
-      hint: t('shop.checkout.payHints.bank_transfer'),
+      hint: t('shop.checkout.payHints.bank_transfer', { percent: PREPAYMENT_DISCOUNT_PERCENT }),
     },
     bitcoin: {
       value: 'bitcoin' as const,
@@ -225,6 +230,11 @@ watchEffect(() => {
 })
 
 const money = (cents: number) => formatCents(cents, locale.value as Locale)
+const totalCents = computed(
+  () =>
+    cart.totals.totalCents -
+    (paymentMethod.value === 'bank_transfer' ? calcPrepaymentDiscountCents(cart.totals) : 0),
+)
 const summaryOpen = ref(false)
 </script>
 
@@ -250,7 +260,7 @@ const summaryOpen = ref(false)
           <ShopIcon name="chevron-down" :size="18" :class="summaryOpen ? 'rotate-180' : ''" />
           {{ summaryOpen ? t('shop.checkout.hideSummary') : t('shop.checkout.showSummary') }}
         </span>
-        <span class="kb-num text-[1.125rem] font-bold">{{ money(cart.totals.totalCents) }}</span>
+        <span class="kb-num text-[1.125rem] font-bold">{{ money(totalCents) }}</span>
       </summary>
       <div class="pb-5">
         <ul class="divide-y divide-rule border-b border-rule">
@@ -480,7 +490,7 @@ const summaryOpen = ref(false)
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
           </li>
         </ul>
-        <ShopTotals prefix="checkout" />
+        <ShopTotals prefix="checkout" :prepayment="paymentMethod === 'bank_transfer'" />
         <ShopVoucherForm />
 
         <p

@@ -3,6 +3,7 @@ import { renderAdminNotification } from '@print-shop/emails'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
 import {
   calcCartTotalsWithVoucher,
+  calcPrepaymentDiscountCents,
   checkVoucher,
   isFreeShipping,
   normalizeVoucherCode,
@@ -17,7 +18,7 @@ import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { assertCompanyComplete, company } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
-import { sendOrderConfirmation } from '../../services/order-flow.js'
+import { issuePrepaymentInvoice, sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
 import {
   createStripeCheckoutSession,
@@ -115,6 +116,7 @@ async function checkoutResponse(
       subtotalCents: order.subtotalCents,
       shippingCents: order.shippingCents,
       discountCents: order.discountCents,
+      prepaymentDiscountCents: order.prepaymentDiscountCents,
       totalCents: order.totalCents,
       freeShippingApplied: isFreeShipping(order.subtotalCents),
     },
@@ -200,15 +202,22 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       }
     }
 
-    const totals = calcCartTotalsWithVoucher(orderItems, voucher)
-    // Commission base = goods after discount, without shipping; frozen on the order.
+    const voucherTotals = calcCartTotalsWithVoucher(orderItems, voucher)
+    const prepaymentDiscountCents =
+      input.paymentMethod === 'bank_transfer' ? calcPrepaymentDiscountCents(voucherTotals) : 0
+    const totals = {
+      ...voucherTotals,
+      totalCents: voucherTotals.totalCents - prepaymentDiscountCents,
+    }
+    // Commission base = goods after voucher and Vorkasse discount, without shipping; frozen on the order.
     const salesChannel = await attributeSalesChannel(
       prisma,
       voucher?.id ?? null,
       (req.cookies as Record<string, string> | undefined)?.[REF_COOKIE],
       new Date(),
     )
-    const commissionBaseCents = totals.subtotalCents - totals.discountCents
+    const commissionBaseCents =
+      totals.subtotalCents - totals.discountCents - prepaymentDiscountCents
     const orderNumber = generateOrderNumber()
     const accessToken = randomToken()
     const initialStatus =
@@ -296,6 +305,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             subtotalCents: totals.subtotalCents,
             shippingCents: totals.shippingCents,
             discountCents: totals.discountCents,
+            prepaymentDiscountCents,
             totalCents: totals.totalCents,
             voucherId: voucher?.id,
             voucherCode: voucher?.code,
@@ -339,6 +349,19 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         console.error('[tracking] emitOrderCreated failed:', err)
       }
       await sendOrderConfirmation(order.id)
+      if (order.payments[0]?.method === 'bank_transfer') {
+        // The order stands; a failed invoice is re-issued on payment (markOrderPaid).
+        try {
+          await issuePrepaymentInvoice(order.id)
+        } catch (err) {
+          console.error(`[invoice] prepayment invoice failed for ${order.orderNumber}:`, err)
+        }
+        // Reload: the payment reference is now the invoice number.
+        order = await prisma.order.findUniqueOrThrow({
+          where: { id: order.id },
+          include: checkoutOrderInclude,
+        })
+      }
       await sendEmail(
         env.ADMIN_NOTIFICATION_EMAIL,
         'admin_notification',

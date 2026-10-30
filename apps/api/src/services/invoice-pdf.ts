@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import type { Invoice, Order, OrderItem, Payment } from '@prisma/client'
-import { formatCents } from '@print-shop/utils'
+import { formatCents, PREPAYMENT_DISCOUNT_PERCENT } from '@print-shop/utils'
 
 /**
  * Invoice renderer (layout mirrors the storylo invoice: recipient left, sender
@@ -83,7 +83,7 @@ export interface InvoicePdfData {
 export const PAYMENT_METHOD_LABELS: Record<string, { de: string; en: string }> = {
   stripe: { de: 'Kartenzahlung (Stripe)', en: 'Card payment (Stripe)' },
   stripe_payment_link: { de: 'Zahlungslink (Stripe)', en: 'Payment link (Stripe)' },
-  bank_transfer: { de: 'Banküberweisung', en: 'Bank transfer' },
+  bank_transfer: { de: 'Vorkasse (Überweisung)', en: 'Prepayment (bank transfer)' },
   bitcoin: { de: 'Bitcoin', en: 'Bitcoin' },
 }
 
@@ -418,6 +418,15 @@ function drawTotals(
     const label = t('Gutschein', 'Voucher')
     rows.push([order.voucherCode ? `${label} ${order.voucherCode}` : label, -invoice.discountCents])
   }
+  if (order.prepaymentDiscountCents > 0) {
+    rows.push([
+      t(
+        `Vorkasse-Rabatt ${PREPAYMENT_DISCOUNT_PERCENT} %`,
+        `Prepayment discount ${PREPAYMENT_DISCOUNT_PERCENT} %`,
+      ),
+      -order.prepaymentDiscountCents,
+    ])
+  }
   rows.push([t('Versand', 'Shipping'), invoice.shippingCents])
 
   doc.font(FONT).fontSize(SIZE.body)
@@ -495,11 +504,12 @@ function drawPaymentBlock(
     return
   }
 
-  // Unpaid bank transfer: terms + account details, GiroCode on the right.
+  // Unpaid Vorkasse: terms + account details, GiroCode on the right.
   const textW = qrPng ? LAYOUT.contentWidth - LAYOUT.qrSize - mm(8) : LAYOUT.contentWidth
+  const amount = formatCents(invoice.totalCents, invoice.locale)
   const terms = t(
-    `Bitte überweisen Sie den Gesamtbetrag innerhalb von ${company.paymentTermsDays} Tagen ohne Abzug auf folgendes Konto:`,
-    `Please transfer the total amount within ${company.paymentTermsDays} days without deduction to the following account:`,
+    `Zahlungsziel: sofort. Bitte überweisen Sie den Rechnungsbetrag in Höhe von ${amount} ohne Abzug auf folgendes Konto und geben Sie die Rechnungsnummer ${invoice.number} als Verwendungszweck an:`,
+    `Payment due: immediately. Please transfer the invoice amount of ${amount} without deduction to the following account, stating invoice number ${invoice.number} as the payment reference:`,
   )
   const details: Array<[string, string]> = [
     [t('Kontoinhaber', 'Account holder'), company.accountHolder],

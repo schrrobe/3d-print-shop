@@ -8,7 +8,7 @@ import {
   type OrderEmailData,
 } from '@print-shop/emails'
 import { assertOrderTransition } from '@print-shop/utils'
-import type { Order, OrderItem } from '@prisma/client'
+import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { company } from './company.js'
@@ -56,6 +56,8 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         .filter((p) => p.status !== 'failed')
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
+  // Vorkasse: the invoice was already sent with the order (issuePrepaymentInvoice).
+  const preIssued = order.invoice?.pdfPath != null
 
   const paidAt = new Date()
   const claimed = await prisma.$transaction(async (tx) => {
@@ -105,28 +107,54 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     )
   }
 
+  if (claimed && preIssued) {
+    // Same invoice, re-rendered so the download shows "paid" instead of bank details.
+    await generateInvoicePdf(paidOrder.invoice!, paidOrder)
+    return
+  }
+
   // Reconcile post-transaction artifacts on webhook retries after a partial failure.
   const mustSendInvoice = claimed || !paidOrder.invoice?.pdfPath
   const invoice = paidOrder.invoice ?? (await createInvoiceForOrder(paidOrder.id))
   const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, paidOrder))
-  if (mustSendInvoice) {
-    const pdf = await readFile(pdfPath)
-    await sendEmail(
-      paidOrder.email,
-      'invoice',
-      renderInvoice(
-        {
-          orderNumber: paidOrder.orderNumber,
-          invoiceNumber: invoice.number,
-          totalCents: invoice.totalCents,
-          orderUrl: orderUrl(paidOrder),
-        },
-        paidOrder.locale,
-      ),
-      [{ filename: `${invoice.number}.pdf`, content: pdf }],
-      { bcc: company().invoiceBcc || undefined },
-    )
-  }
+  if (mustSendInvoice) await sendInvoiceEmail(paidOrder, invoice, pdfPath)
+}
+
+async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string): Promise<void> {
+  const pdf = await readFile(pdfPath)
+  await sendEmail(
+    order.email,
+    'invoice',
+    renderInvoice(
+      {
+        orderNumber: order.orderNumber,
+        invoiceNumber: invoice.number,
+        totalCents: invoice.totalCents,
+        orderUrl: orderUrl(order),
+      },
+      order.locale,
+    ),
+    [{ filename: `${invoice.number}.pdf`, content: pdf }],
+    { bcc: company().invoiceBcc || undefined },
+  )
+}
+
+/**
+ * Vorkasse: issue the invoice at checkout so the customer can pay against it
+ * (invoice number = transfer reference), then email it.
+ */
+export async function issuePrepaymentInvoice(orderId: string): Promise<void> {
+  const invoice = await createInvoiceForOrder(orderId)
+  await prisma.payment.updateMany({
+    where: { orderId, method: 'bank_transfer', status: 'pending' },
+    data: { reference: invoice.number },
+  })
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true, payments: true },
+  })
+  const pdfPath = await generateInvoicePdf(invoice, order)
+  await sendInvoiceEmail(order, invoice, pdfPath)
 }
 
 export async function notifyProductionStarted(orderId: string): Promise<void> {

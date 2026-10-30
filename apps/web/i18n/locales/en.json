@@ -40,6 +40,7 @@
     "saveChanges": "Save changes",
     "edit": "Edit",
     "voucherLabel": "Voucher ({code})",
+    "prepaymentDiscount": "Prepayment discount ({percent} %)",
     "voucherPlaceholder": "Voucher code",
     "voucherApply": "Redeem",
     "voucherRemove": "Remove",
@@ -68,7 +69,7 @@
     "note": "Note (optional)",
     "payment": "Payment method",
     "payStripe": "Card / Stripe",
-    "payBank": "Bank transfer",
+    "payBank": "Prepayment (bank transfer)",
     "payBitcoin": "Bitcoin",
     "submit": "Place binding order",
     "summary": "Order summary",
@@ -85,6 +86,7 @@
     "title": "Order {number}",
     "status": "Status",
     "items": "Items",
+    "invoiceDownload": "Download invoice {number}",
     "bank": {
       "title": "Please transfer to:",
       "holder": "Account holder",
@@ -492,7 +494,7 @@
       "withdrawalLink": "withdrawal policy",
       "payHints": {
         "stripe": "Secure payment via Stripe, e.g. by credit card.",
-        "bank_transfer": "You receive the bank details after ordering.",
+        "bank_transfer": "{percent} % off the goods. You receive the bank details and invoice after ordering.",
         "bitcoin": "Pay to a Bitcoin address after ordering."
       },
       "errors": {
