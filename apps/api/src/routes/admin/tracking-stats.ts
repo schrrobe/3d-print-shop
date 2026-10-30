@@ -110,7 +110,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
         AND name IN ('page_view','view_item','add_to_cart','begin_checkout')
       GROUP BY name`,
     prisma.order.aggregate({
-      _sum: { totalCents: true, discountCents: true },
+      _sum: { totalCents: true, discountCents: true, prepaymentDiscountCents: true },
       _count: true,
       where: {
         status: REVENUE_STATUSES,
@@ -139,7 +139,9 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
   const addToCart = funnelMap.get('add_to_cart') ?? 0
   const beginCheckout = funnelMap.get('begin_checkout') ?? 0
   const netCents = orderAgg._sum.totalCents ?? 0
-  const grossCents = netCents + (orderAgg._sum.discountCents ?? 0)
+  // Gross = before all discounts (voucher and Vorkasse).
+  const grossCents =
+    netCents + (orderAgg._sum.discountCents ?? 0) + (orderAgg._sum.prepaymentDiscountCents ?? 0)
 
   return {
     kpis: {
