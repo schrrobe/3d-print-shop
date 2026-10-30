@@ -56,8 +56,6 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         .filter((p) => p.status !== 'failed')
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
-  // Vorkasse: the invoice was already sent with the order (issuePrepaymentInvoice).
-  const preIssued = order.invoice?.pdfPath != null
 
   const paidAt = new Date()
   const claimed = await prisma.$transaction(async (tx) => {
@@ -78,6 +76,9 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         status: 'waiting' as const,
       })),
     })
+    // A pre-issued Vorkasse PDF still shows bank details: drop it so it is
+    // re-rendered as "paid" below — or on the next retry / download if that fails.
+    await tx.invoice.updateMany({ where: { orderId: order.id }, data: { pdfPath: null } })
     return true
   })
 
@@ -107,22 +108,17 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
     )
   }
 
-  if (claimed && preIssued) {
-    // Same invoice, re-rendered so the download shows "paid" instead of bank details.
-    await generateInvoicePdf(paidOrder.invoice!, paidOrder)
-    return
-  }
-
   // Reconcile post-transaction artifacts on webhook retries after a partial failure.
-  const mustSendInvoice = claimed || !paidOrder.invoice?.pdfPath
+  // A Vorkasse invoice already delivered at checkout is not mailed again.
   const invoice = paidOrder.invoice ?? (await createInvoiceForOrder(paidOrder.id))
   const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, paidOrder))
-  if (mustSendInvoice) await sendInvoiceEmail(paidOrder, invoice, pdfPath)
+  if (!invoice.sentAt) await sendInvoiceEmail(paidOrder, invoice, pdfPath)
 }
 
+/** Mails the invoice and marks it sent only once delivery succeeded. */
 async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string): Promise<void> {
   const pdf = await readFile(pdfPath)
-  await sendEmail(
+  const delivered = await sendEmail(
     order.email,
     'invoice',
     renderInvoice(
@@ -137,14 +133,19 @@ async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string)
     [{ filename: `${invoice.number}.pdf`, content: pdf }],
     { bcc: company().invoiceBcc || undefined },
   )
+  if (delivered) {
+    await prisma.invoice.update({ where: { id: invoice.id }, data: { sentAt: new Date() } })
+  }
 }
 
 /**
  * Vorkasse: issue the invoice at checkout so the customer can pay against it
- * (invoice number = transfer reference), then email it.
+ * (invoice number = transfer reference), then email it. Idempotent, so a
+ * checkout replay can finish an issuance that failed part-way.
  */
 export async function issuePrepaymentInvoice(orderId: string): Promise<void> {
   const invoice = await createInvoiceForOrder(orderId)
+  if (invoice.sentAt) return
   await prisma.payment.updateMany({
     where: { orderId, method: 'bank_transfer', status: 'pending' },
     data: { reference: invoice.number },
@@ -153,7 +154,7 @@ export async function issuePrepaymentInvoice(orderId: string): Promise<void> {
     where: { id: orderId },
     include: { items: true, payments: true },
   })
-  const pdfPath = await generateInvoicePdf(invoice, order)
+  const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, order))
   await sendInvoiceEmail(order, invoice, pdfPath)
 }
 

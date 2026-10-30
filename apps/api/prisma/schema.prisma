@@ -842,6 +842,8 @@ model Invoice {
   paymentMethod PaymentMethod
   pdfPath       String?
   issuedAt      DateTime      @default(now())
+  /// Set once the invoice email was delivered; null = (re)send pending.
+  sentAt        DateTime?
 
   @@unique([year, sequence])
 }

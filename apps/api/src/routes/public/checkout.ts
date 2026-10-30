@@ -65,10 +65,26 @@ const checkoutOrderInclude = {
   payments: { include: { bitcoinPayment: true } },
 } as const
 
-async function checkoutResponse(
-  order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>,
-  stripeClientSecret?: string,
-) {
+type CheckoutOrder = Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>
+
+/**
+ * Vorkasse invoice at checkout (idempotent). The order stands even if this
+ * fails: a checkout replay retries it, and markOrderPaid mails it on payment.
+ * Returns the reloaded order — the payment reference is now the invoice number.
+ */
+async function issuePrepaymentInvoiceSafely(order: CheckoutOrder): Promise<CheckoutOrder> {
+  try {
+    await issuePrepaymentInvoice(order.id)
+  } catch (err) {
+    console.error(`[invoice] prepayment invoice failed for ${order.orderNumber}:`, err)
+  }
+  return prisma.order.findUniqueOrThrow({
+    where: { id: order.id },
+    include: checkoutOrderInclude,
+  })
+}
+
+async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: string) {
   const payment = order.payments[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
@@ -143,7 +159,12 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       include: checkoutOrderInclude,
     })
     if (previous) {
-      res.json(await checkoutResponse(previous))
+      // A replay finishes a Vorkasse invoice whose issuance failed the first time.
+      const replayed =
+        previous.status === 'awaiting_bank_transfer'
+          ? await issuePrepaymentInvoiceSafely(previous)
+          : previous
+      res.json(await checkoutResponse(replayed))
       return
     }
     assertCompanyComplete()
@@ -267,7 +288,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
 
     let created = true
-    let order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>
+    let order: CheckoutOrder
     try {
       order = await prisma.$transaction(async (tx) => {
         if (voucher) {
@@ -350,17 +371,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       }
       await sendOrderConfirmation(order.id)
       if (order.payments[0]?.method === 'bank_transfer') {
-        // The order stands; a failed invoice is re-issued on payment (markOrderPaid).
-        try {
-          await issuePrepaymentInvoice(order.id)
-        } catch (err) {
-          console.error(`[invoice] prepayment invoice failed for ${order.orderNumber}:`, err)
-        }
-        // Reload: the payment reference is now the invoice number.
-        order = await prisma.order.findUniqueOrThrow({
-          where: { id: order.id },
-          include: checkoutOrderInclude,
-        })
+        order = await issuePrepaymentInvoiceSafely(order)
       }
       await sendEmail(
         env.ADMIN_NOTIFICATION_EMAIL,

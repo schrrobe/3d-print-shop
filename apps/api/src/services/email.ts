@@ -28,6 +28,7 @@ export interface SendEmailOptions {
 /**
  * Sends via SMTP (Brevo) when SMTP_HOST is configured; otherwise logs to the
  * console and the EmailLog table (dev mode). Every attempt is recorded.
+ * Never throws; resolves to whether the primary recipient was accepted.
  */
 export async function sendEmail(
   to: string,
@@ -35,7 +36,7 @@ export async function sendEmail(
   rendered: RenderedEmail,
   attachments: EmailAttachment[] = [],
   options: SendEmailOptions = {},
-): Promise<void> {
+): Promise<boolean> {
   if (!transport) {
     console.info(`[email:dev] to=${to} template=${template} subject="${rendered.subject}"`)
     await prisma.emailLog.create({
@@ -52,7 +53,7 @@ export async function sendEmail(
         },
       },
     })
-    return
+    return true
   }
 
   try {
@@ -71,19 +72,22 @@ export async function sendEmail(
     if (rejected.length > 0) {
       console.error(`[email] recipients rejected for template=${template}:`, rejected)
     }
+    const delivered = !rejected.includes(to)
     await prisma.emailLog.create({
       data: {
         to,
         template,
         subject: rendered.subject,
-        status: rejected.includes(to) ? 'failed' : 'sent',
+        status: delivered ? 'sent' : 'failed',
         error: rejected.length > 0 ? `rejected: ${rejected.join(', ')}` : null,
       },
     })
+    return delivered
   } catch (err) {
     console.error(`[email] send failed for template=${template}:`, err)
     await prisma.emailLog.create({
       data: { to, template, subject: rendered.subject, status: 'failed', error: String(err) },
     })
+    return false
   }
 }
