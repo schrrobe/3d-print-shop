@@ -34,6 +34,7 @@
     "shipping": "Versand",
     "shippingFree": "Kostenlos",
     "freeShippingHint": "Noch {amount} bis zum kostenlosen Versand",
+    "freeBoxHint": "Noch {amount} bis zu deiner Gratis-50er-Box",
     "total": "Gesamt",
     "checkout": "Zur Kasse",
     "updated": "Warenkorb aktualisiert",
@@ -505,6 +506,13 @@
         "zip": "Bitte gib deine Postleitzahl ein.",
         "zipFormat": "Die Postleitzahl muss 3 bis 12 Zeichen lang sein.",
         "city": "Bitte gib deinen Ort ein."
+      },
+      "freeBox": {
+        "title": "Deine Gratis-50er-Box",
+        "hint": "Ab 100 € Bestellwert schenken wir dir eine 50er Box. Kaliber und Farben wählst du selbst.",
+        "label": "Kaliber",
+        "none": "Keine Gratis-Box",
+        "free": "Gratis"
       }
     },
     "wishlist": {

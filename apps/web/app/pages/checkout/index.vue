@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { canLoadTracker, formatCents } from '@print-shop/utils'
-import type { Locale } from '@print-shop/types'
+import {
+  canLoadTracker,
+  FREE_BOX_CAPACITY,
+  formatCents,
+  qualifiesForFreeBox,
+} from '@print-shop/utils'
+import type { ColorSelection, Locale } from '@print-shop/types'
 import { adPlatformCookies } from '~/utils/tracking/queue'
 
 /**
@@ -54,6 +59,36 @@ const form = reactive({
   country: 'DE',
   note: '',
 })
+// Shipping depends on the delivery country; the shared totals follow the select.
+watch(
+  () => form.country,
+  (country) => {
+    cart.country = country
+  },
+  { immediate: true },
+)
+
+// Free 50 box from 100 € — optional, picked here, revalidated by the API.
+const { data: productData } = useProducts()
+const { data: colorData } = useColors()
+const colors = computed(() => colorData.value?.colors ?? [])
+const freeBoxEligible = computed(() => qualifiesForFreeBox(cart.totals.subtotalCents))
+const freeBoxProducts = computed(() =>
+  (productData.value?.products ?? []).filter((p) => p.capacity === FREE_BOX_CAPACITY),
+)
+const freeBoxId = ref('')
+const freeBoxColors = ref<ColorSelection>({})
+const freeBoxProduct = computed(() =>
+  freeBoxEligible.value ? freeBoxProducts.value.find((p) => p.id === freeBoxId.value) : undefined,
+)
+watch(freeBoxId, () => {
+  freeBoxColors.value = Object.fromEntries(
+    (freeBoxProduct.value?.colorSlots ?? [])
+      .filter((s) => s.defaultColorId)
+      .map((s) => [s.slot, s.defaultColorId!]),
+  )
+})
+
 const isGift = ref(false)
 const paymentMethod = ref<CheckoutPaymentMethod>('stripe')
 const checkoutKey = ref<string | null>(null)
@@ -152,6 +187,9 @@ async function submit() {
         paymentMethod: paymentMethod.value,
         locale: locale.value,
         voucherCode: cart.voucher?.code,
+        freeBox: freeBoxProduct.value
+          ? { productId: freeBoxProduct.value.id, colorSelection: freeBoxColors.value }
+          : undefined,
         // Consent snapshot at order time — canLoadTracker also rejects stale
         // CONSENT_VERSION, so outdated consent never reaches the server events.
         consent: {
@@ -262,6 +300,17 @@ const summaryOpen = ref(false)
               }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
+          </li>
+          <li
+            v-if="freeBoxProduct"
+            class="flex justify-between gap-3 py-3"
+            data-testid="free-box-line-mobile"
+          >
+            <span
+              ><span class="kb-num">1×</span>
+              {{ pickTranslation(freeBoxProduct, locale).name }}</span
+            >
+            <span class="font-semibold text-ok">{{ t('shop.checkout.freeBox.free') }}</span>
           </li>
         </ul>
       </div>
@@ -432,6 +481,39 @@ const summaryOpen = ref(false)
             </label>
           </div>
 
+          <div
+            v-if="freeBoxEligible"
+            class="mt-8 border border-ink bg-paper-raised p-4"
+            data-testid="free-box"
+          >
+            <p class="flex items-center gap-2 font-bold">
+              <ShopIcon name="gift" :size="18" />{{ t('shop.checkout.freeBox.title') }}
+            </p>
+            <p class="text-sm text-ink-2">{{ t('shop.checkout.freeBox.hint') }}</p>
+            <label for="checkout-free-box" class="kb-label mt-4">{{
+              t('shop.checkout.freeBox.label')
+            }}</label>
+            <select
+              id="checkout-free-box"
+              v-model="freeBoxId"
+              name="freeBox"
+              class="kb-input"
+              data-testid="free-box-select"
+            >
+              <option value="">{{ t('shop.checkout.freeBox.none') }}</option>
+              <option v-for="p in freeBoxProducts" :key="p.id" :value="p.id">
+                {{ pickTranslation(p, locale).name }}
+              </option>
+            </select>
+            <ShopColorPicker
+              v-if="freeBoxProduct"
+              v-model="freeBoxColors"
+              class="mt-5"
+              :zones="freeBoxProduct.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
+              :colors="colors"
+            />
+          </div>
+
           <label class="mt-8 flex cursor-pointer items-start gap-3">
             <input
               v-model="isGift"
@@ -478,6 +560,17 @@ const summaryOpen = ref(false)
               }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
+          </li>
+          <li
+            v-if="freeBoxProduct"
+            class="flex justify-between gap-3 py-3"
+            data-testid="free-box-line"
+          >
+            <span
+              ><span class="kb-num">1×</span>
+              {{ pickTranslation(freeBoxProduct, locale).name }}</span
+            >
+            <span class="font-semibold text-ok">{{ t('shop.checkout.freeBox.free') }}</span>
           </li>
         </ul>
         <ShopTotals prefix="checkout" />

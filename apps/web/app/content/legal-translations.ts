@@ -140,7 +140,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: '5. Prices and shipping costs',
         paragraphs: [
-          'All prices are final prices in euros. As a small business within the meaning of section 19 UStG, we do not charge VAT. Shipping is €6.99 within Germany and €15.00 to other EU countries; from an order value of €150.00, delivery is free within Germany and the EU.',
+          'All prices are final prices in euros. As a small business within the meaning of section 19 UStG, we do not charge VAT. Shipping is €6.99 within Germany and €15.00 to other European countries; delivery is free from an order value of €80.00 within Germany and from €100.00 abroad. Orders from €100.00 also include one 50-round box of your choice free of charge.',
         ],
       },
       {
@@ -280,7 +280,7 @@ const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Produits, prix, paiement et livraison',
         paragraphs: [
-          'Les produits sont fabriqués après commande par impression 3D. Les légères traces de couche et variations qui n’affectent pas fonction, stabilité ou durabilité ne constituent pas un défaut. Les prix sont finaux en euros ; aucune TVA n’est facturée conformément à l’article 19 UStG. Paiement par Stripe, virement ou Bitcoin ; production après paiement intégral. Livraison : Allemagne 3–8 jours ouvrés, 6,99 € ; autres pays de l’UE 7–14 jours ouvrés, 15,00 € ; gratuite à partir de 150,00 €. DHL ou Hermes assure la livraison.',
+          'Les produits sont fabriqués après commande par impression 3D. Les légères traces de couche et variations qui n’affectent pas fonction, stabilité ou durabilité ne constituent pas un défaut. Les prix sont finaux en euros ; aucune TVA n’est facturée conformément à l’article 19 UStG. Paiement par Stripe, virement ou Bitcoin ; production après paiement intégral. Livraison : Allemagne 3–8 jours ouvrés, 6,99 € ; autres pays européens 7–14 jours ouvrés, 15,00 € ; gratuite à partir de 80,00 € en Allemagne et de 100,00 € à l’étranger. Dès 100,00 € de commande, une boîte de 50 au choix est offerte. DHL ou Hermes assure la livraison.',
         ],
       },
       {
@@ -378,7 +378,7 @@ const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Producten, prijzen, betaling en levering',
         paragraphs: [
-          'Producten worden na bestelling met 3D-printing vervaardigd. Lichte laaglijnen en variaties die functie, stabiliteit of duurzaamheid niet beïnvloeden, zijn geen gebrek. Prijzen zijn eindprijzen in euro; op grond van § 19 UStG wordt geen btw berekend. Betaling is mogelijk via Stripe, bankoverschrijving of Bitcoin; productie begint na volledige betaling. Levering: Duitsland 3–8 werkdagen, € 6,99; overige EU-landen 7–14 werkdagen, € 15,00; gratis vanaf € 150,00. DHL of Hermes verzorgt de bezorging.',
+          'Producten worden na bestelling met 3D-printing vervaardigd. Lichte laaglijnen en variaties die functie, stabiliteit of duurzaamheid niet beïnvloeden, zijn geen gebrek. Prijzen zijn eindprijzen in euro; op grond van § 19 UStG wordt geen btw berekend. Betaling is mogelijk via Stripe, bankoverschrijving of Bitcoin; productie begint na volledige betaling. Levering: Duitsland 3–8 werkdagen, € 6,99; overige Europese landen 7–14 werkdagen, € 15,00; gratis vanaf € 80,00 in Duitsland en vanaf € 100,00 in het buitenland. Vanaf € 100,00 bestelwaarde krijg je een 50-doos naar keuze gratis. DHL of Hermes verzorgt de bezorging.',
         ],
       },
       {
@@ -478,7 +478,7 @@ const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Produkty, ceny, płatność i dostawa',
         paragraphs: [
-          'Produkty są wykonywane po zamówieniu metodą druku 3D. Drobne warstwy i odchylenia, które nie wpływają na funkcję, stabilność ani trwałość, nie stanowią wady. Ceny są cenami końcowymi w euro; zgodnie z § 19 UStG nie naliczamy VAT. Dostępne są Stripe, przelew bankowy i Bitcoin; produkcja zaczyna się po pełnej płatności. Dostawa: Niemcy 3–8 dni roboczych, 6,99 €; pozostałe kraje UE 7–14 dni roboczych, 15,00 €; bezpłatnie od 150,00 €. Dostarcza DHL lub Hermes.',
+          'Produkty są wykonywane po zamówieniu metodą druku 3D. Drobne warstwy i odchylenia, które nie wpływają na funkcję, stabilność ani trwałość, nie stanowią wady. Ceny są cenami końcowymi w euro; zgodnie z § 19 UStG nie naliczamy VAT. Dostępne są Stripe, przelew bankowy i Bitcoin; produkcja zaczyna się po pełnej płatności. Dostawa: Niemcy 3–8 dni roboczych, 6,99 €; pozostałe kraje europejskie 7–14 dni roboczych, 15,00 €; bezpłatnie od 80,00 € w Niemczech i od 100,00 € za granicą. Przy zamówieniu od 100,00 € pudełko na 50 naboi do wyboru gratis. Dostarcza DHL lub Hermes.',
         ],
       },
       {
@@ -576,7 +576,7 @@ const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: 'Produkty, ceny, platba a doručení',
         paragraphs: [
-          'Produkty jsou vyráběny po objednávce 3D tiskem. Drobné vrstvy a odchylky, které neovlivňují funkci, stabilitu ani životnost, nejsou vadou. Ceny jsou konečné v eurech; podle § 19 UStG neúčtujeme DPH. Platit lze přes Stripe, bankovním převodem nebo Bitcoinem; výroba začíná po úplné úhradě. Doručení: Německo 3–8 pracovních dnů, 6,99 €; ostatní země EU 7–14 pracovních dnů, 15,00 €; zdarma od 150,00 €. Doručuje DHL nebo Hermes.',
+          'Produkty jsou vyráběny po objednávce 3D tiskem. Drobné vrstvy a odchylky, které neovlivňují funkci, stabilitu ani životnost, nejsou vadou. Ceny jsou konečné v eurech; podle § 19 UStG neúčtujeme DPH. Platit lze přes Stripe, bankovním převodem nebo Bitcoinem; výroba začíná po úplné úhradě. Doručení: Německo 3–8 pracovních dnů, 6,99 €; ostatní evropské země 7–14 pracovních dnů, 15,00 €; zdarma od 80,00 € v Německu a od 100,00 € do zahraničí. Od 100,00 € hodnoty objednávky krabička na 50 nábojů dle výběru zdarma. Doručuje DHL nebo Hermes.',
         ],
       },
       {

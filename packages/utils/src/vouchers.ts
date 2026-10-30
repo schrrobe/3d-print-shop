@@ -56,17 +56,18 @@ export function calcVoucherDiscountCents(
 }
 
 /**
- * Cart totals with an optional voucher. Shipping and the free-shipping
- * threshold are based on the pre-discount subtotal; a voucher whose minimum
+ * Cart totals with an optional voucher for a delivery country. Shipping and
+ * the free-shipping threshold are based on the pre-discount subtotal; a voucher whose minimum
  * order value is no longer met yields no discount (soft UI behavior — the
  * checkout revalidates hard).
  */
 export function calcCartTotalsWithVoucher(
   items: PricedItem[],
   voucher: { type: VoucherType; value: number; minOrderCents?: number } | null,
+  country: string,
 ): CartTotalsWithVoucherDto {
   const subtotalCents = calcSubtotalCents(items)
-  const shippingCents = calcShippingCents(subtotalCents)
+  const shippingCents = calcShippingCents(subtotalCents, country)
   const discountCents =
     voucher && subtotalCents >= (voucher.minOrderCents ?? 0)
       ? calcVoucherDiscountCents(voucher, subtotalCents)
@@ -76,6 +77,6 @@ export function calcCartTotalsWithVoucher(
     shippingCents,
     discountCents,
     totalCents: subtotalCents - discountCents + shippingCents,
-    freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents),
+    freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents, country),
   }
 }

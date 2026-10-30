@@ -34,6 +34,7 @@
     "shipping": "Verzending",
     "shippingFree": "Gratis",
     "freeShippingHint": "Nog {amount} tot gratis verzending",
+    "freeBoxHint": "Nog {amount} tot je gratis 50-doos",
     "total": "Totaal",
     "checkout": "Afrekenen",
     "updated": "Winkelwagen bijgewerkt",
@@ -505,6 +506,13 @@
         "zip": "Vul je postcode in.",
         "zipFormat": "De postcode moet 3 tot 12 tekens lang zijn.",
         "city": "Vul je woonplaats in."
+      },
+      "freeBox": {
+        "title": "Je gratis 50-doos",
+        "hint": "Vanaf € 100 bestelwaarde krijg je een 50-doos cadeau. Kies zelf kaliber en kleuren.",
+        "label": "Kaliber",
+        "none": "Geen gratis doos",
+        "free": "Gratis"
       }
     },
     "wishlist": {
