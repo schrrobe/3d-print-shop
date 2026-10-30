@@ -56,6 +56,8 @@ export async function sendEmail(
     return true
   }
 
+  let delivered = false
+  let error: string | null = null
   try {
     const info = await transport.sendMail({
       from: env.EMAIL_FROM,
@@ -71,23 +73,28 @@ export async function sendEmail(
     const rejected: string[] = info.rejected
     if (rejected.length > 0) {
       console.error(`[email] recipients rejected for template=${template}:`, rejected)
+      error = `rejected: ${rejected.join(', ')}`
     }
-    const delivered = !rejected.includes(to)
+    delivered = !rejected.includes(to)
+  } catch (err) {
+    console.error(`[email] send failed for template=${template}:`, err)
+    error = String(err)
+  }
+
+  // A failed log write must not turn an accepted email into "not delivered":
+  // callers would retry and mail it twice.
+  try {
     await prisma.emailLog.create({
       data: {
         to,
         template,
         subject: rendered.subject,
         status: delivered ? 'sent' : 'failed',
-        error: rejected.length > 0 ? `rejected: ${rejected.join(', ')}` : null,
+        error,
       },
     })
-    return delivered
   } catch (err) {
-    console.error(`[email] send failed for template=${template}:`, err)
-    await prisma.emailLog.create({
-      data: { to, template, subject: rendered.subject, status: 'failed', error: String(err) },
-    })
-    return false
+    console.error(`[email] log write failed for template=${template}:`, err)
   }
+  return delivered
 }

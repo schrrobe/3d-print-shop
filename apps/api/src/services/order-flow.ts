@@ -115,26 +115,48 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   if (!invoice.sentAt) await sendInvoiceEmail(paidOrder, invoice, pdfPath)
 }
 
-/** Mails the invoice and marks it sent only once delivery succeeded. */
+const INVOICE_SEND_LEASE_MS = 5 * 60_000
+
+/**
+ * Mails the invoice and marks it sent only once delivery succeeded. A CAS lease
+ * lets exactly one of several concurrent callers (checkout replays, payment
+ * retries) send; the others skip. A crashed sender's lease simply expires.
+ */
 async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string): Promise<void> {
-  const pdf = await readFile(pdfPath)
-  const delivered = await sendEmail(
-    order.email,
-    'invoice',
-    renderInvoice(
-      {
-        orderNumber: order.orderNumber,
-        invoiceNumber: invoice.number,
-        totalCents: invoice.totalCents,
-        orderUrl: orderUrl(order),
-      },
-      order.locale,
-    ),
-    [{ filename: `${invoice.number}.pdf`, content: pdf }],
-    { bcc: company().invoiceBcc || undefined },
-  )
-  if (delivered) {
-    await prisma.invoice.update({ where: { id: invoice.id }, data: { sentAt: new Date() } })
+  const now = new Date()
+  const claim = await prisma.invoice.updateMany({
+    where: {
+      id: invoice.id,
+      sentAt: null,
+      OR: [{ sendLockUntil: null }, { sendLockUntil: { lt: now } }],
+    },
+    data: { sendLockUntil: new Date(now.getTime() + INVOICE_SEND_LEASE_MS) },
+  })
+  if (claim.count !== 1) return
+
+  let delivered = false
+  try {
+    const pdf = await readFile(pdfPath)
+    delivered = await sendEmail(
+      order.email,
+      'invoice',
+      renderInvoice(
+        {
+          orderNumber: order.orderNumber,
+          invoiceNumber: invoice.number,
+          totalCents: invoice.totalCents,
+          orderUrl: orderUrl(order),
+        },
+        order.locale,
+      ),
+      [{ filename: `${invoice.number}.pdf`, content: pdf }],
+      { bcc: company().invoiceBcc || undefined },
+    )
+  } finally {
+    await prisma.invoice.update({
+      where: { id: invoice.id },
+      data: delivered ? { sendLockUntil: null, sentAt: new Date() } : { sendLockUntil: null },
+    })
   }
 }
 

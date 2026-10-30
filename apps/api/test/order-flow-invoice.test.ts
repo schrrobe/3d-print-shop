@@ -12,7 +12,7 @@ vi.mock('../src/lib/prisma.js', () => {
     prisma: {
       tx,
       order: { findUniqueOrThrow: vi.fn() },
-      invoice: { update: vi.fn() },
+      invoice: { update: vi.fn(), updateMany: vi.fn() },
       $transaction: vi.fn((fn: (t: unknown) => unknown) => fn(tx)),
     },
   }
@@ -39,7 +39,7 @@ const db = prisma as unknown as {
     invoice: { updateMany: ReturnType<typeof vi.fn> }
   }
   order: { findUniqueOrThrow: ReturnType<typeof vi.fn> }
-  invoice: { update: ReturnType<typeof vi.fn> }
+  invoice: { update: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn> }
 }
 
 function order(status: string, invoice: Record<string, unknown>) {
@@ -58,7 +58,11 @@ function order(status: string, invoice: Record<string, unknown>) {
   }
 }
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  // Send lease won by default.
+  db.invoice.updateMany.mockResolvedValue({ count: 1 })
+})
 
 describe('markOrderPaid invoice handling', () => {
   it('re-renders a pre-issued Vorkasse PDF as paid without re-mailing it', async () => {
@@ -92,17 +96,31 @@ describe('markOrderPaid invoice handling', () => {
     expect(vi.mocked(sendEmail).mock.calls.map((c) => c[1])).toEqual(['invoice'])
     expect(db.invoice.update).toHaveBeenCalledWith({
       where: { id: 'inv1' },
-      data: { sentAt: expect.any(Date) },
+      data: { sendLockUntil: null, sentAt: expect.any(Date) },
     })
   })
 
-  it('leaves sentAt unset when delivery fails', async () => {
+  it('leaves sentAt unset when delivery fails and releases the send lease', async () => {
     db.tx.order.updateMany.mockResolvedValue({ count: 1 })
     db.order.findUniqueOrThrow.mockResolvedValue(order('paid', { pdfPath: '/p.pdf', sentAt: null }))
     vi.mocked(sendEmail).mockResolvedValue(false)
 
     await markOrderPaid('o1', 'p1')
 
+    expect(db.invoice.update).toHaveBeenCalledWith({
+      where: { id: 'inv1' },
+      data: { sendLockUntil: null },
+    })
+  })
+
+  it('does not mail the invoice while a concurrent caller holds the send lease', async () => {
+    db.tx.order.updateMany.mockResolvedValue({ count: 1 })
+    db.order.findUniqueOrThrow.mockResolvedValue(order('paid', { pdfPath: '/p.pdf', sentAt: null }))
+    db.invoice.updateMany.mockResolvedValue({ count: 0 })
+
+    await markOrderPaid('o1', 'p1')
+
+    expect(vi.mocked(sendEmail).mock.calls.map((c) => c[1])).not.toContain('invoice')
     expect(db.invoice.update).not.toHaveBeenCalled()
   })
 })

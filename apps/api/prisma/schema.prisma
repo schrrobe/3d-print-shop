@@ -844,6 +844,8 @@ model Invoice {
   issuedAt      DateTime      @default(now())
   /// Set once the invoice email was delivered; null = (re)send pending.
   sentAt        DateTime?
+  /// Lease of the request currently mailing the invoice (CAS claim); expires on crash.
+  sendLockUntil DateTime?
 
   @@unique([year, sequence])
 }
