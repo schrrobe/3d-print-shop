@@ -47,12 +47,14 @@ describe('checkVoucher', () => {
   })
 
   it('rejects before validFrom and after validUntil', () => {
-    expect(
-      checkVoucher(voucher({ validFrom: new Date('2026-08-01') }), 5000, now),
-    ).toEqual({ ok: false, reason: 'not_yet_valid' })
-    expect(
-      checkVoucher(voucher({ validUntil: new Date('2026-06-01') }), 5000, now),
-    ).toEqual({ ok: false, reason: 'expired' })
+    expect(checkVoucher(voucher({ validFrom: new Date('2026-08-01') }), 5000, now)).toEqual({
+      ok: false,
+      reason: 'not_yet_valid',
+    })
+    expect(checkVoucher(voucher({ validUntil: new Date('2026-06-01') }), 5000, now)).toEqual({
+      ok: false,
+      reason: 'expired',
+    })
   })
 
   it('accepts inside the validity window', () => {
@@ -66,12 +68,13 @@ describe('checkVoucher', () => {
   })
 
   it('rejects when redemptions are exhausted', () => {
-    expect(
-      checkVoucher(voucher({ maxRedemptions: 5, redemptionCount: 5 }), 5000, now),
-    ).toEqual({ ok: false, reason: 'exhausted' })
-    expect(
-      checkVoucher(voucher({ maxRedemptions: 5, redemptionCount: 4 }), 5000, now),
-    ).toEqual({ ok: true })
+    expect(checkVoucher(voucher({ maxRedemptions: 5, redemptionCount: 5 }), 5000, now)).toEqual({
+      ok: false,
+      reason: 'exhausted',
+    })
+    expect(checkVoucher(voucher({ maxRedemptions: 5, redemptionCount: 4 }), 5000, now)).toEqual({
+      ok: true,
+    })
   })
 
   it('rejects below the minimum order value', () => {
@@ -100,7 +103,7 @@ describe('calcVoucherDiscountCents', () => {
 
 describe('calcCartTotalsWithVoucher', () => {
   it('matches plain totals without a voucher', () => {
-    expect(calcCartTotalsWithVoucher([{ unitPriceCents: 2999, quantity: 1 }], null)).toEqual({
+    expect(calcCartTotalsWithVoucher([{ unitPriceCents: 2999, quantity: 1 }], null, 'DE')).toEqual({
       subtotalCents: 2999,
       shippingCents: 699,
       discountCents: 0,
@@ -113,6 +116,7 @@ describe('calcCartTotalsWithVoucher', () => {
     const totals = calcCartTotalsWithVoucher(
       [{ unitPriceCents: 2999, quantity: 1 }],
       { type: 'percent', value: 10 },
+      'DE',
     )
     expect(totals.discountCents).toBe(300)
     expect(totals.totalCents).toBe(2999 - 300 + 699)
@@ -122,6 +126,7 @@ describe('calcCartTotalsWithVoucher', () => {
     const totals = calcCartTotalsWithVoucher(
       [{ unitPriceCents: 15000, quantity: 1 }],
       { type: 'fixed', value: 5000 },
+      'AT',
     )
     expect(totals.shippingCents).toBe(0)
     expect(totals.freeShippingApplied).toBe(true)
@@ -132,6 +137,7 @@ describe('calcCartTotalsWithVoucher', () => {
     const totals = calcCartTotalsWithVoucher(
       [{ unitPriceCents: 2999, quantity: 1 }],
       { type: 'percent', value: 10, minOrderCents: 5000 },
+      'DE',
     )
     expect(totals.discountCents).toBe(0)
     expect(totals.totalCents).toBe(3698)
@@ -141,6 +147,7 @@ describe('calcCartTotalsWithVoucher', () => {
     const totals = calcCartTotalsWithVoucher(
       [{ unitPriceCents: 100, quantity: 1 }],
       { type: 'fixed', value: 99999 },
+      'DE',
     )
     expect(totals.discountCents).toBe(100)
     expect(totals.totalCents).toBe(699)

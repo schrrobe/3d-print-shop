@@ -34,6 +34,7 @@
     "shipping": "Wysyłka",
     "shippingFree": "Gratis",
     "freeShippingHint": "Brakuje {amount} do darmowej wysyłki",
+    "freeBoxHint": "Brakuje {amount} do darmowego pudełka na 50",
     "total": "Razem",
     "checkout": "Do kasy",
     "updated": "Koszyk zaktualizowany",
@@ -507,6 +508,13 @@
         "zip": "Podaj kod pocztowy.",
         "zipFormat": "Kod pocztowy musi mieć od 3 do 12 znaków.",
         "city": "Podaj miejscowość."
+      },
+      "freeBox": {
+        "title": "Twoje darmowe pudełko na 50",
+        "hint": "Przy zamówieniu od 100 € pudełko na 50 naboi dostajesz gratis. Kaliber i kolory wybierasz sam.",
+        "label": "Kaliber",
+        "none": "Bez darmowego pudełka",
+        "free": "Gratis"
       }
     },
     "wishlist": {

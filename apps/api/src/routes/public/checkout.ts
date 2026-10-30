@@ -5,8 +5,10 @@ import {
   calcCartTotalsWithVoucher,
   calcPrepaymentDiscountCents,
   checkVoucher,
+  FREE_BOX_CAPACITY,
   isFreeShipping,
   normalizeVoucherCode,
+  qualifiesForFreeBox,
   resolveColorSelection,
 } from '@print-shop/utils'
 import { checkoutIdempotencyKeySchema, checkoutSchema, uuidSchema } from '@print-shop/validators'
@@ -134,7 +136,7 @@ async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: strin
       discountCents: order.discountCents,
       prepaymentDiscountCents: order.prepaymentDiscountCents,
       totalCents: order.totalCents,
-      freeShippingApplied: isFreeShipping(order.subtotalCents),
+      freeShippingApplied: isFreeShipping(order.subtotalCents, order.country),
     },
     payment: paymentResponse,
   }
@@ -169,8 +171,14 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
     assertCompanyComplete()
 
+    const freeBox = input.freeBox
     const products = await prisma.product.findMany({
-      where: { id: { in: input.items.map((i) => i.productId) }, active: true },
+      where: {
+        id: {
+          in: [...input.items.map((i) => i.productId), ...(freeBox ? [freeBox.productId] : [])],
+        },
+        active: true,
+      },
       include: { translations: true, colorSlots: true },
     })
     const productById = new Map(products.map((p) => [p.id, p]))
@@ -184,9 +192,15 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       colorSelection: Record<string, string>
     }[] = []
 
-    for (const item of input.items) {
+    // The free box is a 0 € line so production, shipping and complaints see it like any item.
+    const lines = freeBox ? [...input.items, { ...freeBox, quantity: 1, free: true }] : input.items
+    for (const item of lines) {
       const product = productById.get(item.productId)
       if (!product) throw badRequest(`Product not available: ${item.productId}`)
+      const free = 'free' in item
+      if (free && product.capacity !== FREE_BOX_CAPACITY) {
+        throw badRequest(`Free box must hold ${FREE_BOX_CAPACITY} rounds`)
+      }
       const resolution = resolveColorSelection(
         product.colorSlots.map((s) => ({
           slot: s.slot as ColorZoneSlot,
@@ -202,9 +216,14 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         productId: product.id,
         name: productName(product.translations, input.locale),
         quantity: item.quantity,
-        unitPriceCents: product.priceCents,
+        unitPriceCents: free ? 0 : product.priceCents,
         colorSelection: resolution.resolved ?? {},
       })
+    }
+    // Paid items only — the free box itself is 0 € and never counts toward the threshold.
+    const subtotalCents = orderItems.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
+    if (freeBox && !qualifiesForFreeBox(subtotalCents)) {
+      throw badRequest('Order value too low for the free box')
     }
 
     // Hard revalidation of the voucher — the cart's validate result may be stale.
@@ -213,7 +232,6 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       voucher = await prisma.voucher.findUnique({
         where: { code: normalizeVoucherCode(input.voucherCode) },
       })
-      const subtotalCents = orderItems.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
       const check = checkVoucher(voucher, subtotalCents)
       if (!check.ok) {
         if (check.reason === 'exhausted') {
@@ -223,7 +241,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       }
     }
 
-    const voucherTotals = calcCartTotalsWithVoucher(orderItems, voucher)
+    const voucherTotals = calcCartTotalsWithVoucher(orderItems, voucher, input.address.country)
     const prepaymentDiscountCents =
       input.paymentMethod === 'bank_transfer' ? calcPrepaymentDiscountCents(voucherTotals) : 0
     const totals = {

@@ -34,6 +34,7 @@
     "shipping": "Doprava",
     "shippingFree": "Zdarma",
     "freeShippingHint": "Ještě {amount} do dopravy zdarma",
+    "freeBoxHint": "Ještě {amount} do krabičky na 50 zdarma",
     "total": "Celkem",
     "checkout": "K pokladně",
     "updated": "Košík aktualizován",
@@ -507,6 +508,13 @@
         "zip": "Zadej PSČ.",
         "zipFormat": "PSČ musí mít 3 až 12 znaků.",
         "city": "Zadej město."
+      },
+      "freeBox": {
+        "title": "Tvoje krabička na 50 zdarma",
+        "hint": "Od 100 € hodnoty objednávky dostaneš krabičku na 50 nábojů zdarma. Ráže a barvy si vybereš sám.",
+        "label": "Ráže",
+        "none": "Bez krabičky zdarma",
+        "free": "Zdarma"
       }
     },
     "wishlist": {

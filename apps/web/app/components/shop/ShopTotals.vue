@@ -2,8 +2,9 @@
 import {
   calcPrepaymentDiscountCents,
   centsUntilFreeShipping,
-  FREE_SHIPPING_THRESHOLD_CENTS,
+  FREE_BOX_THRESHOLD_CENTS,
   formatCents,
+  freeShippingThresholdCents,
   PREPAYMENT_DISCOUNT_PERCENT,
 } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
@@ -15,9 +16,17 @@ const { t, locale } = useI18n()
 const cart = useCartStore()
 const money = (cents: number) => formatCents(cents, locale.value as Locale)
 
-const missingForFree = computed(() => centsUntilFreeShipping(cart.totals.subtotalCents))
+const missingForFree = computed(() =>
+  centsUntilFreeShipping(cart.totals.subtotalCents, cart.country),
+)
 const progress = computed(() =>
-  Math.min(100, Math.round((cart.totals.subtotalCents / FREE_SHIPPING_THRESHOLD_CENTS) * 100)),
+  Math.min(
+    100,
+    Math.round((cart.totals.subtotalCents / freeShippingThresholdCents(cart.country)) * 100),
+  ),
+)
+const missingForFreeBox = computed(() =>
+  Math.max(0, FREE_BOX_THRESHOLD_CENTS - cart.totals.subtotalCents),
 )
 const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents > 0)
 const prepaymentCents = computed(() =>
@@ -104,5 +113,8 @@ const prepaymentCents = computed(() =>
         />
       </div>
     </div>
+    <p v-if="missingForFreeBox > 0" class="mt-3 text-sm" data-testid="free-box-hint">
+      {{ t('cart.freeBoxHint', { amount: money(missingForFreeBox) }) }}
+    </p>
   </div>
 </template>

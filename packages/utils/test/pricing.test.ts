@@ -19,7 +19,7 @@ describe('pricing', () => {
   })
 
   it('adds shipping below the free threshold', () => {
-    const totals = calcCartTotals([{ unitPriceCents: 2999, quantity: 1 }])
+    const totals = calcCartTotals([{ unitPriceCents: 2999, quantity: 1 }], 'DE')
     expect(totals).toEqual({
       subtotalCents: 2999,
       shippingCents: 699,
@@ -28,15 +28,15 @@ describe('pricing', () => {
     })
   })
 
-  it('applies free shipping at 150 €', () => {
-    const totals = calcCartTotals([{ unitPriceCents: 15000, quantity: 1 }])
+  it('applies free shipping at 80 € within Germany', () => {
+    const totals = calcCartTotals([{ unitPriceCents: 8000, quantity: 1 }], 'DE')
     expect(totals.shippingCents).toBe(0)
-    expect(totals.totalCents).toBe(15000)
+    expect(totals.totalCents).toBe(8000)
     expect(totals.freeShippingApplied).toBe(true)
   })
 
   it('handles an empty cart', () => {
-    const totals = calcCartTotals([])
+    const totals = calcCartTotals([], 'DE')
     expect(totals).toEqual({
       subtotalCents: 0,
       shippingCents: 0,

@@ -65,7 +65,7 @@ Theme-Umschalter in der Toolbar.
 
 ## Tests
 
-- **Unit (Vitest):** Preis-/Versandlogik (6,99 € / frei ab 150 €), Statusmaschinen
+- **Unit (Vitest):** Preis-/Versandlogik (DE 6,99 € / frei ab 80 €, Ausland 15 € / frei ab 100 €), Statusmaschinen
   (Bestellung, Produktion, Reklamation, QC, Versand, Review, Social Posts),
   Kalender-Overlap, Filament-Bestand, Magic-Link-Token (nur Hash), Review-Eligibility,
   Popular-Configs, Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung,
