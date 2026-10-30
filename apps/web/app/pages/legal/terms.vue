@@ -80,9 +80,10 @@ useSeo({
         <p class="mt-sm">
           Alle angegebenen Preise sind Endpreise in Euro. Als Kleinunternehmer im Sinne von § 19
           UStG weisen wir keine Umsatzsteuer aus. Zusätzlich zu den Produktpreisen fallen
-          Versandkosten an: innerhalb Deutschlands 6,99 € und in andere Länder der Europäischen
-          Union 15,00 €. Ab einem Bestellwert von 150,00 € liefern wir innerhalb Deutschlands und in
-          die Europäische Union versandkostenfrei.
+          Versandkosten an: innerhalb Deutschlands 6,99 € und ins europäische Ausland 15,00 €. Ab
+          einem Bestellwert von 80,00 € liefern wir innerhalb Deutschlands versandkostenfrei, ins
+          europäische Ausland ab 100,00 €. Ab einem Bestellwert von 100,00 € erhältst du zusätzlich
+          eine 50er Patronenbox nach Wahl kostenlos.
         </p>
       </section>
 

@@ -180,6 +180,66 @@ describe('POST /api/checkout', () => {
     const body = (await res.json()) as { message: string }
     expect(body.message).toContain('Product not available')
   })
+
+  describe('free 50 box', () => {
+    const paidId = 'clzz00000000000000000001'
+    const boxId = 'clzz00000000000000000002'
+    const product = (id: string, priceCents: number, capacity: number) => ({
+      id,
+      priceCents,
+      capacity,
+      translations: [{ locale: 'de', name: 'Box' }],
+      colorSlots: [],
+    })
+    const checkout = (quantity: number, key: string) =>
+      postJson(
+        '/api/checkout',
+        {
+          items: [{ productId: paidId, quantity, colorSelection: {} }],
+          freeBox: { productId: boxId, colorSelection: {} },
+          address: {
+            firstName: 'Max',
+            lastName: 'Mustermann',
+            street: 'Musterstraße 1',
+            zip: '1010',
+            city: 'Wien',
+            country: 'AT',
+            email: 'max@example.com',
+          },
+          paymentMethod: 'bank_transfer',
+        },
+        { 'idempotency-key': key },
+      )
+
+    beforeEach(() => {
+      mockedOrderFindUnique.mockResolvedValue(null)
+      mockedColorFindMany.mockResolvedValue([])
+    })
+
+    it('rejects the free box below 100 €', async () => {
+      mockedProductFindMany.mockResolvedValue([
+        product(paidId, 4999, 100),
+        product(boxId, 1490, 50),
+      ] as never)
+
+      const res = await checkout(2, 'test-checkout-free-box-key-1')
+
+      expect(res.status).toBe(400)
+      expect(((await res.json()) as { message: string }).message).toContain('too low')
+    })
+
+    it('rejects a free box that is not a 50 box', async () => {
+      mockedProductFindMany.mockResolvedValue([
+        product(paidId, 5000, 100),
+        product(boxId, 1990, 100),
+      ] as never)
+
+      const res = await checkout(2, 'test-checkout-free-box-key-2')
+
+      expect(res.status).toBe(400)
+      expect(((await res.json()) as { message: string }).message).toContain('50 rounds')
+    })
+  })
 })
 
 describe('POST /api/t/events', () => {

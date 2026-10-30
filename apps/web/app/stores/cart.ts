@@ -29,6 +29,8 @@ function lineKey(productId: string, colorSelection: ColorSelection): string {
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartLine[]>([])
   const voucher = ref<VoucherDto | null>(null)
+  /** Delivery country for shipping; the cart page has no address yet, so DE until checkout sets it. */
+  const country = ref('DE')
   const hydrated = ref(false)
 
   function hydrate() {
@@ -64,7 +66,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   const count = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
-  const totals = computed(() => calcCartTotalsWithVoucher(items.value, voucher.value))
+  const totals = computed(() =>
+    calcCartTotalsWithVoucher(items.value, voucher.value, country.value),
+  )
 
   function add(line: Omit<CartLine, 'key'>) {
     const key = lineKey(line.productId, line.colorSelection)
@@ -117,7 +121,11 @@ export const useCartStore = defineStore('cart', () => {
     voucher.value = null
   }
 
-  function toCheckoutItems(): { productId: string; quantity: number; colorSelection: ColorSelection }[] {
+  function toCheckoutItems(): {
+    productId: string
+    quantity: number
+    colorSelection: ColorSelection
+  }[] {
     return items.value.map((i) => ({
       productId: i.productId,
       quantity: i.quantity,
@@ -128,6 +136,7 @@ export const useCartStore = defineStore('cart', () => {
   return {
     items,
     voucher,
+    country,
     count,
     totals,
     hydrate,

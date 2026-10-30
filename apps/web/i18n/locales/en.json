@@ -34,6 +34,7 @@
     "shipping": "Shipping",
     "shippingFree": "Free",
     "freeShippingHint": "{amount} to go for free shipping",
+    "freeBoxHint": "{amount} to go for your free 50 box",
     "total": "Total",
     "checkout": "Checkout",
     "updated": "Cart updated",
@@ -505,6 +506,13 @@
         "zip": "Please enter your postcode.",
         "zipFormat": "The postcode must be 3 to 12 characters long.",
         "city": "Please enter your city."
+      },
+      "freeBox": {
+        "title": "Your free 50 box",
+        "hint": "Orders from €100 get a 50-round box on us. Pick the caliber and colours.",
+        "label": "Caliber",
+        "none": "No free box",
+        "free": "Free"
       }
     },
     "wishlist": {

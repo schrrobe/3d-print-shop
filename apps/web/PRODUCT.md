@@ -31,7 +31,7 @@ eine Patronenzahl konstruiert und in Farben des Kunden gedruckt.
   Munitionsbehältnis gelagert. Sie dienen der Organisation, nicht der gesetzlichen
   Aufbewahrung (§ 36 WaffG).
 - Bestellung als Gast; Zahlung per Stripe, Überweisung oder (optional) Bitcoin;
-  pauschaler Versand 6,99 €, versandkostenfrei ab 150 €.
+  Versand DE 6,99 € (frei ab 80 €), Ausland 15 € (frei ab 100 €); ab 100 € eine 50er Box gratis.
 - Sechs Sprachen: de (Standard), en, pl, fr, nl, cs.
 
 ## Capabilities & Constraints

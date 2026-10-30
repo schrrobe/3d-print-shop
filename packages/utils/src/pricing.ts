@@ -18,13 +18,13 @@ export function calcSubtotalCents(items: PricedItem[]): number {
   }, 0)
 }
 
-export function calcCartTotals(items: PricedItem[]): CartTotalsDto {
+export function calcCartTotals(items: PricedItem[], country: string): CartTotalsDto {
   const subtotalCents = calcSubtotalCents(items)
-  const shippingCents = calcShippingCents(subtotalCents)
+  const shippingCents = calcShippingCents(subtotalCents, country)
   return {
     subtotalCents,
     shippingCents,
     totalCents: subtotalCents + shippingCents,
-    freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents),
+    freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents, country),
   }
 }
