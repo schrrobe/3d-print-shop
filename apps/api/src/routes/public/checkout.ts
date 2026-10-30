@@ -3,6 +3,7 @@ import { renderAdminNotification } from '@print-shop/emails'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
 import {
   calcCartTotalsWithVoucher,
+  calcPrepaymentDiscountCents,
   checkVoucher,
   FREE_BOX_CAPACITY,
   isFreeShipping,
@@ -19,7 +20,7 @@ import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { assertCompanyComplete, company } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
-import { sendOrderConfirmation } from '../../services/order-flow.js'
+import { issuePrepaymentInvoice, sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
 import {
   createStripeCheckoutSession,
@@ -66,10 +67,26 @@ const checkoutOrderInclude = {
   payments: { include: { bitcoinPayment: true } },
 } as const
 
-async function checkoutResponse(
-  order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>,
-  stripeClientSecret?: string,
-) {
+type CheckoutOrder = Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>
+
+/**
+ * Vorkasse invoice at checkout (idempotent). The order stands even if this
+ * fails: a checkout replay retries it, and markOrderPaid mails it on payment.
+ * Returns the reloaded order — the payment reference is now the invoice number.
+ */
+async function issuePrepaymentInvoiceSafely(order: CheckoutOrder): Promise<CheckoutOrder> {
+  try {
+    await issuePrepaymentInvoice(order.id)
+  } catch (err) {
+    console.error(`[invoice] prepayment invoice failed for ${order.orderNumber}:`, err)
+  }
+  return prisma.order.findUniqueOrThrow({
+    where: { id: order.id },
+    include: checkoutOrderInclude,
+  })
+}
+
+async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: string) {
   const payment = order.payments[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
@@ -117,6 +134,7 @@ async function checkoutResponse(
       subtotalCents: order.subtotalCents,
       shippingCents: order.shippingCents,
       discountCents: order.discountCents,
+      prepaymentDiscountCents: order.prepaymentDiscountCents,
       totalCents: order.totalCents,
       freeShippingApplied: isFreeShipping(order.subtotalCents, order.country),
     },
@@ -143,7 +161,12 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       include: checkoutOrderInclude,
     })
     if (previous) {
-      res.json(await checkoutResponse(previous))
+      // A replay finishes a Vorkasse invoice whose issuance failed the first time.
+      const replayed =
+        previous.status === 'awaiting_bank_transfer'
+          ? await issuePrepaymentInvoiceSafely(previous)
+          : previous
+      res.json(await checkoutResponse(replayed))
       return
     }
     assertCompanyComplete()
@@ -218,15 +241,22 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       }
     }
 
-    const totals = calcCartTotalsWithVoucher(orderItems, voucher, input.address.country)
-    // Commission base = goods after discount, without shipping; frozen on the order.
+    const voucherTotals = calcCartTotalsWithVoucher(orderItems, voucher, input.address.country)
+    const prepaymentDiscountCents =
+      input.paymentMethod === 'bank_transfer' ? calcPrepaymentDiscountCents(voucherTotals) : 0
+    const totals = {
+      ...voucherTotals,
+      totalCents: voucherTotals.totalCents - prepaymentDiscountCents,
+    }
+    // Commission base = goods after voucher and Vorkasse discount, without shipping; frozen on the order.
     const salesChannel = await attributeSalesChannel(
       prisma,
       voucher?.id ?? null,
       (req.cookies as Record<string, string> | undefined)?.[REF_COOKIE],
       new Date(),
     )
-    const commissionBaseCents = totals.subtotalCents - totals.discountCents
+    const commissionBaseCents =
+      totals.subtotalCents - totals.discountCents - prepaymentDiscountCents
     const orderNumber = generateOrderNumber()
     const accessToken = randomToken()
     const initialStatus =
@@ -276,7 +306,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
 
     let created = true
-    let order: Prisma.OrderGetPayload<{ include: typeof checkoutOrderInclude }>
+    let order: CheckoutOrder
     try {
       order = await prisma.$transaction(async (tx) => {
         if (voucher) {
@@ -314,6 +344,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             subtotalCents: totals.subtotalCents,
             shippingCents: totals.shippingCents,
             discountCents: totals.discountCents,
+            prepaymentDiscountCents,
             totalCents: totals.totalCents,
             voucherId: voucher?.id,
             voucherCode: voucher?.code,
@@ -357,6 +388,9 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         console.error('[tracking] emitOrderCreated failed:', err)
       }
       await sendOrderConfirmation(order.id)
+      if (order.payments[0]?.method === 'bank_transfer') {
+        order = await issuePrepaymentInvoiceSafely(order)
+      }
       await sendEmail(
         env.ADMIN_NOTIFICATION_EMAIL,
         'admin_notification',

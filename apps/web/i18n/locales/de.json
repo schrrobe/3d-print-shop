@@ -41,6 +41,7 @@
     "saveChanges": "Änderungen speichern",
     "edit": "Bearbeiten",
     "voucherLabel": "Gutschein ({code})",
+    "prepaymentDiscount": "Vorkasse-Rabatt ({percent} %)",
     "voucherPlaceholder": "Gutscheincode",
     "voucherApply": "Einlösen",
     "voucherRemove": "Entfernen",
@@ -69,7 +70,7 @@
     "note": "Anmerkung (optional)",
     "payment": "Zahlungsart",
     "payStripe": "Karte / Stripe",
-    "payBank": "Banküberweisung",
+    "payBank": "Vorkasse (Überweisung)",
     "payBitcoin": "Bitcoin",
     "submit": "Jetzt kostenpflichtig bestellen",
     "summary": "Bestellübersicht",
@@ -86,6 +87,7 @@
     "title": "Bestellung {number}",
     "status": "Status",
     "items": "Positionen",
+    "invoiceDownload": "Rechnung {number} herunterladen",
     "bank": {
       "title": "Bitte überweise an:",
       "holder": "Kontoinhaber",
@@ -493,7 +495,7 @@
       "withdrawalLink": "Widerrufsbelehrung",
       "payHints": {
         "stripe": "Sichere Zahlung über Stripe, z. B. per Kreditkarte.",
-        "bank_transfer": "Bankdaten erhältst du nach der Bestellung.",
+        "bank_transfer": "{percent} % Rabatt auf den Warenwert. Bankdaten und Rechnung erhältst du nach der Bestellung.",
         "bitcoin": "Zahlung per Bitcoin-Adresse nach der Bestellung."
       },
       "errors": {

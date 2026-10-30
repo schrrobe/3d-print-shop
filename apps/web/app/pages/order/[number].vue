@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PsButton, PsOrderStatusBadge, PsPrice, PsSection } from '@print-shop/ui'
+import { PREPAYMENT_DISCOUNT_PERCENT } from '@print-shop/utils'
 import type { Locale, OrderStatus } from '@print-shop/types'
 
 /** Guest order status page (order number + access token from email/confirmation). */
@@ -22,6 +23,7 @@ interface OrderView {
   subtotalCents: number
   shippingCents: number
   discountCents: number
+  prepaymentDiscountCents: number
   voucherCode: string | null
   totalCents: number
   carrier: string | null
@@ -140,6 +142,18 @@ async function payNow() {
           >−<PsPrice :cents="order.discountCents" :locale="locale as Locale" size="sm"
         /></span>
       </div>
+      <div
+        v-if="order.prepaymentDiscountCents > 0"
+        class="mt-md flex justify-between text-body-regular"
+        data-testid="order-prepayment-discount"
+      >
+        <span class="text-secondary">{{
+          t('cart.prepaymentDiscount', { percent: PREPAYMENT_DISCOUNT_PERCENT })
+        }}</span>
+        <span class="text-brand"
+          >−<PsPrice :cents="order.prepaymentDiscountCents" :locale="locale as Locale" size="sm"
+        /></span>
+      </div>
       <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">
         <span>{{ t('cart.total') }}</span>
         <PsPrice :cents="order.totalCents" :locale="locale as Locale" />
@@ -170,6 +184,16 @@ async function payNow() {
           </div>
         </dl>
       </div>
+
+      <a
+        v-if="order.invoice"
+        :href="`/api/orders/${orderNumber}/invoice.pdf?token=${encodeURIComponent(token)}`"
+        download
+        class="mt-lg inline-block text-body-regular text-brand underline"
+        data-testid="invoice-download"
+      >
+        {{ t('order.invoiceDownload', { number: order.invoice.number }) }}
+      </a>
 
       <div
         v-if="bitcoinPayment?.bitcoin && order.status === 'awaiting_payment'"

@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, rename } from 'node:fs/promises'
 import path from 'node:path'
 import { Prisma, type Invoice } from '@prisma/client'
 import PDFDocument from 'pdfkit'
@@ -101,8 +102,12 @@ export async function generateInvoicePdf(
     }
   }
 
+  // Render to a temp file and rename (atomic): concurrent renders of the same
+  // invoice (checkout replay, payment retry, download) never expose a
+  // half-written PDF to a reader or an email attachment.
+  const tmpPath = `${filePath}.${randomUUID()}.tmp`
   const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true })
-  const stream = createWriteStream(filePath)
+  const stream = createWriteStream(tmpPath)
   doc.pipe(stream)
   renderInvoicePdf(doc, { invoice, order, company, qrPng })
   doc.end()
@@ -110,6 +115,7 @@ export async function generateInvoicePdf(
     stream.on('finish', () => resolve())
     stream.on('error', reject)
   })
+  await rename(tmpPath, filePath)
 
   await prisma.invoice.update({ where: { id: invoice.id }, data: { pdfPath: filePath } })
   return filePath

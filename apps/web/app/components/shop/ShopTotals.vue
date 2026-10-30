@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import {
+  calcPrepaymentDiscountCents,
   centsUntilFreeShipping,
   FREE_BOX_THRESHOLD_CENTS,
   formatCents,
   freeShippingThresholdCents,
+  PREPAYMENT_DISCOUNT_PERCENT,
 } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
 
 /** Totals ledger shared by cart and checkout; `prefix` keeps both pages' test ids stable. */
-const props = defineProps<{ prefix: 'cart' | 'checkout' }>()
+const props = defineProps<{ prefix: 'cart' | 'checkout'; prepayment?: boolean }>()
 
 const { t, locale } = useI18n()
 const cart = useCartStore()
@@ -27,6 +29,9 @@ const missingForFreeBox = computed(() =>
   Math.max(0, FREE_BOX_THRESHOLD_CENTS - cart.totals.subtotalCents),
 )
 const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents > 0)
+const prepaymentCents = computed(() =>
+  props.prepayment ? calcPrepaymentDiscountCents(cart.totals) : 0,
+)
 </script>
 
 <template>
@@ -60,6 +65,16 @@ const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents
           −{{ money(cart.totals.discountCents) }}
         </dd>
       </div>
+      <div
+        v-if="prepaymentCents > 0"
+        class="flex justify-between gap-4 py-2"
+        :data-testid="`${props.prefix}-prepayment-discount`"
+      >
+        <dt class="text-ink-2">
+          {{ t('cart.prepaymentDiscount', { percent: PREPAYMENT_DISCOUNT_PERCENT }) }}
+        </dt>
+        <dd class="font-semibold text-ok">−{{ money(prepaymentCents) }}</dd>
+      </div>
       <div class="flex justify-between gap-4 py-2">
         <dt class="text-ink-2">{{ t('cart.shipping') }}</dt>
         <dd :data-testid="`${props.prefix}-shipping`">
@@ -72,7 +87,7 @@ const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents
       <div class="mt-2 flex items-baseline justify-between gap-4 border-t-2 border-ink pt-3">
         <dt class="font-bold">{{ t('cart.total') }}</dt>
         <dd class="text-[1.5rem] font-bold" :data-testid="`${props.prefix}-total`">
-          {{ money(cart.totals.totalCents) }}
+          {{ money(cart.totals.totalCents - prepaymentCents) }}
         </dd>
       </div>
     </dl>

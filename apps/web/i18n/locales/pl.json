@@ -41,6 +41,7 @@
     "saveChanges": "Zapisz zmiany",
     "edit": "Edytuj",
     "voucherLabel": "Kupon ({code})",
+    "prepaymentDiscount": "Rabat za przedpłatę ({percent} %)",
     "voucherPlaceholder": "Kod kuponu",
     "voucherApply": "Zrealizuj",
     "voucherRemove": "Usuń",
@@ -69,7 +70,7 @@
     "note": "Uwagi (opcjonalnie)",
     "payment": "Metoda płatności",
     "payStripe": "Karta / Stripe",
-    "payBank": "Przelew bankowy",
+    "payBank": "Przedpłata (przelew)",
     "payBitcoin": "Bitcoin",
     "submit": "Zamawiam i płacę",
     "summary": "Podsumowanie zamówienia",
@@ -86,6 +87,7 @@
     "title": "Zamówienie {number}",
     "status": "Status",
     "items": "Pozycje",
+    "invoiceDownload": "Pobierz fakturę {number}",
     "bank": {
       "title": "Prosimy o przelew na:",
       "holder": "Właściciel konta",
@@ -493,7 +495,7 @@
       "withdrawalLink": "pouczeniu o odstąpieniu",
       "payHints": {
         "stripe": "Bezpieczna płatność przez Stripe, np. kartą kredytową.",
-        "bank_transfer": "Dane do przelewu otrzymasz po złożeniu zamówienia.",
+        "bank_transfer": "{percent} % rabatu na towary. Dane do przelewu i fakturę otrzymasz po złożeniu zamówienia.",
         "bitcoin": "Płatność na adres Bitcoin po złożeniu zamówienia."
       },
       "errors": {

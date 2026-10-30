@@ -41,6 +41,7 @@
     "saveChanges": "Uložit změny",
     "edit": "Upravit",
     "voucherLabel": "Slevový kód ({code})",
+    "prepaymentDiscount": "Sleva za platbu předem ({percent} %)",
     "voucherPlaceholder": "Slevový kód",
     "voucherApply": "Uplatnit",
     "voucherRemove": "Odebrat",
@@ -69,7 +70,7 @@
     "note": "Poznámka (volitelné)",
     "payment": "Způsob platby",
     "payStripe": "Karta / Stripe",
-    "payBank": "Bankovní převod",
+    "payBank": "Platba předem (převod)",
     "payBitcoin": "Bitcoin",
     "submit": "Závazně objednat",
     "summary": "Souhrn objednávky",
@@ -86,6 +87,7 @@
     "title": "Objednávka {number}",
     "status": "Stav",
     "items": "Položky",
+    "invoiceDownload": "Stáhnout fakturu {number}",
     "bank": {
       "title": "Prosíme o převod na:",
       "holder": "Majitel účtu",
@@ -493,7 +495,7 @@
       "withdrawalLink": "poučení o odstoupení",
       "payHints": {
         "stripe": "Bezpečná platba přes Stripe, např. kartou.",
-        "bank_transfer": "Bankovní údaje dostaneš po objednávce.",
+        "bank_transfer": "{percent} % sleva na zboží. Bankovní údaje a fakturu dostaneš po objednávce.",
         "bitcoin": "Platba na bitcoinovou adresu po objednávce."
       },
       "errors": {

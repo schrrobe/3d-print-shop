@@ -8,7 +8,7 @@ import {
   type OrderEmailData,
 } from '@print-shop/emails'
 import { assertOrderTransition } from '@print-shop/utils'
-import type { Order, OrderItem } from '@prisma/client'
+import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { company } from './company.js'
@@ -76,6 +76,9 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
         status: 'waiting' as const,
       })),
     })
+    // A pre-issued Vorkasse PDF still shows bank details: drop it so it is
+    // re-rendered as "paid" below — or on the next retry / download if that fails.
+    await tx.invoice.updateMany({ where: { orderId: order.id }, data: { pdfPath: null } })
     return true
   })
 
@@ -106,27 +109,75 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
   }
 
   // Reconcile post-transaction artifacts on webhook retries after a partial failure.
-  const mustSendInvoice = claimed || !paidOrder.invoice?.pdfPath
+  // A Vorkasse invoice already delivered at checkout is not mailed again.
   const invoice = paidOrder.invoice ?? (await createInvoiceForOrder(paidOrder.id))
   const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, paidOrder))
-  if (mustSendInvoice) {
+  if (!invoice.sentAt) await sendInvoiceEmail(paidOrder, invoice, pdfPath)
+}
+
+const INVOICE_SEND_LEASE_MS = 5 * 60_000
+
+/**
+ * Mails the invoice and marks it sent only once delivery succeeded. A CAS lease
+ * lets exactly one of several concurrent callers (checkout replays, payment
+ * retries) send; the others skip. A crashed sender's lease simply expires.
+ */
+async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string): Promise<void> {
+  const now = new Date()
+  const claim = await prisma.invoice.updateMany({
+    where: {
+      id: invoice.id,
+      sentAt: null,
+      OR: [{ sendLockUntil: null }, { sendLockUntil: { lt: now } }],
+    },
+    data: { sendLockUntil: new Date(now.getTime() + INVOICE_SEND_LEASE_MS) },
+  })
+  if (claim.count !== 1) return
+
+  let delivered = false
+  try {
     const pdf = await readFile(pdfPath)
-    await sendEmail(
-      paidOrder.email,
+    delivered = await sendEmail(
+      order.email,
       'invoice',
       renderInvoice(
         {
-          orderNumber: paidOrder.orderNumber,
+          orderNumber: order.orderNumber,
           invoiceNumber: invoice.number,
           totalCents: invoice.totalCents,
-          orderUrl: orderUrl(paidOrder),
+          orderUrl: orderUrl(order),
         },
-        paidOrder.locale,
+        order.locale,
       ),
       [{ filename: `${invoice.number}.pdf`, content: pdf }],
       { bcc: company().invoiceBcc || undefined },
     )
+  } finally {
+    await prisma.invoice.update({
+      where: { id: invoice.id },
+      data: delivered ? { sendLockUntil: null, sentAt: new Date() } : { sendLockUntil: null },
+    })
   }
+}
+
+/**
+ * Vorkasse: issue the invoice at checkout so the customer can pay against it
+ * (invoice number = transfer reference), then email it. Idempotent, so a
+ * checkout replay can finish an issuance that failed part-way.
+ */
+export async function issuePrepaymentInvoice(orderId: string): Promise<void> {
+  const invoice = await createInvoiceForOrder(orderId)
+  if (invoice.sentAt) return
+  await prisma.payment.updateMany({
+    where: { orderId, method: 'bank_transfer', status: 'pending' },
+    data: { reference: invoice.number },
+  })
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true, payments: true },
+  })
+  const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, order))
+  await sendInvoiceEmail(order, invoice, pdfPath)
 }
 
 export async function notifyProductionStarted(orderId: string): Promise<void> {

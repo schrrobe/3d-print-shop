@@ -17,7 +17,7 @@ const linkFor = (code: string) => `${env.WEB_URL.replace(/\/$/, '')}/r/${code}`
 
 /**
  * Channels with clicks and attributed paid orders in [from, to). Revenue is the
- * frozen commission base (goods after discount, no shipping); shopRevenueCents
+ * frozen commission base (goods after voucher and Vorkasse discount, no shipping); shopRevenueCents
  * is the same measure over all paid orders so the UI can show each channel's share.
  */
 adminSalesChannelsRouter.get(
@@ -45,10 +45,16 @@ adminSalesChannelsRouter.get(
           _count: { _all: true },
           _sum: { commissionBaseCents: true, commissionCents: true },
         }),
-        prisma.order.aggregate({ where: paid, _sum: { subtotalCents: true, discountCents: true } }),
+        prisma.order.aggregate({
+          where: paid,
+          _sum: { subtotalCents: true, discountCents: true, prepaymentDiscountCents: true },
+        }),
       ])
       res.json({
-        shopRevenueCents: (shop._sum.subtotalCents ?? 0) - (shop._sum.discountCents ?? 0),
+        shopRevenueCents:
+          (shop._sum.subtotalCents ?? 0) -
+          (shop._sum.discountCents ?? 0) -
+          (shop._sum.prepaymentDiscountCents ?? 0),
         channels: channels.map((c) => {
           const o = orders.find((r) => r.salesChannelId === c.id)
           return {

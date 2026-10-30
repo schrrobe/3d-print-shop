@@ -80,3 +80,15 @@ export function calcCartTotalsWithVoucher(
     freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents, country),
   }
 }
+
+/** Vorkasse (bank_transfer) discount in percent. */
+export const PREPAYMENT_DISCOUNT_PERCENT = 5
+
+/** Vorkasse discount on goods after voucher — shipping never counts. */
+export function calcPrepaymentDiscountCents(totals: {
+  subtotalCents: number
+  discountCents: number
+}): number {
+  const goodsCents = Math.max(totals.subtotalCents - totals.discountCents, 0)
+  return Math.round((goodsCents * PREPAYMENT_DISCOUNT_PERCENT) / 100)
+}

@@ -492,41 +492,43 @@ model SalesChannelClick {
 // ---------- Orders ----------
 
 model Order {
-  id             String      @id @default(cuid())
-  orderNumber    String      @unique
+  id                      String      @id @default(cuid())
+  orderNumber             String      @unique
   /// Token for guest access to confirmation / status page
-  accessToken    String      @unique
+  accessToken             String      @unique
   /// Client-generated retry key; prevents duplicate orders on checkout retries.
-  checkoutKey    String?     @unique
-  status         OrderStatus @default(pending)
-  locale         Locale      @default(de)
-  email          String
-  firstName      String
-  lastName       String
-  company        String?
-  street         String
-  zip            String
-  city           String
-  country        String
-  phone          String?
-  note           String?
-  subtotalCents  Int
-  shippingCents  Int
-  discountCents  Int         @default(0)
-  totalCents     Int
+  checkoutKey             String?     @unique
+  status                  OrderStatus @default(pending)
+  locale                  Locale      @default(de)
+  email                   String
+  firstName               String
+  lastName                String
+  company                 String?
+  street                  String
+  zip                     String
+  city                    String
+  country                 String
+  phone                   String?
+  note                    String?
+  subtotalCents           Int
+  shippingCents           Int
+  discountCents           Int         @default(0)
+  /// Vorkasse (bank_transfer) discount on goods after voucher; shipping excluded.
+  prepaymentDiscountCents Int         @default(0)
+  totalCents              Int
   /// Snapshot of the redeemed voucher code (kept even if the voucher is deleted)
-  voucherCode    String?
-  voucherId      String?
-  voucher        Voucher?    @relation(fields: [voucherId], references: [id])
-  carrier        Carrier?
-  trackingNumber String?
-  shippedAt      DateTime?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  voucherCode             String?
+  voucherId               String?
+  voucher                 Voucher?    @relation(fields: [voucherId], references: [id])
+  carrier                 Carrier?
+  trackingNumber          String?
+  shippedAt               DateTime?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
 
   /// First-party tracking session that placed the order (nullable: adblocked /
   /// consentless checkouts still succeed). Links behavioural data to the order.
-  trackingSessionId String?
+  trackingSessionId   String?
   /// Marketing-consent-only conversion-API match data captured at checkout
   /// ({ ip, userAgent, fbp, fbc, ttp }). Cleared once the purchase is
   /// enqueued and by tracking retention (see services/tracking/retention.ts).
@@ -542,12 +544,12 @@ model Order {
   shipments   Shipment[]
   reviews     Review[]
 
-  trackingEvents TrackingEvent[]
-  attribution    OrderAttribution?
+  trackingEvents      TrackingEvent[]
+  attribution         OrderAttribution?
   /// Attributed sales channel; commission is frozen at checkout so later rule
   /// changes never rewrite past payouts.
   salesChannelId      String?
-  salesChannel        SalesChannel? @relation(fields: [salesChannelId], references: [id])
+  salesChannel        SalesChannel?     @relation(fields: [salesChannelId], references: [id])
   commissionBaseCents Int?
   commissionCents     Int?
 
@@ -840,6 +842,10 @@ model Invoice {
   paymentMethod PaymentMethod
   pdfPath       String?
   issuedAt      DateTime      @default(now())
+  /// Set once the invoice email was delivered; null = (re)send pending.
+  sentAt        DateTime?
+  /// Lease of the request currently mailing the invoice (CAS claim); expires on crash.
+  sendLockUntil DateTime?
 
   @@unique([year, sequence])
 }
