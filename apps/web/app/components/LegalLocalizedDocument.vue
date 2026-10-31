@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import type { LegalDocumentTranslation } from '../content/legal-translations'
 
 defineProps<{ title: string; document: LegalDocumentTranslation }>()
+const localePath = useLocalePath()
 </script>
 
 <template>
@@ -17,6 +18,11 @@ defineProps<{ title: string; document: LegalDocumentTranslation }>()
           class="mt-sm whitespace-pre-line"
         >
           {{ paragraph }}
+        </p>
+        <p v-if="section.contactForm" class="mt-sm">
+          <NuxtLink class="underline" :to="localePath('/support')">{{
+            section.contactForm
+          }}</NuxtLink>
         </p>
         <div
           v-if="section.form"
