@@ -63,6 +63,9 @@ useSeo({
               >
                 {{ t('shop.product.personalization.line', { name: item.personalization }) }}
               </p>
+              <p v-if="item.labelText" class="mt-1 text-ink-2" data-testid="cart-label-text">
+                {{ t('shop.product.labelText.line', { text: item.labelText }) }}
+              </p>
               <p class="kb-num mt-1 text-sm text-ink-2">
                 {{ t('shop.cart.unitPrice', { price: money(item.unitPriceCents) }) }}
               </p>

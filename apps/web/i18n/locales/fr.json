@@ -452,6 +452,13 @@
         "line": "Personnalisation : {name}",
         "withdrawal": "Les boîtes personnalisées sont fabriquées selon tes indications et sont donc exclues du droit de rétractation (§ 312g al. 2 n° 1 BGB)."
       },
+      "labelText": {
+        "label": "Inscription",
+        "hint": "Sur le couvercle et les fermoirs, {max} caractères max. Laissez vide pour afficher le calibre.",
+        "default": "Calibre",
+        "line": "Inscription : {text}"
+      },
+      "textColor": "Couleur du texte",
       "summary": "{caliber} · {capacity} cartouches · boîte {box} · marquage {label}",
       "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",
       "drawingCaption": "Schéma, pas à l’échelle",

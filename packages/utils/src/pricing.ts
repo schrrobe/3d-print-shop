@@ -34,6 +34,25 @@ const PERSONALIZATION_LABEL: Record<string, string> = {
   cs: 'Personalizace',
 }
 
+const LABEL_TEXT_LABEL: Record<string, string> = {
+  de: 'Schriftzug',
+  en: 'Lettering',
+  pl: 'Napis',
+  fr: 'Inscription',
+  nl: 'Opschrift',
+  cs: 'Nápis',
+}
+
+/** Custom lettering in the name snapshot; production prints the caliber when absent. */
+export function labeledItemName(
+  name: string,
+  labelText: string | undefined,
+  locale: string,
+): string {
+  if (!labelText) return name
+  return `${name} – ${LABEL_TEXT_LABEL[locale] ?? LABEL_TEXT_LABEL.de}: ${labelText}`
+}
+
 /** Order-item name snapshot, so invoice, emails, packing list and production show the name. */
 export function personalizedItemName(
   name: string,

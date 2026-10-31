@@ -7,6 +7,7 @@ import {
   checkVoucher,
   FREE_BOX_CAPACITY,
   isFreeShipping,
+  labeledItemName,
   normalizeVoucherCode,
   personalizedItemName,
   personalizedUnitPriceCents,
@@ -216,10 +217,11 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         throw badRequest('Invalid color selection', resolution.errors)
       }
       const personalization = 'personalization' in item ? item.personalization : undefined
+      const labelText = 'labelText' in item ? item.labelText : undefined
       orderItems.push({
         productId: product.id,
         name: personalizedItemName(
-          productName(product.translations, input.locale),
+          labeledItemName(productName(product.translations, input.locale), labelText, input.locale),
           personalization,
           input.locale,
         ),

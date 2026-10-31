@@ -452,6 +452,13 @@
         "line": "Personalisation: {name}",
         "withdrawal": "Personalised boxes are made to your specification and are therefore excluded from the right of withdrawal (§ 312g (2) no. 1 BGB)."
       },
+      "labelText": {
+        "label": "Lettering",
+        "hint": "Printed on the lid and latches, max. {max} characters. Leave empty to show the caliber.",
+        "default": "Caliber",
+        "line": "Lettering: {text}"
+      },
+      "textColor": "Text colour",
       "summary": "{caliber} · {capacity} rounds · box {box} · label {label}",
       "drawingAlt": "Schematic drawing of the {caliber} cartridge box for {capacity} rounds in {box} with label in {label}",
       "drawingCaption": "Schematic, not to scale",

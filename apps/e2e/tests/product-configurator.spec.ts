@@ -74,4 +74,29 @@ test.describe('box configurator', () => {
     await gotoHydrated(page, '/cart')
     await expect(page.getByTestId('cart-item')).toHaveCount(1)
   })
+
+  test('custom lettering replaces the caliber on lid and latches and reaches the cart', async ({
+    page,
+  }) => {
+    const shop = new ShopPage(page)
+    await gotoHydrated(page, '/products/patronenbox-9mm-luger-50')
+    await shop.acceptConsent()
+    const drawing = page.getByTestId('product-detail').getByTestId('box-drawing')
+    const field = page.getByTestId('label-text')
+
+    // Default: caliber on lid and latch, shown as placeholder; text zone reads "Schriftfarbe"
+    await expect(drawing.locator('text')).toHaveText(['9 mm Luger', '9 mm Luger'])
+    await expect(field).toHaveAttribute('placeholder', '9 mm Luger')
+    await expect(page.getByTestId('color-picker')).toContainText('Schriftfarbe')
+
+    const price = await page.getByTestId('price').textContent()
+    await field.fill('JAGD')
+    await expect(drawing.locator('text')).toHaveText(['JAGD', 'JAGD'])
+    // Free: lettering does not change the price
+    await expect(page.getByTestId('price')).toHaveText(price!)
+
+    await page.getByTestId('add-to-cart').click()
+    await gotoHydrated(page, '/cart')
+    await expect(page.getByTestId('cart-label-text')).toHaveText('Schriftzug: JAGD')
+  })
 })
