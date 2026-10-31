@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PsButton, PsInput } from '@print-shop/ui'
+import { PsButton, PsCard, PsInput } from '@print-shop/ui'
 import {
   GA4_MEASUREMENT_ID_REGEX,
   GTM_CONTAINER_ID_REGEX,
@@ -194,12 +194,12 @@ function saveCompany() {
 </script>
 
 <template>
-  <div data-testid="admin-settings" class="max-w-2xl">
-    <h1 class="mb-sm text-xl font-semibold">Einstellungen</h1>
+  <div data-testid="admin-settings" class="flex max-w-[42rem] flex-col gap-lg">
+    <h1 class="text-heading-small">Einstellungen</h1>
 
-    <section class="rounded-lg border border-default bg-surface-raised p-lg">
-      <h2 class="text-lg font-medium">Tracking &amp; Analytics</h2>
-      <p class="mb-lg mt-xs text-sm text-secondary">
+    <PsCard>
+      <h2 class="text-subheading">Tracking &amp; Analytics</h2>
+      <p class="mb-lg mt-xs text-body-regular text-secondary">
         IDs werden im Shop erst nach aktiver Zustimmung über die Consent-Box geladen. Leeres Feld
         speichern entfernt die ID.
       </p>
@@ -229,13 +229,13 @@ function saveCompany() {
               Leeren
             </PsButton>
           </div>
-          <p class="text-xs text-secondary">{{ field.hint }}</p>
+          <p class="text-caption text-secondary">{{ field.hint }}</p>
         </div>
 
         <div
           v-if="doubleTrackingRisk"
           data-testid="double-tracking-warning"
-          class="rounded-md border border-amber-300 bg-amber-50 p-md text-sm text-amber-900"
+          class="rounded-card border border-amber-500/40 bg-amber-500/10 p-md text-body-regular text-primary"
         >
           <strong>Hinweis:</strong> Google Analytics und Google Tag Manager sind beide konfiguriert.
           Falls GA4 zusätzlich innerhalb des GTM-Containers eingerichtet ist, werden Pageviews und
@@ -252,10 +252,10 @@ function saveCompany() {
           Speichern
         </PsButton>
       </form>
-    </section>
-    <section class="mt-lg rounded-lg border border-default bg-surface-raised p-lg">
-      <h2 class="text-lg font-medium">Firma &amp; Bankverbindung</h2>
-      <p class="mb-lg mt-xs text-sm text-secondary">
+    </PsCard>
+    <PsCard>
+      <h2 class="text-subheading">Firma &amp; Bankverbindung</h2>
+      <p class="mb-lg mt-xs text-body-regular text-secondary">
         Erscheint auf Rechnungen, Lieferscheinen und in den Überweisungsdaten. Leere Felder nutzen
         den Wert aus der Server-Konfiguration (als Platzhalter angezeigt).
       </p>
@@ -263,7 +263,7 @@ function saveCompany() {
       <div
         v-if="missingLabels.length"
         data-testid="company-missing-warning"
-        class="mb-lg rounded-md border border-amber-300 bg-amber-50 p-md text-sm text-amber-900"
+        class="mb-lg rounded-card border border-amber-500/40 bg-amber-500/10 p-md text-body-regular text-primary"
       >
         <strong>Unvollständig:</strong> {{ missingLabels.join(', ') }}. Im Live-Betrieb nimmt der
         Shop keine Bestellungen an, bis diese Angaben gesetzt sind.
@@ -284,7 +284,7 @@ function saveCompany() {
             :name="`company-${field.key}`"
             :data-testid="`company-${field.key}`"
           />
-          <p v-if="field.hint" class="text-xs text-secondary">{{ field.hint }}</p>
+          <p v-if="field.hint" class="text-caption text-secondary">{{ field.hint }}</p>
         </div>
         <div v-if="auth.can('settings:write')" class="sm:col-span-2">
           <PsButton
@@ -297,6 +297,6 @@ function saveCompany() {
           </PsButton>
         </div>
       </form>
-    </section>
+    </PsCard>
   </div>
 </template>
