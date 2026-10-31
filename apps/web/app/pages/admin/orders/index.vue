@@ -12,7 +12,14 @@ interface AdminOrder {
   totalCents: number
   createdAt: string
   invoice: { number: string } | null
+  items: { personalization: string | null }[]
 }
+
+const personalizations = (row: unknown) =>
+  (row as AdminOrder).items
+    .map((i) => i.personalization)
+    .filter(Boolean)
+    .join(', ')
 
 const statusFilter = ref('')
 const { data, refresh } = await useFetch<{ orders: AdminOrder[] }>('/api/admin/orders', {
@@ -26,6 +33,7 @@ const columns = [
   { key: 'orderNumber', label: 'Bestellnummer' },
   { key: 'email', label: 'Kunde' },
   { key: 'status', label: 'Status' },
+  { key: 'personalization', label: 'Personalisiert' },
   { key: 'totalCents', label: 'Summe', align: 'right' as const },
   { key: 'actions', label: '' },
 ]
@@ -39,7 +47,20 @@ const columns = [
       data-testid="order-status-filter"
     >
       <option value="">Alle Status</option>
-      <option v-for="s in ['pending', 'awaiting_payment', 'awaiting_bank_transfer', 'paid', 'in_production', 'ready_to_ship', 'shipped', 'completed']" :key="s" :value="s">
+      <option
+        v-for="s in [
+          'pending',
+          'awaiting_payment',
+          'awaiting_bank_transfer',
+          'paid',
+          'in_production',
+          'ready_to_ship',
+          'shipped',
+          'completed',
+        ]"
+        :key="s"
+        :value="s"
+      >
         {{ s }}
       </option>
     </select>
@@ -47,6 +68,11 @@ const columns = [
     <PsAdminTable :columns="columns" :rows="data?.orders ?? []" empty="Keine Bestellungen">
       <template #cell-status="{ row }">
         <PsOrderStatusBadge :status="(row as unknown as AdminOrder).status" />
+      </template>
+      <template #cell-personalization="{ row }">
+        <span class="text-body-regular" data-testid="order-personalization">{{
+          personalizations(row) || '–'
+        }}</span>
       </template>
       <template #cell-totalCents="{ value }">
         <PsPrice :cents="Number(value)" size="sm" />

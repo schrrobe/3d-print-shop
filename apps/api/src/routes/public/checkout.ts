@@ -8,6 +8,8 @@ import {
   FREE_BOX_CAPACITY,
   isFreeShipping,
   normalizeVoucherCode,
+  personalizedItemName,
+  personalizedUnitPriceCents,
   qualifiesForFreeBox,
   resolveColorSelection,
 } from '@print-shop/utils'
@@ -190,6 +192,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       quantity: number
       unitPriceCents: number
       colorSelection: Record<string, string>
+      personalization?: string
     }[] = []
 
     // The free box is a 0 € line so production, shipping and complaints see it like any item.
@@ -212,12 +215,18 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       if (!resolution.ok) {
         throw badRequest('Invalid color selection', resolution.errors)
       }
+      const personalization = 'personalization' in item ? item.personalization : undefined
       orderItems.push({
         productId: product.id,
-        name: productName(product.translations, input.locale),
+        name: personalizedItemName(
+          productName(product.translations, input.locale),
+          personalization,
+          input.locale,
+        ),
         quantity: item.quantity,
-        unitPriceCents: free ? 0 : product.priceCents,
+        unitPriceCents: free ? 0 : personalizedUnitPriceCents(product.priceCents, personalization),
         colorSelection: resolution.resolved ?? {},
+        personalization,
       })
     }
     // Paid items only — the free box itself is 0 € and never counts toward the threshold.

@@ -18,6 +18,32 @@ export function calcSubtotalCents(items: PricedItem[]): number {
   }, 0)
 }
 
+/** Surcharge per box for a customer name on the label. */
+export const PERSONALIZATION_PRICE_CENTS = 600
+
+export function personalizedUnitPriceCents(priceCents: number, personalization?: string): number {
+  return personalization ? priceCents + PERSONALIZATION_PRICE_CENTS : priceCents
+}
+
+const PERSONALIZATION_LABEL: Record<string, string> = {
+  de: 'Personalisierung',
+  en: 'Personalisation',
+  pl: 'Personalizacja',
+  fr: 'Personnalisation',
+  nl: 'Personalisatie',
+  cs: 'Personalizace',
+}
+
+/** Order-item name snapshot, so invoice, emails, packing list and production show the name. */
+export function personalizedItemName(
+  name: string,
+  personalization: string | undefined,
+  locale: string,
+): string {
+  if (!personalization) return name
+  return `${name} – ${PERSONALIZATION_LABEL[locale] ?? PERSONALIZATION_LABEL.de}: ${personalization}`
+}
+
 export function calcCartTotals(items: PricedItem[], country: string): CartTotalsDto {
   const subtotalCents = calcSubtotalCents(items)
   const shippingCents = calcShippingCents(subtotalCents, country)

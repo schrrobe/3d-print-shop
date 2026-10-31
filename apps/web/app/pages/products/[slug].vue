@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { PsProductGallery, useToast } from '@print-shop/ui'
-import { formatCents } from '@print-shop/utils'
+import {
+  formatCents,
+  PERSONALIZATION_PRICE_CENTS,
+  personalizedUnitPriceCents,
+} from '@print-shop/utils'
 import type { ColorSelection, Locale } from '@print-shop/types'
 import type { CartLine } from '~/stores/cart'
 import type { ApiProduct } from '~/composables/useShop'
@@ -82,6 +86,14 @@ const drawingDescription = computed(() =>
 
 const editKey = computed(() => (route.query.edit ? String(route.query.edit) : ''))
 const quantity = ref(1)
+const personalization = ref('')
+// Same rule as the API validator: letters, digits, space and . ' & -
+const personalizationValid = computed(() =>
+  /^[\p{L}\p{M}\p{N} .'&-]*$/u.test(personalization.value),
+)
+const unitPriceCents = computed(() =>
+  personalizedUnitPriceCents(product.value.priceCents, personalization.value.trim()),
+)
 
 // Switching 50 ↔ 100 navigates to the sibling product; carry the colours across
 const carry = useState<{ family: string; selection: ColorSelection; quantity: number } | null>(
@@ -111,6 +123,7 @@ onMounted(() => {
     if (line) {
       selection.value = { ...selection.value, ...line.colorSelection }
       quantity.value = line.quantity
+      personalization.value = line.personalization ?? ''
     }
   } else if (route.query.config) {
     applyConfigToken(String(route.query.config))
@@ -132,15 +145,20 @@ function buildLine(lineQuantity: number): Omit<CartLine, 'key'> {
     productId: product.value.id,
     slug: product.value.slug,
     name: translation.value.name,
-    unitPriceCents: product.value.priceCents,
+    unitPriceCents: unitPriceCents.value,
     quantity: lineQuantity,
     colorSelection: { ...selection.value },
     colorNames: selectedColorNames.value,
     imageUrl: productImage(product.value, 320),
+    personalization: personalization.value.trim() || undefined,
   }
 }
 
 function addToCart() {
+  if (!personalizationValid.value) {
+    toast.show(t('shop.product.personalization.invalid'), { variant: 'error' })
+    return
+  }
   cart.hydrate()
   if (editKey.value) {
     cart.remove(editKey.value)
@@ -504,12 +522,22 @@ useHead({
           <div class="flex items-end justify-between gap-4">
             <div>
               <p class="kb-num text-[2rem] font-bold leading-none" data-testid="price">
-                {{ price(product.priceCents) }}
+                {{ price(unitPriceCents) }}
               </p>
               <p class="mt-1 text-sm text-ink-2">{{ t('shop.product.priceNote') }}</p>
             </div>
             <ShopQuantity v-model="quantity" :label="t('cart.quantity')" />
           </div>
+          <ShopField
+            v-model="personalization"
+            :label="t('shop.product.personalization.label')"
+            :hint="`${t('shop.product.personalization.hint', { price: price(PERSONALIZATION_PRICE_CENTS) })} ${t('shop.product.personalization.withdrawal')}`"
+            :error="personalizationValid ? undefined : t('shop.product.personalization.invalid')"
+            optional
+            maxlength="24"
+            autocomplete="off"
+            data-testid="personalization"
+          />
           <div class="grid grid-cols-[1fr_auto] gap-2">
             <button
               type="button"
@@ -597,7 +625,7 @@ useHead({
               }}<template v-if="product.capacity"> · {{ product.capacity }}</template>
             </p>
             <p class="kb-num text-sm text-on-mirror-2">
-              {{ price(product.priceCents * quantity)
+              {{ price(unitPriceCents * quantity)
               }}<template v-if="quantity > 1"> · {{ quantity }}×</template>
             </p>
           </div>

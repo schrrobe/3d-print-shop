@@ -305,6 +305,9 @@ const summaryOpen = ref(false)
               <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
                 item.colorNames.join(' · ')
               }}</span>
+              <span v-if="item.personalization" class="block text-sm text-ink-2">{{
+                t('shop.product.personalization.line', { name: item.personalization })
+              }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
           </li>
@@ -565,6 +568,9 @@ const summaryOpen = ref(false)
               <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
                 item.colorNames.join(' · ')
               }}</span>
+              <span v-if="item.personalization" class="block text-sm text-ink-2">{{
+                t('shop.product.personalization.line', { name: item.personalization })
+              }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
           </li>
@@ -591,6 +597,15 @@ const summaryOpen = ref(false)
         >
           <ShopIcon name="alert" :size="18" class="mt-0.5" />
           {{ errorMessage }}
+        </p>
+
+        <p
+          v-if="cart.items.some((i) => i.personalization)"
+          class="flex gap-2 text-sm text-warn"
+          data-testid="checkout-personalization-withdrawal"
+        >
+          <ShopIcon name="alert" :size="18" class="mt-0.5" />
+          {{ t('shop.product.personalization.withdrawal') }}
         </p>
 
         <p class="text-sm text-ink-2" data-testid="checkout-legal">

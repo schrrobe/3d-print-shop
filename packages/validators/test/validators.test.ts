@@ -86,6 +86,21 @@ describe('checkoutSchema', () => {
       }).success,
     ).toBe(false)
   })
+
+  it('trims personalisation, drops empty ones and rejects odd characters or long names', () => {
+    const parse = (personalization: string) =>
+      checkoutSchema.safeParse({
+        items: [{ ...item, personalization }],
+        address: validAddress,
+        paymentMethod: 'stripe',
+      })
+    const ok = parse("  Jörg O'Neil-Ünal & Co. 2  ")
+    expect(ok.success && ok.data.items[0]?.personalization).toBe("Jörg O'Neil-Ünal & Co. 2")
+    const blank = parse('   ')
+    expect(blank.success && blank.data.items[0]?.personalization).toBeUndefined()
+    expect(parse('<script>').success).toBe(false)
+    expect(parse('x'.repeat(25)).success).toBe(false)
+  })
 })
 
 describe('checkoutIdempotencyKeySchema', () => {

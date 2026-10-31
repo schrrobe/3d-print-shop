@@ -1,6 +1,10 @@
 import { existsSync } from 'node:fs'
 import type { Invoice, Order, OrderItem, Payment } from '@prisma/client'
-import { formatCents, PREPAYMENT_DISCOUNT_PERCENT } from '@print-shop/utils'
+import {
+  formatCents,
+  PERSONALIZATION_PRICE_CENTS,
+  PREPAYMENT_DISCOUNT_PERCENT,
+} from '@print-shop/utils'
 
 /**
  * Invoice renderer (layout mirrors the storylo invoice: recipient left, sender
@@ -384,7 +388,27 @@ function drawItemsTable(
     lineTotals[lineTotals.length - 1]! += invoice.subtotalCents - rawSum
   }
 
-  order.items.forEach((item, i) => {
+  // A personalised box is billed as goods + a separate "Personalisierung" surcharge row.
+  const rows = order.items.flatMap((item, i) => {
+    const row = { name: item.name, quantity: item.quantity, unitPriceCents: item.unitPriceCents }
+    if (!item.personalization) return [{ ...row, totalCents: lineTotals[i]! }]
+    const surchargeCents = PERSONALIZATION_PRICE_CENTS * item.quantity
+    return [
+      {
+        ...row,
+        unitPriceCents: item.unitPriceCents - PERSONALIZATION_PRICE_CENTS,
+        totalCents: lineTotals[i]! - surchargeCents,
+      },
+      {
+        name: t('Personalisierung', 'Personalisation'),
+        quantity: item.quantity,
+        unitPriceCents: PERSONALIZATION_PRICE_CENTS,
+        totalCents: surchargeCents,
+      },
+    ]
+  })
+
+  rows.forEach((item) => {
     doc.font(FONT).fontSize(SIZE.body).fillColor(INK)
     const measuredDescH = doc.heightOfString(item.name, { width: descW })
     const truncate = measuredDescH > maxDescH
@@ -398,7 +422,7 @@ function drawItemsTable(
     cell(doc, COLS.desc, item.name, y, truncate ? { height: maxDescH, ellipsis: true } : {})
     cell(doc, COLS.qty, String(item.quantity), y)
     cell(doc, COLS.unitPrice, formatCents(item.unitPriceCents, invoice.locale), y)
-    cell(doc, COLS.total, formatCents(lineTotals[i]!, invoice.locale), y)
+    cell(doc, COLS.total, formatCents(item.totalCents, invoice.locale), y)
 
     cur.y += rowH
     hRule(doc, cur.y)
