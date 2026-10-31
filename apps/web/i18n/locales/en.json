@@ -18,7 +18,7 @@
     "added": "Added to cart",
     "manufacturingNotice": {
       "title": "Manufacturing note",
-      "production": "Each ammunition box is manufactured using the 3D printing process. Slight layer lines or minimal surface variations are production-related and typical of additive manufacturing. They do not constitute a defect and have no effect on function, stability, or durability."
+      "production": "Every box is 3D printed, so you may see faint layer lines or small surface irregularities. That is normal for the process and not a defect. It does not affect function, stability or durability."
     },
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Place binding order",
     "summary": "Order summary",
-    "guestHint": "Guest checkout — no account needed."
+    "guestHint": "You can order as a guest without creating an account."
   },
   "success": {
     "title": "Thank you for your order!",
@@ -126,7 +126,7 @@
     "accept": "Accept quote",
     "decline": "Decline",
     "declined": "Quote declined.",
-    "accepted": "Quote accepted — continue to payment:",
+    "accepted": "Quote accepted. Continue to payment:",
     "payNow": "Pay now",
     "expired": "This quote has expired.",
     "addressTitle": "Billing & shipping address"
@@ -141,9 +141,9 @@
     "necessary": "Necessary",
     "necessaryText": "Required for cart, checkout and language settings.",
     "statistics": "Statistics",
-    "statisticsText": "Google Analytics 4 — helps us improve the shop.",
+    "statisticsText": "Google Analytics 4, which helps us improve the shop.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel and TikTok Pixel, also server-side — for more relevant ads."
+    "marketingText": "Meta Pixel and TikTok Pixel (also server-side), so the ads you see are more relevant."
   },
   "footer": {
     "imprint": "Imprint",
@@ -156,7 +156,7 @@
     "privacyTitle": "Privacy policy",
     "termsTitle": "Terms and conditions",
     "withdrawalTitle": "Cancellation policy",
-    "placeholder": "Placeholder — add legal content before going live."
+    "placeholder": "Placeholder: add legal content before going live."
   },
   "common": {
     "loading": "Loading …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Support",
-    "subtitle": "Questions about your order, payment or a product? We are happy to help.",
+    "subtitle": "Have a question about an order, a payment or a product? Send it to us here.",
     "name": "Name",
     "email": "Email",
     "subject": "Subject",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Cartridge boxes for your caliber, in your colours",
-      "description": "Precisely fitted cartridge boxes for 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win and 7.62×39 — 50 or 100 rounds, box and label colour of your choice. Free shipping from €150."
+      "title": "Cartridge boxes for your caliber, in your colours · kaliberbox.de",
+      "description": "Snug-fitting cartridge boxes for 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win and 7.62×39. Choose 50 or 100 rounds and pick the box and label colours yourself. Free shipping from €150."
     },
     "products": {
-      "description": "All cartridge boxes by caliber — 50 and 100 round boxes, colours of your choice, printed to order."
+      "description": "Cartridge boxes by caliber, for 50 or 100 rounds. You choose the colours and we print the box after you order."
     },
     "cart": {
       "title": "Cart",
-      "description": "Your cart at the 3D Print Shop — shipping €6.99, free from €150."
+      "description": "Your cart at the 3D Print Shop. Shipping is €6.99, or free from €150."
     },
     "support": {
       "title": "Support",
-      "description": "Questions about your order, payment or shipping? Open a support ticket — we reply by email."
+      "description": "Have a question about an order, payment or shipping? Open a support ticket and we will reply by email."
     },
     "checkout": {
       "title": "Checkout",
-      "description": "Complete your order — pay by card, bank transfer or Bitcoin."
+      "description": "Complete your order and pay by card, bank transfer or Bitcoin."
     },
     "legal": {
       "imprint": "Imprint",
@@ -299,7 +299,7 @@
       "title": "Open a complaint",
       "missingContext": "No valid order reference. Please open the complaint from your account area.",
       "goToPortal": "Go to my account",
-      "customMadeNote": "Note: personalised made-to-order items are excluded from the right of withdrawal. Complaints about defects and goodwill cases are of course still possible.",
+      "customMadeNote": "Note: personalised made-to-order items are excluded from the right of withdrawal. Complaints about defects and goodwill requests are still possible.",
       "selectItems": "Affected items",
       "quantity": "Quantity",
       "reason": "Reason",
@@ -371,7 +371,7 @@
       "menu": "Menu",
       "openMenu": "Open menu",
       "closeMenu": "Close menu",
-      "homeLabel": "kaliberbox.de – home",
+      "homeLabel": "kaliberbox.de home page",
       "boxes": "Cartridge boxes",
       "wishlist": "Wishlist",
       "cartWithCount": "Cart, {count} items",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Which caliber?",
-      "lead": "Precisely fitted cartridge boxes, printed in your colours. Pick your caliber – we take care of the rest.",
+      "lead": "Snug-fitting cartridge boxes, printed in your colours. You pick the caliber, we print the box and ship it to you.",
       "pickLegend": "Choose a caliber",
       "cta": "Boxes for {caliber}",
       "ctaAll": "All cartridge boxes",
@@ -399,11 +399,11 @@
       "steps": {
         "caliber": {
           "title": "Caliber and size",
-          "text": "Every box is designed for exactly one caliber – in a 50 or 100 round version."
+          "text": "Each box is made for one specific caliber, in a 50 or 100 round version."
         },
         "colors": {
           "title": "Your colours",
-          "text": "Choose box and label colours from our filament stock. The preview shows the result instantly."
+          "text": "Choose the box and label colours from our filament stock. The preview shows the result right away."
         },
         "print": {
           "title": "Printed to order",
@@ -413,12 +413,12 @@
       "boxesTitle": "All calibers",
       "boxesAll": "View all",
       "gift": {
-        "title": "A gift that fits.",
-        "text": "For sport shooters and hunters who have everything – except order in their ammo drawer.",
+        "title": "Giving one as a gift",
+        "text": "For sport shooters and hunters whose ammo drawer could use some order.",
         "tips": {
-          "ask": "All you need is the caliber – it is printed on every box of cartridges.",
-          "box": "50 or 100 rounds? The cartridge box tells you that too.",
-          "note": "Tick “This is a gift” at checkout – we note it on your order."
+          "ask": "All you need is the caliber. It is printed on every box of cartridges.",
+          "box": "The box also says whether it holds 50 or 100 rounds.",
+          "note": "Tick \"This is a gift\" at checkout and we will note it on your order."
         }
       }
     },
@@ -475,7 +475,7 @@
     "legalNotice": {
       "title": "Storage notice",
       "text": "The cartridge boxes are for organising and sorting. They do not replace a lockable container or gun safe as required by Section 36 of the German Weapons Act (WaffG) for storing ammunition.",
-      "short": "For order inside your gun safe – not a substitute for legally required storage (§ 36 WaffG)."
+      "short": "Keeps your gun safe tidy, but does not replace the storage required by law (§ 36 WaffG)."
     },
     "voucher": {
       "label": "Voucher code"
@@ -541,7 +541,7 @@
       "hit": "Bullseye"
     },
     "footer": {
-      "claim": "Cartridge boxes for your caliber – printed to order, in your colours.",
+      "claim": "Cartridge boxes for your caliber, printed to order in your colours.",
       "shop": "Shop",
       "shopNav": "Shop navigation",
       "legal": "Legal",

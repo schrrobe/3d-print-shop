@@ -181,11 +181,11 @@ async function seedProducts() {
       const priceCents = PLACEHOLDER_PRICES[caliber.group][capacity]
       const de = {
         name: `Patronenbox ${caliber.name} – ${capacity} Schuss`,
-        description: `Patronenbox mit passgenauen Fächern für ${capacity} Patronen ${caliber.name}. Wird auf Bestellung im 3D-Druck gefertigt; Box- und Beschriftungsfarbe wählst du selbst. Hinweis: Die Box dient der Organisation im Waffenschrank.`,
+        description: `Patronenbox mit passgenauen Fächern für ${capacity} Patronen ${caliber.name}. Wir drucken sie nach deiner Bestellung, Box- und Beschriftungsfarbe wählst du selbst. Die Box ist für Ordnung im Waffenschrank gedacht.`,
       }
       const en = {
         name: `Cartridge box ${caliber.name} – ${capacity} rounds`,
-        description: `Cartridge box with snug-fit compartments for ${capacity} rounds of ${caliber.name}. Printed to order; you choose the box and label colours. Note: the box is meant for organising ammunition inside your gun safe.`,
+        description: `Cartridge box with snug-fit compartments for ${capacity} rounds of ${caliber.name}. We print it after you order, and you choose the box and label colours. The box is meant to keep ammunition organised inside your gun safe.`,
       }
       const productFields = {
         priceCents,

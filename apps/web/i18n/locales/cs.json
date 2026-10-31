@@ -18,7 +18,7 @@
     "added": "Přidáno do košíku",
     "manufacturingNotice": {
       "title": "Upozornění k výrobě",
-      "production": "Každý box na munici je vyráběn metodou 3D tisku. Jemné vrstvy nebo minimální povrchové odchylky jsou dány výrobním procesem a jsou typické pro aditivní výrobu. Nepředstavují vadu a nemají vliv na funkci, stabilitu ani životnost."
+      "production": "Každá krabička se tiskne na 3D tiskárně. Mohou na ní být vidět jemné vrstvy nebo drobné nerovnosti povrchu. U této metody je to normální a nejde o vadu. Funkci, stabilitu ani životnost to nijak neovlivňuje."
     },
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Závazně objednat",
     "summary": "Souhrn objednávky",
-    "guestHint": "Objednávka jako host — bez účtu."
+    "guestHint": "Objednávka jako host, účet nepotřebuješ."
   },
   "success": {
     "title": "Děkujeme za objednávku!",
@@ -126,7 +126,7 @@
     "accept": "Přijmout nabídku",
     "decline": "Odmítnout",
     "declined": "Nabídka odmítnuta.",
-    "accepted": "Nabídka přijata — pokračujte k platbě:",
+    "accepted": "Nabídka přijata. Pokračujte k platbě:",
     "payNow": "Zaplatit nyní",
     "expired": "Tato nabídka vypršela.",
     "addressTitle": "Fakturační a doručovací adresa"
@@ -141,9 +141,9 @@
     "necessary": "Nezbytné",
     "necessaryText": "Vyžadováno pro košík, pokladnu a nastavení jazyka.",
     "statistics": "Statistika",
-    "statisticsText": "Google Analytics 4 — pomáhá nám obchod zlepšovat.",
+    "statisticsText": "Google Analytics 4, který nám pomáhá obchod zlepšovat.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel a TikTok Pixel, také na straně serveru — pro relevantnější reklamu."
+    "marketingText": "Meta Pixel a TikTok Pixel (také na straně serveru), aby byla reklama relevantnější."
   },
   "footer": {
     "imprint": "Impressum",
@@ -156,7 +156,7 @@
     "privacyTitle": "Zásady ochrany osobních údajů",
     "termsTitle": "Obchodní podmínky",
     "withdrawalTitle": "Poučení o odstoupení",
-    "placeholder": "Placeholder — právní obsah doplňte před spuštěním."
+    "placeholder": "Placeholder: právní obsah doplňte před spuštěním."
   },
   "common": {
     "loading": "Načítání …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Podpora",
-    "subtitle": "Máte dotaz k objednávce, platbě nebo produktu? Rádi pomůžeme.",
+    "subtitle": "Máte dotaz k objednávce, platbě nebo produktu? Napište nám tady.",
     "name": "Jméno",
     "email": "E-mail",
     "subject": "Předmět",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Krabičky na náboje pro tvou ráži, v tvých barvách",
-      "description": "Přesně padnoucí krabičky na náboje pro 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win a 7,62×39 — na 50 nebo 100 nábojů, barva krabičky i popisku podle výběru. Doprava zdarma od 150 €."
+      "title": "Krabičky na náboje pro tvou ráži, v tvých barvách · kaliberbox.de",
+      "description": "Přesně padnoucí krabičky na náboje pro 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win a 7,62×39. Na 50 nebo 100 nábojů, barvu krabičky i popisku si vybereš sám. Doprava zdarma od 150 €."
     },
     "products": {
-      "description": "Všechny krabičky na náboje podle ráže — na 50 a 100 nábojů, barvy podle výběru, tištěné na objednávku."
+      "description": "Krabičky na náboje podle ráže, na 50 nebo 100 nábojů. Barvy si vybereš sám a tiskneme až po objednávce."
     },
     "cart": {
       "title": "Košík",
-      "description": "Váš košík v 3D Print Shopu — doprava 6,99 €, zdarma od 150 €."
+      "description": "Váš košík v 3D Print Shopu. Doprava stojí 6,99 €, od 150 € je zdarma."
     },
     "support": {
       "title": "Podpora",
-      "description": "Otázky k objednávce, platbě nebo dopravě? Vytvořte tiket podpory — odpovíme e-mailem."
+      "description": "Otázky k objednávce, platbě nebo dopravě? Vytvořte tiket podpory a odpovíme e-mailem."
     },
     "checkout": {
       "title": "Pokladna",
-      "description": "Dokončete objednávku — platba kartou, převodem nebo Bitcoinem."
+      "description": "Dokončete objednávku a zaplaťte kartou, převodem nebo Bitcoinem."
     },
     "legal": {
       "imprint": "Impresum",
@@ -299,7 +299,7 @@
       "title": "Otevřít reklamaci",
       "missingContext": "Chybí platný odkaz na objednávku. Otevřete reklamaci ze svého zákaznického účtu.",
       "goToPortal": "Přejít na účet",
-      "customMadeNote": "Upozornění: personalizované výrobky na zakázku jsou vyloučeny z práva na odstoupení. Reklamace vad a vyřízení z dobré vůle jsou samozřejmě možné.",
+      "customMadeNote": "Upozornění: personalizované výrobky na zakázku jsou vyloučeny z práva na odstoupení. Reklamace vad a vyřízení z dobré vůle jsou přesto možné.",
       "selectItems": "Dotčené položky",
       "quantity": "Množství",
       "reason": "Důvod",
@@ -371,7 +371,7 @@
       "menu": "Menu",
       "openMenu": "Otevřít menu",
       "closeMenu": "Zavřít menu",
-      "homeLabel": "kaliberbox.de – úvod",
+      "homeLabel": "Úvodní stránka kaliberbox.de",
       "boxes": "Krabičky na náboje",
       "wishlist": "Seznam přání",
       "cartWithCount": "Košík, položek: {count}",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Jaká ráže?",
-      "lead": "Přesně padnoucí krabičky na náboje, tištěné v tvých barvách. Vyber ráži – o zbytek se postaráme.",
+      "lead": "Přesně padnoucí krabičky na náboje, tištěné v tvých barvách. Ty vybereš ráži, my krabičku vytiskneme a pošleme ti ji.",
       "pickLegend": "Vybrat ráži",
       "cta": "Krabičky pro {caliber}",
       "ctaAll": "Všechny krabičky",
@@ -399,7 +399,7 @@
       "steps": {
         "caliber": {
           "title": "Ráže a velikost",
-          "text": "Každá krabička je navržena pro jednu ráži – ve verzi na 50 nebo 100 nábojů."
+          "text": "Každá krabička je navržena pro jednu ráži, ve verzi na 50 nebo 100 nábojů."
         },
         "colors": {
           "title": "Tvoje barvy",
@@ -413,12 +413,12 @@
       "boxesTitle": "Všechny ráže",
       "boxesAll": "Zobrazit vše",
       "gift": {
-        "title": "Dárek, který sedí.",
-        "text": "Pro sportovní střelce a myslivce, kteří už mají všechno – kromě pořádku v šuplíku s municí.",
+        "title": "Jako dárek",
+        "text": "Pro sportovní střelce a myslivce, kterým by se v šuplíku s municí hodil pořádek.",
         "tips": {
-          "ask": "Stačí znát ráži – je uvedena na každé krabičce nábojů.",
+          "ask": "Stačí znát ráži. Je uvedena na každé krabičce nábojů.",
           "box": "50, nebo 100 nábojů? I to prozradí původní krabička.",
-          "note": "V pokladně zaškrtni „Je to dárek“ – poznamenáme to k objednávce."
+          "note": "V pokladně zaškrtni „Je to dárek“ a poznamenáme to k objednávce."
         }
       }
     },
@@ -475,7 +475,7 @@
     "legalNotice": {
       "title": "Upozornění k uložení",
       "text": "Krabičky slouží k uspořádání a třídění. Nenahrazují uzamykatelnou schránku ani trezor, které § 36 německého zákona o zbraních (WaffG) vyžaduje pro uložení munice.",
-      "short": "Pro pořádek v trezoru – nenahrazuje zákonné uložení podle § 36 WaffG."
+      "short": "Pro pořádek v trezoru. Nenahrazuje zákonné uložení podle § 36 WaffG."
     },
     "voucher": {
       "label": "Slevový kód"
@@ -541,7 +541,7 @@
       "hit": "Desítka"
     },
     "footer": {
-      "claim": "Krabičky na náboje pro tvou ráži – tištěné na objednávku, v tvých barvách.",
+      "claim": "Krabičky na náboje pro tvou ráži, tištěné na objednávku v tvých barvách.",
       "shop": "Obchod",
       "shopNav": "Navigace obchodu",
       "legal": "Právní informace",

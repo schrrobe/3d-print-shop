@@ -136,7 +136,7 @@ export interface QuoteEmailData {
 
 export function renderQuoteAvailable(data: QuoteEmailData, locale: Locale): RenderedEmail {
   const subject = pick(locale, 'Dein Angebot ist da', 'Your quote is ready')
-  const title = pick(locale, 'Dein individuelles Angebot', 'Your individual quote')
+  const title = pick(locale, 'Dein Angebot', 'Your quote')
   const html = emailLayout(
     title,
     paragraph(pick(locale, `Hallo ${escapeHtml(data.name)},`, `Hi ${escapeHtml(data.name)},`)) +
@@ -160,7 +160,7 @@ export interface QuoteAcceptedData {
 }
 
 export function renderQuoteAccepted(data: QuoteAcceptedData, locale: Locale): RenderedEmail {
-  const subject = pick(locale, 'Angebot angenommen — jetzt bezahlen', 'Quote accepted — complete payment')
+  const subject = pick(locale, 'Angebot angenommen, bitte jetzt bezahlen', 'Quote accepted, please complete payment')
   const title = pick(locale, 'Angebot angenommen', 'Quote accepted')
   const html = emailLayout(
     title,
@@ -236,7 +236,7 @@ export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedE
       pick(
         locale,
         `im Anhang findest du die Rechnung <strong>${data.invoiceNumber}</strong> zu deiner Bestellung ${data.orderNumber} über ${formatCents(data.totalCents, locale)}.`,
-        `attached you find invoice <strong>${data.invoiceNumber}</strong> for your order ${data.orderNumber} over ${formatCents(data.totalCents, locale)}.`,
+        `please find attached invoice <strong>${data.invoiceNumber}</strong> for your order ${data.orderNumber} over ${formatCents(data.totalCents, locale)}.`,
       ),
     ),
   )
@@ -301,8 +301,8 @@ export function renderTicketCreated(data: TicketCreatedData, locale: Locale): Re
       paragraph(
         pick(
           locale,
-          `dein Support-Ticket <strong>${data.ticketNumber}</strong> („${escapeHtml(data.subject)}") wurde erstellt. Unser Team meldet sich so schnell wie möglich. Über den Link kannst du jederzeit den Status einsehen und antworten.`,
-          `your support ticket <strong>${data.ticketNumber}</strong> (“${escapeHtml(data.subject)}”) has been created. Our team will get back to you as soon as possible. Use the link below to check the status and reply at any time.`,
+          `dein Support-Ticket <strong>${data.ticketNumber}</strong> („${escapeHtml(data.subject)}") ist bei uns eingegangen und wir melden uns bald. Über den Link siehst du den Stand und kannst jederzeit antworten.`,
+          `we have received your support ticket <strong>${data.ticketNumber}</strong> ("${escapeHtml(data.subject)}") and will get back to you soon. The link below shows its status, and you can reply there at any time.`,
         ),
       ) +
       button(data.ticketUrl, pick(locale, 'Ticket ansehen', 'View ticket')),
@@ -413,7 +413,7 @@ export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Local
       (data.message ? paragraph(escapeHtml(data.message)) : '') +
       button(data.complaintUrl, pick(locale, 'Details ansehen', 'View details')),
   )
-  return { subject, html, text: `${title}: ${data.complaintNumber} — ${data.statusLabel}\n${data.complaintUrl}` }
+  return { subject, html, text: `${title}: ${data.complaintNumber}, ${data.statusLabel}\n${data.complaintUrl}` }
 }
 
 // ---------- Customer portal (magic link) ----------
@@ -431,8 +431,8 @@ export function renderMagicLink(data: MagicLinkData, locale: Locale): RenderedEm
     paragraph(
       pick(
         locale,
-        'mit dem folgenden Link kannst du deine Bestellungen, Rechnungen und Angebote einsehen. Der Link ist persönlich — bitte nicht weitergeben.',
-        'use the link below to view your orders, invoices and quotes. The link is personal — please do not share it.',
+        'mit dem folgenden Link kannst du deine Bestellungen, Rechnungen und Angebote einsehen. Der Link gilt nur für dich, bitte gib ihn nicht weiter.',
+        'use the link below to view your orders, invoices and quotes. The link is only for you, so please do not share it.',
       ),
     ) +
       button(data.portalUrl, pick(locale, 'Kundenbereich öffnen', 'Open portal')) +
@@ -462,15 +462,15 @@ export function renderReviewRequest(data: ReviewRequestData, locale: Locale): Re
     `Wie zufrieden bist du mit Bestellung ${data.orderNumber}?`,
     `How happy are you with order ${data.orderNumber}?`,
   )
-  const title = pick(locale, 'Deine Meinung zählt', 'Your opinion matters')
+  const title = pick(locale, 'Wie gefällt dir deine Bestellung?', 'How do you like your order?')
   const html = emailLayout(
     title,
     paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
       paragraph(
         pick(
           locale,
-          'wir würden uns freuen, wenn du deine gedruckten Artikel bewertest:',
-          'we would love to hear what you think about your printed items:',
+          'wenn du kurz Zeit hast, bewerte gern diese Artikel:',
+          'if you have a minute, please rate these items:',
         ),
       ) +
       paragraph(data.items.map((i) => escapeHtml(i.name)).join('<br>')) +
