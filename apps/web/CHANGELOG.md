@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.1.0...web-v0.2.0) (2026-10-31)
+
+
+### Features
+
+* **admin:** Dashboard-Widgets für Zahlungsmethoden und offene Support-Tickets ([#49](https://github.com/schrrobe/3d-print-shop/issues/49)) ([f60d3a1](https://github.com/schrrobe/3d-print-shop/commit/f60d3a17cebc3568a5be8883b06f86ec55cba4f3))
+* **legal:** Kontaktformular im Impressum verlinken ([#47](https://github.com/schrrobe/3d-print-shop/issues/47)) ([f04abcb](https://github.com/schrrobe/3d-print-shop/commit/f04abcb9ef01fd2dbce32cd31208ad56c2871c6a))
+* **shop:** eigener Schriftzug auf Deckel und Verschlüssen ([#51](https://github.com/schrrobe/3d-print-shop/issues/51)) ([5847acb](https://github.com/schrrobe/3d-print-shop/commit/5847acb8a0a98e9c2a8b7496a673df1ff6cec1ea))
+
+
+### Bug Fixes
+
+* **admin:** repair settings page layout ([#48](https://github.com/schrrobe/3d-print-shop/issues/48)) ([cabd4a4](https://github.com/schrrobe/3d-print-shop/commit/cabd4a4b57be778d793c3c0cacfe7029f28b4cff))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.1.1
+    * @print-shop/ui bumped to 0.0.3
+    * @print-shop/utils bumped to 0.2.0
+    * @print-shop/validators bumped to 0.2.0
+
 ## [0.1.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.0.1...web-v0.1.0) (2026-10-31)
 
 
