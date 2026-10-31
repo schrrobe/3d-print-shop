@@ -16,7 +16,7 @@ for (const path of ['.env', '../../.env']) {
 const prisma = new PrismaClient()
 
 const DEV_ADMIN_EMAIL = 'admin@example.com'
-const DEV_ADMIN_PASSWORD = 'admin-dev-password' // dev/e2e only — change in production!
+const DEV_ADMIN_PASSWORD = 'admin-dev-password' // dev/e2e only, change in production!
 
 async function seedRoles() {
   for (const key of PERMISSIONS) {
@@ -149,7 +149,7 @@ const SEED_CALIBERS = [
   { slug: '762x39', name: '7,62×39', group: 'RIFLE', sortOrder: 30 },
 ] as const
 
-// Platzhalterpreise (Cent) pro Kaliber-Gruppe und Boxgröße — vor Livegang festlegen.
+// Platzhalterpreise (Cent) pro Kaliber-Gruppe und Boxgröße, vor Livegang festlegen.
 const PLACEHOLDER_PRICES: Record<CaliberGroup, Record<50 | 100, number>> = {
   HANDGUN: { 50: 1490, 100: 1990 },
   RIMFIRE: { 50: 1290, 100: 1690 },
@@ -430,7 +430,7 @@ async function seedOrders() {
   })
 }
 
-// 4: shipped order for kunde1 (portal, reviews, complaints — 4 items, one stays unreviewed for e2e)
+// 4: shipped order for kunde1 (portal, reviews, complaints). 4 items, one stays unreviewed for e2e.
 async function seedPortalOrder() {
   if (await prisma.order.findUnique({ where: { orderNumber: 'PS-2026-00000004' } })) return
   const lines = [
@@ -894,7 +894,7 @@ function sha256(value: string): string {
 
 async function seedPortalTokens() {
   if ((await prisma.magicLinkToken.count()) > 0) return
-  // Klartext-Tokens nur für Entwicklung/E2E — dokumentiert in docs/customer-portal.md
+  // Klartext-Tokens nur für Entwicklung/E2E, dokumentiert in docs/customer-portal.md
   await prisma.magicLinkToken.create({
     data: {
       email: 'kunde1@example.com',
