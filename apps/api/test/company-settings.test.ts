@@ -22,7 +22,9 @@ describe('company settings', () => {
   it('flags env placeholders as missing, accepts real data with empty website', () => {
     expect(missingCompanyFields(companyFromEnv())).toContain('iban')
     expect(missingCompanyFields(real)).toEqual([])
-    expect(missingCompanyFields({ ...real, phone: '  ' })).toEqual(['phone'])
+    expect(missingCompanyFields({ ...real, bic: '  ' })).toEqual(['bic'])
+    expect(missingCompanyFields({ ...real, phone: '' })).toEqual([])
+    expect(mergeCompany(null, { ...real, phone: '+49 30 0000000' }).phone).toBe('')
   })
 
   it('prefers DB values and falls back to env for NULL or blank columns', () => {

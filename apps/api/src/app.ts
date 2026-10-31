@@ -7,6 +7,7 @@ import { requireAuth } from './middleware/auth.js'
 import { adminMutationLimiter, publicLimiter } from './middleware/rate-limit.js'
 import { errorHandler, notFound } from './middleware/error.js'
 import { adminAuditRouter } from './routes/admin/audit.js'
+import { adminErrorsRouter } from './routes/admin/errors.js'
 import { adminAuthRouter } from './routes/admin/auth.js'
 import { adminColorsRouter } from './routes/admin/colors.js'
 import { adminComplaintsRouter } from './routes/admin/complaints.js'
@@ -131,6 +132,7 @@ export function createApp(): Express {
   app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
   app.use('/api/admin/sales-channels', requireAuth, adminSalesChannelsRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
+  app.use('/api/admin/errors', requireAuth, adminErrorsRouter)
   app.use('/api/admin/tracking', requireAuth, adminTrackingRouter)
 
   // Dev-only simulation endpoints (mock payments, email log)

@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "Wszystkie kalibry",
-      "boxesAll": "Zobacz wszystkie",
-      "gift": {
-        "title": "Na prezent",
-        "text": "Dla strzelców sportowych i myśliwych, którym przyda się porządek w szufladzie z amunicją.",
-        "tips": {
-          "ask": "Wystarczy znać kaliber. Jest podany na każdym opakowaniu naboi.",
-          "box": "50 czy 100 naboi? To też widać na opakowaniu.",
-          "note": "Zaznacz w kasie „To prezent”, a odnotujemy to przy zamówieniu."
-        }
-      }
+      "boxesAll": "Zobacz wszystkie"
     },
     "list": {
       "lead": "Jedno pudełko na kaliber, w wersji na 50 i 100 naboi.",
@@ -501,8 +492,6 @@
       "phone": "Telefon",
       "company": "Firma",
       "note": "Uwagi do zamówienia",
-      "gift": "To prezent",
-      "giftHint": "Odnotujemy to przy zamówieniu.",
       "showSummary": "Pokaż podsumowanie",
       "hideSummary": "Ukryj podsumowanie",
       "legal": "Składając zamówienie, akceptujesz nasz {terms}. Informacje o prawie odstąpienia znajdziesz w {withdrawal}, o ochronie danych w {privacy}.",

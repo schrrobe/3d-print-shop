@@ -1394,3 +1394,21 @@ model TrackingOutbox {
   @@unique([eventId, destination])
   @@index([status, nextAttemptAt])
 }
+
+enum ErrorLogLevel {
+  warn
+  error
+}
+
+/// Admin error log: console.warn/error lines, purged after 14 days (lib/error-log.ts).
+model ErrorLog {
+  id        String        @id @default(cuid())
+  level     ErrorLogLevel
+  /// `[tag]` prefix of the log line, e.g. "api", "tracking"
+  context   String?
+  message   String
+  stack     String?
+  createdAt DateTime      @default(now())
+
+  @@index([createdAt])
+}
