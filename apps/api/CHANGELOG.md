@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.3.0...api-v0.4.0) (2026-10-31)
+
+
+### Features
+
+* **admin:** Kleinunternehmerregelung (§ 19 UStG) als Einstellung ([#60](https://github.com/schrrobe/3d-print-shop/issues/60)) ([72cab01](https://github.com/schrrobe/3d-print-shop/commit/72cab01da827baa4bd0f33c133fe4168682c3beb))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/validators bumped to 0.3.0
+
 ## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.2.0...api-v0.3.0) (2026-10-31)
 
 
