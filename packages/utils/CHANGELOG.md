@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.1.0...utils-v0.2.0) (2026-10-31)
+
+
+### Features
+
+* **shop:** eigener Schriftzug auf Deckel und Verschlüssen ([#51](https://github.com/schrrobe/3d-print-shop/issues/51)) ([5847acb](https://github.com/schrrobe/3d-print-shop/commit/5847acb8a0a98e9c2a8b7496a673df1ff6cec1ea))
+
 ## [0.1.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.0.1...utils-v0.1.0) (2026-10-31)
 
 
