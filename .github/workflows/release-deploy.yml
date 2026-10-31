@@ -6,9 +6,11 @@ name: Release & Deploy
 # api.kaliberbox.de; web-vX.Y.Z builds the web image with the prod URL and ships it
 # to kaliberbox.de. packages/* only bump versions; node-workspace carries those
 # changes into api/web when they depend on them.
+# A manual run on main deploys that commit to prod, API first, then web.
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,6 +27,7 @@ env:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       api_release: ${{ steps.release.outputs['apps/api--release_created'] }}
@@ -66,6 +69,7 @@ jobs:
           cache-to: type=gha,scope=web,mode=max
 
   deploy-dev:
+    if: github.event_name == 'push'
     needs: build-dev
     runs-on: ubuntu-latest
     environment:
@@ -86,14 +90,18 @@ jobs:
 
   # Same digest that just went live on dev, retagged.
   deploy-prod-api:
-    needs: [release-please, deploy-dev]
-    if: needs.release-please.outputs.api_release == 'true'
+    needs: [release-please, build-dev, deploy-dev]
+    if: >-
+      always() && (
+        (github.event_name == 'push' && needs.release-please.outputs.api_release == 'true' && needs.deploy-dev.result == 'success') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.build-dev.result == 'success')
+      )
     runs-on: ubuntu-latest
     environment:
       name: production-api
       url: https://api.kaliberbox.de/health
     env:
-      TAG: ${{ needs.release-please.outputs.api_tag }}
+      TAG: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.release-please.outputs.api_tag }}
     steps:
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -102,6 +110,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Promote API image
+        if: github.event_name == 'push'
         run: docker buildx imagetools create -t "$REGISTRY/kaliberbox-api:$TAG" "$REGISTRY/kaliberbox-api:$GITHUB_SHA"
       - name: Deploy ${{ env.TAG }} to prod
         env:
@@ -120,14 +129,16 @@ jobs:
   deploy-prod-web:
     needs: [release-please, deploy-dev, deploy-prod-api]
     if: >-
-      always() && needs.release-please.outputs.web_release == 'true'
-      && needs.deploy-dev.result == 'success' && needs.deploy-prod-api.result != 'failure'
+      always() && (
+        (github.event_name == 'push' && needs.release-please.outputs.web_release == 'true' && needs.deploy-dev.result == 'success' && needs.deploy-prod-api.result != 'failure') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.deploy-prod-api.result == 'success')
+      )
     runs-on: ubuntu-latest
     environment:
       name: production-web
       url: https://kaliberbox.de
     env:
-      TAG: ${{ needs.release-please.outputs.web_tag }}
+      TAG: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.release-please.outputs.web_tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
