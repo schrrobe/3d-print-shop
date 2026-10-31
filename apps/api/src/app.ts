@@ -4,7 +4,7 @@ import express, { type Express } from 'express'
 import helmet from 'helmet'
 import { devEndpointsEnabled, env } from './env.js'
 import { requireAuth } from './middleware/auth.js'
-import { adminMutationLimiter } from './middleware/rate-limit.js'
+import { adminMutationLimiter, publicLimiter } from './middleware/rate-limit.js'
 import { errorHandler, notFound } from './middleware/error.js'
 import { adminAuditRouter } from './routes/admin/audit.js'
 import { adminAuthRouter } from './routes/admin/auth.js'
@@ -72,6 +72,9 @@ export function createApp(): Express {
   // Tracking ingest brings its own body parser (accepts sendBeacon text/plain) —
   // mount before the global JSON parser so beacons aren't dropped.
   app.use('/api/t', trackRouter)
+
+  // Before the JSON parser so floods are rejected without parsing bodies.
+  app.use('/api', publicLimiter)
 
   app.use(express.json({ limit: '1mb' }))
   app.use(cookieParser())

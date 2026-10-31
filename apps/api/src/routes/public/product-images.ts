@@ -3,6 +3,7 @@ import { Router } from 'express'
 import sharp from 'sharp'
 import { env } from '../../env.js'
 import { notFound } from '../../middleware/error.js'
+import { imageResizeLimiter } from '../../middleware/rate-limit.js'
 
 export const productImagesRouter = Router()
 
@@ -45,7 +46,7 @@ function transformer(filePath: string, width: number, quality: number) {
 }
 
 /** Serves admin-uploaded product photos. Products are public, so no auth. */
-productImagesRouter.get('/:filename', async (req, res, next) => {
+productImagesRouter.get('/:filename', imageResizeLimiter, async (req, res, next) => {
   const filePath = imagePath(String(req.params.filename))
   if (!filePath) {
     next(notFound('Image not found'))
