@@ -33,7 +33,7 @@ const columns = [
   { key: 'orderNumber', label: 'Bestellnummer' },
   { key: 'email', label: 'Kunde' },
   { key: 'status', label: 'Status' },
-  { key: 'personalization', label: 'Personalisiert' },
+  { key: 'personalization', label: 'Personalisiert', sortValue: personalizations },
   { key: 'totalCents', label: 'Summe', align: 'right' as const },
   { key: 'actions', label: '' },
 ]

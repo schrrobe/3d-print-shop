@@ -37,6 +37,23 @@ test.describe('admin products', () => {
     await expect(row.getByText('aktiv', { exact: true })).toBeVisible()
   })
 
+  test('sorts the product table by a column ascending and descending', async ({ page }) => {
+    const admin = new AdminPage(page)
+    await admin.login()
+    await gotoHydrated(page, '/admin/products')
+    const slugs = page.locator('tbody tr td:nth-child(2)')
+    const header = page.locator('th', { has: page.getByTestId('sort-slug') })
+
+    await page.getByTestId('sort-slug').click()
+    await expect(header).toHaveAttribute('aria-sort', 'ascending')
+    const asc = await slugs.allTextContents()
+    expect(asc).toEqual([...asc].sort((a, b) => a.localeCompare(b, 'de', { numeric: true })))
+
+    await page.getByTestId('sort-slug').click()
+    await expect(header).toHaveAttribute('aria-sort', 'descending')
+    expect(await slugs.allTextContents()).toEqual([...asc].reverse())
+  })
+
   test('creates a new product', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
@@ -81,8 +98,9 @@ test.describe('admin products', () => {
     await page.getByTestId('save-product-detail').click()
     await expect(page.getByTestId('toast').filter({ hasText: 'Gespeichert' })).toBeVisible()
 
-    // persisted after reload
-    await page.reload()
+    // saving returns to the product table; reopening shows the persisted values
+    await page.waitForURL(/\/admin\/products$/)
+    await page.locator('tr', { hasText: 'e2e-edit-produkt' }).getByTestId('open-product').click()
     await expect(page.getByTestId('admin-product-detail')).toBeVisible()
     await expect(page.locator('input[name="priceEuros"]')).toHaveValue('12,50')
     await page.getByRole('tab', { name: /^EN/ }).click()
@@ -104,6 +122,7 @@ test.describe('admin products', () => {
     await page.locator('input[name="slot-label-zone_2_accent"]').fill('Akzent')
     await page.getByTestId('save-product-detail').click()
     await expect(page.getByTestId('toast').filter({ hasText: 'Gespeichert' })).toBeVisible()
+    await page.waitForURL(/\/admin\/products$/)
 
     await gotoHydrated(page, '/products/e2e-zonen-produkt')
     const picker = page.getByTestId('color-picker')

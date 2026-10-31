@@ -37,7 +37,7 @@ const columns = [
   { key: 'type', label: 'Typ' },
   { key: 'value', label: 'Wert', align: 'right' as const },
   { key: 'minOrderCents', label: 'Mindestbestellwert', align: 'right' as const },
-  { key: 'redemptions', label: 'Eingelöst', align: 'right' as const },
+  { key: 'redemptions', label: 'Eingelöst', align: 'right' as const, sortValue: (r: AdminVoucher) => r.redemptionCount },
   { key: 'validUntil', label: 'Gültig bis' },
   { key: 'active', label: 'Status' },
 ]

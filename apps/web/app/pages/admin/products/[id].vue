@@ -205,15 +205,20 @@ async function save() {
       defaultColorId: slots[z].defaultColorId === NO_DEFAULT_COLOR ? null : slots[z].defaultColorId,
     })),
   }
-  await run(
+  const ok = await run(
     () =>
       $fetch(`/api/admin/products/${productId}`, {
         method: 'PATCH',
         credentials: 'include',
         body: payload,
       }),
-    { success: 'Gespeichert', error: 'Speichern fehlgeschlagen (Slug bereits vergeben?)' },
+    {
+      success: 'Gespeichert',
+      error: 'Speichern fehlgeschlagen (Slug bereits vergeben?)',
+      refresh: false,
+    },
   )
+  if (ok) await navigateTo('/admin/products')
 }
 
 const newCaliber = reactive({ slug: '', name: '', group: 'HANDGUN' })

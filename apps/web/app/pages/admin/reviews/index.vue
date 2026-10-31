@@ -32,7 +32,7 @@ watch([statusFilter, flaggedOnly], () => refresh())
 
 const columns = [
   { key: 'rating', label: 'Bewertung' },
-  { key: 'product', label: 'Produkt' },
+  { key: 'product', label: 'Produkt', sortValue: (r: AdminReview) => r.product.slug },
   { key: 'displayName', label: 'Autor' },
   { key: 'status', label: 'Status' },
   { key: 'actions', label: '' },
