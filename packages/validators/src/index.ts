@@ -419,6 +419,8 @@ export const companySettingsSchema = z.object({
   iban: optionalText(z.string().toUpperCase().refine(isValidIban, 'Invalid IBAN')),
   bic: optionalText(z.string().toUpperCase().regex(BIC_REGEX, 'Invalid BIC')),
   invoiceBcc: optionalText(z.string().email().max(254)),
+  /** §19 UStG small business; null falls back to COMPANY_VAT_EXEMPT. */
+  vatExempt: z.boolean().nullable().optional(),
 })
 export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
 

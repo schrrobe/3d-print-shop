@@ -598,7 +598,7 @@ function stampFooters(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Translat
     c.email,
     c.phone,
     c.website,
-    `${t('Steuernummer', 'Tax number')}: ${c.taxNumber}`,
+    c.taxNumber && `${t('Steuernummer', 'Tax number')}: ${c.taxNumber}`,
     `IBAN: ${c.iban}`,
     `BIC: ${c.bic}`,
   ].filter(Boolean)

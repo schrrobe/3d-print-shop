@@ -246,6 +246,19 @@ describe('renderInvoicePdf', () => {
     expect(extractText(liable)).not.toMatch(/§\s*19 UStG/)
   })
 
+  it('omits the tax number from the footer when it is empty', async () => {
+    const withTax = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder(), company },
+      { compress: false },
+    )
+    const withoutTax = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder(), company: { ...company, taxNumber: '' } },
+      { compress: false },
+    )
+    expect(extractText(withTax)).toMatch(/Steuernummer/)
+    expect(extractText(withoutTax)).not.toMatch(/Steuernummer/)
+  })
+
   it('paginates long item lists with repeated table headers', async () => {
     const pdf = await renderToBuffer(
       { invoice: makeInvoice(), order: makeOrder({ items: makeItems(60) }), company },

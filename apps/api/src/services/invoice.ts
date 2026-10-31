@@ -67,7 +67,6 @@ function invoiceCompany(): CompanyInfo {
     ...company(),
     logoPath: env.INVOICE_LOGO_PATH,
     paymentTermsDays: env.PAYMENT_TERMS_DAYS,
-    vatExempt: env.COMPANY_VAT_EXEMPT,
   }
 }
 

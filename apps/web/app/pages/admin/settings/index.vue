@@ -129,8 +129,8 @@ type CompanyField =
   | 'invoiceBcc'
 
 interface CompanySettingsDto {
-  settings: Record<CompanyField, string | null>
-  effective: Record<CompanyField, string>
+  settings: Record<CompanyField, string | null> & { vatExempt: boolean | null }
+  effective: Record<CompanyField, string> & { vatExempt: boolean }
   missing: CompanyField[]
 }
 
@@ -143,7 +143,7 @@ const companyFields: { key: CompanyField; label: string; type?: string; hint?: s
   { key: 'email', label: 'E-Mail', type: 'email' },
   { key: 'phone', label: 'Telefon (optional)', type: 'tel' },
   { key: 'website', label: 'Website (optional)' },
-  { key: 'taxNumber', label: 'Steuernummer' },
+  { key: 'taxNumber', label: 'Steuernummer (bei § 19 UStG optional)' },
   { key: 'accountHolder', label: 'Kontoinhaber' },
   { key: 'iban', label: 'IBAN' },
   { key: 'bic', label: 'BIC' },
@@ -163,13 +163,15 @@ const { data: companyData, refresh: refreshCompany } = await useFetch<CompanySet
 const companyForm = reactive(
   Object.fromEntries(companyFields.map((f) => [f.key, ''])) as Record<CompanyField, string>,
 )
+const vatExempt = ref(true)
 const { run: runCompany, pending: savingCompany } = useAdminAction({ refresh: refreshCompany })
 
 watch(
-  () => companyData.value?.settings,
-  (settings) => {
-    if (!settings) return
-    for (const f of companyFields) companyForm[f.key] = settings[f.key] ?? ''
+  () => companyData.value,
+  (data) => {
+    if (!data) return
+    for (const f of companyFields) companyForm[f.key] = data.settings[f.key] ?? ''
+    vatExempt.value = data.effective.vatExempt
   },
   { immediate: true },
 )
@@ -186,7 +188,7 @@ function saveCompany() {
       $fetch('/api/admin/settings/company', {
         method: 'PUT',
         credentials: 'include',
-        body: { ...companyForm },
+        body: { ...companyForm, vatExempt: vatExempt.value },
       }),
     { success: 'Firmendaten gespeichert', error: 'Speichern fehlgeschlagen — Eingaben prüfen' },
   )
@@ -285,6 +287,21 @@ function saveCompany() {
             :data-testid="`company-${field.key}`"
           />
           <p v-if="field.hint" class="text-caption text-secondary">{{ field.hint }}</p>
+        </div>
+        <div class="space-y-xs sm:col-span-2">
+          <label class="flex items-center gap-sm text-body-regular">
+            <input
+              v-model="vatExempt"
+              type="checkbox"
+              :disabled="!auth.can('settings:write')"
+              data-testid="company-vatExempt"
+            />
+            Kleinunternehmer nach § 19 UStG
+          </label>
+          <p class="text-caption text-secondary">
+            Rechnungen weisen keine Umsatzsteuer aus und tragen den § 19-Hinweis. Die Steuernummer
+            ist dann optional.
+          </p>
         </div>
         <div v-if="auth.can('settings:write')" class="sm:col-span-2">
           <PsButton

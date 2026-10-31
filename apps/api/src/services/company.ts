@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma.js'
 import { ApiError } from '../middleware/error.js'
 
 /** Company identity + bank details as printed on invoices, delivery notes and payment instructions. */
-export interface Company {
+export interface CompanyText {
   name: string
   owner: string
   street: string
@@ -21,7 +21,12 @@ export interface Company {
   invoiceBcc: string
 }
 
-export type CompanyField = keyof Company
+export interface Company extends CompanyText {
+  /** §19 UStG small business: no VAT, note on invoices, tax number optional (§34a UStDV). */
+  vatExempt: boolean
+}
+
+export type CompanyField = keyof CompanyText
 
 /** Company field → ShopSettings column. */
 export const COMPANY_COLUMNS = {
@@ -55,11 +60,12 @@ export function companyFromEnv(): Company {
     iban: env.BANK_IBAN,
     bic: env.BANK_BIC,
     invoiceBcc: '',
+    vatExempt: env.COMPANY_VAT_EXEMPT,
   }
 }
 
 /** Example defaults from env.ts — must never reach a real invoice (§14 UStG, GiroCode). */
-const PLACEHOLDERS: Omit<Company, 'invoiceBcc'> = {
+const PLACEHOLDERS: Omit<CompanyText, 'invoiceBcc'> = {
   name: 'Print Shop GmbH',
   owner: 'Max Mustermann',
   street: 'Musterstraße 1',
@@ -74,13 +80,15 @@ const PLACEHOLDERS: Omit<Company, 'invoiceBcc'> = {
   bic: 'XXXXDEXXXXX',
 }
 
-/** Not needed on an invoice (§14 UStG); PDFs skip them when empty. */
-const OPTIONAL_FIELDS: CompanyField[] = ['website', 'phone']
+/** Not needed on an invoice (§14 UStG, §34a UStDV for §19); PDFs skip them when empty. */
+const optionalFields = (c: Company): CompanyField[] =>
+  c.vatExempt ? ['website', 'phone', 'taxNumber'] : ['website', 'phone']
 
 /** Required fields that are still the example default, or empty. */
 export function missingCompanyFields(c: Company): CompanyField[] {
+  const optional = optionalFields(c)
   return (Object.keys(PLACEHOLDERS) as (keyof typeof PLACEHOLDERS)[]).filter(
-    (k) => !OPTIONAL_FIELDS.includes(k) && (c[k] === PLACEHOLDERS[k] || c[k].trim() === ''),
+    (k) => !optional.includes(k) && (c[k] === PLACEHOLDERS[k] || c[k].trim() === ''),
   )
 }
 
@@ -97,8 +105,10 @@ export function mergeCompany(
     const value = row?.[column]
     if (typeof value === 'string' && value.trim() !== '') out[field] = value
   }
+  out.vatExempt = row?.vatExempt ?? fallback.vatExempt
   // Optional, so the example default is dropped instead of printed on invoices.
-  for (const k of OPTIONAL_FIELDS) if (out[k] === PLACEHOLDERS[k as keyof typeof PLACEHOLDERS]) out[k] = ''
+  for (const k of optionalFields(out))
+    if (out[k] === PLACEHOLDERS[k as keyof typeof PLACEHOLDERS]) out[k] = ''
   return out
 }
 
