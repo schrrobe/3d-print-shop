@@ -135,6 +135,11 @@ html.kb body {
   font-size: 1rem;
   line-height: 1.5;
   font-stretch: 100%;
+  /* Long German compounds and URLs must wrap instead of widening the page on phones */
+  overflow-wrap: break-word;
+}
+html.kb :is(h1, h2, h3) {
+  hyphens: auto;
 }
 html.kb ::selection {
   background: var(--kb-hit);

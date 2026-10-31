@@ -34,7 +34,7 @@ const priceLabel = computed(() =>
 <template>
   <NuxtLink
     :to="localePath(`/products/${family.lead.slug}`)"
-    class="group grid grid-cols-[4.5rem_1fr_auto] items-center gap-x-4 gap-y-1 py-4 sm:grid-cols-[6.5rem_1fr_auto] sm:gap-x-6 sm:py-5"
+    class="group grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-4 sm:grid-cols-[6.5rem_1fr_auto] sm:gap-x-6 sm:py-5"
     data-testid="product-card"
   >
     <span
@@ -67,7 +67,7 @@ const priceLabel = computed(() =>
     <span class="self-start text-sm text-ink-2">
       <span v-if="family.group" class="hidden sm:inline"
         >{{ t(`shop.caliberGroups.${family.group}`) }} · </span
-      ><span class="whitespace-nowrap">{{ sizesLabel }}</span>
+      ><span>{{ sizesLabel }}</span>
     </span>
   </NuxtLink>
 </template>

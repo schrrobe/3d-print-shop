@@ -132,9 +132,12 @@ div.relative {
   }
 }
 
+/* Rest state is invisible and unscaled: holding the scale(7.5) end frame (fill: both)
+   leaves an invisible ring wider than the viewport, which scrolls the page sideways on mobile. */
 .kb-pulse {
+  opacity: 0;
   transform-origin: 200px 200px;
-  animation: kb-pulse 900ms 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: kb-pulse 900ms 380ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 @keyframes kb-pulse {
   from {
@@ -166,9 +169,6 @@ div.relative {
   .kb-shot,
   .kb-pulse {
     animation: none;
-  }
-  .kb-pulse {
-    opacity: 0;
   }
 }
 </style>
