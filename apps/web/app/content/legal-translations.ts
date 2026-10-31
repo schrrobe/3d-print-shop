@@ -3,6 +3,8 @@ export type LegalDocumentKey = 'imprint' | 'privacy' | 'terms' | 'withdrawal'
 export interface LegalSection {
   heading: string
   paragraphs: string[]
+  /** Link label for the /support contact form (§ 5 DDG second contact channel). */
+  contactForm?: string
   form?: string[]
 }
 
@@ -13,13 +15,17 @@ export interface LegalDocumentTranslation {
 
 const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   imprint: {
-    updatedAt: 'Last updated: 13 July 2026',
+    updatedAt: 'Last updated: 31 October 2026',
     sections: [
       {
         heading: 'Information pursuant to section 5 DDG',
         paragraphs: ['Robert Schreiner\nKapitelwiese 14\n44263 Dortmund\nGermany'],
       },
-      { heading: 'Contact', paragraphs: ['Email: info@prestige-webdesign.de'] },
+      {
+        heading: 'Contact',
+        paragraphs: ['Email: info@prestige-webdesign.de'],
+        contactForm: 'Contact form',
+      },
       {
         heading: 'Business activity',
         paragraphs: ['Manufacture and sale of individually produced 3D-printed products.'],
@@ -223,13 +229,14 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
 
 const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   imprint: {
-    updatedAt: 'Dernière mise à jour : 13 juillet 2026',
+    updatedAt: 'Dernière mise à jour : 31 octobre 2026',
     sections: [
       {
         heading: 'Informations légales',
         paragraphs: [
           'Robert Schreiner\nKapitelwiese 14\n44263 Dortmund\nAllemagne\nE-mail : info@prestige-webdesign.de',
         ],
+        contactForm: 'Formulaire de contact',
       },
       {
         heading: 'Activité et responsabilité',
@@ -321,13 +328,14 @@ const fr: Record<LegalDocumentKey, LegalDocumentTranslation> = {
 
 const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   imprint: {
-    updatedAt: 'Laatst bijgewerkt: 13 juli 2026',
+    updatedAt: 'Laatst bijgewerkt: 31 oktober 2026',
     sections: [
       {
         heading: 'Wettelijke informatie',
         paragraphs: [
           'Robert Schreiner\nKapitelwiese 14\n44263 Dortmund\nDuitsland\nE-mail: info@prestige-webdesign.de',
         ],
+        contactForm: 'Contactformulier',
       },
       {
         heading: 'Activiteit en verantwoordelijkheid',
@@ -421,13 +429,14 @@ const nl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
 
 const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   imprint: {
-    updatedAt: 'Ostatnia aktualizacja: 13 lipca 2026 r.',
+    updatedAt: 'Ostatnia aktualizacja: 31 października 2026 r.',
     sections: [
       {
         heading: 'Informacje prawne',
         paragraphs: [
           'Robert Schreiner\nKapitelwiese 14\n44263 Dortmund\nNiemcy\nE-mail: info@prestige-webdesign.de',
         ],
+        contactForm: 'Formularz kontaktowy',
       },
       {
         heading: 'Działalność i odpowiedzialność',
@@ -519,13 +528,14 @@ const pl: Record<LegalDocumentKey, LegalDocumentTranslation> = {
 
 const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   imprint: {
-    updatedAt: 'Aktualizováno: 13. 7. 2026',
+    updatedAt: 'Aktualizováno: 31. 10. 2026',
     sections: [
       {
         heading: 'Právní informace',
         paragraphs: [
           'Robert Schreiner\nKapitelwiese 14\n44263 Dortmund\nNěmecko\nE-mail: info@prestige-webdesign.de',
         ],
+        contactForm: 'Kontaktní formulář',
       },
       {
         heading: 'Činnost a odpovědnost',

@@ -3,6 +3,7 @@ import { PsSection } from '@print-shop/ui'
 import { getLegalTranslation } from '../../content/legal-translations'
 
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const company = useRuntimeConfig().public.company
 const translatedDocument = computed(() => getLegalTranslation(locale.value, 'imprint'))
 
@@ -38,6 +39,10 @@ useSeo({
         <p class="mt-sm">
           E-Mail:
           <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a>
+        </p>
+        <p class="mt-sm">
+          Kontaktformular:
+          <NuxtLink class="underline" :to="localePath('/support')">zum Kontaktformular</NuxtLink>
         </p>
       </section>
 
