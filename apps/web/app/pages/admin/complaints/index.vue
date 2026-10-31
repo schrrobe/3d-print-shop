@@ -34,7 +34,7 @@ const reasonLabels: Record<string, string> = {
 
 const columns = [
   { key: 'complaintNumber', label: 'Nummer' },
-  { key: 'order', label: 'Bestellung' },
+  { key: 'order', label: 'Bestellung', sortValue: (r: AdminComplaint) => r.order.orderNumber },
   { key: 'reason', label: 'Grund' },
   { key: 'status', label: 'Status' },
   { key: 'createdAt', label: 'Eingegangen' },

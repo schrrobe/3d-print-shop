@@ -20,7 +20,7 @@ const { data } = await useFetch<{ requests: RequestRow[] }>('/api/admin/quote-re
 
 const columns = [
   { key: 'name', label: 'Kunde' },
-  { key: 'files', label: 'Dateien' },
+  { key: 'files', label: 'Dateien', sortValue: (r: RequestRow) => r.files.length },
   { key: 'status', label: 'Status' },
   { key: 'actions', label: '' },
 ]

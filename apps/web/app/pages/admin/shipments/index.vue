@@ -31,7 +31,7 @@ watch(statusFilter, () => refresh())
 
 const columns = [
   { key: 'shipmentNumber', label: 'Nummer' },
-  { key: 'order', label: 'Bestellung' },
+  { key: 'order', label: 'Bestellung', sortValue: (r: AdminShipment) => r.order.orderNumber },
   { key: 'status', label: 'Status' },
   { key: 'carrier', label: 'Versand' },
   { key: 'actions', label: '' },

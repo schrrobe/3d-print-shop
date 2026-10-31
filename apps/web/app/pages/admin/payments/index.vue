@@ -19,7 +19,7 @@ const { data } = await useFetch<{ payments: AdminPayment[] }>('/api/admin/paymen
 })
 
 const columns = [
-  { key: 'order', label: 'Bestellung' },
+  { key: 'order', label: 'Bestellung', sortValue: (r: AdminPayment) => r.order.orderNumber },
   { key: 'method', label: 'Methode' },
   { key: 'status', label: 'Status' },
   { key: 'amountCents', label: 'Betrag', align: 'right' as const },

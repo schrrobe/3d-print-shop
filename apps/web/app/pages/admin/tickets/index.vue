@@ -43,7 +43,7 @@ const columns = [
   { key: 'category', label: 'Kategorie' },
   { key: 'priority', label: 'Priorität' },
   { key: 'status', label: 'Status' },
-  { key: 'assignedTo', label: 'Zugewiesen' },
+  { key: 'assignedTo', label: 'Zugewiesen', sortValue: (r: AdminTicketRow) => r.assignedTo?.name },
   { key: 'actions', label: '' },
 ]
 </script>

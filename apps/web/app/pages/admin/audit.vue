@@ -19,7 +19,7 @@ const { data } = await useFetch<{ logs: AuditRow[] }>('/api/admin/audit-log', {
 
 const columns = [
   { key: 'createdAt', label: 'Zeitpunkt' },
-  { key: 'user', label: 'Benutzer' },
+  { key: 'user', label: 'Benutzer', sortValue: (r: AuditRow) => r.user?.email ?? 'System' },
   { key: 'action', label: 'Aktion' },
   { key: 'entityType', label: 'Objekt' },
 ]

@@ -167,11 +167,11 @@ const qr = ref<SalesChannel | null>(null)
 const columns = [
   { key: 'name', label: 'Kanal' },
   { key: 'url', label: 'Link' },
-  { key: 'rule', label: 'Provision' },
+  { key: 'rule', label: 'Provision', sortValue: (r: SalesChannel) => r.commissionValue },
   { key: 'clicks', label: 'Klicks', align: 'right' as const },
   { key: 'orders', label: 'Käufe', align: 'right' as const },
   { key: 'revenueCents', label: 'Umsatz', align: 'right' as const },
-  { key: 'share', label: 'Anteil', align: 'right' as const },
+  { key: 'share', label: 'Anteil', align: 'right' as const, sortValue: (r: SalesChannel) => r.revenueCents },
   { key: 'commissionCents', label: 'Provision €', align: 'right' as const },
   { key: 'active', label: 'Status' },
   { key: 'actions', label: '' },

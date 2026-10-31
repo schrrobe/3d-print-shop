@@ -19,7 +19,7 @@ const { data } = await useFetch<{ invoices: AdminInvoice[] }>('/api/admin/invoic
 
 const columns = [
   { key: 'number', label: 'Rechnungsnummer' },
-  { key: 'order', label: 'Bestellung' },
+  { key: 'order', label: 'Bestellung', sortValue: (r: AdminInvoice) => r.order.orderNumber },
   { key: 'paymentMethod', label: 'Zahlungsart' },
   { key: 'totalCents', label: 'Betrag', align: 'right' as const },
   { key: 'actions', label: '' },
