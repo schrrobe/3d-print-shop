@@ -18,7 +18,7 @@
     "added": "Toegevoegd aan winkelwagen",
     "manufacturingNotice": {
       "title": "Productie-informatie",
-      "production": "Elke munitiekist wordt met 3D-printtechnologie vervaardigd. Lichte laaglijnen of minimale oppervlakteafwijkingen zijn productiegebonden en typisch voor additieve productie. Ze vormen geen gebrek en hebben geen invloed op functie, stabiliteit of duurzaamheid."
+      "production": "Elke box wordt 3D-geprint. Daardoor kun je lichte laaglijnen of kleine oneffenheden aan het oppervlak zien. Dat hoort bij dit procedé en is geen gebrek. Functie, stabiliteit en duurzaamheid lijden er niet onder."
     },
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Bestelling plaatsen",
     "summary": "Besteloverzicht",
-    "guestHint": "Bestellen als gast — geen account nodig."
+    "guestHint": "Je bestelt als gast, een account heb je niet nodig."
   },
   "success": {
     "title": "Bedankt voor je bestelling!",
@@ -126,7 +126,7 @@
     "accept": "Offerte accepteren",
     "decline": "Afwijzen",
     "declined": "Offerte afgewezen.",
-    "accepted": "Offerte geaccepteerd — ga door naar betaling:",
+    "accepted": "Offerte geaccepteerd. Ga door naar betaling:",
     "payNow": "Nu betalen",
     "expired": "Deze offerte is verlopen.",
     "addressTitle": "Factuur- en bezorgadres"
@@ -141,9 +141,9 @@
     "necessary": "Noodzakelijk",
     "necessaryText": "Vereist voor winkelwagen, afrekenen en taalinstelling.",
     "statistics": "Statistiek",
-    "statisticsText": "Google Analytics 4 — helpt ons de shop te verbeteren.",
+    "statisticsText": "Google Analytics 4, zodat we de shop kunnen verbeteren.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel en TikTok Pixel, ook server-side — voor relevantere advertenties."
+    "marketingText": "Meta Pixel en TikTok Pixel (ook server-side), zodat je relevantere advertenties ziet."
   },
   "footer": {
     "imprint": "Colofon",
@@ -156,7 +156,7 @@
     "privacyTitle": "Privacyverklaring",
     "termsTitle": "Algemene voorwaarden",
     "withdrawalTitle": "Herroepingsrecht",
-    "placeholder": "Placeholder — juridische inhoud aanvullen vóór livegang."
+    "placeholder": "Placeholder: juridische inhoud aanvullen vóór livegang."
   },
   "common": {
     "loading": "Laden …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Support",
-    "subtitle": "Vragen over je bestelling, betaling of een product? We helpen je graag.",
+    "subtitle": "Heb je een vraag over je bestelling, betaling of een product? Stuur ons hier een bericht.",
     "name": "Naam",
     "email": "E-mail",
     "subject": "Onderwerp",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Patroonboxen voor jouw kaliber, in jouw kleuren",
-      "description": "Passende patroonboxen voor 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win en 7,62×39 — voor 50 of 100 patronen, kleur van box en opschrift naar keuze. Gratis verzending vanaf € 150."
+      "title": "Patroonboxen voor jouw kaliber, in jouw kleuren · kaliberbox.de",
+      "description": "Passende patroonboxen voor 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win en 7,62×39. Voor 50 of 100 patronen, met de kleur van box en opschrift die jij kiest. Gratis verzending vanaf € 150."
     },
     "products": {
-      "description": "Alle patroonboxen per kaliber — voor 50 en 100 patronen, kleuren naar keuze, op bestelling geprint."
+      "description": "Patroonboxen per kaliber, voor 50 of 100 patronen. Jij kiest de kleuren, wij printen na je bestelling."
     },
     "cart": {
       "title": "Winkelwagen",
-      "description": "Je winkelwagen bij de 3D Print Shop — verzending € 6,99, gratis vanaf € 150."
+      "description": "Je winkelwagen bij de 3D Print Shop. Verzending kost € 6,99, vanaf € 150 is het gratis."
     },
     "support": {
       "title": "Support",
-      "description": "Vragen over je bestelling, betaling of verzending? Maak een supportticket aan — we reageren per e-mail."
+      "description": "Vragen over je bestelling, betaling of verzending? Maak een supportticket aan, dan antwoorden we per e-mail."
     },
     "checkout": {
       "title": "Afrekenen",
-      "description": "Rond je bestelling af — betaal met kaart, overschrijving of Bitcoin."
+      "description": "Rond je bestelling af en betaal met kaart, overschrijving of Bitcoin."
     },
     "legal": {
       "imprint": "Colofon",
@@ -299,7 +299,7 @@
       "title": "Klacht indienen",
       "missingContext": "Geen geldige orderreferentie. Open de klacht via je klantomgeving.",
       "goToPortal": "Naar mijn klantomgeving",
-      "customMadeNote": "Let op: gepersonaliseerde maatwerkartikelen zijn uitgesloten van het herroepingsrecht. Klachten over gebreken en coulance zijn uiteraard wel mogelijk.",
+      "customMadeNote": "Let op: gepersonaliseerde maatwerkartikelen zijn uitgesloten van het herroepingsrecht. Klachten over gebreken en verzoeken om coulance zijn wel mogelijk.",
       "selectItems": "Betrokken artikelen",
       "quantity": "Aantal",
       "reason": "Reden",
@@ -371,7 +371,7 @@
       "menu": "Menu",
       "openMenu": "Menu openen",
       "closeMenu": "Menu sluiten",
-      "homeLabel": "kaliberbox.de – startpagina",
+      "homeLabel": "Startpagina kaliberbox.de",
       "boxes": "Patroonboxen",
       "wishlist": "Verlanglijst",
       "cartWithCount": "Winkelwagen, {count} artikelen",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Welk kaliber?",
-      "lead": "Passende patroonboxen, geprint in jouw kleuren. Kies je kaliber – wij doen de rest.",
+      "lead": "Passende patroonboxen, geprint in jouw kleuren. Jij kiest het kaliber, wij printen de box en sturen hem naar je op.",
       "pickLegend": "Kaliber kiezen",
       "cta": "Boxen voor {caliber}",
       "ctaAll": "Alle patroonboxen",
@@ -399,7 +399,7 @@
       "steps": {
         "caliber": {
           "title": "Kaliber en maat",
-          "text": "Elke box is ontworpen voor precies één kaliber – in een versie voor 50 of 100 patronen."
+          "text": "Elke box is ontworpen voor precies één kaliber, in een versie voor 50 of 100 patronen."
         },
         "colors": {
           "title": "Jouw kleuren",
@@ -466,7 +466,7 @@
     "legalNotice": {
       "title": "Opmerking over opslag",
       "text": "De patroonboxen zijn bedoeld om te ordenen en te sorteren. Ze vervangen geen afsluitbare bewaarplaats of wapenkluis zoals § 36 van de Duitse wapenwet (WaffG) die voorschrijft voor het bewaren van munitie.",
-      "short": "Voor orde in de wapenkluis – geen vervanging van de wettelijk verplichte opslag (§ 36 WaffG)."
+      "short": "Voor orde in de wapenkluis, maar geen vervanging van de wettelijk verplichte opslag (§ 36 WaffG)."
     },
     "voucher": {
       "label": "Kortingscode"
@@ -530,7 +530,7 @@
       "hit": "Roos"
     },
     "footer": {
-      "claim": "Patroonboxen voor jouw kaliber – op bestelling geprint, in jouw kleuren.",
+      "claim": "Patroonboxen voor jouw kaliber, op bestelling geprint in jouw kleuren.",
       "shop": "Winkel",
       "shopNav": "Winkelnavigatie",
       "legal": "Juridisch",

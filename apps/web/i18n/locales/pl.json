@@ -18,7 +18,7 @@
     "added": "Dodano do koszyka",
     "manufacturingNotice": {
       "title": "Informacja o produkcji",
-      "production": "Każde pudełko na amunicję jest wykonywane metodą druku 3D. Delikatne linie warstw lub minimalne różnice powierzchni wynikają z procesu produkcji i są typowe dla wytwarzania addytywnego. Nie stanowią wady i nie mają wpływu na funkcję, stabilność ani trwałość."
+      "production": "Każde pudełko jest drukowane w technologii 3D. Mogą być na nim widoczne delikatne linie warstw lub drobne nierówności powierzchni. To normalne przy tej metodzie i nie jest wadą. Nie wpływa na działanie, stabilność ani trwałość."
     },
     "viewer": {
       "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Zamawiam i płacę",
     "summary": "Podsumowanie zamówienia",
-    "guestHint": "Zakupy jako gość — bez konta."
+    "guestHint": "Możesz zamówić jako gość, bez zakładania konta."
   },
   "success": {
     "title": "Dziękujemy za zamówienie!",
@@ -126,7 +126,7 @@
     "accept": "Akceptuję wycenę",
     "decline": "Odrzuć",
     "declined": "Wycena odrzucona.",
-    "accepted": "Wycena zaakceptowana — przejdź do płatności:",
+    "accepted": "Wycena zaakceptowana. Przejdź do płatności:",
     "payNow": "Zapłać teraz",
     "expired": "Ta wycena wygasła.",
     "addressTitle": "Adres rozliczeniowy i dostawy"
@@ -141,9 +141,9 @@
     "necessary": "Niezbędne",
     "necessaryText": "Wymagane do koszyka, kasy i ustawień języka.",
     "statistics": "Statystyka",
-    "statisticsText": "Google Analytics 4 — pomaga nam ulepszać sklep.",
+    "statisticsText": "Google Analytics 4, dzięki któremu możemy ulepszać sklep.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel i TikTok Pixel, także po stronie serwera — dla trafniejszych reklam."
+    "marketingText": "Meta Pixel i TikTok Pixel (także po stronie serwera), żeby reklamy były trafniejsze."
   },
   "footer": {
     "imprint": "Impressum",
@@ -156,7 +156,7 @@
     "privacyTitle": "Polityka prywatności",
     "termsTitle": "Regulamin",
     "withdrawalTitle": "Prawo odstąpienia",
-    "placeholder": "Placeholder — uzupełnij treści prawne przed startem."
+    "placeholder": "Placeholder: uzupełnij treści prawne przed startem."
   },
   "common": {
     "loading": "Ładowanie …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Pomoc",
-    "subtitle": "Pytania dotyczące zamówienia, płatności lub produktu? Chętnie pomożemy.",
+    "subtitle": "Masz pytanie o zamówienie, płatność lub produkt? Napisz do nas tutaj.",
     "name": "Imię i nazwisko",
     "email": "E-mail",
     "subject": "Temat",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Pudełka na naboje do Twojego kalibru, w Twoich kolorach",
-      "description": "Dopasowane pudełka na naboje do 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win i 7,62×39 — na 50 lub 100 naboi, kolor pudełka i napisu do wyboru. Darmowa wysyłka od 150 €."
+      "title": "Pudełka na naboje do Twojego kalibru, w Twoich kolorach · kaliberbox.de",
+      "description": "Dopasowane pudełka na naboje do 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win i 7,62×39. Na 50 lub 100 naboi, kolor pudełka i napisu wybierasz sam. Darmowa wysyłka od 150 €."
     },
     "products": {
-      "description": "Wszystkie pudełka na naboje według kalibru — na 50 i 100 naboi, kolory do wyboru, drukowane na zamówienie."
+      "description": "Pudełka na naboje według kalibru, na 50 lub 100 naboi. Kolory wybierasz sam, a drukujemy po złożeniu zamówienia."
     },
     "cart": {
       "title": "Koszyk",
-      "description": "Twój koszyk w 3D Print Shop — dostawa 6,99 €, darmowa od 150 €."
+      "description": "Twój koszyk w 3D Print Shop. Dostawa kosztuje 6,99 €, od 150 € jest darmowa."
     },
     "support": {
       "title": "Pomoc",
-      "description": "Pytania o zamówienie, płatność lub dostawę? Utwórz zgłoszenie — odpowiemy e-mailem."
+      "description": "Masz pytanie o zamówienie, płatność lub dostawę? Utwórz zgłoszenie, a odpowiemy e-mailem."
     },
     "checkout": {
       "title": "Kasa",
-      "description": "Dokończ zamówienie — płatność kartą, przelewem lub Bitcoinem."
+      "description": "Dokończ zamówienie i zapłać kartą, przelewem lub Bitcoinem."
     },
     "legal": {
       "imprint": "Impressum",
@@ -299,7 +299,7 @@
       "title": "Zgłoś reklamację",
       "missingContext": "Brak prawidłowego odniesienia do zamówienia. Otwórz reklamację z poziomu swojego konta.",
       "goToPortal": "Przejdź do konta",
-      "customMadeNote": "Uwaga: spersonalizowane produkty na zamówienie są wyłączone z prawa odstąpienia. Reklamacje wad oraz rozpatrzenie w ramach dobrej woli są oczywiście możliwe.",
+      "customMadeNote": "Uwaga: spersonalizowane produkty na zamówienie są wyłączone z prawa odstąpienia. Nadal możesz złożyć reklamację z powodu wady lub poprosić o rozwiązanie w ramach dobrej woli.",
       "selectItems": "Pozycje objęte reklamacją",
       "quantity": "Ilość",
       "reason": "Powód",
@@ -371,7 +371,7 @@
       "menu": "Menu",
       "openMenu": "Otwórz menu",
       "closeMenu": "Zamknij menu",
-      "homeLabel": "kaliberbox.de – strona główna",
+      "homeLabel": "Strona główna kaliberbox.de",
       "boxes": "Pudełka na naboje",
       "wishlist": "Lista życzeń",
       "cartWithCount": "Koszyk, liczba produktów: {count}",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Jaki kaliber?",
-      "lead": "Dopasowane pudełka na naboje, drukowane w Twoich kolorach. Wybierz kaliber – resztą zajmiemy się my.",
+      "lead": "Dopasowane pudełka na naboje, drukowane w Twoich kolorach. Ty wybierasz kaliber, a my drukujemy pudełko i wysyłamy je do Ciebie.",
       "pickLegend": "Wybierz kaliber",
       "cta": "Pudełka do {caliber}",
       "ctaAll": "Wszystkie pudełka",
@@ -399,7 +399,7 @@
       "steps": {
         "caliber": {
           "title": "Kaliber i rozmiar",
-          "text": "Każde pudełko jest zaprojektowane dla jednego kalibru – w wersji na 50 lub 100 naboi."
+          "text": "Każde pudełko jest zaprojektowane dla jednego kalibru, w wersji na 50 lub 100 naboi."
         },
         "colors": {
           "title": "Twoje kolory",
@@ -466,7 +466,7 @@
     "legalNotice": {
       "title": "Uwaga dotycząca przechowywania",
       "text": "Pudełka służą do porządkowania i sortowania. Nie zastępują zamykanego pojemnika ani sejfu na broń, których § 36 niemieckiej ustawy o broni (WaffG) wymaga do przechowywania amunicji.",
-      "short": "Dla porządku w sejfie – nie zastępuje przechowywania wymaganego przez § 36 WaffG."
+      "short": "Pomaga utrzymać porządek w sejfie, ale nie zastępuje przechowywania wymaganego przez § 36 WaffG."
     },
     "voucher": {
       "label": "Kod rabatowy"
@@ -530,7 +530,7 @@
       "hit": "Dziesiątka"
     },
     "footer": {
-      "claim": "Pudełka na naboje do Twojego kalibru – drukowane na zamówienie, w Twoich kolorach.",
+      "claim": "Pudełka na naboje do Twojego kalibru, drukowane na zamówienie w Twoich kolorach.",
       "shop": "Sklep",
       "shopNav": "Nawigacja sklepu",
       "legal": "Informacje prawne",

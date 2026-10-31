@@ -18,7 +18,7 @@
     "added": "Ajouté au panier",
     "manufacturingNotice": {
       "title": "Remarque sur la fabrication",
-      "production": "Chaque boîte à munitions est fabriquée par impression 3D. De légères lignes de couche ou de minimes variations de surface sont liées à la production et typiques de la fabrication additive. Elles ne constituent pas un défaut et n'ont aucune incidence sur la fonction, la stabilité ou la durabilité."
+      "production": "Chaque boîte est imprimée en 3D. De légères lignes de couche ou de petites irrégularités de surface peuvent apparaître. C'est normal avec ce procédé et ce n'est pas un défaut. La fonction, la stabilité et la durabilité n'en sont pas affectées."
     },
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Commander avec obligation de paiement",
     "summary": "Récapitulatif",
-    "guestHint": "Commande en tant qu'invité — sans compte."
+    "guestHint": "Vous pouvez commander en tant qu'invité, sans créer de compte."
   },
   "success": {
     "title": "Merci pour votre commande !",
@@ -126,7 +126,7 @@
     "accept": "Accepter le devis",
     "decline": "Refuser",
     "declined": "Devis refusé.",
-    "accepted": "Devis accepté — passez au paiement :",
+    "accepted": "Devis accepté. Passez au paiement :",
     "payNow": "Payer maintenant",
     "expired": "Ce devis a expiré.",
     "addressTitle": "Adresse de facturation et de livraison"
@@ -141,9 +141,9 @@
     "necessary": "Nécessaires",
     "necessaryText": "Requis pour le panier, le paiement et la langue.",
     "statistics": "Statistiques",
-    "statisticsText": "Google Analytics 4 — nous aide à améliorer la boutique.",
+    "statisticsText": "Google Analytics 4, qui nous aide à améliorer la boutique.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel et TikTok Pixel, aussi côté serveur — pour des publicités plus pertinentes."
+    "marketingText": "Meta Pixel et TikTok Pixel (également côté serveur), pour des publicités plus pertinentes."
   },
   "footer": {
     "imprint": "Mentions légales",
@@ -156,7 +156,7 @@
     "privacyTitle": "Politique de confidentialité",
     "termsTitle": "Conditions générales de vente",
     "withdrawalTitle": "Droit de rétractation",
-    "placeholder": "Placeholder — compléter les contenus juridiques avant la mise en ligne."
+    "placeholder": "Placeholder : compléter les contenus juridiques avant la mise en ligne."
   },
   "common": {
     "loading": "Chargement …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Assistance",
-    "subtitle": "Des questions sur votre commande, votre paiement ou un produit ? Nous sommes là pour vous aider.",
+    "subtitle": "Une question sur une commande, un paiement ou un produit ? Écrivez-nous ici.",
     "name": "Nom",
     "email": "E-mail",
     "subject": "Objet",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Boîtes à cartouches pour votre calibre, à vos couleurs",
-      "description": "Boîtes à cartouches ajustées pour 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win et 7,62×39 — 50 ou 100 cartouches, couleur de la boîte et du marquage au choix. Livraison offerte dès 150 €."
+      "title": "Boîtes à cartouches pour votre calibre, à vos couleurs · kaliberbox.de",
+      "description": "Boîtes à cartouches ajustées pour 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win et 7,62×39. Pour 50 ou 100 cartouches, avec les couleurs de boîte et de marquage que vous choisissez. Livraison offerte dès 150 €."
     },
     "products": {
-      "description": "Toutes les boîtes à cartouches par calibre — 50 et 100 cartouches, couleurs au choix, imprimées à la commande."
+      "description": "Boîtes à cartouches par calibre, pour 50 ou 100 cartouches. Vous choisissez les couleurs, nous imprimons après votre commande."
     },
     "cart": {
       "title": "Panier",
-      "description": "Votre panier au 3D Print Shop — livraison 6,99 €, gratuite dès 150 €."
+      "description": "Votre panier au 3D Print Shop. Livraison 6,99 €, offerte dès 150 €."
     },
     "support": {
       "title": "Support",
-      "description": "Des questions sur votre commande, le paiement ou la livraison ? Ouvrez un ticket — nous répondons par e-mail."
+      "description": "Une question sur votre commande, le paiement ou la livraison ? Ouvrez un ticket et nous vous répondrons par e-mail."
     },
     "checkout": {
       "title": "Paiement",
-      "description": "Finalisez votre commande — paiement par carte, virement ou Bitcoin."
+      "description": "Finalisez votre commande et payez par carte, virement ou Bitcoin."
     },
     "legal": {
       "imprint": "Mentions légales",
@@ -299,7 +299,7 @@
       "title": "Ouvrir une réclamation",
       "missingContext": "Aucune référence de commande valide. Veuillez ouvrir la réclamation depuis votre espace client.",
       "goToPortal": "Aller à mon espace",
-      "customMadeNote": "Remarque : les articles personnalisés fabriqués sur commande sont exclus du droit de rétractation. Les réclamations pour défauts et les gestes commerciaux restent bien entendu possibles.",
+      "customMadeNote": "Remarque : les articles personnalisés fabriqués sur commande sont exclus du droit de rétractation. Vous pouvez toutefois faire une réclamation pour un défaut ou demander un geste commercial.",
       "selectItems": "Articles concernés",
       "quantity": "Quantité",
       "reason": "Motif",
@@ -371,7 +371,7 @@
       "menu": "Menu",
       "openMenu": "Ouvrir le menu",
       "closeMenu": "Fermer le menu",
-      "homeLabel": "kaliberbox.de – accueil",
+      "homeLabel": "Accueil kaliberbox.de",
       "boxes": "Boîtes à cartouches",
       "wishlist": "Liste de souhaits",
       "cartWithCount": "Panier, {count} articles",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Quel calibre ?",
-      "lead": "Des boîtes à cartouches ajustées, imprimées à vos couleurs. Choisissez votre calibre – on s’occupe du reste.",
+      "lead": "Des boîtes à cartouches ajustées, imprimées à vos couleurs. Vous choisissez le calibre, nous imprimons la boîte et vous l'envoyons.",
       "pickLegend": "Choisir un calibre",
       "cta": "Boîtes pour {caliber}",
       "ctaAll": "Toutes les boîtes",
@@ -399,7 +399,7 @@
       "steps": {
         "caliber": {
           "title": "Calibre et taille",
-          "text": "Chaque boîte est conçue pour un seul calibre – en version 50 ou 100 cartouches."
+          "text": "Chaque boîte est conçue pour un seul calibre, en version 50 ou 100 cartouches."
         },
         "colors": {
           "title": "Vos couleurs",
@@ -466,7 +466,7 @@
     "legalNotice": {
       "title": "Remarque sur le stockage",
       "text": "Les boîtes servent à ranger et trier. Elles ne remplacent pas le contenant verrouillable ou l’armoire forte exigés par le § 36 de la loi allemande sur les armes (WaffG) pour stocker des munitions.",
-      "short": "Pour ranger dans l’armoire forte – ne remplace pas le stockage légal (§ 36 WaffG)."
+      "short": "Pour ranger l'armoire forte. Ne remplace pas le stockage imposé par la loi (§ 36 WaffG)."
     },
     "voucher": {
       "label": "Code promo"
@@ -530,7 +530,7 @@
       "hit": "Dans le mille"
     },
     "footer": {
-      "claim": "Des boîtes à cartouches pour votre calibre – imprimées à la commande, à vos couleurs.",
+      "claim": "Des boîtes à cartouches pour votre calibre, imprimées à la commande et à vos couleurs.",
       "shop": "Boutique",
       "shopNav": "Navigation de la boutique",
       "legal": "Mentions légales",

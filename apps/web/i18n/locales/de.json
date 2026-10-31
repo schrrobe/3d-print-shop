@@ -18,7 +18,7 @@
     "added": "Zum Warenkorb hinzugefügt",
     "manufacturingNotice": {
       "title": "Hinweis zur Herstellung",
-      "production": "Jede Munitionsbox wird im 3D-Druckverfahren hergestellt. Leichte Schichtlinien oder minimale Oberflächenabweichungen sind produktionsbedingt und typisch für die additive Fertigung. Sie stellen keinen Mangel dar und haben keinen Einfluss auf Funktion, Stabilität oder Haltbarkeit."
+      "production": "Jede Box wird im 3D-Druck hergestellt. Dabei können leichte Schichtlinien oder kleine Unebenheiten an der Oberfläche entstehen. Das ist bei diesem Verfahren normal und kein Mangel. Funktion, Stabilität und Haltbarkeit leiden darunter nicht."
     },
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen"
@@ -74,7 +74,7 @@
     "payBitcoin": "Bitcoin",
     "submit": "Jetzt kostenpflichtig bestellen",
     "summary": "Bestellübersicht",
-    "guestHint": "Bestellung als Gast — kein Konto nötig."
+    "guestHint": "Du bestellst als Gast, ein Konto brauchst du nicht."
   },
   "success": {
     "title": "Danke für deine Bestellung!",
@@ -126,7 +126,7 @@
     "accept": "Angebot annehmen",
     "decline": "Ablehnen",
     "declined": "Angebot abgelehnt.",
-    "accepted": "Angebot angenommen — weiter zur Zahlung:",
+    "accepted": "Angebot angenommen. Weiter zur Zahlung:",
     "payNow": "Jetzt bezahlen",
     "expired": "Dieses Angebot ist abgelaufen.",
     "addressTitle": "Rechnungs- & Lieferadresse"
@@ -141,9 +141,9 @@
     "necessary": "Notwendig",
     "necessaryText": "Für Warenkorb, Checkout und Spracheinstellung erforderlich.",
     "statistics": "Statistik",
-    "statisticsText": "Google Analytics 4 — hilft uns, den Shop zu verbessern.",
+    "statisticsText": "Google Analytics 4, damit wir den Shop verbessern können.",
     "marketing": "Marketing",
-    "marketingText": "Meta Pixel und TikTok Pixel, auch serverseitig — für relevantere Werbung."
+    "marketingText": "Meta Pixel und TikTok Pixel (auch serverseitig), damit wir dir passendere Werbung zeigen können."
   },
   "footer": {
     "imprint": "Impressum",
@@ -156,7 +156,7 @@
     "privacyTitle": "Datenschutzerklärung",
     "termsTitle": "Allgemeine Geschäftsbedingungen",
     "withdrawalTitle": "Widerrufsbelehrung",
-    "placeholder": "Platzhalter — rechtliche Inhalte vor dem Livegang ergänzen."
+    "placeholder": "Platzhalter: rechtliche Inhalte vor dem Livegang ergänzen."
   },
   "common": {
     "loading": "Lädt …",
@@ -165,7 +165,7 @@
   },
   "support": {
     "title": "Support",
-    "subtitle": "Fragen zu Bestellung, Zahlung oder Produkt? Wir helfen weiter.",
+    "subtitle": "Du hast eine Frage zu Bestellung, Zahlung oder Produkt? Schreib uns hier.",
     "name": "Name",
     "email": "E-Mail",
     "subject": "Betreff",
@@ -202,23 +202,23 @@
   },
   "seo": {
     "home": {
-      "title": "kaliberbox.de — Patronenboxen für dein Kaliber, in deinen Farben",
-      "description": "Passgenaue Patronenboxen für 9 mm Luger, .45 ACP, .22 lfB, .223 Rem, .308 Win und 7,62×39 — als 50er oder 100er Box, Box- und Beschriftungsfarbe frei wählbar. Versandkostenfrei ab 150 €."
+      "title": "Patronenboxen für dein Kaliber, in deinen Farben · kaliberbox.de",
+      "description": "Passgenaue Patronenboxen für 9 mm Luger, .45 ACP, .22 lfB, .223 Rem, .308 Win und 7,62×39. Wahlweise für 50 oder 100 Schuss, Box- und Beschriftungsfarbe suchst du selbst aus. Ab 150 € versandkostenfrei."
     },
     "products": {
-      "description": "Alle Patronenboxen nach Kaliber — 50er und 100er Boxen, Farben frei wählbar, auf Bestellung gedruckt."
+      "description": "Patronenboxen nach Kaliber, für 50 oder 100 Schuss. Die Farben wählst du selbst, gedruckt wird nach deiner Bestellung."
     },
     "cart": {
       "title": "Warenkorb",
-      "description": "Dein Warenkorb im 3D Print Shop — Versand 6,99 €, versandkostenfrei ab 150 €."
+      "description": "Dein Warenkorb im 3D Print Shop. Der Versand kostet 6,99 €, ab 150 € ist er kostenlos."
     },
     "support": {
       "title": "Support",
-      "description": "Fragen zu Bestellung, Zahlung oder Versand? Erstelle ein Support-Ticket — wir melden uns per E-Mail."
+      "description": "Du hast eine Frage zu Bestellung, Zahlung oder Versand? Schreib uns über ein Support-Ticket, wir antworten per E-Mail."
     },
     "checkout": {
       "title": "Kasse",
-      "description": "Bestellung abschließen — Zahlung per Karte, Überweisung oder Bitcoin."
+      "description": "Bestellung abschließen und per Karte, Überweisung oder Bitcoin bezahlen."
     },
     "legal": {
       "imprint": "Impressum",
@@ -299,7 +299,7 @@
       "title": "Reklamation eröffnen",
       "missingContext": "Kein gültiger Bestellbezug. Bitte öffne die Reklamation über deinen Kundenbereich.",
       "goToPortal": "Zum Kundenbereich",
-      "customMadeNote": "Hinweis: Personalisierte Sonderanfertigungen sind vom Widerruf ausgeschlossen. Reklamationen bei Mängeln oder Kulanzfälle sind selbstverständlich möglich.",
+      "customMadeNote": "Hinweis: Personalisierte Sonderanfertigungen sind vom Widerruf ausgeschlossen. Reklamationen wegen Mängeln und Kulanzanfragen sind trotzdem möglich.",
       "selectItems": "Betroffene Positionen",
       "quantity": "Menge",
       "reason": "Grund",
@@ -371,7 +371,7 @@
       "menu": "Menü",
       "openMenu": "Menü öffnen",
       "closeMenu": "Menü schließen",
-      "homeLabel": "kaliberbox.de – Startseite",
+      "homeLabel": "Startseite kaliberbox.de",
       "boxes": "Patronenboxen",
       "wishlist": "Merkliste",
       "cartWithCount": "Warenkorb, {count} Artikel",
@@ -391,7 +391,7 @@
     },
     "home": {
       "title": "Für welches Kaliber?",
-      "lead": "Passgenaue Patronenboxen, gedruckt in deinen Farben. Wähle dein Kaliber – den Rest erledigen wir.",
+      "lead": "Passgenaue Patronenboxen, gedruckt in deinen Farben. Du wählst das Kaliber, wir drucken die Box und schicken sie dir.",
       "pickLegend": "Kaliber wählen",
       "cta": "Boxen für {caliber}",
       "ctaAll": "Alle Patronenboxen",
@@ -399,11 +399,11 @@
       "steps": {
         "caliber": {
           "title": "Kaliber und Größe",
-          "text": "Jede Box ist für genau ein Kaliber konstruiert – als 50er oder 100er Ausführung."
+          "text": "Jede Box ist für genau ein Kaliber gebaut, wahlweise für 50 oder 100 Schuss."
         },
         "colors": {
           "title": "Deine Farben",
-          "text": "Box- und Beschriftungsfarbe aus unserem Filamentbestand wählen. Die Vorschau zeigt sofort, wie sie aussieht."
+          "text": "Box- und Beschriftungsfarbe suchst du aus unserem Filamentbestand aus. Die Vorschau zeigt dir sofort, wie das aussieht."
         },
         "print": {
           "title": "Gedruckt auf Bestellung",
@@ -466,7 +466,7 @@
     "legalNotice": {
       "title": "Hinweis zur Aufbewahrung",
       "text": "Die Patronenboxen dienen der Ordnung und Sortierung. Sie ersetzen kein verschließbares Behältnis bzw. keinen Waffenschrank, wie ihn § 36 Waffengesetz für die Aufbewahrung von Munition vorschreibt.",
-      "short": "Zur Ordnung im Waffenschrank – kein Ersatz für die gesetzliche Aufbewahrung nach § 36 WaffG."
+      "short": "Für Ordnung im Waffenschrank. Die Box ersetzt nicht die gesetzlich vorgeschriebene Aufbewahrung nach § 36 WaffG."
     },
     "voucher": {
       "label": "Gutscheincode"
@@ -530,7 +530,7 @@
       "hit": "Treffer"
     },
     "footer": {
-      "claim": "Patronenboxen für dein Kaliber – gedruckt auf Bestellung, in deinen Farben.",
+      "claim": "Patronenboxen für dein Kaliber, auf Bestellung gedruckt in deinen Farben.",
       "shop": "Shop",
       "shopNav": "Shop-Navigation",
       "legal": "Rechtliches",
