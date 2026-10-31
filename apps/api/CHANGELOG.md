@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.2.0...api-v0.3.0) (2026-10-31)
+
+
+### Features
+
+* **admin:** Fehlerprotokoll für Warnungen und Fehler der API ([#52](https://github.com/schrrobe/3d-print-shop/issues/52)) ([53071ce](https://github.com/schrrobe/3d-print-shop/commit/53071ce6773d97bb23a4d43689ef9df6936ed4fd))
+
+
+### Bug Fixes
+
+* **admin:** Telefonnummer in den Firmendaten optional ([#54](https://github.com/schrrobe/3d-print-shop/issues/54)) ([c38c5e0](https://github.com/schrrobe/3d-print-shop/commit/c38c5e083248f4cfa11028e3433c6542991dfb31))
+
 ## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.1.0...api-v0.2.0) (2026-10-31)
 
 

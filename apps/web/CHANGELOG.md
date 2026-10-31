@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.2.0...web-v0.3.0) (2026-10-31)
+
+
+### Features
+
+* **admin:** Fehlerprotokoll für Warnungen und Fehler der API ([#52](https://github.com/schrrobe/3d-print-shop/issues/52)) ([53071ce](https://github.com/schrrobe/3d-print-shop/commit/53071ce6773d97bb23a4d43689ef9df6936ed4fd))
+* **admin:** Tabellen sortierbar, nach Produkt-Speichern zurück zur Liste ([#57](https://github.com/schrrobe/3d-print-shop/issues/57)) ([d01505b](https://github.com/schrrobe/3d-print-shop/commit/d01505b008c845d0b6fc5f27341cc5c3641a516f))
+* **shop:** Geschenkoption entfernen ([#53](https://github.com/schrrobe/3d-print-shop/issues/53)) ([ecb5fef](https://github.com/schrrobe/3d-print-shop/commit/ecb5fef43ed83e031df96b62c7bd15032856b889))
+
+
+### Bug Fixes
+
+* **admin:** Telefonnummer in den Firmendaten optional ([#54](https://github.com/schrrobe/3d-print-shop/issues/54)) ([c38c5e0](https://github.com/schrrobe/3d-print-shop/commit/c38c5e083248f4cfa11028e3433c6542991dfb31))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/ui bumped to 0.1.0
+
 ## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.1.0...web-v0.2.0) (2026-10-31)
 
 
