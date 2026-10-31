@@ -74,10 +74,13 @@ const PLACEHOLDERS: Omit<Company, 'invoiceBcc'> = {
   bic: 'XXXXDEXXXXX',
 }
 
-/** Required fields that are still the example default, or empty (website is optional). */
+/** Not needed on an invoice (§14 UStG); PDFs skip them when empty. */
+const OPTIONAL_FIELDS: CompanyField[] = ['website', 'phone']
+
+/** Required fields that are still the example default, or empty. */
 export function missingCompanyFields(c: Company): CompanyField[] {
   return (Object.keys(PLACEHOLDERS) as (keyof typeof PLACEHOLDERS)[]).filter(
-    (k) => k !== 'website' && (c[k] === PLACEHOLDERS[k] || c[k].trim() === ''),
+    (k) => !OPTIONAL_FIELDS.includes(k) && (c[k] === PLACEHOLDERS[k] || c[k].trim() === ''),
   )
 }
 
@@ -95,7 +98,7 @@ export function mergeCompany(
     if (typeof value === 'string' && value.trim() !== '') out[field] = value
   }
   // Optional, so the example default is dropped instead of printed on invoices.
-  if (out.website === PLACEHOLDERS.website) out.website = ''
+  for (const k of OPTIONAL_FIELDS) if (out[k] === PLACEHOLDERS[k as keyof typeof PLACEHOLDERS]) out[k] = ''
   return out
 }
 

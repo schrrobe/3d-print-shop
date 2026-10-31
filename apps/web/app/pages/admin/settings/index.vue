@@ -141,7 +141,7 @@ const companyFields: { key: CompanyField; label: string; type?: string; hint?: s
   { key: 'zip', label: 'PLZ' },
   { key: 'city', label: 'Ort' },
   { key: 'email', label: 'E-Mail', type: 'email' },
-  { key: 'phone', label: 'Telefon', type: 'tel' },
+  { key: 'phone', label: 'Telefon (optional)', type: 'tel' },
   { key: 'website', label: 'Website (optional)' },
   { key: 'taxNumber', label: 'Steuernummer' },
   { key: 'accountHolder', label: 'Kontoinhaber' },
