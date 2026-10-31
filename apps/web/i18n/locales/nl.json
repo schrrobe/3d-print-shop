@@ -445,6 +445,12 @@
       "rounds": "{count} patronen",
       "sizeLegend": "Maat",
       "priceNote": "Eindprijs, excl. verzending",
+      "personalization": {
+        "label": "Naam op de box",
+        "hint": "Optioneel, max. 24 tekens. Personalisatie + {price} per box.",
+        "invalid": "Gebruik alleen letters, cijfers, spaties en . - &.",
+        "line": "Personalisatie: {name}"
+      },
       "summary": "{caliber} · {capacity} patronen · box {box} · opschrift {label}",
       "drawingAlt": "Schematische tekening van de patroonbox {caliber} voor {capacity} patronen in {box} met opschrift in {label}",
       "drawingCaption": "Schematisch, niet op schaal",

@@ -305,6 +305,9 @@ const summaryOpen = ref(false)
               <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
                 item.colorNames.join(' · ')
               }}</span>
+              <span v-if="item.personalization" class="block text-sm text-ink-2">{{
+                t('shop.product.personalization.line', { name: item.personalization })
+              }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
           </li>
@@ -564,6 +567,9 @@ const summaryOpen = ref(false)
               <span class="kb-num">{{ item.quantity }}×</span> {{ item.name }}
               <span v-if="item.colorNames.length" class="block text-sm text-ink-2">{{
                 item.colorNames.join(' · ')
+              }}</span>
+              <span v-if="item.personalization" class="block text-sm text-ink-2">{{
+                t('shop.product.personalization.line', { name: item.personalization })
               }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>

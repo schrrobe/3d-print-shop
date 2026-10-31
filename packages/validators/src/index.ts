@@ -58,6 +58,14 @@ export const cartItemInputSchema = z.object({
   productId: cuidSchema,
   quantity: z.number().int().min(1).max(99),
   colorSelection: colorSelectionSchema,
+  /** Name printed on the box (+6 € per box); empty means not personalized. */
+  personalization: z
+    .string()
+    .trim()
+    .max(24)
+    .regex(/^[\p{L}\p{M}\p{N} .'&-]*$/u)
+    .optional()
+    .transform((v) => v || undefined),
 })
 
 /** Raw customer input — the API normalizes to uppercase before lookup. */

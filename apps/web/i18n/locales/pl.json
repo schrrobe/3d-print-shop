@@ -445,6 +445,12 @@
       "rounds": "{count} naboi",
       "sizeLegend": "Rozmiar",
       "priceNote": "Cena końcowa, plus wysyłka",
+      "personalization": {
+        "label": "Imię na pudełku",
+        "hint": "Opcjonalnie, maks. 24 znaki. Personalizacja + {price} za pudełko.",
+        "invalid": "Używaj tylko liter, cyfr, spacji oraz . - &.",
+        "line": "Personalizacja: {name}"
+      },
       "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
       "drawingCaption": "Schemat, nie w skali",

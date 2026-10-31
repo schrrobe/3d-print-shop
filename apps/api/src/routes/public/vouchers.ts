@@ -3,6 +3,7 @@ import {
   calcVoucherDiscountCents,
   checkVoucher,
   normalizeVoucherCode,
+  personalizedUnitPriceCents,
 } from '@print-shop/utils'
 import { voucherValidateSchema } from '@print-shop/validators'
 import { Router } from 'express'
@@ -27,9 +28,12 @@ vouchersRouter.post('/validate', sensitiveLimiter, async (req, res, next) => {
     })
     const priceById = new Map(products.map((p) => [p.id, p.priceCents]))
     const items = input.items.map((item) => {
-      const unitPriceCents = priceById.get(item.productId)
-      if (unitPriceCents == null) throw badRequest(`Product not available: ${item.productId}`)
-      return { unitPriceCents, quantity: item.quantity }
+      const priceCents = priceById.get(item.productId)
+      if (priceCents == null) throw badRequest(`Product not available: ${item.productId}`)
+      return {
+        unitPriceCents: personalizedUnitPriceCents(priceCents, item.personalization),
+        quantity: item.quantity,
+      }
     })
     const subtotalCents = calcSubtotalCents(items)
 

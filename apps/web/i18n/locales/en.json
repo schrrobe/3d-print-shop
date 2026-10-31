@@ -445,6 +445,12 @@
       "rounds": "{count} rounds",
       "sizeLegend": "Size",
       "priceNote": "Final price, plus shipping",
+      "personalization": {
+        "label": "Name on the box",
+        "hint": "Optional, max. 24 characters. Personalisation + {price} per box.",
+        "invalid": "Please use only letters, digits, spaces and . - &.",
+        "line": "Personalisation: {name}"
+      },
       "summary": "{caliber} · {capacity} rounds · box {box} · label {label}",
       "drawingAlt": "Schematic drawing of the {caliber} cartridge box for {capacity} rounds in {box} with label in {label}",
       "drawingCaption": "Schematic, not to scale",

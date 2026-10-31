@@ -239,6 +239,62 @@ describe('POST /api/checkout', () => {
       expect(res.status).toBe(400)
       expect(((await res.json()) as { message: string }).message).toContain('50 rounds')
     })
+
+    it('counts the personalisation surcharge toward the 100 € threshold', async () => {
+      mockedProductFindMany.mockResolvedValue([
+        product(paidId, 4700, 100),
+        product(boxId, 1490, 50),
+      ] as never)
+      const body = (personalization?: string) => ({
+        items: [{ productId: paidId, quantity: 2, colorSelection: {}, personalization }],
+        freeBox: { productId: boxId, colorSelection: {} },
+        address: {
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          street: 'Musterstraße 1',
+          zip: '1010',
+          city: 'Wien',
+          country: 'AT',
+          email: 'max@example.com',
+        },
+        paymentMethod: 'bank_transfer',
+      })
+
+      const plain = await postJson('/api/checkout', body(), {
+        'idempotency-key': 'test-checkout-personal-key-1',
+      })
+      expect(((await plain.json()) as { message: string }).message).toContain('too low')
+
+      // 2 × (47 € + 6 €) = 106 € — past the threshold check
+      const personal = await postJson('/api/checkout', body('Max'), {
+        'idempotency-key': 'test-checkout-personal-key-2',
+      })
+      expect(((await personal.json()) as { message?: string }).message ?? '').not.toContain(
+        'too low',
+      )
+    })
+
+    it('rejects personalisation with disallowed characters', async () => {
+      const res = await postJson(
+        '/api/checkout',
+        {
+          items: [{ productId: paidId, quantity: 1, colorSelection: {}, personalization: '<b>' }],
+          address: {
+            firstName: 'Max',
+            lastName: 'Mustermann',
+            street: 'Musterstraße 1',
+            zip: '1010',
+            city: 'Wien',
+            country: 'AT',
+            email: 'max@example.com',
+          },
+          paymentMethod: 'bank_transfer',
+        },
+        { 'idempotency-key': 'test-checkout-personal-key-3' },
+      )
+      expect(res.status).toBe(400)
+      expect(await res.json()).toMatchObject({ error: 'validation_error' })
+    })
   })
 })
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { calcCartTotals, calcSubtotalCents } from '../src/pricing.js'
+import {
+  calcCartTotals,
+  calcSubtotalCents,
+  personalizedItemName,
+  personalizedUnitPriceCents,
+} from '../src/pricing.js'
 
 describe('pricing', () => {
   it('sums line items', () => {
@@ -43,5 +48,17 @@ describe('pricing', () => {
       totalCents: 0,
       freeShippingApplied: false,
     })
+  })
+
+  it('adds 6 € per personalised box', () => {
+    expect(personalizedUnitPriceCents(2250, 'Max')).toBe(2850)
+    expect(personalizedUnitPriceCents(2250, undefined)).toBe(2250)
+    expect(personalizedUnitPriceCents(2250, '')).toBe(2250)
+  })
+
+  it('puts the personalisation into the item name snapshot', () => {
+    expect(personalizedItemName('Box 9 mm', 'Max', 'de')).toBe('Box 9 mm – Personalisierung: Max')
+    expect(personalizedItemName('Box 9 mm', 'Max', 'en')).toBe('Box 9 mm – Personalisation: Max')
+    expect(personalizedItemName('Box 9 mm', undefined, 'de')).toBe('Box 9 mm')
   })
 })

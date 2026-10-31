@@ -56,6 +56,13 @@ useSeo({
               <p v-if="item.colorNames.length" class="mt-1 text-ink-2">
                 {{ item.colorNames.join(' · ') }}
               </p>
+              <p
+                v-if="item.personalization"
+                class="mt-1 text-ink-2"
+                data-testid="cart-personalization"
+              >
+                {{ t('shop.product.personalization.line', { name: item.personalization }) }}
+              </p>
               <p class="kb-num mt-1 text-sm text-ink-2">
                 {{ t('shop.cart.unitPrice', { price: money(item.unitPriceCents) }) }}
               </p>

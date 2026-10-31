@@ -445,6 +445,12 @@
       "rounds": "{count} Schuss",
       "sizeLegend": "Größe",
       "priceNote": "Endpreis, zzgl. Versand",
+      "personalization": {
+        "label": "Name auf der Box",
+        "hint": "Optional, max. 24 Zeichen. Personalisierung + {price} je Box.",
+        "invalid": "Bitte nur Buchstaben, Ziffern, Leerzeichen sowie . - & verwenden.",
+        "line": "Personalisierung: {name}"
+      },
       "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
       "drawingCaption": "Schematische Darstellung, nicht maßstäblich",

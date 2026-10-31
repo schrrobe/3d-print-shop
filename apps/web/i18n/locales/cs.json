@@ -445,6 +445,12 @@
       "rounds": "{count} nábojů",
       "sizeLegend": "Velikost",
       "priceNote": "Konečná cena, plus doprava",
+      "personalization": {
+        "label": "Jméno na krabičce",
+        "hint": "Volitelné, max. 24 znaků. Personalizace + {price} za krabičku.",
+        "invalid": "Používejte pouze písmena, číslice, mezery a . - &.",
+        "line": "Personalizace: {name}"
+      },
       "summary": "{caliber} · {capacity} nábojů · krabička {box} · popisek {label}",
       "drawingAlt": "Schéma krabičky na náboje {caliber} na {capacity} nábojů v barvě {box} s popiskem v barvě {label}",
       "drawingCaption": "Schéma, ne v měřítku",

@@ -13,6 +13,8 @@ export interface CartLine {
   colorSelection: ColorSelection
   colorNames: string[]
   imageUrl: string | null
+  /** Name on the box; unitPriceCents already includes the surcharge. */
+  personalization?: string
 }
 
 const STORAGE_KEY = 'print-shop-cart'
@@ -22,8 +24,8 @@ export type ApplyVoucherResult =
   | { valid: true; voucher: VoucherDto; discountCents: number }
   | { valid: false; reason: VoucherRejection; minOrderCents?: number }
 
-function lineKey(productId: string, colorSelection: ColorSelection): string {
-  return `${productId}:${JSON.stringify(colorSelection, Object.keys(colorSelection).sort())}`
+function lineKey(productId: string, colorSelection: ColorSelection, personalization = ''): string {
+  return `${productId}:${JSON.stringify(colorSelection, Object.keys(colorSelection).sort())}:${personalization}`
 }
 
 export const useCartStore = defineStore('cart', () => {
@@ -71,7 +73,7 @@ export const useCartStore = defineStore('cart', () => {
   )
 
   function add(line: Omit<CartLine, 'key'>) {
-    const key = lineKey(line.productId, line.colorSelection)
+    const key = lineKey(line.productId, line.colorSelection, line.personalization)
     const existing = items.value.find((item) => item.key === key)
     if (existing) existing.quantity += line.quantity
     else items.value.push({ ...line, key })
@@ -125,11 +127,13 @@ export const useCartStore = defineStore('cart', () => {
     productId: string
     quantity: number
     colorSelection: ColorSelection
+    personalization?: string
   }[] {
     return items.value.map((i) => ({
       productId: i.productId,
       quantity: i.quantity,
       colorSelection: i.colorSelection,
+      personalization: i.personalization,
     }))
   }
 
