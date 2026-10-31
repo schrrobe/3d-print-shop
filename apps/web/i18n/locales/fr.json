@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "Tous les calibres",
-      "boxesAll": "Tout voir",
-      "gift": {
-        "title": "Un cadeau qui tombe juste.",
-        "text": "Pour les tireurs sportifs et les chasseurs qui ont déjà tout – sauf de l’ordre dans le tiroir à munitions.",
-        "tips": {
-          "ask": "Il suffit de connaître le calibre – il figure sur chaque boîte de cartouches.",
-          "box": "50 ou 100 cartouches ? La boîte d’origine l’indique aussi.",
-          "note": "Cochez « C’est un cadeau » lors du paiement – nous le notons sur votre commande."
-        }
-      }
+      "boxesAll": "Tout voir"
     },
     "list": {
       "lead": "Une boîte par calibre, en version 50 et 100 cartouches.",
@@ -501,8 +492,6 @@
       "phone": "Téléphone",
       "company": "Société",
       "note": "Remarque sur la commande",
-      "gift": "C’est un cadeau",
-      "giftHint": "Nous le notons sur votre commande.",
       "showSummary": "Afficher le récapitulatif",
       "hideSummary": "Masquer le récapitulatif",
       "legal": "En commandant, vous acceptez nos {terms}. Les informations sur le droit de rétractation figurent dans l’{withdrawal}, sur la protection des données dans la {privacy}.",

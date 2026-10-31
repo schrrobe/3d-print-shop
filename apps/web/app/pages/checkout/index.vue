@@ -91,7 +91,6 @@ watch(freeBoxId, () => {
   )
 })
 
-const isGift = ref(false)
 const paymentMethod = ref<CheckoutPaymentMethod>('stripe')
 const checkoutKey = ref<string | null>(null)
 const submitting = ref(false)
@@ -164,8 +163,7 @@ async function submit() {
       new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
     ])
     const trackingSessionId = tracking.sessionId()
-    // Gift flag travels in the order note so production sees it without a schema change
-    const note = [isGift.value ? '[Geschenk]' : '', form.note.trim()].filter(Boolean).join(' ')
+    const note = form.note.trim()
     const response = await $fetch<CheckoutResponse>('/api/checkout', {
       method: 'POST',
       headers: {
@@ -526,22 +524,6 @@ const summaryOpen = ref(false)
               :colors="colors"
             />
           </div>
-
-          <label class="mt-8 flex cursor-pointer items-start gap-3">
-            <input
-              v-model="isGift"
-              type="checkbox"
-              name="isGift"
-              class="mt-0.5 size-5 shrink-0"
-              data-testid="checkout-gift"
-            />
-            <span>
-              <span class="flex items-center gap-2 font-bold"
-                ><ShopIcon name="gift" :size="18" />{{ t('shop.checkout.gift') }}</span
-              >
-              <span class="block text-sm text-ink-2">{{ t('shop.checkout.giftHint') }}</span>
-            </span>
-          </label>
 
           <div class="mt-6">
             <label for="checkout-note" class="kb-label">

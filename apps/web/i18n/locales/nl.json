@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "Alle kalibers",
-      "boxesAll": "Alles bekijken",
-      "gift": {
-        "title": "Een cadeau dat past.",
-        "text": "Voor sportschutters en jagers die alles al hebben – behalve orde in de munitielade.",
-        "tips": {
-          "ask": "Je hebt alleen het kaliber nodig – dat staat op elk doosje patronen.",
-          "box": "50 of 100 patronen? Ook dat staat op het doosje.",
-          "note": "Vink bij het afrekenen „Dit is een cadeau” aan – we noteren het bij je bestelling."
-        }
-      }
+      "boxesAll": "Alles bekijken"
     },
     "list": {
       "lead": "Eén box per kaliber, in een versie voor 50 en 100 patronen.",
@@ -501,8 +492,6 @@
       "phone": "Telefoon",
       "company": "Bedrijf",
       "note": "Opmerking bij de bestelling",
-      "gift": "Dit is een cadeau",
-      "giftHint": "We noteren het bij je bestelling.",
       "showSummary": "Besteloverzicht tonen",
       "hideSummary": "Besteloverzicht verbergen",
       "legal": "Met je bestelling ga je akkoord met onze {terms}. Informatie over het herroepingsrecht vind je in de {withdrawal}, over privacy in de {privacy}.",
