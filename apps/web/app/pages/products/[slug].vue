@@ -6,6 +6,7 @@ import {
   personalizedUnitPriceCents,
 } from '@print-shop/utils'
 import type { ColorSelection, Locale } from '@print-shop/types'
+import { PERSONALIZATION_PATTERN } from '@print-shop/validators'
 import type { CartLine } from '~/stores/cart'
 import type { ApiProduct } from '~/composables/useShop'
 import type { PublicReview } from '~/composables/useReviews'
@@ -87,10 +88,7 @@ const drawingDescription = computed(() =>
 const editKey = computed(() => (route.query.edit ? String(route.query.edit) : ''))
 const quantity = ref(1)
 const personalization = ref('')
-// Same rule as the API validator: letters, digits, space and . ' & -
-const personalizationValid = computed(() =>
-  /^[\p{L}\p{M}\p{N} .'&-]*$/u.test(personalization.value),
-)
+const personalizationValid = computed(() => PERSONALIZATION_PATTERN.test(personalization.value))
 const unitPriceCents = computed(() =>
   personalizedUnitPriceCents(product.value.priceCents, personalization.value.trim()),
 )

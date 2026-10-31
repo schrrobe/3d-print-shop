@@ -8,6 +8,7 @@ vi.mock('../src/lib/prisma.js', () => ({
     adminAuditLog: { create: vi.fn().mockResolvedValue({}) },
     order: { findUnique: vi.fn() },
     product: { findMany: vi.fn() },
+    voucher: { findUnique: vi.fn() },
     color: { findMany: vi.fn() },
     trackingSession: { findUnique: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn(),
@@ -21,6 +22,7 @@ const mockedUserFindUnique = vi.mocked(prisma.user.findUnique)
 const mockedOrderFindUnique = vi.mocked(prisma.order.findUnique)
 const mockedProductFindMany = vi.mocked(prisma.product.findMany)
 const mockedColorFindMany = vi.mocked(prisma.color.findMany)
+const mockedVoucherFindUnique = vi.mocked(prisma.voucher.findUnique)
 
 let server: Server
 let baseUrl: string
@@ -375,5 +377,45 @@ describe('POST /api/t/events', () => {
 
     expect(res.status).toBe(202)
     expect(await res.json()).toMatchObject({ accepted: 1 })
+  })
+})
+
+describe('POST /api/vouchers/validate', () => {
+  const productId = 'clzz00000000000000000001'
+  const validate = (personalization?: string) =>
+    postJson('/api/vouchers/validate', {
+      code: 'sommer10',
+      items: [{ productId, quantity: 2, colorSelection: {}, personalization }],
+    })
+
+  beforeEach(() => {
+    mockedProductFindMany.mockResolvedValue([{ id: productId, priceCents: 4700 }] as never)
+    mockedVoucherFindUnique.mockResolvedValue({
+      code: 'SOMMER10',
+      type: 'percent',
+      value: 10,
+      active: true,
+      validFrom: null,
+      validUntil: null,
+      maxRedemptions: null,
+      redemptionCount: 0,
+      minOrderCents: 10_000,
+    } as never)
+  })
+
+  it('counts the personalisation surcharge toward the minimum order', async () => {
+    const plain = await validate()
+    expect(await plain.json()).toMatchObject({ valid: false, reason: 'min_order_not_met' })
+
+    // 2 × (47 € + 6 €) = 106 € — 10 % off
+    const personal = await validate('Max')
+    expect(await personal.json()).toMatchObject({ valid: true, discountCents: 1060 })
+  })
+
+  it('rejects personalisation with disallowed characters', async () => {
+    const res = await validate('<b>')
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
   })
 })

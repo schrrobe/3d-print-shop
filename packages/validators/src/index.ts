@@ -54,6 +54,9 @@ export const addressSchema = z.object({
 
 export const colorSelectionSchema = z.record(colorZoneSlotSchema, cuidSchema)
 
+/** Allowed name on the box: letters, digits, space and . ' & - (shared with the product page). */
+export const PERSONALIZATION_PATTERN = /^[\p{L}\p{M}\p{N} .'&-]*$/u
+
 export const cartItemInputSchema = z.object({
   productId: cuidSchema,
   quantity: z.number().int().min(1).max(99),
@@ -63,7 +66,7 @@ export const cartItemInputSchema = z.object({
     .string()
     .trim()
     .max(24)
-    .regex(/^[\p{L}\p{M}\p{N} .'&-]*$/u)
+    .regex(PERSONALIZATION_PATTERN)
     .optional()
     .transform((v) => v || undefined),
 })
