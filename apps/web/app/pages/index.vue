@@ -140,30 +140,6 @@ const steps = ['caliber', 'colors', 'print'] as const
       </ul>
     </section>
 
-    <!-- Gift: the mirror field -->
-    <section class="bg-mirror text-on-mirror" aria-labelledby="gift-title">
-      <div class="kb-wrap grid gap-8 py-16 md:grid-cols-[1.2fr_1fr] md:items-center md:py-24">
-        <div>
-          <h2 id="gift-title" class="kb-display text-[2.75rem] md:text-[4rem]">
-            {{ t('shop.home.gift.title') }}
-          </h2>
-          <p class="mt-5 max-w-[46ch] text-[1.125rem] text-on-mirror-2">
-            {{ t('shop.home.gift.text') }}
-          </p>
-        </div>
-        <ul class="flex flex-col border-t border-on-mirror/25">
-          <li
-            v-for="tip in ['ask', 'box', 'note']"
-            :key="tip"
-            class="flex gap-4 border-b border-on-mirror/25 py-4"
-          >
-            <ShopIcon :name="tip === 'note' ? 'gift' : 'check'" class="mt-0.5 text-hit" />
-            <span>{{ t(`shop.home.gift.tips.${tip}`) }}</span>
-          </li>
-        </ul>
-      </div>
-    </section>
-
     <!-- Storage notice -->
     <section class="kb-wrap py-14 md:py-16">
       <ShopLegalNotice />

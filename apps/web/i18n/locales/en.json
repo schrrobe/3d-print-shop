@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "All calibers",
-      "boxesAll": "View all",
-      "gift": {
-        "title": "A gift that fits.",
-        "text": "For sport shooters and hunters who have everything – except order in their ammo drawer.",
-        "tips": {
-          "ask": "All you need is the caliber – it is printed on every box of cartridges.",
-          "box": "50 or 100 rounds? The cartridge box tells you that too.",
-          "note": "Tick “This is a gift” at checkout – we note it on your order."
-        }
-      }
+      "boxesAll": "View all"
     },
     "list": {
       "lead": "One box per caliber, each in a 50 and a 100 round version.",
@@ -501,8 +492,6 @@
       "phone": "Phone",
       "company": "Company",
       "note": "Order note",
-      "gift": "This is a gift",
-      "giftHint": "We note it on your order.",
       "showSummary": "Show order summary",
       "hideSummary": "Hide order summary",
       "legal": "By placing your order you accept our {terms}. Information on your right of withdrawal is in the {withdrawal}, on data protection in the {privacy}.",

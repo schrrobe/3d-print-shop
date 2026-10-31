@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "Alle Kaliber",
-      "boxesAll": "Zur Übersicht",
-      "gift": {
-        "title": "Ein Geschenk, das passt.",
-        "text": "Für Sportschützen und Jäger, die schon alles haben – außer Ordnung im Munitionsfach.",
-        "tips": {
-          "ask": "Du brauchst nur das Kaliber – es steht auf jeder Patronenschachtel.",
-          "box": "50 oder 100 Schuss? Auch das verrät die Schachtel.",
-          "note": "Im Checkout „Ist ein Geschenk“ ankreuzen – wir vermerken es an deiner Bestellung."
-        }
-      }
+      "boxesAll": "Zur Übersicht"
     },
     "list": {
       "lead": "Eine Box pro Kaliber, jeweils als 50er und 100er Ausführung.",
@@ -501,8 +492,6 @@
       "phone": "Telefon",
       "company": "Firma",
       "note": "Anmerkung zur Bestellung",
-      "gift": "Ist ein Geschenk",
-      "giftHint": "Wir vermerken es an deiner Bestellung.",
       "showSummary": "Bestellübersicht anzeigen",
       "hideSummary": "Bestellübersicht ausblenden",
       "legal": "Mit deiner Bestellung akzeptierst du unsere {terms}. Informationen zum Widerrufsrecht findest du in der {withdrawal}, zum Datenschutz in der {privacy}.",

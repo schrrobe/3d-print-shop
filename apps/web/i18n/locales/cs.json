@@ -411,16 +411,7 @@
         }
       },
       "boxesTitle": "Všechny ráže",
-      "boxesAll": "Zobrazit vše",
-      "gift": {
-        "title": "Dárek, který sedí.",
-        "text": "Pro sportovní střelce a myslivce, kteří už mají všechno – kromě pořádku v šuplíku s municí.",
-        "tips": {
-          "ask": "Stačí znát ráži – je uvedena na každé krabičce nábojů.",
-          "box": "50, nebo 100 nábojů? I to prozradí původní krabička.",
-          "note": "V pokladně zaškrtni „Je to dárek“ – poznamenáme to k objednávce."
-        }
-      }
+      "boxesAll": "Zobrazit vše"
     },
     "list": {
       "lead": "Jedna krabička pro každou ráži, ve verzi na 50 a 100 nábojů.",
@@ -501,8 +492,6 @@
       "phone": "Telefon",
       "company": "Firma",
       "note": "Poznámka k objednávce",
-      "gift": "Je to dárek",
-      "giftHint": "Poznamenáme to k objednávce.",
       "showSummary": "Zobrazit souhrn objednávky",
       "hideSummary": "Skrýt souhrn objednávky",
       "legal": "Odesláním objednávky přijímáš naše {terms}. Informace o právu na odstoupení najdeš v {withdrawal}, o ochraně údajů v {privacy}.",
