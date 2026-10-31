@@ -16,6 +16,7 @@ const real = {
   iban: 'DE89 3704 0044 0532 0130 00',
   bic: 'COBADEFFXXX',
   invoiceBcc: '',
+  vatExempt: false,
 }
 
 describe('company settings', () => {
@@ -43,6 +44,17 @@ describe('company settings', () => {
     expect(merged.website).toBe('')
     expect(missingCompanyFields(merged)).toEqual([])
     expect(missingCompanyFields({ ...real, website: 'www.example.com' })).toEqual([])
+  })
+
+  it('makes the tax number optional for §19 UStG small businesses', () => {
+    expect(missingCompanyFields({ ...real, taxNumber: '' })).toEqual(['taxNumber'])
+    expect(missingCompanyFields({ ...real, vatExempt: true, taxNumber: '' })).toEqual([])
+    // DB flag beats env, and the env placeholder tax number is dropped.
+    const merged = mergeCompany({ vatExempt: true }, { ...real, taxNumber: '12/345/67890' })
+    expect(merged.vatExempt).toBe(true)
+    expect(merged.taxNumber).toBe('')
+    expect(mergeCompany({ vatExempt: null }, { ...real, vatExempt: true }).vatExempt).toBe(true)
+    expect(mergeCompany({ vatExempt: false }, { ...real, vatExempt: true }).vatExempt).toBe(false)
   })
 
   it('normalizes input: blank clears, IBAN/BIC uppercased and validated', () => {

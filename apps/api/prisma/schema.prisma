@@ -972,6 +972,8 @@ model ShopSettings {
   bankBic            String?
   /// Optional BCC recipient for every invoice email (e.g. bookkeeping inbox).
   invoiceBccEmail    String?
+  /// §19 UStG small business (no VAT, tax number optional). NULL = COMPANY_VAT_EXEMPT env.
+  vatExempt          Boolean?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

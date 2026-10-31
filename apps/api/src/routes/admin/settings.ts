@@ -74,9 +74,12 @@ const companyDto = (row: Partial<ShopSettings> | null) => {
   const effective = company()
   return {
     // Raw DB values (null = not set here, env fallback applies) for the form…
-    settings: Object.fromEntries(
-      Object.entries(COMPANY_COLUMNS).map(([field, column]) => [field, row?.[column] ?? null]),
-    ),
+    settings: {
+      ...Object.fromEntries(
+        Object.entries(COMPANY_COLUMNS).map(([field, column]) => [field, row?.[column] ?? null]),
+      ),
+      vatExempt: row?.vatExempt ?? null,
+    },
     // …and what invoices actually print right now.
     effective,
     missing: missingCompanyFields(effective),
@@ -94,13 +97,16 @@ adminSettingsRouter.get('/company', requirePermission('settings:read'), async (_
 
 adminSettingsRouter.put('/company', requirePermission('settings:write'), async (req, res, next) => {
   try {
-    const input = companySettingsSchema.parse(req.body)
-    const data = Object.fromEntries(
-      Object.entries(input).map(([field, value]) => [
-        COMPANY_COLUMNS[field as CompanyField],
-        value,
-      ]),
-    )
+    const { vatExempt, ...input } = companySettingsSchema.parse(req.body)
+    const data = {
+      ...Object.fromEntries(
+        Object.entries(input).map(([field, value]) => [
+          COMPANY_COLUMNS[field as CompanyField],
+          value,
+        ]),
+      ),
+      ...(vatExempt !== undefined && { vatExempt }),
+    }
     const row = await prisma.shopSettings.upsert({
       where: { id: SINGLETON_ID },
       create: { id: SINGLETON_ID, ...data },
@@ -112,7 +118,10 @@ adminSettingsRouter.put('/company', requirePermission('settings:write'), async (
       req,
       'settings.company.update',
       { type: 'settings', id: SINGLETON_ID },
-      Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v ? 'set' : 'cleared'])),
+      {
+        ...Object.fromEntries(Object.entries(input).map(([k, v]) => [k, v ? 'set' : 'cleared'])),
+        vatExempt,
+      },
     )
     res.json(companyDto(row))
   } catch (err) {
