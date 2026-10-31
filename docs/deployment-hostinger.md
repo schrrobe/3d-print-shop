@@ -37,6 +37,12 @@ User `kaliberbox`), ausgenommen `/api/webhooks/`.
 Beim allerersten prod-Deploy muss die API zuerst released werden (Web wartet auf eine
 gesunde API).
 
+**Prod von Hand deployen:** In GitHub unter **Actions → Release & Deploy → Run workflow**
+den Branch `main` auswählen und den Workflow starten. Er baut die Images für diesen
+Commit und deployt zuerst die API, dann das Web. Die Freigaben der GitHub-Environments
+`production-api` und `production-web` gelten auch für diesen Lauf. Ein anderer Branch
+startet keinen Prod-Deploy.
+
 PR-Titel müssen deshalb Conventional Commits sein (Squash-Merge übernimmt den Titel).
 
 ## Bausteine
