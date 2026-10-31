@@ -449,7 +449,8 @@
         "label": "Nom sur la boîte",
         "hint": "Facultatif, 24 caractères max. Personnalisation + {price} par boîte.",
         "invalid": "Utilisez uniquement des lettres, chiffres, espaces et . - &.",
-        "line": "Personnalisation : {name}"
+        "line": "Personnalisation : {name}",
+        "withdrawal": "Les boîtes personnalisées sont fabriquées selon tes indications et sont donc exclues du droit de rétractation (§ 312g al. 2 n° 1 BGB)."
       },
       "summary": "{caliber} · {capacity} cartouches · boîte {box} · marquage {label}",
       "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",

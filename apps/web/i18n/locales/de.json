@@ -449,7 +449,8 @@
         "label": "Name auf der Box",
         "hint": "Optional, max. 24 Zeichen. Personalisierung + {price} je Box.",
         "invalid": "Bitte nur Buchstaben, Ziffern, Leerzeichen sowie . - & verwenden.",
-        "line": "Personalisierung: {name}"
+        "line": "Personalisierung: {name}",
+        "withdrawal": "Personalisierte Boxen werden nach deinen Vorgaben gefertigt und sind daher vom Widerrufsrecht ausgeschlossen (§ 312g Abs. 2 Nr. 1 BGB)."
       },
       "summary": "{caliber} · {capacity} Schuss · Box {box} · Beschriftung {label}",
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",

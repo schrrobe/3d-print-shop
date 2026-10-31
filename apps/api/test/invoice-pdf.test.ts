@@ -83,10 +83,18 @@ function makeOrder(over: Record<string, unknown> = {}): OrderForInvoice {
   } as unknown as OrderForInvoice
 }
 
-async function renderToBuffer(data: InvoicePdfData, opts: { compress?: boolean } = {}): Promise<Buffer> {
+async function renderToBuffer(
+  data: InvoicePdfData,
+  opts: { compress?: boolean } = {},
+): Promise<Buffer> {
   // compress:false keeps Helvetica text as literal strings in the content
   // stream so tests can grep for rendered labels (e.g. repeated table headers).
-  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true, compress: opts.compress ?? true })
+  const doc = new PDFDocument({
+    size: 'A4',
+    margin: 0,
+    bufferPages: true,
+    compress: opts.compress ?? true,
+  })
   const chunks: Buffer[] = []
   doc.on('data', (c: Buffer) => chunks.push(c))
   const done = new Promise<Buffer>((resolve, reject) => {
@@ -136,7 +144,13 @@ describe('buildEpcQrPayload', () => {
 
   it('formats cent amounts without float artifacts', () => {
     const amount = (cents: number): string =>
-      buildEpcQrPayload({ bic: 'B', name: 'N', iban: 'DE1', amountCents: cents, reference: 'R' }).split('\n')[7]!
+      buildEpcQrPayload({
+        bic: 'B',
+        name: 'N',
+        iban: 'DE1',
+        amountCents: cents,
+        reference: 'R',
+      }).split('\n')[7]!
     expect(amount(1)).toBe('EUR0.01')
     expect(amount(100)).toBe('EUR1.00')
     expect(amount(5490)).toBe('EUR54.90')
@@ -156,7 +170,11 @@ describe('recipientLines', () => {
   }
 
   it('omits the country line for domestic addresses', () => {
-    expect(recipientLines(base, true)).toEqual(['Erika Musterfrau', 'Beispielweg 2', '54321 Hamburg'])
+    expect(recipientLines(base, true)).toEqual([
+      'Erika Musterfrau',
+      'Beispielweg 2',
+      '54321 Hamburg',
+    ])
   })
 
   it('adds a localized uppercase country line for foreign addresses', () => {
@@ -182,7 +200,9 @@ describe('payment state helpers', () => {
   })
 
   it('shouldShowGiroCode only for unpaid bank transfers with known payments', () => {
-    expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, [{ status: 'pending' }])).toBe(true)
+    expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, [{ status: 'pending' }])).toBe(
+      true,
+    )
     expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, [{ status: 'paid' }])).toBe(false)
     expect(shouldShowGiroCode({ paymentMethod: 'bank_transfer' }, undefined)).toBe(false)
     expect(shouldShowGiroCode({ paymentMethod: 'stripe' }, [{ status: 'pending' }])).toBe(false)
@@ -239,6 +259,32 @@ describe('renderInvoicePdf', () => {
     expect(headerCount).toBe(pages)
   })
 
+  it('bills a personalised box as goods plus a separate surcharge row', async () => {
+    const item = {
+      ...makeItems(1)[0]!,
+      name: 'Box 9 mm – Personalisierung: Max',
+      quantity: 2,
+      unitPriceCents: 2850,
+      personalization: 'Max',
+    }
+    const text = extractText(
+      await renderToBuffer(
+        {
+          invoice: makeInvoice({ subtotalCents: 5700, totalCents: 6190 }),
+          order: makeOrder({ items: [item] }),
+          company,
+        },
+        { compress: false },
+      ),
+    )
+    expect(text).toContain('22,50') // goods unit price without surcharge
+    expect(text).toContain('45,00') // goods line total
+    expect(text).toContain('6,00') // surcharge unit price
+    expect(text).toContain('12,00') // surcharge line total
+    expect(text).toContain('57,00') // subtotal unchanged
+    expect(text).not.toContain('28,50')
+  })
+
   it('prints the voucher row only when a discount was applied', async () => {
     const discounted = await renderToBuffer(
       {
@@ -248,7 +294,10 @@ describe('renderInvoicePdf', () => {
       },
       { compress: false },
     )
-    const plain = await renderToBuffer({ invoice: makeInvoice(), order: makeOrder(), company }, { compress: false })
+    const plain = await renderToBuffer(
+      { invoice: makeInvoice(), order: makeOrder(), company },
+      { compress: false },
+    )
     expect(extractText(discounted)).toContain('SOMMER10')
     expect(extractText(plain)).not.toContain('Gutschein')
   })

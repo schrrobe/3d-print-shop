@@ -569,6 +569,8 @@ model OrderItem {
   quantity       Int
   unitPriceCents Int
   colorSelection Json?
+  /// Name printed on the box; unitPriceCents includes PERSONALIZATION_PRICE_CENTS
+  personalization String?
 
   printerJobs    PrinterJob[]
   complaintItems ComplaintItem[]

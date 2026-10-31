@@ -192,6 +192,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       quantity: number
       unitPriceCents: number
       colorSelection: Record<string, string>
+      personalization?: string
     }[] = []
 
     // The free box is a 0 € line so production, shipping and complaints see it like any item.
@@ -225,6 +226,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         quantity: item.quantity,
         unitPriceCents: free ? 0 : personalizedUnitPriceCents(product.priceCents, personalization),
         colorSelection: resolution.resolved ?? {},
+        personalization,
       })
     }
     // Paid items only — the free box itself is 0 € and never counts toward the threshold.

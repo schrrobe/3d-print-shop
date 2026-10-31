@@ -449,7 +449,8 @@
         "label": "Imię na pudełku",
         "hint": "Opcjonalnie, maks. 24 znaki. Personalizacja + {price} za pudełko.",
         "invalid": "Używaj tylko liter, cyfr, spacji oraz . - &.",
-        "line": "Personalizacja: {name}"
+        "line": "Personalizacja: {name}",
+        "withdrawal": "Spersonalizowane pudełka są wykonywane według Twoich wskazań i dlatego są wyłączone z prawa odstąpienia (§ 312g ust. 2 nr 1 BGB)."
       },
       "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",

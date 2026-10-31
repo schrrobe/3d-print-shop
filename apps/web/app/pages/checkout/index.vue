@@ -599,6 +599,15 @@ const summaryOpen = ref(false)
           {{ errorMessage }}
         </p>
 
+        <p
+          v-if="cart.items.some((i) => i.personalization)"
+          class="flex gap-2 text-sm text-warn"
+          data-testid="checkout-personalization-withdrawal"
+        >
+          <ShopIcon name="alert" :size="18" class="mt-0.5" />
+          {{ t('shop.product.personalization.withdrawal') }}
+        </p>
+
         <p class="text-sm text-ink-2" data-testid="checkout-legal">
           <i18n-t keypath="shop.checkout.legal" tag="span" scope="global">
             <template #terms>

@@ -531,9 +531,7 @@ useHead({
           <ShopField
             v-model="personalization"
             :label="t('shop.product.personalization.label')"
-            :hint="
-              t('shop.product.personalization.hint', { price: price(PERSONALIZATION_PRICE_CENTS) })
-            "
+            :hint="`${t('shop.product.personalization.hint', { price: price(PERSONALIZATION_PRICE_CENTS) })} ${t('shop.product.personalization.withdrawal')}`"
             :error="personalizationValid ? undefined : t('shop.product.personalization.invalid')"
             optional
             maxlength="24"
