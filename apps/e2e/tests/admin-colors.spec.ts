@@ -31,6 +31,33 @@ test.describe('admin colors', () => {
     expect(data.colors.some((c) => c.name === 'E2E Magenta')).toBe(true)
   })
 
+  test('edits an existing color', async ({ page }) => {
+    const admin = new AdminPage(page)
+    await admin.login()
+    await gotoHydrated(page, '/admin/colors')
+    await page.getByTestId('new-color').click()
+    const form = page.getByTestId('color-form')
+    await form.locator('input').nth(0).fill('E2E Edit Me')
+    await form.locator('input').nth(1).fill('#123456')
+    await form.locator('input').nth(2).fill('PLA')
+    await form.locator('input').nth(3).fill('E2E Filaments')
+    await page.getByTestId('save-color').click()
+
+    const row = page.locator('tr', { hasText: 'E2E Edit Me' })
+    await row.getByTestId('edit-color').click()
+    await expect(form.locator('input').nth(0)).toHaveValue('E2E Edit Me')
+    await form.locator('input').nth(0).fill('E2E Edited')
+    await form.locator('input').nth(1).fill('#abcdef')
+    await page.getByTestId('save-color').click()
+
+    const edited = page.locator('tr', { hasText: 'E2E Edited' })
+    await expect(edited).toBeVisible()
+    await expect(edited.getByText('aktiv', { exact: true })).toBeVisible()
+    const response = await page.request.get('http://localhost:3001/api/colors')
+    const data = (await response.json()) as { colors: { name: string; hex: string }[] }
+    expect(data.colors.find((c) => c.name === 'E2E Edited')?.hex).toBe('#abcdef')
+  })
+
   test('deactivating a color hides it from the shop', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()
