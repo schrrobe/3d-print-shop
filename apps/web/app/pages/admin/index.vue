@@ -10,9 +10,18 @@ interface Dashboard {
   ordersByStatus: Record<string, number>
   revenueCents: number
   openQuoteRequests: number
+  openTickets: number
   printers: { id: string; name: string; status: PrinterStatus }[]
   productionWaiting: number
   buyerLocations: { lat: number; lon: number; count: number }[]
+  paymentMethods: { method: string; count: number; amountCents: number }[]
+}
+
+const PAYMENT_LABELS: Record<string, string> = {
+  stripe: 'Karte / Stripe',
+  stripe_payment_link: 'Stripe-Zahlungslink',
+  bank_transfer: 'Vorkasse (Überweisung)',
+  bitcoin: 'Bitcoin',
 }
 
 const { data } = await useFetch<Dashboard>('/api/admin/dashboard', {
@@ -28,8 +37,10 @@ const WIDGETS = {
   revenue: { title: 'Umsatz (bezahlt)', rows: 1, class: 'row-span-1' },
   quoteRequests: { title: 'Offene Upload-Anfragen', rows: 1, class: 'row-span-1' },
   productionWaiting: { title: 'Produktionsqueue (wartet)', rows: 1, class: 'row-span-1' },
+  openTickets: { title: 'Offene Support-Tickets', rows: 1, class: 'row-span-1' },
   ordersByStatus: { title: 'Bestellungen', rows: 2, class: 'row-span-2' },
   buyerMap: { title: 'Käufer-Heatmap', rows: 3, class: 'row-span-3 md:col-span-2' },
+  paymentMethods: { title: 'Zahlungsmethoden', rows: 2, class: 'row-span-2' },
   printers: { title: 'Drucker', rows: 2, class: 'row-span-2 md:col-span-4' },
 } as const
 type WidgetId = keyof typeof WIDGETS
@@ -79,6 +90,8 @@ function onDrop(target: WidgetId) {
   if (dragged.value) swap(dragged.value, target)
   dragged.value = null
 }
+
+const paymentTotal = computed(() => data.value?.paymentMethods.reduce((sum, p) => sum + p.count, 0) ?? 0)
 
 const buyerCount = computed(() => data.value?.buyerLocations.reduce((sum, p) => sum + p.count, 0) ?? 0)
 const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) * GAP_PX - 110
@@ -142,12 +155,35 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
             {{ formatCents(data.revenueCents) }}
           </p>
           <p v-else-if="id === 'quoteRequests'" class="text-heading-small">{{ data.openQuoteRequests }}</p>
+          <NuxtLink
+            v-else-if="id === 'openTickets'"
+            to="/admin/tickets"
+            class="text-heading-small hover:underline"
+            data-testid="dashboard-open-tickets"
+          >
+            {{ data.openTickets }}
+          </NuxtLink>
           <p v-else-if="id === 'productionWaiting'" class="text-heading-small">{{ data.productionWaiting }}</p>
           <ul v-else-if="id === 'ordersByStatus'" class="text-body-regular">
             <li v-for="(count, status) in data.ordersByStatus" :key="status" class="flex justify-between">
               <span class="text-secondary">{{ status }}</span><span>{{ count }}</span>
             </li>
           </ul>
+          <template v-else-if="id === 'paymentMethods'">
+            <p v-if="!paymentTotal" class="text-caption text-secondary">Noch keine bezahlten Zahlungen.</p>
+            <ul v-else class="flex flex-col gap-sm text-body-regular" data-testid="dashboard-payment-methods">
+              <li v-for="p in data.paymentMethods" :key="p.method">
+                <div class="flex justify-between gap-xs">
+                  <span>{{ PAYMENT_LABELS[p.method] ?? p.method }}</span>
+                  <span>{{ p.count }} · {{ Math.round((p.count / paymentTotal) * 100) }} %</span>
+                </div>
+                <div class="h-1 rounded-full bg-black/10 dark:bg-white/10" aria-hidden="true">
+                  <div class="h-full rounded-full bg-current text-brand" :style="{ width: `${(p.count / paymentTotal) * 100}%` }" />
+                </div>
+                <p class="text-caption text-secondary">{{ formatCents(p.amountCents) }}</p>
+              </li>
+            </ul>
+          </template>
           <template v-else-if="id === 'buyerMap'">
             <p v-if="!data.buyerLocations.length" class="text-caption text-secondary">Noch keine Bestellungen mit bekannter PLZ.</p>
             <template v-else>
