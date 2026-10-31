@@ -308,6 +308,9 @@ const summaryOpen = ref(false)
               <span v-if="item.personalization" class="block text-sm text-ink-2">{{
                 t('shop.product.personalization.line', { name: item.personalization })
               }}</span>
+              <span v-if="item.labelText" class="block text-sm text-ink-2">{{
+                t('shop.product.labelText.line', { text: item.labelText })
+              }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>
           </li>
@@ -570,6 +573,9 @@ const summaryOpen = ref(false)
               }}</span>
               <span v-if="item.personalization" class="block text-sm text-ink-2">{{
                 t('shop.product.personalization.line', { name: item.personalization })
+              }}</span>
+              <span v-if="item.labelText" class="block text-sm text-ink-2">{{
+                t('shop.product.labelText.line', { text: item.labelText })
               }}</span>
             </span>
             <span class="kb-num">{{ money(item.unitPriceCents * item.quantity) }}</span>

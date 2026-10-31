@@ -6,7 +6,7 @@ import {
   personalizedUnitPriceCents,
 } from '@print-shop/utils'
 import type { ColorSelection, Locale } from '@print-shop/types'
-import { PERSONALIZATION_PATTERN } from '@print-shop/validators'
+import { LABEL_TEXT_MAX_LENGTH, PERSONALIZATION_PATTERN } from '@print-shop/validators'
 import type { CartLine } from '~/stores/cart'
 import type { ApiProduct } from '~/composables/useShop'
 import type { PublicReview } from '~/composables/useReviews'
@@ -89,6 +89,19 @@ const editKey = computed(() => (route.query.edit ? String(route.query.edit) : ''
 const quantity = ref(1)
 const personalization = ref('')
 const personalizationValid = computed(() => PERSONALIZATION_PATTERN.test(personalization.value))
+const labelText = ref('')
+const labelTextValid = computed(() => PERSONALIZATION_PATTERN.test(labelText.value))
+// Lid and latch lettering: the customer's text, else the caliber, else a generic word
+const defaultLabelText = computed(() => caliber.value?.name ?? t('shop.product.labelText.default'))
+const drawingLabel = computed(() => labelText.value.trim() || defaultLabelText.value)
+// The colour zone that tints the drawing's lettering is shown as "Schriftfarbe"
+const pickerZones = computed(() => {
+  const textSlot = boxZones(product.value).label?.slot
+  return product.value.colorSlots.map((s) => ({
+    slot: s.slot,
+    label: s.slot === textSlot ? t('shop.product.textColor') : s.label,
+  }))
+})
 const unitPriceCents = computed(() =>
   personalizedUnitPriceCents(product.value.priceCents, personalization.value.trim()),
 )
@@ -122,6 +135,7 @@ onMounted(() => {
       selection.value = { ...selection.value, ...line.colorSelection }
       quantity.value = line.quantity
       personalization.value = line.personalization ?? ''
+      labelText.value = line.labelText ?? ''
     }
   } else if (route.query.config) {
     applyConfigToken(String(route.query.config))
@@ -149,11 +163,12 @@ function buildLine(lineQuantity: number): Omit<CartLine, 'key'> {
     colorNames: selectedColorNames.value,
     imageUrl: productImage(product.value, 320),
     personalization: personalization.value.trim() || undefined,
+    labelText: labelText.value.trim() || undefined,
   }
 }
 
 function addToCart() {
-  if (!personalizationValid.value) {
+  if (!personalizationValid.value || !labelTextValid.value) {
     toast.show(t('shop.product.personalization.invalid'), { variant: 'error' })
     return
   }
@@ -365,7 +380,7 @@ useHead({
               :capacity="product.capacity"
               :box-hex="drawingColors.box"
               :label-hex="drawingColors.label"
-              :caliber-label="caliberName"
+              :caliber-label="drawingLabel"
               :rifle="caliber?.group === 'RIFLE'"
               :description="drawingDescription"
             />
@@ -481,11 +496,19 @@ useHead({
             </div>
           </div>
 
-          <ShopColorPicker
-            v-model="selection"
-            class="mt-6"
-            :zones="product.colorSlots.map((s) => ({ slot: s.slot, label: s.label }))"
-            :colors="colors"
+          <ShopColorPicker v-model="selection" class="mt-6" :zones="pickerZones" :colors="colors" />
+
+          <ShopField
+            v-model="labelText"
+            class="mt-7"
+            :label="t('shop.product.labelText.label')"
+            :hint="t('shop.product.labelText.hint', { max: LABEL_TEXT_MAX_LENGTH })"
+            :error="labelTextValid ? undefined : t('shop.product.personalization.invalid')"
+            :placeholder="defaultLabelText"
+            optional
+            :maxlength="LABEL_TEXT_MAX_LENGTH"
+            autocomplete="off"
+            data-testid="label-text"
           />
 
           <div

@@ -276,6 +276,56 @@ describe('POST /api/checkout', () => {
       )
     })
 
+    it('puts custom lettering and personalisation into the order item name', async () => {
+      mockedProductFindMany.mockResolvedValue([product(paidId, 4700, 100)] as never)
+      let itemsCreated: unknown
+      vi.mocked(prisma.$transaction).mockImplementationOnce(((
+        fn: (tx: unknown) => Promise<unknown>,
+      ) =>
+        fn({
+          order: {
+            create: vi.fn((args: { data: { items: { create: unknown } } }) => {
+              itemsCreated = args.data.items.create
+              throw new Error('stop after snapshot')
+            }),
+          },
+        })) as never)
+
+      await postJson(
+        '/api/checkout',
+        {
+          items: [
+            {
+              productId: paidId,
+              quantity: 1,
+              colorSelection: {},
+              labelText: 'JAGD',
+              personalization: 'Max',
+            },
+          ],
+          address: {
+            firstName: 'Max',
+            lastName: 'Mustermann',
+            street: 'Musterstraße 1',
+            zip: '1010',
+            city: 'Wien',
+            country: 'AT',
+            email: 'max@example.com',
+          },
+          paymentMethod: 'bank_transfer',
+        },
+        { 'idempotency-key': 'test-checkout-lettering-key-1' },
+      )
+
+      expect(itemsCreated).toEqual([
+        expect.objectContaining({
+          name: 'Box – Schriftzug: JAGD – Personalisierung: Max',
+          // Lettering is free; only the personalisation adds 6 €
+          unitPriceCents: 5300,
+        }),
+      ])
+    })
+
     it('rejects personalisation with disallowed characters', async () => {
       const res = await postJson(
         '/api/checkout',

@@ -101,6 +101,22 @@ describe('checkoutSchema', () => {
     expect(parse('<script>').success).toBe(false)
     expect(parse('x'.repeat(25)).success).toBe(false)
   })
+
+  it('trims lettering, drops empty ones and rejects odd characters or long text', () => {
+    const parse = (labelText: string) =>
+      checkoutSchema.safeParse({
+        items: [{ ...item, labelText }],
+        address: validAddress,
+        paymentMethod: 'stripe',
+      })
+    const ok = parse('  .45 ACP  ')
+    expect(ok.success && ok.data.items[0]?.labelText).toBe('.45 ACP')
+    const blank = parse('   ')
+    expect(blank.success && blank.data.items[0]?.labelText).toBeUndefined()
+    expect(parse('<b>').success).toBe(false)
+    expect(parse('x'.repeat(16)).success).toBe(true)
+    expect(parse('x'.repeat(17)).success).toBe(false)
+  })
 })
 
 describe('checkoutIdempotencyKeySchema', () => {

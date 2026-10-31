@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calcCartTotals,
   calcSubtotalCents,
+  labeledItemName,
   personalizedItemName,
   personalizedUnitPriceCents,
 } from '../src/pricing.js'
@@ -60,5 +61,14 @@ describe('pricing', () => {
     expect(personalizedItemName('Box 9 mm', 'Max', 'de')).toBe('Box 9 mm – Personalisierung: Max')
     expect(personalizedItemName('Box 9 mm', 'Max', 'en')).toBe('Box 9 mm – Personalisation: Max')
     expect(personalizedItemName('Box 9 mm', undefined, 'de')).toBe('Box 9 mm')
+  })
+
+  it('puts custom lettering into the item name snapshot', () => {
+    expect(labeledItemName('Box 9 mm', '.45 ACP', 'de')).toBe('Box 9 mm – Schriftzug: .45 ACP')
+    expect(labeledItemName('Box 9 mm', '.45 ACP', 'en')).toBe('Box 9 mm – Lettering: .45 ACP')
+    expect(labeledItemName('Box 9 mm', undefined, 'de')).toBe('Box 9 mm')
+    expect(personalizedItemName(labeledItemName('Box 9 mm', 'JAGD', 'de'), 'Max', 'de')).toBe(
+      'Box 9 mm – Schriftzug: JAGD – Personalisierung: Max',
+    )
   })
 })

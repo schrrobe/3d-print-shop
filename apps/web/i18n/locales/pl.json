@@ -452,6 +452,13 @@
         "line": "Personalizacja: {name}",
         "withdrawal": "Spersonalizowane pudełka są wykonywane według Twoich wskazań i dlatego są wyłączone z prawa odstąpienia (§ 312g ust. 2 nr 1 BGB)."
       },
+      "labelText": {
+        "label": "Napis",
+        "hint": "Na pokrywie i zatrzaskach, maks. {max} znaków. Bez wpisu pojawi się kaliber.",
+        "default": "Kaliber",
+        "line": "Napis: {text}"
+      },
+      "textColor": "Kolor napisu",
       "summary": "{caliber} · {capacity} naboi · pudełko {box} · napis {label}",
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
       "drawingCaption": "Schemat, nie w skali",
