@@ -1,3 +1,4 @@
+import type { Request } from 'express'
 import rateLimit from 'express-rate-limit'
 import { isProduction } from '../env.js'
 
@@ -46,6 +47,39 @@ export const adminMutationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: isProduction ? 1500 : 5000,
   skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS',
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'rate_limited', message: 'Too many requests, try again later' },
+})
+
+/**
+ * Requests without X-Forwarded-For did not pass nginx (the API port is bound to
+ * 127.0.0.1) — they are Nuxt SSR fetches from the web container and would all
+ * share one key.
+ */
+const isInternal = (req: Request) => !req.get('x-forwarded-for')
+
+/**
+ * Baseline for every public route (catalog, files, token-gated reads); stricter
+ * limiters stack on top. Generous — image-heavy pages need headroom — so it only
+ * caps floods and scrapers. Admin has auth and its own mutation limiter.
+ */
+export const publicLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: isProduction ? 600 : 100_000,
+  skip: (req) => isInternal(req) || req.originalUrl.startsWith('/api/admin'),
+  identifier: 'public',
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'rate_limited', message: 'Too many requests, try again later' },
+})
+
+/** Limiter for product image resizes (`?w=`): every one re-runs sharp, uncached. */
+export const imageResizeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: isProduction ? 300 : 100_000,
+  skip: (req) => isInternal(req) || req.query.w === undefined,
+  identifier: 'image-resize',
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { error: 'rate_limited', message: 'Too many requests, try again later' },
