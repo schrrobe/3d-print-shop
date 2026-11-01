@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.3.0...utils-v0.4.0) (2026-11-01)
+
+
+### Features
+
+* **i18n:** Italienisch als Shop-Sprache ([#84](https://github.com/schrrobe/3d-print-shop/issues/84)) ([673fd5c](https://github.com/schrrobe/3d-print-shop/commit/673fd5c0afd6e1fc05f0b925ca5bd444c3434d0e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.1.0
+
 ## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.2.0...utils-v0.3.0) (2026-11-01)
 
 
