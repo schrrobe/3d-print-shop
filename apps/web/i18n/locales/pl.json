@@ -551,7 +551,9 @@
       "title": "Otworzyliśmy sklep!",
       "text": "Z okazji otwarcia sklepu pierwsze {count} zamówień otrzymuje {percent}% rabatu. Wystarczy wpisać ten kod przy kasie:",
       "codeLabel": "Kod rabatowy",
-      "cta": "Do zakupów"
+      "cta": "Do zakupów",
+      "copy": "Kopiuj kod",
+      "copied": "Skopiowano!"
     }
   },
   "withdraw": {

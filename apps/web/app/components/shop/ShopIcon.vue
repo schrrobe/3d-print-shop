@@ -25,6 +25,7 @@ const props = defineProps<{
     | 'search'
     | 'gift'
     | 'lock'
+    | 'copy'
   size?: number
   label?: string
 }>()
@@ -62,6 +63,10 @@ const paths: Record<string, string[]> = {
     'M12 8C10 4 6.5 4 6.5 6.2S9.5 8 12 8c2.5 0 5.5 0 5.5-1.8S14 4 12 8Z',
   ],
   lock: ['M5 11h14v10H5z', 'M8 11V7a4 4 0 0 1 8 0v4'],
+  copy: [
+    'M10 9h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1Z',
+    'M15 9V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h5',
+  ],
 }
 </script>
 

@@ -551,7 +551,9 @@
       "title": "Otevřeli jsme!",
       "text": "K otevření obchodu dostane prvních {count} objednávek slevu {percent} %. Stačí při placení zadat tento kód:",
       "codeLabel": "Slevový kód",
-      "cta": "Začít nakupovat"
+      "cta": "Začít nakupovat",
+      "copy": "Kopírovat kód",
+      "copied": "Zkopírováno!"
     }
   },
   "withdraw": {
