@@ -79,6 +79,10 @@ export default defineNuxtConfig({
       '/api/**': { proxy: `${process.env.API_PROXY_TARGET ?? 'http://localhost:3001/api'}/**` },
       // Sales-channel links: the API counts the click, sets the ref cookie, redirects
       '/r/**': { redirect: { to: '/api/r/**', statusCode: 302 } },
+      // Admin is gated client-side (session checked against /me): the server
+      // never knows the user, so SSR would only render an empty shell that
+      // mismatches on hydration. Render the admin as an SPA instead.
+      '/admin/**': { ssr: false },
     },
   },
 

@@ -61,6 +61,10 @@ const pageTitle = computed(() => {
   return active?.label ?? 'Admin'
 })
 
+// Below md the sidebar is an off-canvas drawer, toggled from the header.
+const navOpen = ref(false)
+watch(() => route.fullPath, () => (navOpen.value = false))
+
 async function logout() {
   await auth.logout()
   await router.push('/admin/login')
@@ -68,19 +72,44 @@ async function logout() {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-surface text-primary">
-    <PsAdminSidebar :items="navItems" title="Print Shop Admin" class="w-64 shrink-0 border-r border-subtle">
-      <template #footer>
-        <PsButton variant="ghost" size="sm" data-testid="admin-logout" @click="logout">Abmelden</PsButton>
-      </template>
-    </PsAdminSidebar>
+  <div class="flex min-h-screen bg-surface text-primary" @keydown.escape="navOpen = false">
+    <div
+      v-if="navOpen"
+      class="fixed inset-0 z-30 bg-black/40 md:hidden"
+      aria-hidden="true"
+      @click="navOpen = false"
+    />
+    <div
+      id="admin-nav"
+      class="fixed inset-y-0 left-0 z-40 shrink-0 overflow-y-auto transition-transform md:static md:translate-x-0 md:overflow-visible"
+      :class="navOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+      <PsAdminSidebar :items="navItems" title="Print Shop Admin" class="min-h-full border-r border-subtle">
+        <template #footer>
+          <PsButton variant="ghost" size="sm" data-testid="admin-logout" @click="logout">Abmelden</PsButton>
+        </template>
+      </PsAdminSidebar>
+    </div>
     <div class="flex min-w-0 flex-1 flex-col">
       <PsAdminHeader
         :title="pageTitle"
         :user-name="auth.user?.name"
         :role-label="auth.user ? roleLabels[auth.user.role] : undefined"
         class="border-b border-subtle px-lg py-md"
-      />
+      >
+        <template #actions>
+          <button
+            type="button"
+            class="rounded-card border border-subtle px-md py-xs text-body-regular md:hidden"
+            aria-controls="admin-nav"
+            :aria-expanded="navOpen"
+            data-testid="admin-nav-toggle"
+            @click="navOpen = !navOpen"
+          >
+            Menü
+          </button>
+        </template>
+      </PsAdminHeader>
       <main class="flex-1 p-lg">
         <slot />
       </main>
