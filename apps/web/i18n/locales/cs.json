@@ -546,6 +546,12 @@
       "legal": "Právní informace",
       "legalNav": "Právní informace",
       "vat": "Drobný podnikatel podle § 19 UStG"
+    },
+    "promo": {
+      "title": "Otevřeli jsme!",
+      "text": "K otevření obchodu dostane prvních {count} objednávek slevu {percent} %. Stačí při placení zadat tento kód:",
+      "codeLabel": "Slevový kód",
+      "cta": "Začít nakupovat"
     }
   },
   "withdraw": {

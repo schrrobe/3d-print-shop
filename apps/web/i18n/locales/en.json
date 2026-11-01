@@ -546,6 +546,12 @@
       "legal": "Legal",
       "legalNav": "Legal",
       "vat": "Small business under § 19 UStG"
+    },
+    "promo": {
+      "title": "We're open!",
+      "text": "To celebrate our shop opening, the first {count} orders get {percent}% off. Just enter this code at checkout:",
+      "codeLabel": "Discount code",
+      "cta": "Start shopping"
     }
   },
   "withdraw": {
