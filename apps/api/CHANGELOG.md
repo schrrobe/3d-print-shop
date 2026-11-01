@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.8.0...api-v0.9.0) (2026-11-01)
+
+
+### Features
+
+* **checkout:** keine Admin-Mail mehr bei jeder neuen Bestellung ([#81](https://github.com/schrrobe/3d-print-shop/issues/81)) ([e08cffb](https://github.com/schrrobe/3d-print-shop/commit/e08cffba72dd0bb3f9e2dbe5f59ee9f6e781dbf7))
+
 ## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.7.0...api-v0.8.0) (2026-11-01)
 
 
