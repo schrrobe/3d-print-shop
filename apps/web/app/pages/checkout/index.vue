@@ -596,6 +596,10 @@ const summaryOpen = ref(false)
           {{ t('shop.product.personalization.withdrawal') }}
         </p>
 
+        <p class="text-sm text-ink-2" data-testid="checkout-delivery-time">
+          {{ t('shop.product.deliveryTime') }}
+        </p>
+
         <p class="text-sm text-ink-2" data-testid="checkout-legal">
           <i18n-t keypath="shop.checkout.legal" tag="span" scope="global">
             <template #terms>

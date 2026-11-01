@@ -18,7 +18,7 @@
     "added": "Ajouté au panier",
     "manufacturingNotice": {
       "title": "Remarque sur la fabrication",
-      "production": "Chaque boîte est imprimée en 3D. De légères lignes de couche ou de petites irrégularités de surface peuvent apparaître. C'est normal avec ce procédé et ce n'est pas un défaut. La fonction, la stabilité et la durabilité n'en sont pas affectées."
+      "production": "Chaque boîte est imprimée en 3D. De fines lignes de couche et de légères structures de surface sont visibles, ce qui est habituel avec ce procédé. La fonction, la stabilité et la durabilité n'en sont pas affectées."
     },
     "viewer": {
       "hint": "Glisser pour tourner · Molette pour zoomer"
@@ -156,7 +156,8 @@
     "privacyTitle": "Politique de confidentialité",
     "termsTitle": "Conditions générales de vente",
     "withdrawalTitle": "Droit de rétractation",
-    "placeholder": "Placeholder : compléter les contenus juridiques avant la mise en ligne."
+    "placeholder": "Placeholder : compléter les contenus juridiques avant la mise en ligne.",
+    "translationNote": "Cette traduction est fournie à titre informatif uniquement. Seule la version allemande fait foi."
   },
   "common": {
     "loading": "Chargement …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Boîtes à cartouches pour votre calibre, à vos couleurs · kaliberbox.de",
-      "description": "Boîtes à cartouches ajustées pour 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win et 7,62×39. Pour 50 ou 100 cartouches, avec les couleurs de boîte et de marquage que vous choisissez. Livraison offerte dès 150 €."
+      "description": "Boîtes à cartouches ajustées pour 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win et 7,62×39. Pour 50 ou 100 cartouches, avec les couleurs de boîte et de marquage que vous choisissez. Livraison offerte en Allemagne dès 80 €."
     },
     "products": {
       "description": "Boîtes à cartouches par calibre, pour 50 ou 100 cartouches. Vous choisissez les couleurs, nous imprimons après votre commande."
     },
     "cart": {
       "title": "Panier",
-      "description": "Votre panier au 3D Print Shop. Livraison 6,99 €, offerte dès 150 €."
+      "description": "Votre panier au 3D Print Shop. Livraison en Allemagne 6,99 €, offerte dès 80 €."
     },
     "support": {
       "title": "Support",
@@ -231,6 +232,9 @@
       "notFoundText": "Cette page n'existe pas ou a été supprimée.",
       "generic": "Une erreur est survenue",
       "back": "Retour à l'accueil"
+    },
+    "withdraw": {
+      "description": "Se rétracter en ligne d’un contrat d’achat : indiquez nom, e-mail et numéro de commande, confirmez la rétractation et recevez un accusé de réception par e-mail."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Ouvrir une réclamation",
       "missingContext": "Aucune référence de commande valide. Veuillez ouvrir la réclamation depuis votre espace client.",
       "goToPortal": "Aller à mon espace",
-      "customMadeNote": "Remarque : les articles personnalisés fabriqués sur commande sont exclus du droit de rétractation. Vous pouvez toutefois faire une réclamation pour un défaut ou demander un geste commercial.",
+      "customMadeNote": "Remarque : les boîtes personnalisées avec un nom et les impressions réalisées à partir de vos fichiers sont exclues du droit de rétractation. Vos droits légaux en cas de défaut s’appliquent néanmoins.",
       "selectItems": "Articles concernés",
       "quantity": "Quantité",
       "reason": "Motif",
@@ -360,7 +364,8 @@
     "empty": "Aucun avis pour le moment.",
     "count": "Aucun avis | {count} avis | {count} avis",
     "ratingLabel": "{rating} sur 5 étoiles",
-    "photoAlt": "Photo d'avis de {name}"
+    "photoAlt": "Photo d'avis de {name}",
+    "verification": "Seules les personnes ayant acheté le produit chez nous peuvent laisser un avis. Nous vérifions chaque avis avant sa publication."
   },
   "shop": {
     "a11y": {
@@ -454,7 +459,9 @@
       "drawingAlt": "Schéma de la boîte à cartouches {caliber} pour {capacity} cartouches en {box} avec marquage en {label}",
       "drawingCaption": "Schéma, pas à l’échelle",
       "contentsTitle": "Contenu",
-      "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre."
+      "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre.",
+      "deliveryTime": "Délai de livraison : 3 à 8 jours ouvrés en Allemagne, 7 à 14 jours ouvrés vers les autres pays, à compter de la réception du paiement.",
+      "manufacturerTitle": "Fabricant"
     },
     "configurator": {
       "noColor": "Aucune couleur choisie"
@@ -537,5 +544,27 @@
       "legalNav": "Mentions légales",
       "vat": "Petite entreprise selon le § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Se rétracter du contrat",
+    "title": "Se rétracter du contrat",
+    "intro": "Vous pouvez ici vous rétracter en ligne de votre contrat d’achat pendant le délai de rétractation. Après l’envoi, vous recevez immédiatement un accusé de réception par e-mail.",
+    "name": "Prénom et nom",
+    "email": "Adresse e-mail pour l’accusé de réception",
+    "orderNumber": "Numéro de commande",
+    "orderNumberHint": "Figure dans votre confirmation de commande, p. ex. PS-2026-…",
+    "items": "Pour quels articles vous rétractez-vous ? (facultatif)",
+    "itemsHint": "Laissez vide pour vous rétracter de toute la commande.",
+    "message": "Message (facultatif)",
+    "next": "Continuer vers la vérification",
+    "reviewTitle": "Vérifiez vos informations",
+    "declaration": "Par la présente, je me rétracte du contrat que j’ai conclu pour la commande {orderNumber}.",
+    "wholeOrder": "commande entière",
+    "edit": "Modifier les informations",
+    "confirm": "Confirmer la rétractation",
+    "successTitle": "Votre rétractation a bien été reçue",
+    "successText": "Réception : {date}. Nous avons envoyé l’accusé de réception à {email}. Numéro de dossier : {ticketNumber}.",
+    "error": "La rétractation n’a pas pu être transmise. Veuillez réessayer ou nous écrire à {email}.",
+    "legalLink": "Voir les informations sur la rétractation"
   }
 }

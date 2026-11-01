@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { PsSection } from '@print-shop/ui'
-import type { LegalDocumentTranslation } from '../content/legal-translations'
+import type { LegalDocumentTranslation } from '@print-shop/utils'
 
 defineProps<{ title: string; document: LegalDocumentTranslation }>()
 const localePath = useLocalePath()
+const { t, locale } = useI18n()
 </script>
 
 <template>
   <PsSection :title="title" heading-level="h1">
     <div class="max-w-[42rem] space-y-xl text-body-regular text-secondary">
       <p>{{ document.updatedAt }}</p>
+      <p v-if="locale !== 'de'" class="text-caption">{{ t('legal.translationNote') }}</p>
       <section v-for="section in document.sections" :key="section.heading">
         <h2 class="text-heading-small text-primary">{{ section.heading }}</h2>
         <p
@@ -31,6 +33,7 @@ const localePath = useLocalePath()
           {{ section.form.join('\n\n') }}
         </div>
       </section>
+      <slot />
     </div>
   </PsSection>
 </template>

@@ -41,6 +41,7 @@ const SENSITIVE_TRACKING_PREFIXES = [
   '/quote/',
   '/support/ticket/',
   '/complaint/',
+  '/withdraw',
 ] as const
 
 /** Token-bearing customer pages must never be sent to third-party analytics providers. */

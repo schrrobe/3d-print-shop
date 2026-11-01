@@ -7,7 +7,7 @@ import {
   renderShippingConfirmation,
   type OrderEmailData,
 } from '@print-shop/emails'
-import { assertOrderTransition } from '@print-shop/utils'
+import { assertOrderTransition, WITHDRAW_PATH } from '@print-shop/utils'
 import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -216,6 +216,12 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
   await sendEmail(
     order.email,
     'order_confirmation',
-    renderOrderConfirmation(orderEmailData(order), order.locale),
+    renderOrderConfirmation(
+      {
+        ...orderEmailData(order),
+        legal: { ...company(), withdrawUrl: `${env.WEB_URL}${WITHDRAW_PATH}` },
+      },
+      order.locale,
+    ),
   )
 }

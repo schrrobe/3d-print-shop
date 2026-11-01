@@ -18,7 +18,7 @@
     "added": "Added to cart",
     "manufacturingNotice": {
       "title": "Manufacturing note",
-      "production": "Every box is 3D printed, so you may see faint layer lines or small surface irregularities. That is normal for the process and not a defect. It does not affect function, stability or durability."
+      "production": "Every box is 3D printed, so fine layer lines and slight surface textures are visible. That is usual for the process. It does not affect function, stability or durability."
     },
     "viewer": {
       "hint": "Drag to rotate · Scroll to zoom"
@@ -72,7 +72,7 @@
     "payStripe": "Card / Stripe",
     "payBank": "Prepayment (bank transfer)",
     "payBitcoin": "Bitcoin",
-    "submit": "Place binding order",
+    "submit": "Order with obligation to pay",
     "summary": "Order summary",
     "guestHint": "You can order as a guest without creating an account."
   },
@@ -156,7 +156,8 @@
     "privacyTitle": "Privacy policy",
     "termsTitle": "Terms and conditions",
     "withdrawalTitle": "Cancellation policy",
-    "placeholder": "Placeholder: add legal content before going live."
+    "placeholder": "Placeholder: add legal content before going live.",
+    "translationNote": "This translation is for information only. The German version is binding."
   },
   "common": {
     "loading": "Loading …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Cartridge boxes for your caliber, in your colours · kaliberbox.de",
-      "description": "Snug-fitting cartridge boxes for 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win and 7.62×39. Choose 50 or 100 rounds and pick the box and label colours yourself. Free shipping from €150."
+      "description": "Snug-fitting cartridge boxes for 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win and 7.62×39. Choose 50 or 100 rounds and pick the box and label colours yourself. Free shipping within Germany from €80."
     },
     "products": {
       "description": "Cartridge boxes by caliber, for 50 or 100 rounds. You choose the colours and we print the box after you order."
     },
     "cart": {
       "title": "Cart",
-      "description": "Your cart at the 3D Print Shop. Shipping is €6.99, or free from €150."
+      "description": "Your cart at the 3D Print Shop. Shipping within Germany is €6.99, or free from €80."
     },
     "support": {
       "title": "Support",
@@ -231,6 +232,9 @@
       "notFoundText": "This page does not exist or has been removed.",
       "generic": "Something went wrong",
       "back": "Back to home"
+    },
+    "withdraw": {
+      "description": "Withdraw from your purchase contract online: enter your name, email and order number, confirm the withdrawal and receive an acknowledgement of receipt by email."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Open a complaint",
       "missingContext": "No valid order reference. Please open the complaint from your account area.",
       "goToPortal": "Go to my account",
-      "customMadeNote": "Note: personalised made-to-order items are excluded from the right of withdrawal. Complaints about defects and goodwill requests are still possible.",
+      "customMadeNote": "Note: boxes personalised with a name and prints made from your own files are excluded from the right of withdrawal. Your statutory warranty rights still apply.",
       "selectItems": "Affected items",
       "quantity": "Quantity",
       "reason": "Reason",
@@ -360,7 +364,8 @@
     "empty": "No reviews yet.",
     "count": "No reviews | {count} review | {count} reviews",
     "ratingLabel": "{rating} out of 5 stars",
-    "photoAlt": "Review photo by {name}"
+    "photoAlt": "Review photo by {name}",
+    "verification": "Only customers who bought the product from us can leave a review. We check every review before it is published."
   },
   "shop": {
     "a11y": {
@@ -435,7 +440,7 @@
       "sizesShort": "{sizes} rounds",
       "rounds": "{count} rounds",
       "sizeLegend": "Size",
-      "priceNote": "Final price, plus shipping",
+      "priceNote": "Final price, plus shipping costs",
       "personalization": {
         "label": "Name on the box",
         "hint": "Optional, max. 24 characters. Personalisation + {price} per box.",
@@ -454,7 +459,9 @@
       "drawingAlt": "Schematic drawing of the {caliber} cartridge box for {capacity} rounds in {box} with label in {label}",
       "drawingCaption": "Schematic, not to scale",
       "contentsTitle": "What's included",
-      "contentsText": "One empty cartridge box. Ammunition is not part of the offer."
+      "contentsText": "One empty cartridge box. Ammunition is not part of the offer.",
+      "deliveryTime": "Delivery time: 3–8 business days in Germany, 7–14 business days to other countries, from receipt of payment.",
+      "manufacturerTitle": "Manufacturer"
     },
     "configurator": {
       "noColor": "No colour selected"
@@ -537,5 +544,27 @@
       "legalNav": "Legal",
       "vat": "Small business under § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Withdraw from contract",
+    "title": "Withdraw from contract",
+    "intro": "Here you can withdraw from your purchase contract online within the withdrawal period. After submitting, you will immediately receive an acknowledgement of receipt by email.",
+    "name": "First and last name",
+    "email": "Email address for the acknowledgement of receipt",
+    "orderNumber": "Order number",
+    "orderNumberHint": "Shown in your order confirmation, e.g. PS-2026-…",
+    "items": "Which items does your withdrawal cover? (optional)",
+    "itemsHint": "Leave empty to withdraw from the entire order.",
+    "message": "Message (optional)",
+    "next": "Continue to review",
+    "reviewTitle": "Check your details",
+    "declaration": "I hereby withdraw from the contract concluded by me for order {orderNumber}.",
+    "wholeOrder": "entire order",
+    "edit": "Edit details",
+    "confirm": "Confirm withdrawal",
+    "successTitle": "Your withdrawal has been received",
+    "successText": "Received: {date}. We have sent the acknowledgement of receipt to {email}. Reference number: {ticketNumber}.",
+    "error": "Your withdrawal could not be submitted. Please try again or email us at {email}.",
+    "legalLink": "View cancellation policy"
   }
 }

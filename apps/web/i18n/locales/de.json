@@ -18,7 +18,7 @@
     "added": "Zum Warenkorb hinzugefügt",
     "manufacturingNotice": {
       "title": "Hinweis zur Herstellung",
-      "production": "Jede Box wird im 3D-Druck hergestellt. Dabei können leichte Schichtlinien oder kleine Unebenheiten an der Oberfläche entstehen. Das ist bei diesem Verfahren normal und kein Mangel. Funktion, Stabilität und Haltbarkeit leiden darunter nicht."
+      "production": "Jede Box wird im 3D-Druck hergestellt. Dabei sind feine Schichtlinien und leichte Strukturen an der Oberfläche sichtbar, das ist bei diesem Verfahren üblich. Funktion, Stabilität und Haltbarkeit leiden darunter nicht."
     },
     "viewer": {
       "hint": "Ziehen zum Drehen · Scrollen zum Zoomen"
@@ -156,7 +156,8 @@
     "privacyTitle": "Datenschutzerklärung",
     "termsTitle": "Allgemeine Geschäftsbedingungen",
     "withdrawalTitle": "Widerrufsbelehrung",
-    "placeholder": "Platzhalter: rechtliche Inhalte vor dem Livegang ergänzen."
+    "placeholder": "Platzhalter: rechtliche Inhalte vor dem Livegang ergänzen.",
+    "translationNote": "Diese Übersetzung dient nur der Information. Verbindlich ist die deutsche Fassung."
   },
   "common": {
     "loading": "Lädt …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Patronenboxen für dein Kaliber, in deinen Farben · kaliberbox.de",
-      "description": "Passgenaue Patronenboxen für 9 mm Luger, .45 ACP, .22 lfB, .223 Rem, .308 Win und 7,62×39. Wahlweise für 50 oder 100 Schuss, Box- und Beschriftungsfarbe suchst du selbst aus. Ab 150 € versandkostenfrei."
+      "description": "Passgenaue Patronenboxen für 9 mm Luger, .45 ACP, .22 lfB, .223 Rem, .308 Win und 7,62×39. Wahlweise für 50 oder 100 Schuss, Box- und Beschriftungsfarbe suchst du selbst aus. Innerhalb Deutschlands ab 80 € versandkostenfrei."
     },
     "products": {
       "description": "Patronenboxen nach Kaliber, für 50 oder 100 Schuss. Die Farben wählst du selbst, gedruckt wird nach deiner Bestellung."
     },
     "cart": {
       "title": "Warenkorb",
-      "description": "Dein Warenkorb im 3D Print Shop. Der Versand kostet 6,99 €, ab 150 € ist er kostenlos."
+      "description": "Dein Warenkorb im 3D Print Shop. Der Versand innerhalb Deutschlands kostet 6,99 €, ab 80 € ist er kostenlos."
     },
     "support": {
       "title": "Support",
@@ -231,6 +232,9 @@
       "notFoundText": "Diese Seite existiert nicht oder wurde entfernt.",
       "generic": "Etwas ist schiefgelaufen",
       "back": "Zur Startseite"
+    },
+    "withdraw": {
+      "description": "Kaufvertrag online widerrufen: Name, E-Mail und Bestellnummer angeben, Widerruf bestätigen, Eingangsbestätigung per E-Mail."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Reklamation eröffnen",
       "missingContext": "Kein gültiger Bestellbezug. Bitte öffne die Reklamation über deinen Kundenbereich.",
       "goToPortal": "Zum Kundenbereich",
-      "customMadeNote": "Hinweis: Personalisierte Sonderanfertigungen sind vom Widerruf ausgeschlossen. Reklamationen wegen Mängeln und Kulanzanfragen sind trotzdem möglich.",
+      "customMadeNote": "Hinweis: Boxen mit Namens-Personalisierung und Drucke nach deinen Dateien sind vom Widerruf ausgeschlossen. Deine gesetzlichen Mängelrechte gelten trotzdem.",
       "selectItems": "Betroffene Positionen",
       "quantity": "Menge",
       "reason": "Grund",
@@ -360,7 +364,8 @@
     "empty": "Noch keine Bewertungen.",
     "count": "Keine Bewertungen | {count} Bewertung | {count} Bewertungen",
     "ratingLabel": "{rating} von 5 Sternen",
-    "photoAlt": "Bewertungsfoto von {name}"
+    "photoAlt": "Bewertungsfoto von {name}",
+    "verification": "Bewerten kann nur, wer das Produkt bei uns gekauft hat. Wir prüfen jede Bewertung vor der Veröffentlichung."
   },
   "shop": {
     "a11y": {
@@ -435,7 +440,7 @@
       "sizesShort": "{sizes} Schuss",
       "rounds": "{count} Schuss",
       "sizeLegend": "Größe",
-      "priceNote": "Endpreis, zzgl. Versand",
+      "priceNote": "Endpreis, zzgl. Versandkosten",
       "personalization": {
         "label": "Name auf der Box",
         "hint": "Optional, max. 24 Zeichen. Personalisierung + {price} je Box.",
@@ -454,7 +459,9 @@
       "drawingAlt": "Schemazeichnung der Patronenbox {caliber} für {capacity} Schuss in {box} mit Beschriftung in {label}",
       "drawingCaption": "Schematische Darstellung, nicht maßstäblich",
       "contentsTitle": "Lieferumfang",
-      "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots."
+      "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots.",
+      "deliveryTime": "Lieferzeit: 3–8 Werktage in Deutschland, 7–14 Werktage in andere Länder, ab Zahlungseingang.",
+      "manufacturerTitle": "Hersteller"
     },
     "configurator": {
       "noColor": "Keine Farbe gewählt"
@@ -537,5 +544,27 @@
       "legalNav": "Rechtliches",
       "vat": "Kleinunternehmer gemäß § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Vertrag widerrufen",
+    "title": "Vertrag widerrufen",
+    "intro": "Hier kannst du deinen Kaufvertrag innerhalb der Widerrufsfrist online widerrufen. Nach dem Absenden erhältst du sofort eine Eingangsbestätigung per E-Mail.",
+    "name": "Vor- und Nachname",
+    "email": "E-Mail-Adresse für die Eingangsbestätigung",
+    "orderNumber": "Bestellnummer",
+    "orderNumberHint": "Steht in deiner Bestellbestätigung, z. B. PS-2026-…",
+    "items": "Welche Waren widerrufst du? (optional)",
+    "itemsHint": "Leer lassen, um die gesamte Bestellung zu widerrufen.",
+    "message": "Nachricht (optional)",
+    "next": "Weiter zur Prüfung",
+    "reviewTitle": "Prüfe deine Angaben",
+    "declaration": "Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die Bestellung {orderNumber}.",
+    "wholeOrder": "gesamte Bestellung",
+    "edit": "Angaben ändern",
+    "confirm": "Widerruf bestätigen",
+    "successTitle": "Dein Widerruf ist eingegangen",
+    "successText": "Eingang: {date}. Die Eingangsbestätigung haben wir an {email} gesendet. Vorgangsnummer: {ticketNumber}.",
+    "error": "Der Widerruf konnte nicht übermittelt werden. Bitte versuche es erneut oder schreib uns eine E-Mail an {email}.",
+    "legalLink": "Zur Widerrufsbelehrung"
   }
 }

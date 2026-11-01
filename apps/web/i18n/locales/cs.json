@@ -18,7 +18,7 @@
     "added": "Přidáno do košíku",
     "manufacturingNotice": {
       "title": "Upozornění k výrobě",
-      "production": "Každá krabička se tiskne na 3D tiskárně. Mohou na ní být vidět jemné vrstvy nebo drobné nerovnosti povrchu. U této metody je to normální a nejde o vadu. Funkci, stabilitu ani životnost to nijak neovlivňuje."
+      "production": "Každá krabička se tiskne na 3D tiskárně. Jsou na ní vidět jemné vrstvy a lehká struktura povrchu, což je u této metody obvyklé. Funkci, stabilitu ani životnost to nijak neovlivňuje."
     },
     "viewer": {
       "hint": "Tažením otáčet · Kolečkem přiblížit"
@@ -72,7 +72,7 @@
     "payStripe": "Karta / Stripe",
     "payBank": "Platba předem (převod)",
     "payBitcoin": "Bitcoin",
-    "submit": "Závazně objednat",
+    "submit": "Objednat s povinností platby",
     "summary": "Souhrn objednávky",
     "guestHint": "Objednávka jako host, účet nepotřebuješ."
   },
@@ -156,7 +156,8 @@
     "privacyTitle": "Zásady ochrany osobních údajů",
     "termsTitle": "Obchodní podmínky",
     "withdrawalTitle": "Poučení o odstoupení",
-    "placeholder": "Placeholder: právní obsah doplňte před spuštěním."
+    "placeholder": "Placeholder: právní obsah doplňte před spuštěním.",
+    "translationNote": "Tento překlad slouží pouze pro informaci. Závazné je německé znění."
   },
   "common": {
     "loading": "Načítání …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Krabičky na náboje pro tvou ráži, v tvých barvách · kaliberbox.de",
-      "description": "Přesně padnoucí krabičky na náboje pro 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win a 7,62×39. Na 50 nebo 100 nábojů, barvu krabičky i popisku si vybereš sám. Doprava zdarma od 150 €."
+      "description": "Přesně padnoucí krabičky na náboje pro 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win a 7,62×39. Na 50 nebo 100 nábojů, barvu krabičky i popisku si vybereš sám. Doprava zdarma v rámci Německa od 80 €."
     },
     "products": {
       "description": "Krabičky na náboje podle ráže, na 50 nebo 100 nábojů. Barvy si vybereš sám a tiskneme až po objednávce."
     },
     "cart": {
       "title": "Košík",
-      "description": "Váš košík v 3D Print Shopu. Doprava stojí 6,99 €, od 150 € je zdarma."
+      "description": "Váš košík v 3D Print Shopu. Doprava v rámci Německa stojí 6,99 €, od 80 € je zdarma."
     },
     "support": {
       "title": "Podpora",
@@ -231,6 +232,9 @@
       "notFoundText": "Tato stránka neexistuje nebo byla odstraněna.",
       "generic": "Něco se pokazilo",
       "back": "Zpět na úvod"
+    },
+    "withdraw": {
+      "description": "Odstoupení od kupní smlouvy online: zadej jméno, e-mail a číslo objednávky, potvrď odstoupení a e-mailem dostaneš potvrzení o přijetí."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Otevřít reklamaci",
       "missingContext": "Chybí platný odkaz na objednávku. Otevřete reklamaci ze svého zákaznického účtu.",
       "goToPortal": "Přejít na účet",
-      "customMadeNote": "Upozornění: personalizované výrobky na zakázku jsou vyloučeny z práva na odstoupení. Reklamace vad a vyřízení z dobré vůle jsou přesto možné.",
+      "customMadeNote": "Upozornění: krabičky s personalizací jménem a tisky podle tvých souborů jsou vyloučeny z práva na odstoupení. Tvá zákonná práva z vadného plnění přesto platí.",
       "selectItems": "Dotčené položky",
       "quantity": "Množství",
       "reason": "Důvod",
@@ -360,7 +364,8 @@
     "empty": "Zatím žádné recenze.",
     "count": "Počet recenzí: {count}",
     "ratingLabel": "{rating} z 5 hvězdiček",
-    "photoAlt": "Fotka recenze od {name}"
+    "photoAlt": "Fotka recenze od {name}",
+    "verification": "Hodnotit může jen ten, kdo si produkt u nás koupil. Každou recenzi před zveřejněním kontrolujeme."
   },
   "shop": {
     "a11y": {
@@ -435,7 +440,7 @@
       "sizesShort": "{sizes} nábojů",
       "rounds": "{count} nábojů",
       "sizeLegend": "Velikost",
-      "priceNote": "Konečná cena, plus doprava",
+      "priceNote": "Konečná cena, plus náklady na dopravu",
       "personalization": {
         "label": "Jméno na krabičce",
         "hint": "Volitelné, max. 24 znaků. Personalizace + {price} za krabičku.",
@@ -454,7 +459,9 @@
       "drawingAlt": "Schéma krabičky na náboje {caliber} na {capacity} nábojů v barvě {box} s popiskem v barvě {label}",
       "drawingCaption": "Schéma, ne v měřítku",
       "contentsTitle": "Obsah balení",
-      "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky."
+      "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky.",
+      "deliveryTime": "Dodací lhůta: 3–8 pracovních dnů v Německu, 7–14 pracovních dnů do ostatních zemí, od přijetí platby.",
+      "manufacturerTitle": "Výrobce"
     },
     "configurator": {
       "noColor": "Barva nevybrána"
@@ -537,5 +544,27 @@
       "legalNav": "Právní informace",
       "vat": "Drobný podnikatel podle § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Odstoupit od smlouvy",
+    "title": "Odstoupit od smlouvy",
+    "intro": "Zde můžeš online odstoupit od kupní smlouvy ve lhůtě pro odstoupení. Po odeslání ti hned e-mailem přijde potvrzení o přijetí.",
+    "name": "Jméno a příjmení",
+    "email": "E-mailová adresa pro potvrzení o přijetí",
+    "orderNumber": "Číslo objednávky",
+    "orderNumberHint": "Najdeš ho v potvrzení objednávky, např. PS-2026-…",
+    "items": "Kterého zboží se odstoupení týká? (nepovinné)",
+    "itemsHint": "Nech prázdné, pokud odstupuješ od celé objednávky.",
+    "message": "Zpráva (nepovinné)",
+    "next": "Pokračovat ke kontrole",
+    "reviewTitle": "Zkontroluj své údaje",
+    "declaration": "Tímto odstupuji od smlouvy uzavřené k objednávce {orderNumber}.",
+    "wholeOrder": "celá objednávka",
+    "edit": "Upravit údaje",
+    "confirm": "Potvrdit odstoupení",
+    "successTitle": "Tvé odstoupení jsme přijali",
+    "successText": "Přijato: {date}. Potvrzení o přijetí jsme poslali na {email}. Číslo požadavku: {ticketNumber}.",
+    "error": "Odstoupení se nepodařilo odeslat. Zkus to prosím znovu nebo nám napiš e-mail na {email}.",
+    "legalLink": "K poučení o odstoupení"
   }
 }

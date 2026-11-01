@@ -94,6 +94,16 @@ const year = new Date().getFullYear()
             </NuxtLink>
           </li>
           <li>
+            <!-- § 356a BGB: electronic withdrawal function, always visible -->
+            <NuxtLink
+              :to="localePath('/withdraw')"
+              class="flex min-h-11 items-center font-bold underline"
+              data-testid="footer-withdraw"
+            >
+              {{ t('withdraw.cta') }}
+            </NuxtLink>
+          </li>
+          <li>
             <button
               type="button"
               class="flex min-h-11 cursor-pointer items-center text-left hover:underline"

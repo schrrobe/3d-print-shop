@@ -10,6 +10,7 @@ import {
   renderQuoteAvailable,
   renderShippingConfirmation,
   renderUploadReceived,
+  renderWithdrawalReceived,
 } from '../src/index.js'
 
 const orderData = {
@@ -18,6 +19,14 @@ const orderData = {
   totalCents: 4998,
   orderUrl: 'https://shop.example/order/PS-2026-00000001?token=abc',
   items: [{ name: 'Spiral Vase', quantity: 2, unitPriceCents: 2499 }],
+  legal: {
+    name: 'Muster Shop',
+    street: 'Teststr. 1',
+    zip: '12345',
+    city: 'Teststadt',
+    email: 'shop@example.com',
+    withdrawUrl: 'https://shop.example/withdraw',
+  },
 }
 
 describe('email templates', () => {
@@ -101,5 +110,35 @@ describe('email templates', () => {
         'de',
       ).html,
     ).toBeTruthy()
+  })
+
+  it('attaches terms and withdrawal policy to the order confirmation (§ 312f Abs. 2 BGB)', () => {
+    for (const locale of ['de', 'en'] as const) {
+      const { html, text } = renderOrderConfirmation(orderData, locale)
+      expect(html).toContain('Allgemeine Geschäftsbedingungen')
+      expect(html).toContain('Muster-Widerrufsformular')
+      expect(html).toContain('https://shop.example/withdraw')
+      expect(text).toContain('An Muster Shop')
+      expect(text).not.toMatch(/\{(name|street|zip|city|email|withdrawUrl)\}/)
+    }
+  })
+
+  it('confirms an online withdrawal with content and date/time (§ 356a Abs. 4 BGB)', () => {
+    const rendered = renderWithdrawalReceived(
+      {
+        name: 'Max <b>',
+        email: 'max@example.com',
+        orderNumber: 'PS-2026-1',
+        items: '1x 9 mm Box',
+        receivedAt: new Date('2026-10-31T12:34:56Z'),
+        ticketNumber: 'TIC-1',
+      },
+      'de',
+    )
+    expect(rendered.subject).toContain('PS-2026-1')
+    expect(rendered.html).toContain('1x 9 mm Box')
+    expect(rendered.html).toContain('13:34:56')
+    expect(rendered.html).toContain('Max &lt;b&gt;')
+    expect(rendered.text).toContain('Hiermit widerrufe ich')
   })
 })

@@ -49,6 +49,7 @@ import { quotesRouter } from './routes/public/quotes.js'
 import { reviewsRouter } from './routes/public/reviews.js'
 import { socialMediaRouter } from './routes/public/social-media.js'
 import { ticketsRouter } from './routes/public/tickets.js'
+import { withdrawalsRouter } from './routes/public/withdrawals.js'
 import { trackRouter } from './routes/public/track.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { vouchersRouter } from './routes/public/vouchers.js'
@@ -97,6 +98,7 @@ export function createApp(): Express {
   app.use('/api/consent', consentRouter)
   app.use('/api/payments', paymentsRouter)
   app.use('/api/tickets', ticketsRouter)
+  app.use('/api/withdrawals', withdrawalsRouter)
   app.use('/api/models', modelsRouter)
   app.use('/api/product-images', productImagesRouter)
   app.use('/api/complaints', complaintsRouter)

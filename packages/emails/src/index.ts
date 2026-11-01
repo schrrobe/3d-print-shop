@@ -1,5 +1,5 @@
 import type { Locale } from '@print-shop/types'
-import { formatCents } from '@print-shop/utils'
+import { formatCents, getLegalDocument, type LegalCompany } from '@print-shop/utils'
 import { button, emailLayout, escapeHtml, paragraph } from './layout.js'
 
 export interface RenderedEmail {
@@ -28,6 +28,7 @@ export type EmailTemplateName =
   | 'review_request'
   | 'review_submitted'
   | 'review_approved'
+  | 'withdrawal_received'
 
 /**
  * i18n: de + en are fully translated; the remaining shop locales (pl, fr, nl, cs)
@@ -55,16 +56,72 @@ function itemsTable(items: OrderEmailData['items'], locale: Locale): string {
   return `<table style="width:100%;font-size:16px;margin:12px 0;font-variant-numeric:tabular-nums;">${rows}</table>`
 }
 
-export function renderOrderConfirmation(data: OrderEmailData, locale: Locale): RenderedEmail {
+/**
+ * AGB + Widerrufsbelehrung incl. Muster-Formular on a durable medium (§ 312f Abs. 2 BGB).
+ * Always the binding German version.
+ */
+function contractDocuments(company: LegalCompany, locale: Locale): { html: string; text: string } {
+  const docs = [
+    ['Allgemeine Geschäftsbedingungen', getLegalDocument('de', 'terms', company)],
+    ['Widerrufsbelehrung', getLegalDocument('de', 'withdrawal', company)],
+  ] as const
+  const blocks = docs.flatMap(([title, doc]) =>
+    doc
+      ? [
+          {
+            title,
+            parts: [
+              doc.updatedAt,
+              ...doc.sections.flatMap((s) => [s.heading, ...s.paragraphs, ...(s.form ?? [])]),
+            ],
+          },
+        ]
+      : [],
+  )
+  const intro = pick(
+    locale,
+    'Unsere AGB und die Widerrufsbelehrung zu deiner Bestellung:',
+    'Our terms and withdrawal policy for your order (binding German version):',
+  )
+  const html =
+    paragraph(`<strong>${intro}</strong>`) +
+    blocks
+      .map(
+        (b) =>
+          `<h2 style="font-size:18px;margin:24px 0 8px;">${b.title}</h2>` +
+          b.parts
+            .map(
+              (p) =>
+                `<p style="font-size:13px;line-height:1.5;margin:0 0 8px;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`,
+            )
+            .join(''),
+      )
+      .join('')
+  const text = [intro, ...blocks.map((b) => [b.title, ...b.parts].join('\n\n'))].join('\n\n')
+  return { html, text }
+}
+
+export interface OrderConfirmationData extends OrderEmailData {
+  /** Company data for the attached contract documents. */
+  legal: LegalCompany
+}
+
+export function renderOrderConfirmation(
+  data: OrderConfirmationData,
+  locale: Locale,
+): RenderedEmail {
   const subject = pick(
     locale,
     `Bestellbestätigung ${data.orderNumber}`,
     `Order confirmation ${data.orderNumber}`,
   )
   const title = pick(locale, 'Danke für deine Bestellung!', 'Thank you for your order!')
+  const documents = contractDocuments(data.legal, locale)
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -74,11 +131,13 @@ export function renderOrderConfirmation(data: OrderEmailData, locale: Locale): R
       ) +
       itemsTable(data.items, locale) +
       paragraph(
-        pick(locale, 'Gesamtbetrag: ', 'Total: ') + `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+        pick(locale, 'Gesamtbetrag: ', 'Total: ') +
+          `<strong>${formatCents(data.totalCents, locale)}</strong>`,
       ) +
-      button(data.orderUrl, pick(locale, 'Bestellung ansehen', 'View order')),
+      button(data.orderUrl, pick(locale, 'Bestellung ansehen', 'View order')) +
+      documents.html,
   )
-  const text = `${title}\n${data.orderNumber}\n${data.orderUrl}`
+  const text = `${title}\n${data.orderNumber}\n${data.orderUrl}\n\n${documents.text}`
   return { subject, html, text }
 }
 
@@ -109,7 +168,11 @@ export interface UploadReceivedData {
 }
 
 export function renderUploadReceived(data: UploadReceivedData, locale: Locale): RenderedEmail {
-  const subject = pick(locale, 'Deine Upload-Anfrage ist eingegangen', 'We received your upload request')
+  const subject = pick(
+    locale,
+    'Deine Upload-Anfrage ist eingegangen',
+    'We received your upload request',
+  )
   const title = pick(locale, 'Upload erhalten', 'Upload received')
   const html = emailLayout(
     title,
@@ -160,7 +223,11 @@ export interface QuoteAcceptedData {
 }
 
 export function renderQuoteAccepted(data: QuoteAcceptedData, locale: Locale): RenderedEmail {
-  const subject = pick(locale, 'Angebot angenommen, bitte jetzt bezahlen', 'Quote accepted, please complete payment')
+  const subject = pick(
+    locale,
+    'Angebot angenommen, bitte jetzt bezahlen',
+    'Quote accepted, please complete payment',
+  )
   const title = pick(locale, 'Angebot angenommen', 'Quote accepted')
   const html = emailLayout(
     title,
@@ -272,7 +339,10 @@ export interface AdminNotificationData {
   adminUrl: string
 }
 
-export function renderAdminNotification(data: AdminNotificationData, _locale: Locale): RenderedEmail {
+export function renderAdminNotification(
+  data: AdminNotificationData,
+  _locale: Locale,
+): RenderedEmail {
   const subject = `[Admin] ${data.event}`
   const html = emailLayout(
     data.event,
@@ -375,7 +445,9 @@ export function renderComplaintReceived(data: ComplaintEmailData, locale: Locale
   const title = pick(locale, 'Reklamation eingegangen', 'Complaint received')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -402,7 +474,9 @@ export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Local
   const title = pick(locale, 'Reklamation aktualisiert', 'Complaint updated')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -413,7 +487,11 @@ export function renderComplaintUpdated(data: ComplaintUpdatedData, locale: Local
       (data.message ? paragraph(escapeHtml(data.message)) : '') +
       button(data.complaintUrl, pick(locale, 'Details ansehen', 'View details')),
   )
-  return { subject, html, text: `${title}: ${data.complaintNumber}, ${data.statusLabel}\n${data.complaintUrl}` }
+  return {
+    subject,
+    html,
+    text: `${title}: ${data.complaintNumber}, ${data.statusLabel}\n${data.complaintUrl}`,
+  }
 }
 
 // ---------- Customer portal (magic link) ----------
@@ -465,7 +543,9 @@ export function renderReviewRequest(data: ReviewRequestData, locale: Locale): Re
   const title = pick(locale, 'Wie gefällt dir deine Bestellung?', 'How do you like your order?')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -489,7 +569,9 @@ export function renderReviewSubmitted(data: ReviewSubmittedData, locale: Locale)
   const title = pick(locale, 'Bewertung eingegangen', 'Review received')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -512,7 +594,9 @@ export function renderReviewApproved(data: ReviewApprovedData, locale: Locale): 
   const title = pick(locale, 'Bewertung freigegeben', 'Review published')
   const html = emailLayout(
     title,
-    paragraph(pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`)) +
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
       paragraph(
         pick(
           locale,
@@ -523,4 +607,82 @@ export function renderReviewApproved(data: ReviewApprovedData, locale: Locale): 
       button(data.productUrl, pick(locale, 'Produkt ansehen', 'View product')),
   )
   return { subject, html, text: `${title}: ${data.productName}\n${data.productUrl}` }
+}
+
+export interface WithdrawalReceivedData {
+  name: string
+  email: string
+  orderNumber: string
+  /** Withdrawn items; empty = whole order. */
+  items?: string
+  message?: string
+  receivedAt: Date
+  ticketNumber: string
+}
+
+/** Eingangsbestätigung der elektronischen Widerrufsfunktion (§ 356a Abs. 4 BGB). */
+export function renderWithdrawalReceived(
+  data: WithdrawalReceivedData,
+  locale: Locale,
+): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Eingangsbestätigung deines Widerrufs (Bestellung ${data.orderNumber})`,
+    `Confirmation of receipt of your withdrawal (order ${data.orderNumber})`,
+  )
+  const title = pick(locale, 'Dein Widerruf ist eingegangen', 'We received your withdrawal')
+  const receivedAt = data.receivedAt.toLocaleString(locale === 'de' ? 'de-DE' : 'en-GB', {
+    timeZone: 'Europe/Berlin',
+    dateStyle: 'long',
+    timeStyle: 'medium',
+  })
+  const rows: [string, string][] = [
+    [
+      pick(locale, 'Eingang', 'Received'),
+      `${receivedAt} (${pick(locale, 'deutsche Zeit', 'German time')})`,
+    ],
+    [pick(locale, 'Name', 'Name'), data.name],
+    [pick(locale, 'E-Mail', 'Email'), data.email],
+    [pick(locale, 'Bestellnummer', 'Order number'), data.orderNumber],
+    [
+      pick(locale, 'Widerrufen', 'Withdrawn'),
+      data.items || pick(locale, 'gesamte Bestellung', 'entire order'),
+    ],
+    ...(data.message
+      ? ([[pick(locale, 'Nachricht', 'Message'), data.message]] as [string, string][])
+      : []),
+    [pick(locale, 'Vorgangsnummer', 'Reference'), data.ticketNumber],
+  ]
+  const declaration = pick(
+    locale,
+    `Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die Bestellung ${data.orderNumber}.`,
+    `I hereby withdraw from my contract for order ${data.orderNumber}.`,
+  )
+  const html = emailLayout(
+    title,
+    paragraph(pick(locale, `Hallo ${escapeHtml(data.name)},`, `Hi ${escapeHtml(data.name)},`)) +
+      paragraph(
+        pick(
+          locale,
+          'wir bestätigen den Eingang deiner über unsere Widerrufsfunktion abgegebenen Erklärung:',
+          'we confirm receipt of the declaration you submitted via our withdrawal function:',
+        ),
+      ) +
+      paragraph(`<em>„${escapeHtml(declaration)}“</em>`) +
+      `<table style="width:100%;font-size:15px;margin:12px 0;">${rows
+        .map(
+          ([k, v]) =>
+            `<tr><td style="padding:4px 12px 4px 0;vertical-align:top;white-space:nowrap;">${k}</td><td style="padding:4px 0;">${escapeHtml(v)}</td></tr>`,
+        )
+        .join('')}</table>` +
+      paragraph(
+        pick(
+          locale,
+          'Wir melden uns mit den nächsten Schritten zur Rücksendung und Erstattung. Bitte bewahre diese E-Mail auf.',
+          'We will get back to you with the next steps for the return and refund. Please keep this email.',
+        ),
+      ),
+  )
+  const text = [title, declaration, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n')
+  return { subject, html, text }
 }
