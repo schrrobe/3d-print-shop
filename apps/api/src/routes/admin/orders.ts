@@ -7,7 +7,12 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { ApiError, badRequest, conflict, notFound } from '../../middleware/error.js'
-import { markOrderPaid, notifyProductionStarted, resendInvoice } from '../../services/order-flow.js'
+import {
+  markOrderPaid,
+  notifyProductionStarted,
+  resendInvoice,
+  sendOrderConfirmation,
+} from '../../services/order-flow.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
@@ -226,6 +231,26 @@ adminOrdersRouter.post(
       if (result === 'no_invoice') throw badRequest('Zu dieser Bestellung gibt es keine Rechnung')
       if (result === 'busy') throw conflict('Die Rechnung wird gerade versendet')
       if (result === 'failed') {
+        throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
+      }
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Re-sends the order confirmation email to the customer (e.g. after an SMTP failure). */
+adminOrdersRouter.post(
+  '/:id/confirmation/resend',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
+      if (!order) throw notFound('Order not found')
+      const delivered = await sendOrderConfirmation(order.id)
+      await audit(req, 'order.confirmation_resend', { type: 'order', id: order.id }, { delivered })
+      if (!delivered) {
         throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
       }
       res.json({ ok: true })
