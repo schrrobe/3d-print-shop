@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.6.0...api-v0.7.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** Promo-Banner im Admin an-/ausschalten und Inhalte pflegen ([#76](https://github.com/schrrobe/3d-print-shop/issues/76)) ([3439927](https://github.com/schrrobe/3d-print-shop/commit/34399271e312d0ed4f0908cfbbb6a38864ec0ce0))
+* **admin:** Rechnung aus der Bestellung erneut senden ([#75](https://github.com/schrrobe/3d-print-shop/issues/75)) ([a30b7ed](https://github.com/schrrobe/3d-print-shop/commit/a30b7edbb6bd4ed9e8a9c4df40b86cd728ed3c93))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/validators bumped to 0.5.0
+
 ## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.5.0...api-v0.6.0) (2026-11-01)
 
 
