@@ -461,7 +461,8 @@
       "contentsTitle": "Contenu",
       "contentsText": "Une boîte à cartouches vide. Les munitions ne font pas partie de l’offre.",
       "deliveryTime": "Délai de livraison : 3 à 8 jours ouvrés en Allemagne, 7 à 14 jours ouvrés vers les autres pays, à compter de la réception du paiement.",
-      "manufacturerTitle": "Fabricant"
+      "manufacturerTitle": "Fabricant",
+      "colorsMissing": "Veuillez choisir une couleur pour chaque zone."
     },
     "configurator": {
       "noColor": "Aucune couleur choisie"
@@ -517,7 +518,9 @@
         "street": "Veuillez saisir la rue et le numéro.",
         "zip": "Veuillez saisir votre code postal.",
         "zipFormat": "Le code postal doit comporter 3 à 12 caractères.",
-        "city": "Veuillez saisir votre ville."
+        "city": "Veuillez saisir votre ville.",
+        "colors": "Un article du panier n'a pas de couleur ou sa couleur n'est plus disponible. Veuillez modifier l'article dans le panier.",
+        "freeBoxColors": "Veuillez choisir toutes les couleurs de la boîte offerte."
       },
       "freeBox": {
         "title": "Votre boîte de 50 offerte",

@@ -168,6 +168,11 @@ function addToCart() {
     toast.show(t('shop.product.personalization.invalid'), { variant: 'error' })
     return
   }
+  // The API rejects lines with an unset zone (missing_color) — stop it here, not at checkout.
+  if (product.value.colorSlots.some((s) => !selection.value[s.slot] && !s.defaultColorId)) {
+    toast.show(t('shop.product.colorsMissing'), { variant: 'error' })
+    return
+  }
   cart.hydrate()
   if (editKey.value) {
     cart.remove(editKey.value)

@@ -461,7 +461,8 @@
       "contentsTitle": "Obsah balení",
       "contentsText": "Jedna prázdná krabička na náboje. Munice není součástí nabídky.",
       "deliveryTime": "Dodací lhůta: 3–8 pracovních dnů v Německu, 7–14 pracovních dnů do ostatních zemí, od přijetí platby.",
-      "manufacturerTitle": "Výrobce"
+      "manufacturerTitle": "Výrobce",
+      "colorsMissing": "Vyber barvu pro každou zónu."
     },
     "configurator": {
       "noColor": "Barva nevybrána"
@@ -517,7 +518,9 @@
         "street": "Zadej ulici a číslo domu.",
         "zip": "Zadej PSČ.",
         "zipFormat": "PSČ musí mít 3 až 12 znaků.",
-        "city": "Zadej město."
+        "city": "Zadej město.",
+        "colors": "U položky v košíku chybí barva nebo už není dostupná. Uprav prosím položku v košíku.",
+        "freeBoxColors": "Vyber všechny barvy pro krabičku zdarma."
       },
       "freeBox": {
         "title": "Tvoje krabička na 50 zdarma",
