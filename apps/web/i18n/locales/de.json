@@ -461,7 +461,8 @@
       "contentsTitle": "Lieferumfang",
       "contentsText": "Eine leere Patronenbox. Munition ist nicht Bestandteil des Angebots.",
       "deliveryTime": "Lieferzeit: 3–8 Werktage in Deutschland, 7–14 Werktage in andere Länder, ab Zahlungseingang.",
-      "manufacturerTitle": "Hersteller"
+      "manufacturerTitle": "Hersteller",
+      "colorsMissing": "Bitte wähle für jede Zone eine Farbe."
     },
     "configurator": {
       "noColor": "Keine Farbe gewählt"
@@ -517,7 +518,9 @@
         "street": "Bitte gib Straße und Hausnummer ein.",
         "zip": "Bitte gib deine Postleitzahl ein.",
         "zipFormat": "Die Postleitzahl muss 3 bis 12 Zeichen lang sein.",
-        "city": "Bitte gib deinen Ort ein."
+        "city": "Bitte gib deinen Ort ein.",
+        "colors": "Bei einem Artikel im Warenkorb fehlt eine Farbe oder sie ist nicht mehr verfügbar. Bitte bearbeite den Artikel im Warenkorb.",
+        "freeBoxColors": "Bitte wähle alle Farben für die Gratis-Box."
       },
       "freeBox": {
         "title": "Deine Gratis-50er-Box",

@@ -461,7 +461,8 @@
       "contentsTitle": "What's included",
       "contentsText": "One empty cartridge box. Ammunition is not part of the offer.",
       "deliveryTime": "Delivery time: 3–8 business days in Germany, 7–14 business days to other countries, from receipt of payment.",
-      "manufacturerTitle": "Manufacturer"
+      "manufacturerTitle": "Manufacturer",
+      "colorsMissing": "Please choose a colour for every zone."
     },
     "configurator": {
       "noColor": "No colour selected"
@@ -517,7 +518,9 @@
         "street": "Please enter street and house number.",
         "zip": "Please enter your postcode.",
         "zipFormat": "The postcode must be 3 to 12 characters long.",
-        "city": "Please enter your city."
+        "city": "Please enter your city.",
+        "colors": "An item in your cart is missing a colour or the colour is no longer available. Please edit the item in your cart.",
+        "freeBoxColors": "Please choose all colours for the free box."
       },
       "freeBox": {
         "title": "Your free 50 box",

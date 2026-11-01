@@ -153,6 +153,10 @@ async function mountStripe(response: CheckoutResponse) {
 async function submit() {
   errorMessage.value = ''
   if (!validate()) return
+  if (freeBoxProduct.value?.colorSlots.some((s) => !freeBoxColors.value[s.slot])) {
+    errorMessage.value = t('shop.checkout.errors.freeBoxColors')
+    return
+  }
   submitting.value = true
   try {
     checkoutKey.value ??= crypto.randomUUID()
@@ -221,11 +225,14 @@ async function submit() {
   } catch (err) {
     // Stale voucher from localStorage (expired/exhausted meanwhile): drop it,
     // show the specific message, let the customer resubmit without the code.
-    const rejection = (err as { data?: { details?: { voucherRejection?: string } } })?.data?.details
-      ?.voucherRejection
+    const details = (err as { data?: { details?: unknown } })?.data?.details
+    const rejection = (details as { voucherRejection?: string } | undefined)?.voucherRejection
     if (rejection && cart.voucher) {
       cart.removeVoucher()
       errorMessage.value = t(`cart.voucherReason.${rejection}`, { amount: '' })
+    } else if (Array.isArray(details) && details.some((d) => String(d?.type).endsWith('_color'))) {
+      // Cart line saved without (or with a since-disabled) colour — fixable via "edit" in the cart.
+      errorMessage.value = t('shop.checkout.errors.colors')
     } else {
       errorMessage.value = t('common.error')
     }

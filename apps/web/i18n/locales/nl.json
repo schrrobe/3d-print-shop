@@ -461,7 +461,8 @@
       "contentsTitle": "Inhoud",
       "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod.",
       "deliveryTime": "Levertijd: 3–8 werkdagen in Duitsland, 7–14 werkdagen naar andere landen, na ontvangst van de betaling.",
-      "manufacturerTitle": "Fabrikant"
+      "manufacturerTitle": "Fabrikant",
+      "colorsMissing": "Kies voor elke zone een kleur."
     },
     "configurator": {
       "noColor": "Geen kleur gekozen"
@@ -517,7 +518,9 @@
         "street": "Vul straat en huisnummer in.",
         "zip": "Vul je postcode in.",
         "zipFormat": "De postcode moet 3 tot 12 tekens lang zijn.",
-        "city": "Vul je woonplaats in."
+        "city": "Vul je woonplaats in.",
+        "colors": "Bij een artikel in je winkelwagen ontbreekt een kleur of de kleur is niet meer beschikbaar. Pas het artikel aan in je winkelwagen.",
+        "freeBoxColors": "Kies alle kleuren voor de gratis box."
       },
       "freeBox": {
         "title": "Je gratis 50-doos",

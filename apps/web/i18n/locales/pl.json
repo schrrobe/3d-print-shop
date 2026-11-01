@@ -461,7 +461,8 @@
       "contentsTitle": "Zawartość",
       "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty.",
       "deliveryTime": "Czas dostawy: 3–8 dni roboczych w Niemczech, 7–14 dni roboczych do innych krajów, od otrzymania płatności.",
-      "manufacturerTitle": "Producent"
+      "manufacturerTitle": "Producent",
+      "colorsMissing": "Wybierz kolor dla każdej strefy."
     },
     "configurator": {
       "noColor": "Nie wybrano koloru"
@@ -517,7 +518,9 @@
         "street": "Podaj ulicę i numer domu.",
         "zip": "Podaj kod pocztowy.",
         "zipFormat": "Kod pocztowy musi mieć od 3 do 12 znaków.",
-        "city": "Podaj miejscowość."
+        "city": "Podaj miejscowość.",
+        "colors": "Przy jednym z produktów w koszyku brakuje koloru lub kolor jest już niedostępny. Edytuj produkt w koszyku.",
+        "freeBoxColors": "Wybierz wszystkie kolory dla darmowego pudełka."
       },
       "freeBox": {
         "title": "Twoje darmowe pudełko na 50",
