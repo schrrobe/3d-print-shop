@@ -60,6 +60,14 @@ export async function createStripeCheckoutSession(
     // Cards complete in place (onComplete); only redirect-based methods use return_url.
     redirect_on_completion: 'if_required',
     return_url: successUrl(params),
+    // Matches the kaliberbox light world (apps/web shop.css: --kb-paper, --kb-hit, 2px radii).
+    // Archivo isn't offered by Stripe; Inter is the closest grotesque.
+    branding_settings: {
+      background_color: '#f3f1ea',
+      button_color: '#c2410c',
+      border_style: 'rectangular',
+      font_family: 'inter',
+    },
   })
   if (!session.client_secret) throw new Error('Stripe returned no client secret')
   return { sessionId: session.id, clientSecret: session.client_secret }
