@@ -24,7 +24,6 @@ Stand: 2026-07-13.
 - [ ] **Firmen- & Rechnungsdaten** unter Admin → Einstellungen → „Firma & Bankverbindung“
       pflegen (Fallback: `COMPANY_*`/`BANK_*` in `.env`). Bis alles gesetzt ist, nimmt prod
       keine Bestellungen an.
-- [ ] **Logo** hinterlegen: PNG/JPEG-Pfad in `INVOICE_LOGO_PATH` setzen (sonst Text-Briefkopf).
 - [ ] **Steuermodell prüfen:** aktuell Kleinunternehmer § 19 UStG (kein USt-Ausweis).
       Bei Regelbesteuerung → USt-Spalte + Steuerblock nachrüsten (Schema-Migration nötig).
 - [ ] `docs/payments.md` aktualisieren — Zeile „USt-Angaben sind Platzhalter" ist nach der

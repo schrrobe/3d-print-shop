@@ -24,7 +24,6 @@ const company: CompanyInfo = {
   website: 'www.example.com',
   taxNumber: '12/345/67890',
   owner: 'Max Mustermann',
-  logoPath: '',
   iban: 'DE00 0000 0000 0000 0000 00',
   bic: 'XXXXDEXXXXX',
   accountHolder: 'Print Shop GmbH',
@@ -329,6 +328,17 @@ describe('renderInvoicePdf', () => {
     )
     const pdf = await renderToBuffer({ invoice, order: makeOrder(), company, qrPng })
     expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
+  })
+
+  it('names the owner, not the shop, in the sender line above the address', async () => {
+    const text = extractText(
+      await renderToBuffer(
+        { invoice: makeInvoice(), order: makeOrder(), company },
+        { compress: false },
+      ),
+    )
+    expect(text).toContain('Max Mustermann · Musterstraße 1 · 12345 Berlin')
+    expect(text).not.toContain('Print Shop GmbH · Musterstraße 1')
   })
 
   it('renders Vorkasse: discount row, immediate due date, invoice number as reference', async () => {

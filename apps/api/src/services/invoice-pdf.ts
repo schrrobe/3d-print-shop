@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs'
 import type { Invoice, Order, OrderItem, Payment } from '@prisma/client'
 import {
   formatCents,
@@ -25,6 +24,8 @@ const FONT_BOLD = 'Helvetica-Bold'
 const INK = '#1E1714'
 const GRAY = '#555555'
 const RULE = '#dddddd'
+/** Brand accent (shop --kb-hit) for the logo's hit mark. */
+const HIT = '#c2410c'
 
 const SIZE = { body: 10, sender: 8, footer: 7.5, title: 18 } as const
 
@@ -35,7 +36,9 @@ export const LAYOUT = {
   contentWidth: mm(170),
   top: mm(20),
   /** Sender block on the right of the head. */
-  side: { x: mm(130), w: mm(60), logoMaxH: mm(18) },
+  side: { x: mm(130), w: mm(60) },
+  /** kaliberbox.de wordmark, top left. */
+  logoH: mm(9),
   metaLabelW: mm(45),
   /** Hard floor for flowing content; footer zone starts below. */
   contentBottom: mm(271),
@@ -65,7 +68,6 @@ export interface CompanyInfo {
   website: string
   taxNumber: string
   owner: string
-  logoPath: string
   iban: string
   bic: string
   accountHolder: string
@@ -205,20 +207,51 @@ export function renderInvoicePdf(doc: PDFKit.PDFDocument, data: InvoicePdfData):
 }
 
 /** Recipient on the left (with the small sender line above), seller on the right. */
+/**
+ * Vector copy of the shop wordmark (web ShopMark.vue): two-ring target with
+ * one hit, then "kaliberbox.de". Drawn, not embedded, so no asset to ship.
+ */
+function drawLogo(doc: PDFKit.PDFDocument, x: number, y: number): void {
+  const s = LAYOUT.logoH / 26 // ShopMark viewBox is 26×26
+  const cx = x + 13 * s
+  const cy = y + 13 * s
+  doc.save()
+  doc
+    .lineWidth(1.5 * s)
+    .circle(cx, cy, 12 * s)
+    .stroke(INK)
+  doc.circle(cx, cy, 7 * s).fill(INK)
+  doc
+    .lineWidth(s)
+    .circle(cx, cy, 3.4 * s)
+    .stroke('#ffffff')
+  doc.circle(x + 14.6 * s, y + 11.6 * s, 1.9 * s).fill(HIT)
+  doc.restore()
+
+  const size = 16
+  const opts = { lineBreak: false, continued: true }
+  doc.fontSize(size).fillColor(INK)
+  doc.font(FONT_BOLD).text('kaliber', x + 26 * s + mm(2), cy - size * 0.36, opts)
+  doc.font(FONT).text('box', opts)
+  doc.fillColor(GRAY).text('.de', { lineBreak: false })
+}
+
 function drawHead(doc: PDFKit.PDFDocument, data: InvoicePdfData, de: boolean, cur: Cursor): void {
   const c = data.company
   const leftW = LAYOUT.side.x - LAYOUT.left - mm(10)
 
+  drawLogo(doc, LAYOUT.left, cur.y)
+  const senderY = cur.y + LAYOUT.logoH + mm(6)
   doc
     .font(FONT)
     .fontSize(SIZE.sender)
     .fillColor(GRAY)
-    .text(`${c.name} · ${c.street} · ${c.zip} ${c.city}`, LAYOUT.left, cur.y, {
+    .text(`${c.owner} · ${c.street} · ${c.zip} ${c.city}`, LAYOUT.left, senderY, {
       width: leftW,
       lineBreak: false,
       ellipsis: true,
     })
-  const recipientY = cur.y + doc.currentLineHeight() + mm(2)
+  const recipientY = senderY + doc.currentLineHeight() + mm(2)
   const recipient = recipientLines(data.order, de).join('\n')
   doc
     .font(FONT)
@@ -228,29 +261,10 @@ function drawHead(doc: PDFKit.PDFDocument, data: InvoicePdfData, de: boolean, cu
   const leftBottom = recipientY + doc.heightOfString(recipient, { width: leftW })
 
   let sideY = cur.y
-  let logoDrawn = false
-  if (c.logoPath && existsSync(c.logoPath)) {
-    try {
-      doc.image(c.logoPath, LAYOUT.side.x, sideY, { fit: [LAYOUT.side.w, LAYOUT.side.logoMaxH] })
-      sideY += LAYOUT.side.logoMaxH + mm(3)
-      logoDrawn = true
-    } catch {
-      // unsupported image format — fall through to the bold name
-    }
-  }
-  if (!logoDrawn) {
-    doc.font(FONT_BOLD).fontSize(SIZE.body).fillColor(INK)
-    doc.text(c.name, LAYOUT.side.x, sideY, { width: LAYOUT.side.w })
-    sideY += doc.heightOfString(c.name, { width: LAYOUT.side.w })
-  }
-  const contact = [
-    logoDrawn ? c.name : '',
-    c.street,
-    `${c.zip} ${c.city}`,
-    c.email,
-    c.phone,
-    c.website,
-  ]
+  doc.font(FONT_BOLD).fontSize(SIZE.body).fillColor(INK)
+  doc.text(c.name, LAYOUT.side.x, sideY, { width: LAYOUT.side.w })
+  sideY += doc.heightOfString(c.name, { width: LAYOUT.side.w })
+  const contact = [c.street, `${c.zip} ${c.city}`, c.email, c.phone, c.website]
     .filter(Boolean)
     .join('\n')
   doc
