@@ -11,10 +11,10 @@ defineProps<{
     class="flex items-center justify-between gap-md border-b border-subtle bg-surface px-lg py-md"
     data-testid="admin-header"
   >
-    <h1 class="text-heading-small text-primary">{{ title }}</h1>
-    <div class="flex items-center gap-md">
+    <h1 class="min-w-0 truncate text-heading-small text-primary">{{ title }}</h1>
+    <div class="flex shrink-0 items-center gap-md">
       <slot name="actions" />
-      <div v-if="userName" class="flex flex-col items-end">
+      <div v-if="userName" class="hidden flex-col items-end sm:flex">
         <span class="text-label-medium text-primary">{{ userName }}</span>
         <span v-if="roleLabel" class="text-caption text-secondary">{{ roleLabel }}</span>
       </div>
