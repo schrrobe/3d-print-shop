@@ -1,5 +1,4 @@
 import { Prisma, type Voucher } from '@prisma/client'
-import { renderAdminNotification } from '@print-shop/emails'
 import type { ColorZoneSlot, Locale } from '@print-shop/types'
 import {
   calcCartTotalsWithVoucher,
@@ -22,7 +21,6 @@ import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { assertCompanyComplete, company } from '../../services/company.js'
-import { sendEmail } from '../../services/email.js'
 import { issuePrepaymentInvoice, sendOrderConfirmation } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
 import {
@@ -402,18 +400,6 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       if (order.payments[0]?.method === 'bank_transfer') {
         order = await issuePrepaymentInvoiceSafely(order)
       }
-      await sendEmail(
-        env.ADMIN_NOTIFICATION_EMAIL,
-        'admin_notification',
-        renderAdminNotification(
-          {
-            event: 'Neue Bestellung',
-            detail: `${order.orderNumber} — ${(order.totalCents / 100).toFixed(2)} € (${input.paymentMethod})`,
-            adminUrl: `${env.WEB_URL}/admin/orders`,
-          },
-          'de',
-        ),
-      )
     }
 
     res
