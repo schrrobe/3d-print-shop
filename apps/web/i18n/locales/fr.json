@@ -546,6 +546,14 @@
       "legal": "Mentions légales",
       "legalNav": "Mentions légales",
       "vat": "Petite entreprise selon le § 19 UStG"
+    },
+    "promo": {
+      "title": "Nous sommes ouverts !",
+      "text": "Pour fêter l'ouverture de la boutique, les {count} premières commandes bénéficient de {percent} % de réduction. Saisissez simplement ce code lors du paiement :",
+      "codeLabel": "Code promo",
+      "cta": "Découvrir la boutique",
+      "copy": "Copier le code",
+      "copied": "Copié !"
     }
   },
   "withdraw": {

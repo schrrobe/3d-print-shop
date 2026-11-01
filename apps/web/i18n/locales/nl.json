@@ -546,6 +546,14 @@
       "legal": "Juridisch",
       "legalNav": "Juridisch",
       "vat": "Kleine ondernemer volgens § 19 UStG"
+    },
+    "promo": {
+      "title": "We zijn open!",
+      "text": "Ter ere van de opening van onze shop krijgen de eerste {count} bestellingen {percent}% korting. Vul bij het afrekenen gewoon deze code in:",
+      "codeLabel": "Kortingscode",
+      "cta": "Begin met winkelen",
+      "copy": "Code kopiëren",
+      "copied": "Gekopieerd!"
     }
   },
   "withdraw": {

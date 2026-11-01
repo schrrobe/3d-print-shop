@@ -22,6 +22,7 @@ useHead({ htmlAttrs: { class: 'kb' } })
     </main>
     <SiteFooter />
     <ConsentBanner />
+    <PromoBanner />
     <PsToastProvider />
   </div>
 </template>
