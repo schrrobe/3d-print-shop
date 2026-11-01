@@ -80,6 +80,8 @@ test.describe('checkout with stripe (mock)', () => {
     await page.getByTestId('payment-bank_transfer').click()
     await page.getByTestId('submit-order').click()
     await page.waitForURL(/\/order\//)
+    // Submit sits at the bottom of the form — the order page must open at the top.
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
     await expect(page.getByTestId('bank-details')).toBeVisible()
     await expect(page.getByTestId('bank-details')).toContainText('IBAN')
   })
