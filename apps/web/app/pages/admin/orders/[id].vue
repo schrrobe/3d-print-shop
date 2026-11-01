@@ -32,7 +32,7 @@ interface AdminOrderDetail {
   trackingNumber: string | null
   items: { id: string; name: string; quantity: number; unitPriceCents: number }[]
   payments: { id: string; method: string; status: string; amountCents: number }[]
-  invoice: { id: string; number: string } | null
+  invoice: { id: string; number: string; sentAt: string | null } | null
   tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
 }
 
@@ -49,7 +49,18 @@ const nextStatuses = computed(() =>
 const carrier = ref('dhl')
 const trackingNumber = ref('')
 
-const { run } = useAdminAction({ refresh })
+const { run, pending } = useAdminAction({ refresh })
+
+function resendInvoice() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/invoice/resend`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Rechnung versendet', error: 'Rechnungsversand fehlgeschlagen' },
+  )
+}
 
 function setStatus(status: OrderStatus) {
   return run(
@@ -108,9 +119,25 @@ function ship() {
           <span>Gesamt</span>
           <PsPrice :cents="order.totalCents" />
         </div>
-        <p v-if="order.invoice" class="mt-md text-caption text-secondary">
-          Rechnung: {{ order.invoice.number }}
-        </p>
+        <div v-if="order.invoice" class="mt-md flex flex-wrap items-center gap-md">
+          <p class="text-caption text-secondary" data-testid="invoice-status">
+            Rechnung: {{ order.invoice.number }} —
+            {{
+              order.invoice.sentAt
+                ? `versendet am ${new Date(order.invoice.sentAt).toLocaleString('de-DE')}`
+                : 'noch nicht versendet'
+            }}
+          </p>
+          <PsButton
+            v-if="auth.can('orders:write')"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="resend-invoice"
+            @click="resendInvoice"
+          >
+            Rechnung erneut senden
+          </PsButton>
+        </div>
       </PsCard>
 
       <PsCard>
