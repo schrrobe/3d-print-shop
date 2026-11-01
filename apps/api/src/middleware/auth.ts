@@ -7,7 +7,9 @@ import { prisma } from '../lib/prisma.js'
 import { forbidden, unauthorized } from './error.js'
 
 export const SESSION_COOKIE = 'ps_session'
-const SESSION_TTL_SECONDS = 60 * 60 * 8 // 8h admin sessions
+// Long-lived tokens stay revocable: logout stamps sessionsInvalidatedAt,
+// password changes bump sessionVersion (both checked in requireAuth).
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 60 // 60 days
 
 export interface SessionUser {
   id: string
