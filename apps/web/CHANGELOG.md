@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/schrrobe/3d-print-shop/compare/web-v0.5.0...web-v0.5.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **shop:** Bestellung scheitert nicht mehr still an fehlenden Farben ([#68](https://github.com/schrrobe/3d-print-shop/issues/68)) ([8fa1ee6](https://github.com/schrrobe/3d-print-shop/commit/8fa1ee6e02ba6212d7b8f214e5e803fe52e4cd1a))
+
 ## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.4.0...web-v0.5.0) (2026-11-01)
 
 
