@@ -1,4 +1,4 @@
-const LOCALES = ['de', 'en', 'pl', 'fr', 'nl', 'cs']
+const LOCALES = ['de', 'en', 'pl', 'fr', 'nl', 'cs', 'it']
 const STATIC_PATHS = [
   '',
   '/products',

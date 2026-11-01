@@ -13,7 +13,7 @@ const keys: LegalDocumentKey[] = ['imprint', 'privacy', 'terms', 'withdrawal']
 
 describe('legal texts', () => {
   it('fills every company placeholder in every locale', () => {
-    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs']) {
+    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs', 'it']) {
       for (const key of keys) {
         const doc = getLegalDocument(locale, key, company)
         if (!doc) continue
@@ -24,7 +24,7 @@ describe('legal texts', () => {
   })
 
   it('names the online withdrawal function in terms and withdrawal policy of every locale', () => {
-    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs']) {
+    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs', 'it']) {
       for (const key of ['terms', 'withdrawal'] as const) {
         expect(
           JSON.stringify(getLegalDocument(locale, key, company)),
@@ -36,6 +36,13 @@ describe('legal texts', () => {
 
   it('has no German imprint/privacy data (those are Vue templates)', () => {
     expect(getLegalDocument('de', 'imprint', company)).toBeNull()
-    expect(getLegalDocument('xx', 'terms', company)).toBeNull()
+  })
+
+  it('serves the English text for every locale other than German', () => {
+    const en = getLegalDocument('en', 'terms', company)
+    for (const locale of ['fr', 'nl', 'pl', 'cs', 'it', 'xx']) {
+      expect(getLegalDocument(locale, 'terms', company), locale).toEqual(en)
+    }
+    expect(getLegalDocument('de', 'terms', company)).not.toEqual(en)
   })
 })

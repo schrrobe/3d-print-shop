@@ -32,6 +32,7 @@ const PERSONALIZATION_LABEL: Record<string, string> = {
   fr: 'Personnalisation',
   nl: 'Personalisatie',
   cs: 'Personalizace',
+  it: 'Personalizzazione',
 }
 
 const LABEL_TEXT_LABEL: Record<string, string> = {
@@ -41,6 +42,7 @@ const LABEL_TEXT_LABEL: Record<string, string> = {
   fr: 'Inscription',
   nl: 'Opschrift',
   cs: 'Nápis',
+  it: 'Scritta',
 }
 
 /** Custom lettering in the name snapshot; production prints the caliber when absent. */

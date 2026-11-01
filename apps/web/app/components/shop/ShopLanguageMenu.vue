@@ -16,6 +16,7 @@ const names: Record<string, string> = {
   fr: 'Français',
   nl: 'Nederlands',
   cs: 'Čeština',
+  it: 'Italiano',
 }
 
 function choose(code: string) {
