@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.5.2...web-v0.6.0) (2026-11-01)
+
+
+### Features
+
+* **shop:** Eröffnungs-Banner mit Rabattcode OPEN10 ([#73](https://github.com/schrrobe/3d-print-shop/issues/73)) ([2239e65](https://github.com/schrrobe/3d-print-shop/commit/2239e65fcc120e3750dd0c616a173d1270293811))
+
 ## [0.5.2](https://github.com/schrrobe/3d-print-shop/compare/web-v0.5.1...web-v0.5.2) (2026-11-01)
 
 
