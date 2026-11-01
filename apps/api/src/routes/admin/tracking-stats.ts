@@ -1,4 +1,4 @@
-import { FUNNEL_STAGES, REVENUE_ORDER_STATUSES } from '@print-shop/utils'
+import { ALL_EVENT_NAMES, FUNNEL_STAGES, REVENUE_ORDER_STATUSES } from '@print-shop/utils'
 import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -32,6 +32,9 @@ interface TimeseriesRow {
   sessions: bigint
   purchases: bigint
   revenue_cents: bigint | null
+}
+interface CountRow {
+  n: bigint
 }
 interface ChannelRow {
   channel: string
@@ -69,7 +72,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
         FROM "Order" o
         JOIN "Payment" p ON p."orderId" = o.id AND p.status = 'paid'
           AND p."paidAt" BETWEEN ${from} AND ${to}
-        WHERE o.status IN (${revenueStatusSql})
+        WHERE o.status::text IN (${revenueStatusSql})
         GROUP BY o.id, o."totalCents"
       ),
       orders AS (
@@ -94,7 +97,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
              COUNT(*)::bigint AS orders, SUM(o."totalCents")::bigint AS revenue_cents
       FROM "OrderAttribution" oa
       JOIN "Order" o ON o.id = oa."orderId"
-      WHERE o.status IN (${revenueStatusSql})
+      WHERE o.status::text IN (${revenueStatusSql})
         AND EXISTS (
           SELECT 1 FROM "Payment" p
           WHERE p."orderId" = o.id AND p.status = 'paid'
@@ -102,7 +105,39 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
         )
       GROUP BY 1, 2 ORDER BY revenue_cents DESC NULLS LAST`
 
-  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels] = await Promise.all([
+  const inRange = { gte: from, lte: to }
+  const top = <T extends { _count: { _all: number } }>(rows: T[], key: (r: T) => string | null) =>
+    rows.map((r) => ({ key: key(r) ?? '', count: r._count._all }))
+  const reachQuery = () =>
+    Promise.all([
+    prisma.$queryRaw<CountRow[]>`
+      SELECT COUNT(DISTINCT "visitorId")::bigint AS n
+      FROM "TrackingEvent"
+      WHERE "occurredAt" BETWEEN ${from} AND ${to}`,
+    prisma.trackingEvent.groupBy({
+      by: ['path'],
+      where: { name: 'page_view', occurredAt: inRange, path: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { path: 'desc' } },
+      take: 10,
+    }),
+    prisma.trackingSession.groupBy({
+      by: ['referrer'],
+      where: { startedAt: inRange, referrer: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { referrer: 'desc' } },
+      take: 10,
+    }),
+    prisma.trackingSession.groupBy({
+      by: ['utmSource'],
+      where: { startedAt: inRange, utmSource: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { utmSource: 'desc' } },
+      take: 10,
+    }),
+  ])
+
+  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels, reach] = await Promise.all([
     prisma.$queryRaw<FunnelRow[]>`
       SELECT name, COUNT(DISTINCT "sessionId")::bigint AS sessions
       FROM "TrackingEvent"
@@ -125,6 +160,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
     }),
     kpisOnly ? Promise.resolve<TimeseriesRow[]>([]) : timeseriesQuery,
     kpisOnly ? Promise.resolve<ChannelRow[]>([]) : channelsQuery,
+    kpisOnly ? null : reachQuery(),
   ])
 
   const funnelMap = new Map(funnel.map((r) => [r.name, Number(r.sessions)]))
@@ -169,6 +205,10 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
       orders: Number(r.orders),
       revenueCents: Number(r.revenue_cents ?? 0),
     })),
+    uniqueVisitors: Number(reach?.[0][0]?.n ?? 0),
+    topPages: top(reach?.[1] ?? [], (r) => r.path),
+    topReferrers: top(reach?.[2] ?? [], (r) => r.referrer),
+    topUtmSources: top(reach?.[3] ?? [], (r) => r.utmSource),
   }
 }
 
@@ -205,6 +245,55 @@ adminTrackingRouter.get('/overview', requirePermission('tracking:read'), async (
         lastEventAt: latest?.receivedAt ?? null,
         note: 'Behavioural funnel counts consented sessions only; purchase/revenue are server-truth.',
       },
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+const PAGE_SIZE = 50
+const eventsQuerySchema = z.object({
+  from: z.coerce.date(),
+  to: z.coerce.date(),
+  name: z.enum(ALL_EVENT_NAMES).optional(),
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+})
+
+/** Raw event log for the window (newest first). No PII: visitor id is truncated. */
+adminTrackingRouter.get('/events', requirePermission('tracking:read'), async (req, res, next) => {
+  try {
+    const { from, to, name, page } = eventsQuerySchema.parse(req.query)
+    if (from > to) throw badRequest('`from` must be before `to`')
+    const where: Prisma.TrackingEventWhereInput = { occurredAt: { gte: from, lte: to }, name }
+    const [total, rows] = await Promise.all([
+      prisma.trackingEvent.count({ where }),
+      prisma.trackingEvent.findMany({
+        where,
+        orderBy: { occurredAt: 'desc' },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          name: true,
+          source: true,
+          occurredAt: true,
+          path: true,
+          valueCents: true,
+          visitorId: true,
+          session: { select: { channel: true, utmSource: true, referrer: true } },
+        },
+      }),
+    ])
+    res.json({
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      items: rows.map(({ visitorId, session, ...e }) => ({
+        ...e,
+        visitor: visitorId?.slice(0, 8) ?? null,
+        channel: session?.channel ?? null,
+        origin: session?.utmSource ?? session?.referrer ?? null,
+      })),
     })
   } catch (err) {
     next(err)

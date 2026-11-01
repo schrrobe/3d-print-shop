@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     watcher: 'chokidar',
   },
 
-  modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode'],
+  modules: ['@pinia/nuxt', '@nuxtjs/i18n', '@nuxtjs/color-mode', 'nuxt-charts'],
 
   css: ['~/assets/css/main.css'],
 
