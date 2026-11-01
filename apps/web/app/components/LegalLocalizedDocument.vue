@@ -9,9 +9,15 @@ const { t, locale } = useI18n()
 
 <template>
   <PsSection :title="title" heading-level="h1">
-    <div class="max-w-[42rem] space-y-xl text-body-regular text-secondary">
+    <!-- Non-German locales get the English text (see getLegalDocument) -->
+    <div
+      class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
+      :lang="locale === 'de' ? 'de' : 'en'"
+    >
       <p>{{ document.updatedAt }}</p>
-      <p v-if="locale !== 'de'" class="text-caption">{{ t('legal.translationNote') }}</p>
+      <p v-if="locale !== 'de'" class="text-caption" :lang="locale">
+        {{ t('legal.translationNote') }}
+      </p>
       <section v-for="section in document.sections" :key="section.heading">
         <h2 class="text-heading-small text-primary">{{ section.heading }}</h2>
         <p

@@ -36,6 +36,13 @@ describe('legal texts', () => {
 
   it('has no German imprint/privacy data (those are Vue templates)', () => {
     expect(getLegalDocument('de', 'imprint', company)).toBeNull()
-    expect(getLegalDocument('xx', 'terms', company)).toBeNull()
+  })
+
+  it('serves the English text for every locale other than German', () => {
+    const en = getLegalDocument('en', 'terms', company)
+    for (const locale of ['fr', 'nl', 'pl', 'cs', 'it', 'xx']) {
+      expect(getLegalDocument(locale, 'terms', company), locale).toEqual(en)
+    }
+    expect(getLegalDocument('de', 'terms', company)).not.toEqual(en)
   })
 })
