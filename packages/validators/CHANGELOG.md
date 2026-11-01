@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.4.0...validators-v0.5.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** Promo-Banner im Admin an-/ausschalten und Inhalte pflegen ([#76](https://github.com/schrrobe/3d-print-shop/issues/76)) ([3439927](https://github.com/schrrobe/3d-print-shop/commit/34399271e312d0ed4f0908cfbbb6a38864ec0ce0))
+
 ## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.3.0...validators-v0.4.0) (2026-11-01)
 
 
