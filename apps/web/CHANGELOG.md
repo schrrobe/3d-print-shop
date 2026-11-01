@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.8.0...web-v0.9.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** Heatmap zeigt alle Länder mit Bestellungen ([#87](https://github.com/schrrobe/3d-print-shop/issues/87)) ([2b830e1](https://github.com/schrrobe/3d-print-shop/commit/2b830e1c45cbade702b1476e5845d2e08bbc38c6))
+* **i18n:** Italienisch als Shop-Sprache ([#84](https://github.com/schrrobe/3d-print-shop/issues/84)) ([673fd5c](https://github.com/schrrobe/3d-print-shop/commit/673fd5c0afd6e1fc05f0b925ca5bd444c3434d0e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.2.1
+    * @print-shop/types bumped to 0.1.0
+    * @print-shop/ui bumped to 0.2.0
+    * @print-shop/utils bumped to 0.4.0
+    * @print-shop/validators bumped to 0.5.1
+
 ## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.7.0...web-v0.8.0) (2026-11-01)
 
 
