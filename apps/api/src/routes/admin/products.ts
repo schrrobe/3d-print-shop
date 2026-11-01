@@ -19,6 +19,7 @@ import { prisma } from '../../lib/prisma.js'
 import { randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, notFound } from '../../middleware/error.js'
+import { loadDefaultColors, withDefaultColors } from '../../services/default-colors.js'
 
 export const adminProductsRouter = Router()
 
@@ -126,7 +127,7 @@ adminProductsRouter.post('/', requirePermission('products:write'), async (req, r
         familyKey: input.familyKey ?? null,
         calibers: { connect: caliberIds },
         translations: { create: input.translations },
-        colorSlots: { create: input.colorSlots },
+        colorSlots: { create: withDefaultColors(input.colorSlots, await loadDefaultColors()) },
       },
       include,
     })

@@ -978,6 +978,9 @@ model ShopSettings {
   /// so content only: { code: string | null, content: { de: {title,text,cta}, en?: … } }.
   promoBannerEnabled Boolean  @default(false)
   promoBanner        Json?
+  /// Shop-wide default color per zone: Record<ColorZoneSlot, colorId>. Saving copies it
+  /// onto every product's ProductColorSlot; new products start with it.
+  defaultColors      Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

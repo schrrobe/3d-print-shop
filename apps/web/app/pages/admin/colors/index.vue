@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { PsAdminTable, PsBadge, PsButton, PsColorSwatch, PsDialog, PsInput } from '@print-shop/ui'
+import { COLOR_ZONE_SLOTS, type ColorZoneSlot } from '@print-shop/types'
+import {
+  PsAdminTable,
+  PsBadge,
+  PsButton,
+  PsCard,
+  PsColorSwatch,
+  PsDialog,
+  PsInput,
+  PsSelect,
+} from '@print-shop/ui'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -74,6 +84,56 @@ function toggleActive(color: AdminColor) {
   )
 }
 
+// ---------- Shop-wide default color per zone ----------
+
+const ZONE_LABELS: Record<ColorZoneSlot, string> = {
+  zone_1_main: 'Hauptfarbe',
+  zone_2_accent: 'Akzentfarbe',
+  zone_3_detail: 'Detailfarbe',
+  zone_4_text: 'Textfarbe',
+}
+// 'none' sentinel: Radix SelectItem forbids empty-string values
+const NO_DEFAULT = 'none'
+type Defaults = Partial<Record<ColorZoneSlot, string>>
+
+const { data: defaultsData, refresh: refreshDefaults } = await useFetch<{ defaults: Defaults }>(
+  '/api/admin/colors/defaults',
+  { credentials: 'include', server: false },
+)
+const defaults = reactive(
+  Object.fromEntries(COLOR_ZONE_SLOTS.map((z) => [z, NO_DEFAULT])) as Record<ColorZoneSlot, string>,
+)
+watch(
+  defaultsData,
+  (d) => {
+    for (const z of COLOR_ZONE_SLOTS) defaults[z] = d?.defaults[z] ?? NO_DEFAULT
+  },
+  { immediate: true },
+)
+const defaultColorOptions = computed(() => [
+  { value: NO_DEFAULT, label: '– nicht festgelegt –' },
+  ...(data.value?.colors ?? [])
+    .filter((c) => c.active)
+    .map((c) => ({ value: c.id, label: c.name })),
+])
+const { run: runDefaults, pending: savingDefaults } = useAdminAction({ refresh: refreshDefaults })
+
+function saveDefaults() {
+  return runDefaults(
+    () =>
+      $fetch('/api/admin/colors/defaults', {
+        method: 'PUT',
+        credentials: 'include',
+        body: {
+          defaults: Object.fromEntries(
+            COLOR_ZONE_SLOTS.filter((z) => defaults[z] !== NO_DEFAULT).map((z) => [z, defaults[z]]),
+          ),
+        },
+      }),
+    { success: 'Standardfarben für alle Produkte gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
+}
+
 const columns = [
   { key: 'hex', label: '' },
   { key: 'name', label: 'Farbe' },
@@ -91,6 +151,30 @@ const columns = [
     <div v-if="auth.can('colors:write')" class="mb-lg">
       <PsButton data-testid="new-color" @click="openCreate">Neue Farbe</PsButton>
     </div>
+
+    <PsCard class="mb-lg" data-testid="default-colors">
+      <h3 class="text-label-medium">Standardfarben</h3>
+      <p class="mt-xs text-caption text-secondary">
+        Gelten für alle Produkte: Speichern überschreibt die Standardfarbe dieser Zone bei jedem
+        Produkt, neue Produkte übernehmen sie. Pro Produkt weiterhin anpassbar.
+      </p>
+      <form class="mt-md grid gap-md sm:grid-cols-2 lg:grid-cols-4" @submit.prevent="saveDefaults">
+        <PsSelect
+          v-for="zone in COLOR_ZONE_SLOTS"
+          :key="zone"
+          v-model="defaults[zone]"
+          :label="ZONE_LABELS[zone]"
+          :options="defaultColorOptions"
+          :data-testid="`default-color-${zone}`"
+          :disabled="!auth.can('colors:write')"
+        />
+        <div v-if="auth.can('colors:write')" class="sm:col-span-2 lg:col-span-4">
+          <PsButton type="submit" :disabled="savingDefaults" data-testid="save-default-colors">
+            Auf alle Produkte anwenden
+          </PsButton>
+        </div>
+      </form>
+    </PsCard>
 
     <PsAdminTable :columns="columns" :rows="data?.colors ?? []" empty="Keine Farben">
       <template #cell-hex="{ value }">
