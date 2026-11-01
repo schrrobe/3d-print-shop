@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.5.0...api-v0.6.0) (2026-11-01)
+
+
+### Features
+
+* **shop:** Stripe-Zahlungsformular an Shop-Design angepasst ([#69](https://github.com/schrrobe/3d-print-shop/issues/69)) ([2d6a21c](https://github.com/schrrobe/3d-print-shop/commit/2d6a21ca9e817fdc5860e952789242ab90a34133))
+
 ## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.4.0...api-v0.5.0) (2026-11-01)
 
 

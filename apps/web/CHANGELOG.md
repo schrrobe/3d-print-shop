@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/schrrobe/3d-print-shop/compare/web-v0.5.1...web-v0.5.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **shop:** Stripe-Zahlschritt startet oben auf der Seite ([#72](https://github.com/schrrobe/3d-print-shop/issues/72)) ([a7e2c1a](https://github.com/schrrobe/3d-print-shop/commit/a7e2c1a9e9ceb36eb9a512e38fffab1ee266d204))
+
 ## [0.5.1](https://github.com/schrrobe/3d-print-shop/compare/web-v0.5.0...web-v0.5.1) (2026-11-01)
 
 
