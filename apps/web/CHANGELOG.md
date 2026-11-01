@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.7.0...web-v0.8.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** Bestellbestätigung aus der Bestellung erneut senden ([#79](https://github.com/schrrobe/3d-print-shop/issues/79)) ([959dae5](https://github.com/schrrobe/3d-print-shop/commit/959dae56ddb906a66bc33b833b948526563be547))
+
 ## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.6.0...web-v0.7.0) (2026-11-01)
 
 
