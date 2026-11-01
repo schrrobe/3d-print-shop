@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const tx = {
+  $executeRaw: vi.fn(),
   shopSettings: { upsert: vi.fn() },
   productColorSlot: { updateMany: vi.fn() },
 }
@@ -13,7 +14,7 @@ vi.mock('../src/lib/prisma.js', () => ({
 }))
 
 const { prisma } = await import('../src/lib/prisma.js')
-const { loadDefaultColors, saveDefaultColors, withDefaultColors } =
+const { dropDefaultColor, loadDefaultColors, saveDefaultColors, withDefaultColors } =
   await import('../src/services/default-colors.js')
 
 const BLACK = 'cmblack00000000000000000'
@@ -48,12 +49,34 @@ describe('default colors', () => {
       data: { defaultColorId: BLACK },
     })
     expect(tx.productColorSlot.updateMany).toHaveBeenCalledTimes(2)
+    expect(tx.$executeRaw).toHaveBeenCalledOnce()
   })
 
   it('rejects unknown colors without writing', async () => {
     vi.mocked(prisma.color.count).mockResolvedValue(0)
     await expect(saveDefaultColors({ zone_1_main: BLACK })).rejects.toThrow('Unknown color')
     expect(tx.shopSettings.upsert).not.toHaveBeenCalled()
+  })
+
+  it('drops a deleted color from the defaults, leaving others', async () => {
+    const db = {
+      $executeRaw: vi.fn(),
+      shopSettings: {
+        findUnique: vi.fn().mockResolvedValue({
+          defaultColors: { zone_1_main: BLACK, zone_2_accent: WHITE, zone_3_detail: BLACK },
+        }),
+        update: vi.fn(),
+      },
+    }
+    await dropDefaultColor(db as never, BLACK)
+    expect(db.shopSettings.update).toHaveBeenCalledWith({
+      where: { id: 'singleton' },
+      data: { defaultColors: { zone_2_accent: WHITE } },
+    })
+
+    db.shopSettings.update.mockClear()
+    await dropDefaultColor(db as never, 'cmother00000000000000000')
+    expect(db.shopSettings.update).not.toHaveBeenCalled()
   })
 
   it('fills only slots without their own default', () => {

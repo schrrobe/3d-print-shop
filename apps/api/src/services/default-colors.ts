@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import type { ColorSelection, ColorZoneSlot } from '@print-shop/types'
 import { colorSelectionSchema } from '@print-shop/validators'
 import { prisma } from '../lib/prisma.js'
@@ -5,13 +6,32 @@ import { badRequest } from '../middleware/error.js'
 
 const SINGLETON_ID = 'singleton'
 
-export async function loadDefaultColors(): Promise<ColorSelection> {
-  const row = await prisma.shopSettings.findUnique({
+export async function loadDefaultColors(
+  db: Prisma.TransactionClient = prisma,
+): Promise<ColorSelection> {
+  const row = await db.shopSettings.findUnique({
     where: { id: SINGLETON_ID },
     select: { defaultColors: true },
   })
   const parsed = colorSelectionSchema.safeParse(row?.defaultColors ?? {})
   return parsed.success ? parsed.data : {}
+}
+
+/**
+ * Serialises everything that reads or writes the defaults inside a transaction (save, product
+ * create, color delete). An advisory lock, since the settings row may not exist yet to row-lock.
+ */
+export async function lockDefaultColors(tx: Prisma.TransactionClient) {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('default-colors'))`
+}
+
+/** Removes a color being deleted from the shop defaults, so new products don't reference it. */
+export async function dropDefaultColor(tx: Prisma.TransactionClient, colorId: string) {
+  await lockDefaultColors(tx)
+  const defaults = await loadDefaultColors(tx)
+  if (!Object.values(defaults).includes(colorId)) return
+  const kept = Object.fromEntries(Object.entries(defaults).filter(([, id]) => id !== colorId))
+  await tx.shopSettings.update({ where: { id: SINGLETON_ID }, data: { defaultColors: kept } })
 }
 
 /** Saves the shop-wide defaults and copies them onto every product's slot of that zone. */
@@ -23,6 +43,7 @@ export async function saveDefaultColors(input: ColorSelection): Promise<number> 
 
   const defaultColors = Object.fromEntries(entries)
   return prisma.$transaction(async (tx) => {
+    await lockDefaultColors(tx)
     await tx.shopSettings.upsert({
       where: { id: SINGLETON_ID },
       create: { id: SINGLETON_ID, defaultColors },

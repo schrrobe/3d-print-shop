@@ -19,7 +19,11 @@ import { prisma } from '../../lib/prisma.js'
 import { randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, notFound } from '../../middleware/error.js'
-import { loadDefaultColors, withDefaultColors } from '../../services/default-colors.js'
+import {
+  loadDefaultColors,
+  lockDefaultColors,
+  withDefaultColors,
+} from '../../services/default-colors.js'
 
 export const adminProductsRouter = Router()
 
@@ -118,18 +122,22 @@ adminProductsRouter.post('/', requirePermission('products:write'), async (req, r
   try {
     const input = productCreateSchema.parse(req.body)
     const caliberIds = input.caliberSlugs ? await caliberIdsForSlugs(input.caliberSlugs) : []
-    const product = await prisma.product.create({
-      data: {
-        slug: input.slug,
-        priceCents: input.priceCents,
-        active: input.active,
-        capacity: input.capacity ?? null,
-        familyKey: input.familyKey ?? null,
-        calibers: { connect: caliberIds },
-        translations: { create: input.translations },
-        colorSlots: { create: withDefaultColors(input.colorSlots, await loadDefaultColors()) },
-      },
-      include,
+    // Under the defaults lock, so a concurrent default-color save can't miss this product's slots.
+    const product = await prisma.$transaction(async (tx) => {
+      await lockDefaultColors(tx)
+      return tx.product.create({
+        data: {
+          slug: input.slug,
+          priceCents: input.priceCents,
+          active: input.active,
+          capacity: input.capacity ?? null,
+          familyKey: input.familyKey ?? null,
+          calibers: { connect: caliberIds },
+          translations: { create: input.translations },
+          colorSlots: { create: withDefaultColors(input.colorSlots, await loadDefaultColors(tx)) },
+        },
+        include,
+      })
     })
     await audit(req, 'product.create', { type: 'product', id: product.id }, { slug: input.slug })
     res.status(201).json({ product })

@@ -110,12 +110,15 @@ watch(
   },
   { immediate: true },
 )
-const defaultColorOptions = computed(() => [
-  { value: NO_DEFAULT, label: '– nicht festgelegt –' },
-  ...(data.value?.colors ?? [])
-    .filter((c) => c.active)
-    .map((c) => ({ value: c.id, label: c.name })),
-])
+// Inactive colors stay visible only where already selected, so the card shows what a save reapplies.
+function defaultColorOptions(zone: ColorZoneSlot) {
+  return [
+    { value: NO_DEFAULT, label: '– nicht festgelegt –' },
+    ...(data.value?.colors ?? [])
+      .filter((c) => c.active || c.id === defaults[zone])
+      .map((c) => ({ value: c.id, label: c.active ? c.name : `${c.name} (inaktiv)` })),
+  ]
+}
 const { run: runDefaults, pending: savingDefaults } = useAdminAction({ refresh: refreshDefaults })
 
 function saveDefaults() {
@@ -164,7 +167,7 @@ const columns = [
           :key="zone"
           v-model="defaults[zone]"
           :label="ZONE_LABELS[zone]"
-          :options="defaultColorOptions"
+          :options="defaultColorOptions(zone)"
           :data-testid="`default-color-${zone}`"
           :disabled="!auth.can('colors:write')"
         />

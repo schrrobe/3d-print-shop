@@ -4,7 +4,11 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { notFound } from '../../middleware/error.js'
-import { loadDefaultColors, saveDefaultColors } from '../../services/default-colors.js'
+import {
+  dropDefaultColor,
+  loadDefaultColors,
+  saveDefaultColors,
+} from '../../services/default-colors.js'
 
 export const adminColorsRouter = Router()
 
@@ -73,7 +77,10 @@ adminColorsRouter.delete('/:id', requirePermission('colors:write'), async (req, 
   try {
     const existing = await prisma.color.findUnique({ where: { id: String(req.params.id) } })
     if (!existing) throw notFound('Color not found')
-    await prisma.color.delete({ where: { id: existing.id } })
+    await prisma.$transaction(async (tx) => {
+      await dropDefaultColor(tx, existing.id)
+      await tx.color.delete({ where: { id: existing.id } })
+    })
     await audit(req, 'color.delete', { type: 'color', id: existing.id }, { name: existing.name })
     res.json({ ok: true })
   } catch (err) {
