@@ -67,8 +67,6 @@ const envSchema = z
     /// Steuernummer — printed in the footer (§14 UStG mandatory detail)
     COMPANY_TAX_NUMBER: z.string().default('12/345/67890'),
     COMPANY_OWNER: z.string().default('Max Mustermann'),
-    /// Optional PNG/JPEG letterhead logo; empty = company name rendered as text
-    INVOICE_LOGO_PATH: z.string().optional().default(''),
     PAYMENT_TERMS_DAYS: z.coerce.number().int().min(0).default(14),
     // §19 UStG small-business VAT-exemption note. Default true reflects the current
     // small-business status; flip to 'false' once VAT-liable (no code change needed).

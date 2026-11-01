@@ -65,7 +65,6 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
 function invoiceCompany(): CompanyInfo {
   return {
     ...company(),
-    logoPath: env.INVOICE_LOGO_PATH,
     paymentTermsDays: env.PAYMENT_TERMS_DAYS,
   }
 }
