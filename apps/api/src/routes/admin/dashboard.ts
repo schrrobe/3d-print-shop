@@ -2,7 +2,7 @@ import { Router } from 'express'
 import type { OrderStatus } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
-import { buyerLocations } from '../../services/buyer-locations.js'
+import { buyerCountries, buyerLocations } from '../../services/buyer-locations.js'
 
 export const adminDashboardRouter = Router()
 
@@ -28,6 +28,7 @@ adminDashboardRouter.get('/', requirePermission('dashboard:read'), async (_req, 
       printers,
       productionWaiting: queueWaiting,
       buyerLocations: buyerLocations(paidAddresses),
+      buyerCountries: buyerCountries(paidAddresses),
       paymentMethods: paymentsByMethod
         .map((p) => ({ method: p.method, count: p._count, amountCents: p._sum.amountCents ?? 0 }))
         .sort((a, b) => b.count - a.count),

@@ -14,6 +14,7 @@ interface Dashboard {
   printers: { id: string; name: string; status: PrinterStatus }[]
   productionWaiting: number
   buyerLocations: { lat: number; lon: number; count: number }[]
+  buyerCountries: string[]
   paymentMethods: { method: string; count: number; amountCents: number }[]
 }
 
@@ -185,9 +186,9 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
             </ul>
           </template>
           <template v-else-if="id === 'buyerMap'">
-            <p v-if="!data.buyerLocations.length" class="text-caption text-secondary">Noch keine Bestellungen mit bekannter PLZ.</p>
+            <p v-if="!data.buyerCountries.length" class="text-caption text-secondary">Noch keine Bestellungen.</p>
             <template v-else>
-              <AdminBuyerMap :places="data.buyerLocations" :height="mapHeight" />
+              <AdminBuyerMap :places="data.buyerLocations" :countries="data.buyerCountries" :height="mapHeight" />
               <p class="mt-xs text-caption text-secondary">
                 {{ buyerCount }} {{ buyerCount === 1 ? 'Bestellung' : 'Bestellungen' }} · PLZ-Daten:
                 <a href="https://www.geonames.org/" class="underline" rel="noopener">GeoNames</a> (CC BY 4.0)

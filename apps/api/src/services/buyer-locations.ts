@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 let postalCoordinates: Map<string, [number, number]> | undefined
 
-/** Postcode centroid in DE/AT/CH (GeoNames table, loaded on first use). */
+/** Postcode centroid for the checkout countries (GeoNames table, loaded on first use). */
 function coordinatesOf(country: string, zip: string) {
   postalCoordinates ??= new Map(
     readFileSync(new URL('../../assets/geo/postal-codes.tsv', import.meta.url), 'utf8')
@@ -13,7 +13,15 @@ function coordinatesOf(country: string, zip: string) {
         return [`${c}-${plz}`, [Number(lat), Number(lon)]] as const
       }),
   )
-  return postalCoordinates.get(`${country.trim().toUpperCase()}-${zip.trim()}`)
+  // table keys are digits only: '1011 AB' (NL) -> 1011, 'L-4968' (LU) -> 4968, '59-700' (PL) -> 59700
+  return postalCoordinates.get(`${countryCode(country)}-${zip.replace(/\D/g, '')}`)
+}
+
+const countryCode = (country: string) => country.trim().toUpperCase()
+
+/** ISO codes of every country with at least one order, whether or not its postcode is known. */
+export function buyerCountries(orders: { country: string }[]) {
+  return [...new Set(orders.map((o) => countryCode(o.country)))]
 }
 
 /** Orders per postcode centroid of the shipping address; unknown postcodes are dropped. */
