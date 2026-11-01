@@ -141,6 +141,9 @@ const { mountEl: stripeMount, mount: mountStripeCheckout } = useStripeEmbedded()
 
 async function mountStripe(response: CheckoutResponse) {
   stripeOrder.value = response
+  // Same route, so the router doesn't scroll — the form is replaced by the payment step
+  // while the customer is still down at the submit button.
+  window.scrollTo({ top: 0 })
   await mountStripeCheckout(
     {
       clientSecret: response.payment.clientSecret ?? '',
