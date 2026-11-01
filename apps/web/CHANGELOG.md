@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.4.0...web-v0.5.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** eigene Reichweitenmessung mit Top-Listen, Eventliste und nuxt-charts ([#65](https://github.com/schrrobe/3d-print-shop/issues/65)) ([007bf8c](https://github.com/schrrobe/3d-print-shop/commit/007bf8cbe7082be35e9525177298a8401c4a5159))
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#64](https://github.com/schrrobe/3d-print-shop/issues/64)) ([65b04e6](https://github.com/schrrobe/3d-print-shop/commit/65b04e6d6179a2bd4447bbf27331103a82546339))
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#66](https://github.com/schrrobe/3d-print-shop/issues/66)) ([5e41f57](https://github.com/schrrobe/3d-print-shop/commit/5e41f57a7243831401025943713f51d4f0a24dcc))
+* **shop:** Grafik zeigt immer "Kaliber", Schriftzug nicht mehr frei wählbar ([#61](https://github.com/schrrobe/3d-print-shop/issues/61)) ([a242b33](https://github.com/schrrobe/3d-print-shop/commit/a242b3304825f799d9d3965c020d567b426921a9))
+
+
+### Bug Fixes
+
+* **admin:** Navigation auf dem Handy, keine Hydration-Fehler mehr ([#67](https://github.com/schrrobe/3d-print-shop/issues/67)) ([856af28](https://github.com/schrrobe/3d-print-shop/commit/856af28a9530bfe57fd8811cd4019e3befa90778))
+* **shop:** kein seitliches Scrollen mehr auf dem Handy ([#62](https://github.com/schrrobe/3d-print-shop/issues/62)) ([af2434a](https://github.com/schrrobe/3d-print-shop/commit/af2434a81a4c23238cc6557f3acc895659fcebe6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.2.0
+    * @print-shop/ui bumped to 0.1.1
+    * @print-shop/utils bumped to 0.3.0
+    * @print-shop/validators bumped to 0.4.0
+
 ## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.3.0...web-v0.4.0) (2026-10-31)
 
 

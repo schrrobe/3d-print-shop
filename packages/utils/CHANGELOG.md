@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.2.0...utils-v0.3.0) (2026-11-01)
+
+
+### Features
+
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#64](https://github.com/schrrobe/3d-print-shop/issues/64)) ([65b04e6](https://github.com/schrrobe/3d-print-shop/commit/65b04e6d6179a2bd4447bbf27331103a82546339))
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#66](https://github.com/schrrobe/3d-print-shop/issues/66)) ([5e41f57](https://github.com/schrrobe/3d-print-shop/commit/5e41f57a7243831401025943713f51d4f0a24dcc))
+
 ## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.1.0...utils-v0.2.0) (2026-10-31)
 
 

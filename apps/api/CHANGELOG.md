@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.4.0...api-v0.5.0) (2026-11-01)
+
+
+### Features
+
+* **admin:** eigene Reichweitenmessung mit Top-Listen, Eventliste und nuxt-charts ([#65](https://github.com/schrrobe/3d-print-shop/issues/65)) ([007bf8c](https://github.com/schrrobe/3d-print-shop/commit/007bf8cbe7082be35e9525177298a8401c4a5159))
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#64](https://github.com/schrrobe/3d-print-shop/issues/64)) ([65b04e6](https://github.com/schrrobe/3d-print-shop/commit/65b04e6d6179a2bd4447bbf27331103a82546339))
+* **legal:** elektronische Widerrufsfunktion und Rechtstexte-Audit ([#66](https://github.com/schrrobe/3d-print-shop/issues/66)) ([5e41f57](https://github.com/schrrobe/3d-print-shop/commit/5e41f57a7243831401025943713f51d4f0a24dcc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.2.0
+    * @print-shop/utils bumped to 0.3.0
+    * @print-shop/validators bumped to 0.4.0
+
 ## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.3.0...api-v0.4.0) (2026-10-31)
 
 
