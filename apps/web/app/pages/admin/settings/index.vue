@@ -315,5 +315,6 @@ function saveCompany() {
         </div>
       </form>
     </PsCard>
+    <AdminPromoBannerCard />
   </div>
 </template>

@@ -53,8 +53,6 @@ export default defineNuxtConfig({
     public: {
       apiBase: '/api',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
-      // Shop-opening promo modal (OPEN10); flip at runtime via NUXT_PUBLIC_PROMO_BANNER=true
-      promoBanner: false,
       company: {
         name:
           process.env.NUXT_PUBLIC_COMPANY_NAME ?? process.env.COMPANY_NAME ?? 'Robert Schreiner',

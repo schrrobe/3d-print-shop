@@ -424,6 +424,37 @@ export const companySettingsSchema = z.object({
 })
 export type CompanySettingsInput = z.infer<typeof companySettingsSchema>
 
+// ---------- Admin: promo banner ----------
+
+const promoBannerContentSchema = z.object({
+  title: z.string().trim().max(120).default(''),
+  text: z.string().trim().max(600).default(''),
+  cta: z.string().trim().max(60).default(''),
+})
+export type PromoBannerContent = z.infer<typeof promoBannerContentSchema>
+
+/** German is required; other locales may stay empty and fall back to German field by field. */
+export const promoBannerSchema = z.object({
+  enabled: z.boolean(),
+  /** Voucher code shown in the modal; empty = info banner without code. */
+  code: z.preprocess(
+    (v) => (typeof v === 'string' ? v.trim().toUpperCase() || null : v),
+    z
+      .string()
+      .max(40)
+      .regex(/^[A-Z0-9_-]+$/, 'Only letters, digits, - and _')
+      .nullable(),
+  ),
+  content: z.record(z.enum(LOCALES), promoBannerContentSchema).superRefine((content, ctx) => {
+    for (const field of ['title', 'text', 'cta'] as const) {
+      if (!content.de?.[field]) {
+        ctx.addIssue({ code: 'custom', path: ['de', field], message: 'Required in German' })
+      }
+    }
+  }),
+})
+export type PromoBannerInput = z.infer<typeof promoBannerSchema>
+
 // ---------- Payments ----------
 
 export const markPaidSchema = z.object({

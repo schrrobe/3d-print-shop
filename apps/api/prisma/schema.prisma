@@ -974,6 +974,10 @@ model ShopSettings {
   invoiceBccEmail    String?
   /// §19 UStG small business (no VAT, tax number optional). NULL = COMPANY_VAT_EXEMPT env.
   vatExempt          Boolean?
+  /// Shop promo modal (opens on the first product page). Public via /api/promo-banner,
+  /// so content only: { code: string | null, content: { de: {title,text,cta}, en?: … } }.
+  promoBannerEnabled Boolean  @default(false)
+  promoBanner        Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

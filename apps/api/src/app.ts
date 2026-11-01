@@ -32,6 +32,7 @@ import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { adminSalesChannelsRouter } from './routes/admin/sales-channels.js'
 import { checkoutRouter } from './routes/public/checkout.js'
+import { promoBannerRouter } from './routes/public/promo-banner.js'
 import { trackingSettingsRouter } from './routes/public/tracking-settings.js'
 import { calibersRouter } from './routes/public/calibers.js'
 import { colorsRouter } from './routes/public/colors.js'
@@ -108,6 +109,7 @@ export function createApp(): Express {
   // Social post media must be public: Meta fetches images by URL at publish time
   app.use('/api/social-media', socialMediaRouter)
   app.use('/api/tracking-settings', trackingSettingsRouter)
+  app.use('/api/promo-banner', promoBannerRouter)
 
   // Admin API (session cookie + RBAC per route)
   app.use('/api/admin', adminMutationLimiter)

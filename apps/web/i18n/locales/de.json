@@ -548,10 +548,7 @@
       "vat": "Kleinunternehmer gemäß § 19 UStG"
     },
     "promo": {
-      "title": "Wir haben eröffnet!",
-      "text": "Zur Shop-Eröffnung bekommen die ersten {count} Bestellungen {percent} % Rabatt. Gib einfach diesen Code an der Kasse ein:",
       "codeLabel": "Rabattcode",
-      "cta": "Jetzt stöbern",
       "copy": "Code kopieren",
       "copied": "Kopiert!"
     }

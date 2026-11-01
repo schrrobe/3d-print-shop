@@ -1,31 +1,52 @@
 <script setup lang="ts">
 import { PsDialog } from '@print-shop/ui'
+import type { PromoBannerInput } from '@print-shop/validators'
 
-// Shop-opening promo. Switched on via NUXT_PUBLIC_PROMO_BANNER=true (web.env), no rebuild.
-// The "first 20 orders" limit lives on the OPEN10 voucher (maxRedemptions), not here.
-const CODE = 'OPEN10'
-const SEEN_KEY = 'kb-promo-open10-seen'
+// Promo modal, managed in admin (Einstellungen → Promo-Banner). The API returns null when it is
+// switched off or its voucher can no longer be redeemed (e.g. all 20 uses gone).
+type Banner = Omit<PromoBannerInput, 'enabled'>
+const SEEN_KEY = 'kb-promo-seen'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const routeBaseName = useRouteBaseName()
 const consent = useConsentStore()
-const enabled = useRuntimeConfig().public.promoBanner
+const banner = ref<Banner | null>(null)
 const open = ref(false)
 const copied = ref(false)
+let fetched = false
 
-function seen() {
+// Empty fields in the visitor's language fall back to German.
+const text = computed(() => {
+  const de = banner.value?.content.de
+  const own = banner.value?.content[locale.value as keyof Banner['content']]
+  return {
+    title: own?.title || de?.title || '',
+    text: own?.text || de?.text || '',
+    cta: own?.cta || de?.cta || '',
+  }
+})
+
+// A new campaign (other code or headline) shows again for visitors who saw the last one.
+const campaignId = (b: Banner) => `${b.code ?? ''}|${b.content.de?.title ?? ''}`
+
+function seenCampaign() {
   try {
-    return localStorage.getItem(SEEN_KEY) !== null
+    return localStorage.getItem(SEEN_KEY)
   } catch {
-    return false
+    return null
   }
 }
 
-function show() {
+async function maybeShow() {
+  if (fetched) return
+  fetched = true
+  const res = await $fetch<{ banner: Banner | null }>('/api/promo-banner').catch(() => null)
+  if (!res?.banner || seenCampaign() === campaignId(res.banner)) return
+  banner.value = res.banner
   open.value = true
   try {
-    localStorage.setItem(SEEN_KEY, '1')
+    localStorage.setItem(SEEN_KEY, campaignId(res.banner))
   } catch {
     // private mode: banner may show again next visit, harmless
   }
@@ -35,14 +56,15 @@ function show() {
 watch(
   () => consent.hydrated && !consent.bannerVisible && routeBaseName(route) === 'products-slug',
   (ready) => {
-    if (ready && enabled && !seen()) show()
+    if (ready) void maybeShow()
   },
   { immediate: true },
 )
 
 async function copyCode() {
+  if (!banner.value?.code) return
   try {
-    await navigator.clipboard.writeText(CODE)
+    await navigator.clipboard.writeText(banner.value.code)
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
   } catch {
@@ -52,13 +74,14 @@ async function copyCode() {
 </script>
 
 <template>
-  <PsDialog v-model:open="open" :title="t('shop.promo.title')">
+  <PsDialog v-if="banner" v-model:open="open" :title="text.title">
     <div class="flex flex-col gap-4" data-testid="promo-banner">
-      <p class="text-ink-2">{{ t('shop.promo.text', { count: 20, percent: 10 }) }}</p>
+      <p class="whitespace-pre-line text-ink-2">{{ text.text }}</p>
       <button
+        v-if="banner.code"
         type="button"
         class="flex cursor-pointer flex-col items-center gap-1 border-2 border-dashed border-ink py-3 hover:bg-paper"
-        :aria-label="`${t('shop.promo.copy')}: ${CODE}`"
+        :aria-label="`${t('shop.promo.copy')}: ${banner.code}`"
         data-testid="promo-copy"
         @click="copyCode"
       >
@@ -66,12 +89,14 @@ async function copyCode() {
           {{ copied ? t('shop.promo.copied') : t('shop.promo.codeLabel') }}
         </span>
         <span class="flex items-center gap-2">
-          <span class="select-all font-mono text-2xl font-bold tracking-widest">{{ CODE }}</span>
+          <span class="select-all font-mono text-2xl font-bold tracking-widest">{{
+            banner.code
+          }}</span>
           <ShopIcon :name="copied ? 'check' : 'copy'" :size="22" />
         </span>
       </button>
       <button type="button" class="kb-btn kb-btn-ink" @click="open = false">
-        {{ t('shop.promo.cta') }}
+        {{ text.cta }}
       </button>
     </div>
   </PsDialog>
