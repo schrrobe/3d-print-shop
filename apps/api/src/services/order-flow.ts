@@ -228,12 +228,13 @@ export async function notifyShipped(orderId: string): Promise<void> {
   )
 }
 
-export async function sendOrderConfirmation(orderId: string): Promise<void> {
+/** Also used by the admin "resend" action; returns whether the mail was accepted. */
+export async function sendOrderConfirmation(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUniqueOrThrow({
     where: { id: orderId },
     include: { items: true },
   })
-  await sendEmail(
+  return sendEmail(
     order.email,
     'order_confirmation',
     renderOrderConfirmation(

@@ -62,6 +62,17 @@ function resendInvoice() {
   )
 }
 
+function resendConfirmation() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/confirmation/resend`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Bestellbestätigung versendet', error: 'Versand der Bestellbestätigung fehlgeschlagen' },
+  )
+}
+
 function setStatus(status: OrderStatus) {
   return run(
     () =>
@@ -138,6 +149,16 @@ function ship() {
             Rechnung erneut senden
           </PsButton>
         </div>
+        <PsButton
+          v-if="auth.can('orders:write')"
+          class="mt-md"
+          variant="secondary"
+          :disabled="pending"
+          data-testid="resend-confirmation"
+          @click="resendConfirmation"
+        >
+          Bestellbestätigung erneut senden
+        </PsButton>
       </PsCard>
 
       <PsCard>

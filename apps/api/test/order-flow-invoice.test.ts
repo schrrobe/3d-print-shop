@@ -31,7 +31,7 @@ vi.mock('../src/services/tracking/outbox.js', () => ({ recordPurchaseWithOutbox:
 const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
 const { generateInvoicePdf } = await import('../src/services/invoice.js')
-const { markOrderPaid, resendInvoice } = await import('../src/services/order-flow.js')
+const { markOrderPaid, resendInvoice, sendOrderConfirmation } = await import('../src/services/order-flow.js')
 
 const db = prisma as unknown as {
   tx: {
@@ -162,5 +162,14 @@ describe('resendInvoice', () => {
 
     await expect(resendInvoice('o1')).resolves.toBe('no_invoice')
     expect(sendEmail).not.toHaveBeenCalled()
+  })
+})
+
+describe('sendOrderConfirmation', () => {
+  it('reports whether the confirmation mail was accepted', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('paid', {}))
+    vi.mocked(sendEmail).mockResolvedValueOnce(false)
+    await expect(sendOrderConfirmation('o1')).resolves.toBe(false)
+    expect(vi.mocked(sendEmail).mock.calls[0]?.[1]).toBe('order_confirmation')
   })
 })
