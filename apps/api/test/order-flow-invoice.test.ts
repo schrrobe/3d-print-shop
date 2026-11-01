@@ -31,7 +31,7 @@ vi.mock('../src/services/tracking/outbox.js', () => ({ recordPurchaseWithOutbox:
 const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
 const { generateInvoicePdf } = await import('../src/services/invoice.js')
-const { markOrderPaid } = await import('../src/services/order-flow.js')
+const { markOrderPaid, resendInvoice } = await import('../src/services/order-flow.js')
 
 const db = prisma as unknown as {
   tx: {
@@ -122,5 +122,45 @@ describe('markOrderPaid invoice handling', () => {
 
     expect(vi.mocked(sendEmail).mock.calls.map((c) => c[1])).not.toContain('invoice')
     expect(db.invoice.update).not.toHaveBeenCalled()
+  })
+})
+
+describe('resendInvoice', () => {
+  it('mails an already-sent invoice again (lease ignores sentAt)', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(
+      order('paid', { pdfPath: '/p.pdf', sentAt: new Date() }),
+    )
+    vi.mocked(sendEmail).mockResolvedValue(true)
+
+    await expect(resendInvoice('o1')).resolves.toBe('sent')
+
+    expect(db.invoice.updateMany.mock.calls[0]?.[0].where).not.toHaveProperty('sentAt')
+    expect(vi.mocked(sendEmail).mock.calls.map((c) => c[1])).toEqual(['invoice'])
+  })
+
+  it('reports a failed delivery without marking the invoice sent', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('paid', { pdfPath: '/p.pdf', sentAt: null }))
+    vi.mocked(sendEmail).mockResolvedValue(false)
+
+    await expect(resendInvoice('o1')).resolves.toBe('failed')
+    expect(db.invoice.update).toHaveBeenCalledWith({
+      where: { id: 'inv1' },
+      data: { sendLockUntil: null },
+    })
+  })
+
+  it('returns busy while another send holds the lease', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('paid', { pdfPath: '/p.pdf', sentAt: null }))
+    db.invoice.updateMany.mockResolvedValue({ count: 0 })
+
+    await expect(resendInvoice('o1')).resolves.toBe('busy')
+    expect(sendEmail).not.toHaveBeenCalled()
+  })
+
+  it('returns no_invoice when the order has none', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue({ ...order('pending', {}), invoice: null })
+
+    await expect(resendInvoice('o1')).resolves.toBe('no_invoice')
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 })

@@ -117,22 +117,30 @@ export async function markOrderPaid(orderId: string, paymentId?: string): Promis
 
 const INVOICE_SEND_LEASE_MS = 5 * 60_000
 
+type InvoiceSendResult = 'sent' | 'failed' | 'busy'
+
 /**
  * Mails the invoice and marks it sent only once delivery succeeded. A CAS lease
  * lets exactly one of several concurrent callers (checkout replays, payment
  * retries) send; the others skip. A crashed sender's lease simply expires.
+ * `resend` (admin action) also mails an invoice that was already sent.
  */
-async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string): Promise<void> {
+async function sendInvoiceEmail(
+  order: Order,
+  invoice: Invoice,
+  pdfPath: string,
+  { resend = false } = {},
+): Promise<InvoiceSendResult> {
   const now = new Date()
   const claim = await prisma.invoice.updateMany({
     where: {
       id: invoice.id,
-      sentAt: null,
+      ...(resend ? {} : { sentAt: null }),
       OR: [{ sendLockUntil: null }, { sendLockUntil: { lt: now } }],
     },
     data: { sendLockUntil: new Date(now.getTime() + INVOICE_SEND_LEASE_MS) },
   })
-  if (claim.count !== 1) return
+  if (claim.count !== 1) return 'busy'
 
   let delivered = false
   try {
@@ -158,6 +166,18 @@ async function sendInvoiceEmail(order: Order, invoice: Invoice, pdfPath: string)
       data: delivered ? { sendLockUntil: null, sentAt: new Date() } : { sendLockUntil: null },
     })
   }
+  return delivered ? 'sent' : 'failed'
+}
+
+/** Admin action: mail the order's invoice again, e.g. after a failed SMTP send. */
+export async function resendInvoice(orderId: string): Promise<InvoiceSendResult | 'no_invoice'> {
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true, payments: true, invoice: true },
+  })
+  if (!order.invoice) return 'no_invoice'
+  const pdfPath = order.invoice.pdfPath ?? (await generateInvoicePdf(order.invoice, order))
+  return sendInvoiceEmail(order, order.invoice, pdfPath, { resend: true })
 }
 
 /**

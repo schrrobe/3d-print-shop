@@ -6,8 +6,8 @@ import { z } from 'zod'
 import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
-import { badRequest, notFound } from '../../middleware/error.js'
-import { markOrderPaid, notifyProductionStarted } from '../../services/order-flow.js'
+import { ApiError, badRequest, conflict, notFound } from '../../middleware/error.js'
+import { markOrderPaid, notifyProductionStarted, resendInvoice } from '../../services/order-flow.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
@@ -207,6 +207,28 @@ adminOrdersRouter.post(
       })
       await audit(req, 'order.shipped', { type: 'order', id: order.id }, input)
       res.json({ order: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Re-sends the invoice email to the customer (e.g. after an SMTP failure). */
+adminOrdersRouter.post(
+  '/:id/invoice/resend',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
+      if (!order) throw notFound('Order not found')
+      const result = await resendInvoice(order.id)
+      await audit(req, 'order.invoice_resend', { type: 'order', id: order.id }, { result })
+      if (result === 'no_invoice') throw badRequest('Zu dieser Bestellung gibt es keine Rechnung')
+      if (result === 'busy') throw conflict('Die Rechnung wird gerade versendet')
+      if (result === 'failed') {
+        throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
+      }
+      res.json({ ok: true })
     } catch (err) {
       next(err)
     }
