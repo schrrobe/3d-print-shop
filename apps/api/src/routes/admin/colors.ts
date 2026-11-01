@@ -1,9 +1,14 @@
-import { colorCreateSchema, colorUpdateSchema } from '@print-shop/validators'
+import { colorCreateSchema, colorSelectionSchema, colorUpdateSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { notFound } from '../../middleware/error.js'
+import {
+  dropDefaultColor,
+  loadDefaultColors,
+  saveDefaultColors,
+} from '../../services/default-colors.js'
 
 export const adminColorsRouter = Router()
 
@@ -11,6 +16,34 @@ adminColorsRouter.get('/', requirePermission('colors:read'), async (_req, res, n
   try {
     const colors = await prisma.color.findMany({ orderBy: { name: 'asc' } })
     res.json({ colors })
+  } catch (err) {
+    next(err)
+  }
+})
+
+adminColorsRouter.get('/defaults', requirePermission('colors:read'), async (_req, res, next) => {
+  try {
+    res.json({ defaults: await loadDefaultColors() })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/** Shop-wide default per zone; copied onto every product's slot of that zone. */
+adminColorsRouter.put('/defaults', requirePermission('colors:write'), async (req, res, next) => {
+  try {
+    const defaults = colorSelectionSchema.parse(req.body?.defaults)
+    const updatedSlots = await saveDefaultColors(defaults)
+    await audit(
+      req,
+      'color.defaults.update',
+      { type: 'settings', id: 'singleton' },
+      {
+        defaults,
+        updatedSlots,
+      },
+    )
+    res.json({ defaults: await loadDefaultColors(), updatedSlots })
   } catch (err) {
     next(err)
   }
@@ -44,7 +77,10 @@ adminColorsRouter.delete('/:id', requirePermission('colors:write'), async (req, 
   try {
     const existing = await prisma.color.findUnique({ where: { id: String(req.params.id) } })
     if (!existing) throw notFound('Color not found')
-    await prisma.color.delete({ where: { id: existing.id } })
+    await prisma.$transaction(async (tx) => {
+      await dropDefaultColor(tx, existing.id)
+      await tx.color.delete({ where: { id: existing.id } })
+    })
     await audit(req, 'color.delete', { type: 'color', id: existing.id }, { name: existing.name })
     res.json({ ok: true })
   } catch (err) {
