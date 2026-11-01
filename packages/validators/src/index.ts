@@ -443,6 +443,18 @@ export const ticketCreateSchema = z.object({
 })
 export type TicketCreateInput = z.infer<typeof ticketCreateSchema>
 
+/** Electronic withdrawal function (§ 356a BGB): name, contract, confirmation channel. */
+export const withdrawalSchema = z.object({
+  name: z.string().trim().min(1).max(150),
+  email: z.string().trim().email().max(254),
+  orderNumber: z.string().trim().min(1).max(40),
+  /** Withdrawn items; empty = whole order. */
+  items: z.string().trim().max(1000).optional(),
+  message: z.string().trim().max(2000).optional(),
+  locale: localeSchema.default('de'),
+})
+export type WithdrawalInput = z.infer<typeof withdrawalSchema>
+
 export const ticketMessageSchema = z.object({
   body: z.string().trim().min(1).max(4000),
 })

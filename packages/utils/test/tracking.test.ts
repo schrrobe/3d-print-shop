@@ -94,14 +94,19 @@ describe('sensitive tracking paths', () => {
     '/support/ticket/ticket-secret',
     '/complaint/REK-1?token=secret',
     '/fr/admin/orders',
+    '/withdraw?order=PS-2026-1',
+    '/en/withdraw',
   ])('blocks %s', (path) => {
     expect(isSensitiveTrackingPath(path)).toBe(true)
   })
 
-  it.each(['/', '/products/item', '/en/cart', '/products/item?config=public-share'])(
-    'allows %s',
-    (path) => {
-      expect(isSensitiveTrackingPath(path)).toBe(false)
-    },
-  )
+  it.each([
+    '/',
+    '/products/item',
+    '/en/cart',
+    '/products/item?config=public-share',
+    '/legal/withdrawal',
+  ])('allows %s', (path) => {
+    expect(isSensitiveTrackingPath(path)).toBe(false)
+  })
 })

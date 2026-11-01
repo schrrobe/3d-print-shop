@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { PsSection } from '@print-shop/ui'
-import { getLegalTranslation } from '../../content/legal-translations'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const localePath = useLocalePath()
 const company = useRuntimeConfig().public.company
-const translatedDocument = computed(() => getLegalTranslation(locale.value, 'imprint'))
+const translatedDocument = useLegalDocument('imprint')
 
 useSeo({
   title: () => t('seo.legal.imprint'),
@@ -85,7 +84,7 @@ useSeo({
         <p class="mt-sm">
           Die auf dieser Website veröffentlichten Inhalte und Werke unterliegen dem deutschen
           Urheberrecht. Jede Nutzung außerhalb der Grenzen des Urheberrechts bedarf der vorherigen
-          schriftlichen Zustimmung von Robert Schreiner oder der jeweiligen Rechteinhaber.
+          schriftlichen Zustimmung von {{ company.name }} oder der jeweiligen Rechteinhaber.
         </p>
       </section>
     </div>

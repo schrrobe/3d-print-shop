@@ -18,7 +18,7 @@
     "added": "Toegevoegd aan winkelwagen",
     "manufacturingNotice": {
       "title": "Productie-informatie",
-      "production": "Elke box wordt 3D-geprint. Daardoor kun je lichte laaglijnen of kleine oneffenheden aan het oppervlak zien. Dat hoort bij dit procedé en is geen gebrek. Functie, stabiliteit en duurzaamheid lijden er niet onder."
+      "production": "Elke box wordt 3D-geprint. Daarbij zijn fijne laaglijnen en lichte structuren aan het oppervlak zichtbaar; dat is gebruikelijk bij dit procedé. Functie, stabiliteit en duurzaamheid lijden er niet onder."
     },
     "viewer": {
       "hint": "Sleep om te draaien · Scroll om te zoomen"
@@ -72,7 +72,7 @@
     "payStripe": "Kaart / Stripe",
     "payBank": "Vooruitbetaling (overschrijving)",
     "payBitcoin": "Bitcoin",
-    "submit": "Bestelling plaatsen",
+    "submit": "Bestellen met betalingsverplichting",
     "summary": "Besteloverzicht",
     "guestHint": "Je bestelt als gast, een account heb je niet nodig."
   },
@@ -156,7 +156,8 @@
     "privacyTitle": "Privacyverklaring",
     "termsTitle": "Algemene voorwaarden",
     "withdrawalTitle": "Herroepingsrecht",
-    "placeholder": "Placeholder: juridische inhoud aanvullen vóór livegang."
+    "placeholder": "Placeholder: juridische inhoud aanvullen vóór livegang.",
+    "translationNote": "Deze vertaling dient uitsluitend ter informatie. De Duitse versie is bindend."
   },
   "common": {
     "loading": "Laden …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Patroonboxen voor jouw kaliber, in jouw kleuren · kaliberbox.de",
-      "description": "Passende patroonboxen voor 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win en 7,62×39. Voor 50 of 100 patronen, met de kleur van box en opschrift die jij kiest. Gratis verzending vanaf € 150."
+      "description": "Passende patroonboxen voor 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win en 7,62×39. Voor 50 of 100 patronen, met de kleur van box en opschrift die jij kiest. Gratis verzending binnen Duitsland vanaf € 80."
     },
     "products": {
       "description": "Patroonboxen per kaliber, voor 50 of 100 patronen. Jij kiest de kleuren, wij printen na je bestelling."
     },
     "cart": {
       "title": "Winkelwagen",
-      "description": "Je winkelwagen bij de 3D Print Shop. Verzending kost € 6,99, vanaf € 150 is het gratis."
+      "description": "Je winkelwagen bij de 3D Print Shop. Verzending binnen Duitsland kost € 6,99, vanaf € 80 is het gratis."
     },
     "support": {
       "title": "Support",
@@ -231,6 +232,9 @@
       "notFoundText": "Deze pagina bestaat niet of is verwijderd.",
       "generic": "Er is iets misgegaan",
       "back": "Terug naar home"
+    },
+    "withdraw": {
+      "description": "Koopovereenkomst online herroepen: naam, e-mail en bestelnummer invullen, herroeping bevestigen, ontvangstbevestiging per e-mail."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Klacht indienen",
       "missingContext": "Geen geldige orderreferentie. Open de klacht via je klantomgeving.",
       "goToPortal": "Naar mijn klantomgeving",
-      "customMadeNote": "Let op: gepersonaliseerde maatwerkartikelen zijn uitgesloten van het herroepingsrecht. Klachten over gebreken en verzoeken om coulance zijn wel mogelijk.",
+      "customMadeNote": "Let op: boxen met naampersonalisatie en prints op basis van jouw bestanden zijn uitgesloten van het herroepingsrecht. Je wettelijke rechten bij gebreken blijven gewoon gelden.",
       "selectItems": "Betrokken artikelen",
       "quantity": "Aantal",
       "reason": "Reden",
@@ -360,7 +364,8 @@
     "empty": "Nog geen beoordelingen.",
     "count": "Geen beoordelingen | {count} beoordeling | {count} beoordelingen",
     "ratingLabel": "{rating} van de 5 sterren",
-    "photoAlt": "Reviewfoto van {name}"
+    "photoAlt": "Reviewfoto van {name}",
+    "verification": "Alleen wie het product bij ons heeft gekocht, kan een beoordeling geven. We controleren elke beoordeling vóór publicatie."
   },
   "shop": {
     "a11y": {
@@ -435,7 +440,7 @@
       "sizesShort": "{sizes} patronen",
       "rounds": "{count} patronen",
       "sizeLegend": "Maat",
-      "priceNote": "Eindprijs, excl. verzending",
+      "priceNote": "Eindprijs, excl. verzendkosten",
       "personalization": {
         "label": "Naam op de box",
         "hint": "Optioneel, max. 24 tekens. Personalisatie + {price} per box.",
@@ -454,7 +459,9 @@
       "drawingAlt": "Schematische tekening van de patroonbox {caliber} voor {capacity} patronen in {box} met opschrift in {label}",
       "drawingCaption": "Schematisch, niet op schaal",
       "contentsTitle": "Inhoud",
-      "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod."
+      "contentsText": "Eén lege patroonbox. Munitie maakt geen deel uit van het aanbod.",
+      "deliveryTime": "Levertijd: 3–8 werkdagen in Duitsland, 7–14 werkdagen naar andere landen, na ontvangst van de betaling.",
+      "manufacturerTitle": "Fabrikant"
     },
     "configurator": {
       "noColor": "Geen kleur gekozen"
@@ -537,5 +544,27 @@
       "legalNav": "Juridisch",
       "vat": "Kleine ondernemer volgens § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Overeenkomst herroepen",
+    "title": "Overeenkomst herroepen",
+    "intro": "Hier kun je je koopovereenkomst binnen de herroepingstermijn online herroepen. Na het verzenden ontvang je direct een ontvangstbevestiging per e-mail.",
+    "name": "Voor- en achternaam",
+    "email": "E-mailadres voor de ontvangstbevestiging",
+    "orderNumber": "Bestelnummer",
+    "orderNumberHint": "Staat in je orderbevestiging, bijv. PS-2026-…",
+    "items": "Welke goederen herroep je? (optioneel)",
+    "itemsHint": "Laat leeg om de hele bestelling te herroepen.",
+    "message": "Bericht (optioneel)",
+    "next": "Verder naar controle",
+    "reviewTitle": "Controleer je gegevens",
+    "declaration": "Hierbij herroep ik de door mij gesloten overeenkomst voor bestelling {orderNumber}.",
+    "wholeOrder": "hele bestelling",
+    "edit": "Gegevens wijzigen",
+    "confirm": "Herroeping bevestigen",
+    "successTitle": "Je herroeping is ontvangen",
+    "successText": "Ontvangen: {date}. We hebben de ontvangstbevestiging naar {email} gestuurd. Referentienummer: {ticketNumber}.",
+    "error": "De herroeping kon niet worden verzonden. Probeer het opnieuw of stuur ons een e-mail naar {email}.",
+    "legalLink": "Naar het herroepingsrecht"
   }
 }

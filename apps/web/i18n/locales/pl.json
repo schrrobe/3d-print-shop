@@ -18,7 +18,7 @@
     "added": "Dodano do koszyka",
     "manufacturingNotice": {
       "title": "Informacja o produkcji",
-      "production": "Każde pudełko jest drukowane w technologii 3D. Mogą być na nim widoczne delikatne linie warstw lub drobne nierówności powierzchni. To normalne przy tej metodzie i nie jest wadą. Nie wpływa na działanie, stabilność ani trwałość."
+      "production": "Każde pudełko jest drukowane w technologii 3D. Widoczne są na nim delikatne linie warstw i lekka struktura powierzchni, co jest typowe dla tej metody. Nie wpływa to na działanie, stabilność ani trwałość."
     },
     "viewer": {
       "hint": "Przeciągnij, aby obrócić · Scroll, aby przybliżyć"
@@ -156,7 +156,8 @@
     "privacyTitle": "Polityka prywatności",
     "termsTitle": "Regulamin",
     "withdrawalTitle": "Prawo odstąpienia",
-    "placeholder": "Placeholder: uzupełnij treści prawne przed startem."
+    "placeholder": "Placeholder: uzupełnij treści prawne przed startem.",
+    "translationNote": "To tłumaczenie ma wyłącznie charakter informacyjny. Wiążąca jest wersja niemiecka."
   },
   "common": {
     "loading": "Ładowanie …",
@@ -203,14 +204,14 @@
   "seo": {
     "home": {
       "title": "Pudełka na naboje do Twojego kalibru, w Twoich kolorach · kaliberbox.de",
-      "description": "Dopasowane pudełka na naboje do 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win i 7,62×39. Na 50 lub 100 naboi, kolor pudełka i napisu wybierasz sam. Darmowa wysyłka od 150 €."
+      "description": "Dopasowane pudełka na naboje do 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win i 7,62×39. Na 50 lub 100 naboi, kolor pudełka i napisu wybierasz sam. Darmowa wysyłka na terenie Niemiec od 80 €."
     },
     "products": {
       "description": "Pudełka na naboje według kalibru, na 50 lub 100 naboi. Kolory wybierasz sam, a drukujemy po złożeniu zamówienia."
     },
     "cart": {
       "title": "Koszyk",
-      "description": "Twój koszyk w 3D Print Shop. Dostawa kosztuje 6,99 €, od 150 € jest darmowa."
+      "description": "Twój koszyk w 3D Print Shop. Dostawa na terenie Niemiec kosztuje 6,99 €, od 80 € jest darmowa."
     },
     "support": {
       "title": "Pomoc",
@@ -231,6 +232,9 @@
       "notFoundText": "Ta strona nie istnieje lub została usunięta.",
       "generic": "Coś poszło nie tak",
       "back": "Wróć na stronę główną"
+    },
+    "withdraw": {
+      "description": "Odstąp od umowy sprzedaży online: podaj imię i nazwisko, e-mail i numer zamówienia, potwierdź odstąpienie i otrzymaj potwierdzenie e-mailem."
     }
   },
   "portal": {
@@ -299,7 +303,7 @@
       "title": "Zgłoś reklamację",
       "missingContext": "Brak prawidłowego odniesienia do zamówienia. Otwórz reklamację z poziomu swojego konta.",
       "goToPortal": "Przejdź do konta",
-      "customMadeNote": "Uwaga: spersonalizowane produkty na zamówienie są wyłączone z prawa odstąpienia. Nadal możesz złożyć reklamację z powodu wady lub poprosić o rozwiązanie w ramach dobrej woli.",
+      "customMadeNote": "Uwaga: pudełka personalizowane napisem z imieniem oraz wydruki wykonane z Twoich plików są wyłączone z prawa odstąpienia. Twoje ustawowe uprawnienia z tytułu wad nadal obowiązują.",
       "selectItems": "Pozycje objęte reklamacją",
       "quantity": "Ilość",
       "reason": "Powód",
@@ -360,7 +364,8 @@
     "empty": "Brak opinii.",
     "count": "Opinie: {count}",
     "ratingLabel": "{rating} na 5 gwiazdek",
-    "photoAlt": "Zdjęcie z opinii od {name}"
+    "photoAlt": "Zdjęcie z opinii od {name}",
+    "verification": "Opinię może wystawić tylko osoba, która kupiła produkt u nas. Sprawdzamy każdą opinię przed publikacją."
   },
   "shop": {
     "a11y": {
@@ -435,7 +440,7 @@
       "sizesShort": "{sizes} naboi",
       "rounds": "{count} naboi",
       "sizeLegend": "Rozmiar",
-      "priceNote": "Cena końcowa, plus wysyłka",
+      "priceNote": "Cena końcowa, plus koszty wysyłki",
       "personalization": {
         "label": "Imię na pudełku",
         "hint": "Opcjonalnie, maks. 24 znaki. Personalizacja + {price} za pudełko.",
@@ -454,7 +459,9 @@
       "drawingAlt": "Schemat pudełka na naboje {caliber} na {capacity} naboi w kolorze {box} z napisem w kolorze {label}",
       "drawingCaption": "Schemat, nie w skali",
       "contentsTitle": "Zawartość",
-      "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty."
+      "contentsText": "Jedno puste pudełko na naboje. Amunicja nie jest częścią oferty.",
+      "deliveryTime": "Czas dostawy: 3–8 dni roboczych w Niemczech, 7–14 dni roboczych do innych krajów, od otrzymania płatności.",
+      "manufacturerTitle": "Producent"
     },
     "configurator": {
       "noColor": "Nie wybrano koloru"
@@ -537,5 +544,27 @@
       "legalNav": "Informacje prawne",
       "vat": "Mały przedsiębiorca zgodnie z § 19 UStG"
     }
+  },
+  "withdraw": {
+    "cta": "Odstąp od umowy",
+    "title": "Odstąp od umowy",
+    "intro": "Tutaj możesz online odstąpić od umowy sprzedaży w terminie na odstąpienie. Po wysłaniu od razu otrzymasz e-mailem potwierdzenie otrzymania.",
+    "name": "Imię i nazwisko",
+    "email": "Adres e-mail do potwierdzenia otrzymania",
+    "orderNumber": "Numer zamówienia",
+    "orderNumberHint": "Znajdziesz go w potwierdzeniu zamówienia, np. PS-2026-…",
+    "items": "Których towarów dotyczy odstąpienie? (opcjonalnie)",
+    "itemsHint": "Pozostaw puste, aby odstąpić od całego zamówienia.",
+    "message": "Wiadomość (opcjonalnie)",
+    "next": "Dalej do sprawdzenia",
+    "reviewTitle": "Sprawdź swoje dane",
+    "declaration": "Niniejszym odstępuję od zawartej przeze mnie umowy dotyczącej zamówienia {orderNumber}.",
+    "wholeOrder": "całe zamówienie",
+    "edit": "Zmień dane",
+    "confirm": "Potwierdź odstąpienie",
+    "successTitle": "Otrzymaliśmy Twoje odstąpienie od umowy",
+    "successText": "Data otrzymania: {date}. Potwierdzenie otrzymania wysłaliśmy na adres {email}. Numer sprawy: {ticketNumber}.",
+    "error": "Nie udało się przesłać odstąpienia. Spróbuj ponownie lub napisz do nas na adres {email}.",
+    "legalLink": "Do informacji o prawie odstąpienia"
   }
 }

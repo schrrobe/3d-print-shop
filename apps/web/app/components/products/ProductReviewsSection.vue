@@ -10,6 +10,8 @@ const props = defineProps<{
   titleLabel: string
   emptyLabel: string
   countLabel: string
+  /** § 5b Abs. 3 UWG: whether and how reviews are verified. */
+  verificationLabel: string
   photoAltLabel: (displayName: string) => string
   ratingLabel: (rating: number | null) => string
 }>()
@@ -41,6 +43,10 @@ const formattedReviews = computed(() =>
         </span>
       </div>
     </div>
+
+    <p class="mt-3 text-sm text-ink-2" data-testid="reviews-verification">
+      {{ verificationLabel }}
+    </p>
 
     <p v-if="reviews.length === 0" class="mt-4 text-ink-2">
       {{ emptyLabel }}

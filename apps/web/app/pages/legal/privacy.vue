@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { PsSection } from '@print-shop/ui'
-import { getLegalTranslation } from '../../content/legal-translations'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const company = useRuntimeConfig().public.company
-const translatedDocument = computed(() => getLegalTranslation(locale.value, 'privacy'))
+const translatedDocument = useLegalDocument('privacy')
 
 useSeo({
   title: () => t('seo.legal.privacy'),
@@ -23,7 +22,7 @@ useSeo({
       class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
       data-testid="legal-privacy"
     >
-      <p>Stand: 25.10.2026</p>
+      <p>Stand: 31.10.2026</p>
 
       <section>
         <h2 class="text-heading-small text-primary">1. Verantwortlicher</h2>
@@ -41,22 +40,25 @@ useSeo({
       <section>
         <h2 class="text-heading-small text-primary">2. Hosting und Server-Logfiles</h2>
         <p class="mt-sm">
-          Die Website wird auf einem VPS in Deutschland betrieben. Beim Aufruf der Website
+          Die Website wird auf einem virtuellen Server (VPS) der Hostinger International Ltd.,
+          Larnaca, Zypern, betrieben, die als Auftragsverarbeiter für uns tätig ist. Serverstandort:
+          [OFFEN: Rechenzentrumsstandort laut Hostinger-Vertrag ergänzen]. Beim Aufruf der Website
           verarbeitet der Server technisch erforderliche Daten, insbesondere IP-Adresse, Datum und
           Uhrzeit des Abrufs, aufgerufene Seite, übertragene Datenmenge, Referrer-URL sowie Angaben
           zu Browser und Betriebssystem. Die Verarbeitung erfolgt zur Bereitstellung, Stabilität und
           Sicherheit der Website auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Logdaten werden
-          gelöscht, sobald sie für diese Zwecke nicht mehr erforderlich sind.
+          gelöscht, sobald sie für diese Zwecke nicht mehr erforderlich sind, spätestens nach
+          [OFFEN: Log-Speicherdauer ergänzen].
         </p>
       </section>
 
       <section>
         <h2 class="text-heading-small text-primary">3. Cookies und Einwilligungsverwaltung</h2>
         <p class="mt-sm">
-          Wir verwenden technisch notwendige Speichermechanismen für Warenkorb, Spracheinstellung,
-          Darstellung und die Verwaltung deiner Cookie-Auswahl. Diese sind für den Betrieb der
-          Website erforderlich. Die Verarbeitung erfolgt auf Grundlage von § 25 Abs. 2 Nr. 2 TDDDG
-          sowie Art. 6 Abs. 1 lit. f DSGVO.
+          Wir verwenden technisch notwendige Speichermechanismen für Warenkorb, Merkliste,
+          Spracheinstellung, Darstellung und die Verwaltung deiner Cookie-Auswahl. Diese sind für
+          den Betrieb der Website erforderlich. Die Verarbeitung erfolgt auf Grundlage von § 25 Abs.
+          2 Nr. 2 TDDDG sowie Art. 6 Abs. 1 lit. f DSGVO.
         </p>
         <p class="mt-sm">
           Kommst du über einen Partner-Link (z. B. eines Influencers, Adresse beginnt mit
@@ -87,9 +89,14 @@ useSeo({
           Grundlage von Art. 6 Abs. 1 lit. c DSGVO.
         </p>
         <p class="mt-sm">
-          Für Kartenzahlungen leiten wir dich zu Stripe weiter. Dabei verarbeitet Stripe Zahlungs-
-          und Transaktionsdaten eigenverantwortlich bzw. als Zahlungsdienstleister. Weitere
-          Informationen findest du in der
+          Wählst du die Zahlung über Stripe, binden wir nach dem Absenden der Bestellung das
+          Zahlungsformular von Stripe (Stripe.js) direkt in die Kassen- bzw. Bestellstatusseite ein.
+          Deine Zahlungs-, Geräte- und Transaktionsdaten gibst du dabei unmittelbar bei Stripe ein;
+          wir erhalten keine vollständigen Kartendaten. Anbieter ist die Stripe Payments Europe,
+          Ltd., Dublin, Irland, die als Zahlungsdienstleister eigenverantwortlich handelt. Eine
+          Verarbeitung durch Stripe, Inc. in den USA ist möglich; sie stützt sich auf das EU-US Data
+          Privacy Framework bzw. EU-Standardvertragsklauseln. Weitere Informationen findest du in
+          der
           <a
             class="underline"
             href="https://stripe.com/de/privacy"
@@ -100,10 +107,11 @@ useSeo({
           mitgeteilt werden.
         </p>
         <p class="mt-sm">
-          Bei Auswahl von Bitcoin erzeugt unser eigener Node eine Zahlungsadresse und verarbeitet
-          die für die Zuordnung erforderlichen Zahlungs- und Transaktionsdaten.
-          Blockchain-Transaktionen sind öffentlich einsehbar und können nicht nachträglich gelöscht
-          werden. Wir verwenden keine privaten Schlüssel auf dem Webserver.
+          Bei Auswahl von Bitcoin leiten wir aus unserer eigenen Wallet eine Zahlungsadresse ab und
+          prüfen den Zahlungseingang anhand öffentlicher Blockchain-Daten [OFFEN: ggf. genutzten
+          Blockchain-Abfragedienst benennen]. Blockchain-Transaktionen sind öffentlich einsehbar und
+          können nicht nachträglich gelöscht werden. Wir verwenden keine privaten Schlüssel auf dem
+          Webserver.
         </p>
         <p class="mt-sm">
           Für die Zustellung übermitteln wir Name und Lieferadresse sowie die zur Versandabwicklung
@@ -118,11 +126,12 @@ useSeo({
         </h2>
         <p class="mt-sm">
           Wir versenden transaktionale E-Mails, etwa Bestellbestätigungen, Rechnungen, Angebots- und
-          Versandinformationen sowie Antworten auf Supportanfragen, über Brevo; auch
-          E-Mail-Antworten auf Support-Tickets empfangen wir über Brevo. Dabei werden insbesondere
-          E-Mail-Adresse, Name, Bestell- bzw. Vorgangsdaten und der Inhalt der Nachricht
-          verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; für die technische
-          Dokumentation und Missbrauchsabwehr Art. 6 Abs. 1 lit. f DSGVO.
+          Versandinformationen sowie Antworten auf Supportanfragen, über Brevo (Sendinblue SAS,
+          Paris, Frankreich) als Auftragsverarbeiter; auch E-Mail-Antworten auf Support-Tickets
+          empfangen wir über Brevo. Dabei werden insbesondere E-Mail-Adresse, Name, Bestell- bzw.
+          Vorgangsdaten und der Inhalt der Nachricht verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1
+          lit. b DSGVO; für die technische Dokumentation und Missbrauchsabwehr Art. 6 Abs. 1 lit. f
+          DSGVO.
         </p>
         <p class="mt-sm">
           Für den Kundenbereich senden wir einen persönlichen Zugangslink an die angegebene
@@ -134,6 +143,30 @@ useSeo({
           Wenn du uns kontaktierst oder eine Reklamation einreichst, verarbeiten wir die von dir
           übermittelten Kontakt-, Bestell- und Inhaltsdaten einschließlich optionaler Anhänge, um
           dein Anliegen zu bearbeiten.
+        </p>
+        <p class="mt-sm">
+          Erklärst du über „Vertrag widerrufen“ online den Widerruf, verarbeiten wir Name,
+          E-Mail-Adresse, Bestellnummer, die betroffenen Waren, deine optionale Nachricht sowie
+          Datum und Uhrzeit des Eingangs. Wir legen daraus einen Support-Vorgang an und senden dir
+          eine Eingangsbestätigung per E-Mail. Rechtsgrundlage ist Art. 6 Abs. 1 lit. c DSGVO i. V.
+          m. § 356a BGB sowie Art. 6 Abs. 1 lit. b DSGVO (Rückabwicklung des Vertrags).
+        </p>
+        <p class="mt-sm">
+          Bewerten kann nur, wer das Produkt bei uns bestellt hat. Dabei verarbeiten wir Sterne,
+          Titel, Text, optional ein Foto sowie den von dir gewählten Anzeigenamen. Nach unserer
+          Prüfung veröffentlichen wir Bewertung, Anzeigenamen und Foto beim Produkt; E-Mail-Adresse
+          und Bestelldaten werden nicht angezeigt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO
+          (Darstellung echter Kundenmeinungen). Du kannst die Löschung deiner Bewertung jederzeit
+          verlangen. [OFFEN: Speicherdauer für Bewertungen festlegen]
+        </p>
+        <p class="mt-sm">
+          Nach Abschluss einer Bestellung senden wir dir einmalig eine E-Mail mit der Bitte um eine
+          Bewertung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO i. V. m. § 7 Abs. 3 UWG. Du
+          kannst dieser Nutzung deiner E-Mail-Adresse jederzeit widersprechen, z. B. per E-Mail an
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a
+          >, ohne dass hierfür andere als die Übermittlungskosten nach den Basistarifen entstehen.
+          [OFFEN: Widerspruchshinweis bei Erhebung der E-Mail-Adresse im Checkout und in jeder
+          Bewertungsanfrage ergänzen]
         </p>
       </section>
 
@@ -150,7 +183,9 @@ useSeo({
       </section>
 
       <section>
-        <h2 class="text-heading-small text-primary">7. Google Analytics 4</h2>
+        <h2 class="text-heading-small text-primary">
+          7. Google Analytics 4, Google Tag Manager und eigene Reichweitenmessung
+        </h2>
         <p class="mt-sm">
           Google Analytics 4 wird nur geladen, wenn du in die Kategorie „Statistik“ eingewilligt
           hast. Dabei können insbesondere Nutzungsdaten, aufgerufene Seiten, technische Geräte- und
@@ -160,9 +195,10 @@ useSeo({
         </p>
         <p class="mt-sm">
           Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. Eine
-          Verarbeitung kann auch durch Google LLC in den USA erfolgen. Die Einwilligung kann
-          jederzeit über die Cookie-Einstellungen widerrufen werden. Weitere Informationen findest
-          du in der
+          Verarbeitung kann auch durch Google LLC in den USA erfolgen; Google LLC ist unter dem
+          EU-US Data Privacy Framework zertifiziert (Angemessenheitsbeschluss der EU-Kommission vom
+          10.07.2023). Die Einwilligung kann jederzeit über die Cookie-Einstellungen widerrufen
+          werden. Weitere Informationen findest du in der
           <a
             class="underline"
             href="https://policies.google.com/privacy"
@@ -170,6 +206,24 @@ useSeo({
             target="_blank"
             >Datenschutzerklärung von Google</a
           >.
+        </p>
+        <p class="mt-sm">
+          Den Google Tag Manager desselben Anbieters laden wir nur, wenn du sowohl in „Statistik“
+          als auch in „Marketing“ eingewilligt hast. Er dient der Verwaltung von Website-Tags und
+          verarbeitet dabei insbesondere deine IP-Adresse und technische Browserdaten.
+          Rechtsgrundlage ist deine Einwilligung (§ 25 Abs. 1 TDDDG, Art. 6 Abs. 1 lit. a DSGVO).
+        </p>
+        <p class="mt-sm">
+          Mit Einwilligung in „Statistik“ erfassen wir außerdem mit einer eigenen, auf unserem
+          Server gespeicherten Reichweitenmessung Seitenaufrufe, Produktansichten sowie Warenkorb-
+          und Kassenereignisse. Dafür speichern wir eine zufällige Besucherkennung
+          (<code>ps_vid</code>), eine Sitzungskennung, Einstiegsseite, Sprache, Browserkennung
+          (User-Agent) und daraus abgeleiteten Gerätetyp, die Domain der verweisenden Seite,
+          Kampagnenparameter (UTM) und Klick-IDs aus Werbelinks (fbclid, ttclid, gclid), aber keine
+          IP-Adresse. Bei einer Bestellung verknüpfen wir die Sitzung mit der Bestellung, um die
+          Wirksamkeit von Kampagnen auszuwerten. Rechtsgrundlage ist deine Einwilligung (§ 25 Abs. 1
+          TDDDG, Art. 6 Abs. 1 lit. a DSGVO). Browserkennung, verweisende Domain und Klick-IDs
+          löschen wir nach 90 Tagen, die Ereignisse selbst nach 395 Tagen.
         </p>
       </section>
 
@@ -200,10 +254,13 @@ useSeo({
         <p class="mt-sm">
           Anbieter des TikTok Pixels ist TikTok Technology Limited, 10 Earlsfort Terrace, Dublin 2,
           D02 T380, Irland; eine Verarbeitung in Drittländern (u. a. USA, Singapur) kann nicht
-          ausgeschlossen werden. Anbieter ist Meta Platforms Ireland Limited, Merrion Road, Dublin
-          4, D04 X2K5, Irland. Eine Verarbeitung durch Meta Platforms, Inc. in den USA kann nicht
-          ausgeschlossen werden. Deine Einwilligung kannst du jederzeit über die
-          Cookie-Einstellungen widerrufen. Weitere Informationen enthält die
+          ausgeschlossen werden und stützt sich auf EU-Standardvertragsklauseln. Anbieter des Meta
+          Pixels ist Meta Platforms Ireland Limited, Merrion Road, Dublin 4, D04 X2K5, Irland. Für
+          die Erhebung und Übermittlung der Daten an Meta sind wir mit Meta gemeinsam verantwortlich
+          (Art. 26 DSGVO); für die anschließende Verarbeitung ist Meta allein verantwortlich. Eine
+          Verarbeitung durch Meta Platforms, Inc. in den USA ist möglich; Meta Platforms, Inc. ist
+          unter dem EU-US Data Privacy Framework zertifiziert. Deine Einwilligung kannst du
+          jederzeit über die Cookie-Einstellungen widerrufen. Weitere Informationen enthält die
           <a
             class="underline"
             href="https://www.facebook.com/privacy/policy/"
@@ -228,10 +285,11 @@ useSeo({
           Wir löschen personenbezogene Daten, sobald der jeweilige Zweck entfällt und keine
           gesetzliche Aufbewahrungspflicht oder Löschsperre entgegensteht. Rechnungen, zugehörige
           Bestell- und Zahlungsdaten bewahren wir zehn Jahre ab Ende des Kalenderjahres der
-          Ausstellung auf. Nicht beauftragte Upload- und Angebotsanfragen werden grundsätzlich nach
-          zwölf Monaten, Modell-Dateien nach den dafür geltenden kürzeren Fristen gelöscht. Die
-          vollständigen Löschfristen und das Verfahren sind intern in unserem Lösch- und
-          Aufbewahrungskonzept festgelegt.
+          Ausstellung auf. Einwilligungsnachweise speichern wir drei Jahre ab Widerruf bzw. letzter
+          Änderung, E-Mail-Protokolle 90 Tage. Nicht beauftragte Upload- und Angebotsanfragen werden
+          grundsätzlich nach zwölf Monaten, Modell-Dateien nach den dafür geltenden kürzeren Fristen
+          gelöscht. Die vollständigen Löschfristen und das Verfahren sind intern in unserem Lösch-
+          und Aufbewahrungskonzept festgelegt.
         </p>
       </section>
 
@@ -239,18 +297,27 @@ useSeo({
         <h2 class="text-heading-small text-primary">10. Deine Rechte</h2>
         <p class="mt-sm">
           Du hast nach Maßgabe der gesetzlichen Voraussetzungen das Recht auf Auskunft,
-          Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie
-          Widerspruch gegen Verarbeitungen, die auf Art. 6 Abs. 1 lit. e oder f DSGVO beruhen. Eine
+          Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Eine
           erteilte Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Wende
           dich dafür an
-          <a class="underline" href="mailto:info@prestige-webdesign.de"
-            >info@prestige-webdesign.de</a
+          <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a
           >.
+        </p>
+        <p class="mt-sm font-bold text-primary">
+          Widerspruchsrecht: Verarbeiten wir Daten auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO,
+          kannst du aus Gründen, die sich aus deiner besonderen Situation ergeben, jederzeit
+          widersprechen (Art. 21 DSGVO).
+        </p>
+        <p class="mt-sm">
+          Die Angabe der im Bestellformular als Pflichtfeld gekennzeichneten Daten ist für den
+          Vertragsschluss erforderlich; ohne sie können wir die Bestellung nicht ausführen. Weitere
+          Angaben sind freiwillig. Eine automatisierte Entscheidungsfindung einschließlich Profiling
+          nach Art. 22 DSGVO findet nicht statt.
         </p>
         <p class="mt-sm">
           Außerdem hast du das Recht, dich bei einer Datenschutzaufsichtsbehörde zu beschweren. Für
           uns ist grundsätzlich die Landesbeauftragte für Datenschutz und Informationsfreiheit
-          Nordrhein- Westfalen zuständig.
+          Nordrhein-Westfalen zuständig.
         </p>
       </section>
 

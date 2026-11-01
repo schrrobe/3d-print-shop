@@ -5,6 +5,7 @@ import type { Locale, OrderStatus } from '@print-shop/types'
 
 /** Guest order status page (order number + access token from email/confirmation). */
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 // Private token URL — must never end up in a search index
 useHead({
@@ -256,6 +257,14 @@ async function payNow() {
         📦 {{ order.carrier?.toUpperCase() }} ·
         <span class="font-mono">{{ order.trackingNumber }}</span>
       </p>
+
+      <NuxtLink
+        :to="localePath({ path: '/withdraw', query: { order: order.orderNumber } })"
+        class="mt-2xl inline-block text-body-regular font-bold underline"
+        data-testid="order-withdraw"
+      >
+        {{ t('withdraw.cta') }}
+      </NuxtLink>
     </div>
   </PsSection>
 </template>

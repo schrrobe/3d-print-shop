@@ -20,6 +20,7 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const runtimeConfig = useRuntimeConfig()
+const company = runtimeConfig.public.company
 const cart = useCartStore()
 const toast = useToast()
 const { store: wishlist, shareConfiguration, loadConfiguration } = useWishlist()
@@ -527,7 +528,15 @@ useHead({
               <p class="kb-num text-[2rem] font-bold leading-none" data-testid="price">
                 {{ price(unitPriceCents) }}
               </p>
-              <p class="mt-1 text-sm text-ink-2">{{ t('shop.product.priceNote') }}</p>
+              <NuxtLink
+                :to="localePath('/legal/terms')"
+                class="mt-1 block text-sm text-ink-2 underline"
+                data-testid="price-note"
+                >{{ t('shop.product.priceNote') }}</NuxtLink
+              >
+              <p class="mt-1 text-sm text-ink-2" data-testid="delivery-time">
+                {{ t('shop.product.deliveryTime') }}
+              </p>
             </div>
             <ShopQuantity v-model="quantity" :label="t('cart.quantity')" />
           </div>
@@ -590,6 +599,14 @@ useHead({
             <dt class="font-bold">{{ t('shop.product.contentsTitle') }}</dt>
             <dd class="text-ink-2">{{ t('shop.product.contentsText') }}</dd>
           </div>
+          <!-- GPSR Art. 19: manufacturer name, postal and electronic address -->
+          <div class="grid gap-1 py-4 sm:grid-cols-[12rem_1fr]" data-testid="product-manufacturer">
+            <dt class="font-bold">{{ t('shop.product.manufacturerTitle') }}</dt>
+            <dd class="text-ink-2">
+              {{ company.name }}, {{ company.street }}, {{ company.zip }} {{ company.city }},
+              <a class="underline" :href="`mailto:${company.email}`">{{ company.email }}</a>
+            </dd>
+          </div>
         </dl>
 
         <ShopLegalNotice />
@@ -604,6 +621,7 @@ useHead({
       :title-label="t('reviews.title')"
       :empty-label="t('reviews.empty')"
       :count-label="t('reviews.count', { count: reviews.count }, reviews.count)"
+      :verification-label="t('reviews.verification')"
       :photo-alt-label="reviewPhotoAltLabel"
       :rating-label="reviewRatingLabel"
     />
