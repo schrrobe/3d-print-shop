@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buyerLocations } from '../src/services/buyer-locations.js'
+import { buyerCountries, buyerLocations } from '../src/services/buyer-locations.js'
 
 describe('buyerLocations', () => {
   it('groups orders per postcode centroid and drops unknown postcodes', () => {
@@ -16,5 +16,19 @@ describe('buyerLocations', () => {
       expect(p.lat).toBeGreaterThan(45)
       expect(p.lon).toBeGreaterThan(5)
     }
+  })
+
+  it('finds postcodes outside DACH whatever way they are written', () => {
+    const places = buyerLocations([
+      { country: 'NL', zip: '1011 AB' },
+      { country: 'LU', zip: 'L-4968' },
+      { country: 'PL', zip: '59700' },
+      { country: 'CZ', zip: '110 00' },
+    ])
+    expect(places).toHaveLength(4)
+  })
+
+  it('lists every order country once, even without a known postcode', () => {
+    expect(buyerCountries([{ country: 'de' }, { country: 'DE ' }, { country: 'US' }])).toEqual(['DE', 'US'])
   })
 })

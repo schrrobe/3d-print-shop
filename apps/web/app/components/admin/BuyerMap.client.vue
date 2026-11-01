@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Buyer heatmap (Unovis heatmap mode) cropped to DE/AT/CH — the map fits the three countries. */
+/** Buyer heatmap (Unovis heatmap mode) cropped to DE/AT/CH plus every other country with orders. */
 import { WorldMapTopoJSON } from '@unovis/ts/maps'
 import { VisSingleContainer, VisTopoJSONMap } from '@unovis/vue'
 
@@ -9,18 +9,34 @@ interface Place {
   count: number
 }
 
-const props = defineProps<{ places: Place[]; height: number }>()
+const props = defineProps<{ places: Place[]; countries: string[]; height: number }>()
 
-const countries = WorldMapTopoJSON.objects.countries
-const dach = {
+type Geometry = { id?: string | number; type: string; arcs: number[][] | number[][][] }
+
+const world = WorldMapTopoJSON.objects.countries
+const { arcs, transform } = WorldMapTopoJSON
+
+// The map zooms to fit every shown polygon, so overseas parts (Réunion, Antilles, Canaries) would
+// shrink Europe to a dot. Keep polygons north of 34°N, judged by the first point of their outer ring.
+// ponytail: fine for the European checkout countries; revisit if we ever ship outside Europe.
+const inEurope = (polygon: number[][]) => {
+  const i = polygon[0]![0]!
+  const y = arcs[i < 0 ? ~i : i]![0]![1]!
+  return y * transform.scale[1] + transform.translate[1] > 34
+}
+const mainland = (g: Geometry): Geometry =>
+  g.type === 'MultiPolygon' ? { ...g, arcs: (g.arcs as number[][][]).filter(inEurope) } : g
+
+const shown = computed(() => new Set(['DE', 'AT', 'CH', ...props.countries]))
+const map = computed(() => ({
   ...WorldMapTopoJSON,
   objects: {
     countries: {
-      ...countries,
-      geometries: countries.geometries.filter((g: { id?: string | number }) => ['DE', 'AT', 'CH'].includes(String(g.id))),
+      ...world,
+      geometries: (world.geometries as Geometry[]).filter((g) => shown.value.has(String(g.id))).map(mainland),
     },
   },
-}
+}))
 
 const max = computed(() => Math.max(1, ...props.places.map((p) => p.count)))
 // sqrt instead of linear: one big customer must not make every other place invisible
@@ -30,7 +46,7 @@ const heat = (p: Place) => Math.sqrt(p.count / max.value)
 <template>
   <VisSingleContainer :data="{ points: places }" :height="height" :padding="{ top: 8, right: 8, bottom: 8, left: 8 }">
     <VisTopoJSONMap
-      :topojson="dach"
+      :topojson="map"
       map-feature-name="countries"
       :latitude="(p: Place) => p.lat"
       :longitude="(p: Place) => p.lon"
