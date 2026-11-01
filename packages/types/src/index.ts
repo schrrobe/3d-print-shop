@@ -1,7 +1,7 @@
 // Shared domain types & enums — mirrored by the Prisma schema (apps/api/prisma/schema.prisma).
 // Enum values are stable English snake_case keys; human-readable labels come from i18n.
 
-export const LOCALES = ['de', 'en', 'pl', 'fr', 'nl', 'cs'] as const
+export const LOCALES = ['de', 'en', 'pl', 'fr', 'nl', 'cs', 'it'] as const
 export type Locale = (typeof LOCALES)[number]
 export const DEFAULT_LOCALE: Locale = 'de'
 

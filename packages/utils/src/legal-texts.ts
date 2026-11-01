@@ -1344,6 +1344,253 @@ const cs: Record<LegalDocumentKey, LegalDocumentTranslation> = {
   },
 }
 
+const it: Record<LegalDocumentKey, LegalDocumentTranslation> = {
+  imprint: {
+    updatedAt: 'Ultimo aggiornamento: 31 ottobre 2026',
+    sections: [
+      {
+        heading: 'Informazioni ai sensi del § 5 DDG',
+        paragraphs: ['{name}\n{street}\n{zip} {city}\nGermania'],
+      },
+      {
+        heading: 'Contatti',
+        paragraphs: ['E-mail: {email}'],
+        contactForm: 'Modulo di contatto',
+      },
+      {
+        heading: 'Attività',
+        paragraphs: ['Produzione e vendita di prodotti stampati in 3D realizzati su ordinazione.'],
+      },
+      {
+        heading: 'Responsabile dei contenuti ai sensi del § 18, comma 2, MStV',
+        paragraphs: ['{name}\n{street}\n{zip} {city}\nGermania'],
+      },
+      {
+        heading: 'Responsabilità per contenuti e link',
+        paragraphs: [
+          'Curiamo questo sito con la dovuta diligenza, ma non possiamo garantire che tutte le informazioni siano corrette, complete e aggiornate. Dei siti esterni collegati da questo sito rispondono i rispettivi gestori. Rimuoviamo senza indugio i link a contenuti illeciti non appena ne veniamo a conoscenza.',
+        ],
+      },
+      {
+        heading: 'Diritto d’autore',
+        paragraphs: [
+          'I contenuti e le opere pubblicati su questo sito sono protetti dal diritto d’autore tedesco. Qualsiasi utilizzo al di fuori dei limiti del diritto d’autore richiede il previo consenso scritto di {name} o del rispettivo titolare dei diritti.',
+        ],
+      },
+    ],
+  },
+  privacy: {
+    updatedAt: 'Ultimo aggiornamento: 31 ottobre 2026',
+    sections: [
+      {
+        heading: '1. Titolare del trattamento',
+        paragraphs: [
+          'Il titolare del trattamento dei dati personali su questo sito è {name}, {street}, {zip} {city}, Germania; e-mail: {email}. Non è stato nominato un responsabile della protezione dei dati.',
+        ],
+      },
+      {
+        heading: '2. Hosting e log del server',
+        paragraphs: [
+          'Il sito funziona su un server privato virtuale (VPS) di Hostinger International Ltd., Larnaca, Cipro, che opera come nostro responsabile del trattamento. Ubicazione del server: [OPEN: indicare l’ubicazione del data center secondo il contratto con Hostinger]. Per mettere a disposizione il sito e garantirne stabilità e sicurezza, il server tratta indirizzo IP, data e ora dell’accesso, pagina richiesta, volume di dati trasferito, URL di provenienza e informazioni su browser e sistema operativo. La base giuridica è l’art. 6, par. 1, lett. f) GDPR. I dati di log vengono cancellati quando non sono più necessari per queste finalità, al più tardi dopo [OPEN: indicare il periodo di conservazione dei log].',
+        ],
+      },
+      {
+        heading: '3. Cookie e gestione del consenso',
+        paragraphs: [
+          'Utilizziamo memorizzazioni necessarie per il carrello, la lista dei desideri, la lingua, le impostazioni di visualizzazione e la gestione della sua scelta sui cookie. Sono indispensabili per il funzionamento del sito (§ 25, comma 2, n. 2 TDDDG, art. 6, par. 1, lett. f) GDPR).',
+          'Se arriva da noi tramite un link di un partner (ad esempio di un influencer, indirizzo che inizia con /r/), impostiamo il cookie ps_ref per 30 giorni. Contiene solo il codice del link e l’ora del clic e serve unicamente ad attribuire un ordine al partner ai fini della sua provvigione. Contiamo il clic senza indirizzo IP né dati del dispositivo o del browser; il cookie non viene trasmesso a terzi (art. 6, par. 1, lett. f) GDPR, conteggio con i nostri partner commerciali).',
+          'Memorizziamo la sua scelta nel browser e, per poter dimostrare il consenso, documentiamo un identificativo casuale, le categorie selezionate, la versione, la lingua, l’ora e lo user agent. Può modificare o revocare il consenso in qualsiasi momento con effetto per il futuro tramite «Impostazioni» nel piè di pagina.',
+        ],
+      },
+      {
+        heading: '4. Ordini, pagamento e spedizione',
+        paragraphs: [
+          'Per gli ordini trattiamo titolo o nome, indirizzo di fatturazione e di consegna, indirizzo e-mail, numero di telefono facoltativo e dati relativi a ordine, prodotto, pagamento e spedizione, al fine di eseguire il contratto, attribuire i pagamenti, emettere fatture e spedire la merce (art. 6, par. 1, lett. b) GDPR). Gli obblighi di legge in materia commerciale e fiscale sono trattati ai sensi dell’art. 6, par. 1, lett. c) GDPR.',
+          'Se sceglie di pagare tramite Stripe, dopo l’invio dell’ordine integriamo il modulo di pagamento di Stripe (Stripe.js) direttamente nel checkout o nella pagina dello stato dell’ordine. I dati di pagamento, del dispositivo e della transazione vengono inseriti direttamente presso Stripe; noi non riceviamo i dati completi della carta. Il fornitore è Stripe Payments Europe, Ltd., Dublino, Irlanda, che opera come prestatore di servizi di pagamento sotto la propria responsabilità. È possibile un trattamento da parte di Stripe, Inc. negli Stati Uniti, basato sull’EU-US Data Privacy Framework o sulle clausole contrattuali standard dell’UE. Informativa sulla privacy: https://stripe.com/privacy. Per i bonifici bancari trattiamo i dati di pagamento che ci vengono comunicati con l’accredito.',
+          'Per Bitcoin ricaviamo un indirizzo di pagamento dal nostro wallet e verifichiamo l’accredito tramite dati pubblici della blockchain [OPEN: indicare l’eventuale servizio di consultazione della blockchain utilizzato]. Le transazioni sulla blockchain sono pubblicamente visibili e non possono essere cancellate a posteriori. Non utilizziamo chiavi private sul server web. Per la consegna trasmettiamo a DHL o Hermes il suo nome, l’indirizzo di consegna e i dati d’ordine e di contatto necessari per la spedizione.',
+        ],
+      },
+      {
+        heading: '5. E-mail, area clienti e assistenza',
+        paragraphs: [
+          'Le e-mail transazionali, come conferme d’ordine, fatture, informazioni su preventivi e spedizioni e risposte dell’assistenza, vengono inviate tramite Brevo (Sendinblue SAS, Parigi, Francia) in qualità di nostro responsabile del trattamento; anche le risposte via e-mail ai ticket di assistenza vengono ricevute tramite Brevo. Vengono trattati in particolare indirizzo e-mail, nome, dati dell’ordine o della pratica e contenuto del messaggio (art. 6, par. 1, lett. b) GDPR; per la registrazione tecnica e la prevenzione degli abusi art. 6, par. 1, lett. f) GDPR).',
+          'I link di accesso personali e a tempo limitato all’area clienti vengono inviati all’indirizzo e-mail indicato; il loro hash e gli accessi, compreso l’indirizzo IP, vengono memorizzati per mettere a disposizione in modo sicuro i dati di ordini, preventivi e fatture. Trattiamo i dati di contatto, d’ordine e di contenuto che ci invia con richieste di assistenza e reclami, compresi eventuali allegati, per gestire la sua richiesta.',
+          'Se dichiara il recesso online tramite «Recedi dal contratto», trattiamo il suo nome, l’indirizzo e-mail, il numero d’ordine, i beni interessati, il suo messaggio facoltativo e la data e l’ora del ricevimento. Ne ricaviamo una pratica di assistenza e le inviamo una conferma di ricevimento per e-mail. La base giuridica è l’art. 6, par. 1, lett. c) GDPR in combinato disposto con il § 356a BGB e l’art. 6, par. 1, lett. b) GDPR (scioglimento del contratto).',
+          'Solo i clienti che hanno ordinato il prodotto da noi possono lasciare una recensione. Trattiamo valutazione in stelle, titolo, testo, una foto facoltativa e il nome visualizzato da lei scelto. Dopo la nostra verifica pubblichiamo la recensione, il nome visualizzato e la foto presso il prodotto; l’indirizzo e-mail e i dati dell’ordine non vengono mostrati. La base giuridica è l’art. 6, par. 1, lett. f) GDPR (presentazione di opinioni autentiche dei clienti). Può chiedere in qualsiasi momento la cancellazione della sua recensione. [OPEN: definire il periodo di conservazione delle recensioni] Dopo la conclusione di un ordine le inviamo una sola volta un’e-mail con la richiesta di una recensione (art. 6, par. 1, lett. f) GDPR in combinato disposto con il § 7, comma 3, UWG). Può opporsi in qualsiasi momento a questo utilizzo del suo indirizzo e-mail, ad esempio scrivendo a {email}. [OPEN: aggiungere l’avviso di opposizione nel checkout e in ogni richiesta di recensione]',
+        ],
+      },
+      {
+        heading: '6. Caricamento di modelli e preventivi',
+        paragraphs: [
+          'Per una richiesta con caricamento trattiamo il suo nome, l’indirizzo e-mail, il numero di telefono facoltativo, la descrizione, la quantità, i file STL o 3MF caricati e la versione accettata delle condizioni di caricamento, al fine di verificare il modello, preparare e comunicare un preventivo ed eventualmente eseguire il contratto che ne deriva (art. 6, par. 1, lett. b) GDPR). I file non vengono resi pubblici.',
+        ],
+      },
+      {
+        heading: '7. Google Analytics 4, Google Tag Manager e misurazione propria del traffico',
+        paragraphs: [
+          'Google Analytics 4 viene caricato solo con il suo consenso alla categoria Statistiche. Tratta dati di utilizzo, delle pagine, del dispositivo e del browser, la posizione approssimativa e identificativi online per misurare il traffico e migliorare la nostra offerta (§ 25, comma 1, TDDDG, art. 6, par. 1, lett. a) GDPR). Fornitore: Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlanda. Può avvenire un trattamento da parte di Google LLC negli Stati Uniti; Google LLC è certificata nell’ambito dell’EU-US Data Privacy Framework (decisione di adeguatezza della Commissione europea del 10 luglio 2023). Può revocare il consenso in qualsiasi momento nelle impostazioni dei cookie. Informativa sulla privacy: https://policies.google.com/privacy',
+          'Carichiamo Google Tag Manager dello stesso fornitore solo se ha dato il consenso sia a Statistiche sia a Marketing. Gestisce i tag del sito e tratta in particolare il suo indirizzo IP e dati tecnici del browser (§ 25, comma 1, TDDDG, art. 6, par. 1, lett. a) GDPR).',
+          'Con il consenso a Statistiche registriamo inoltre, con una nostra misurazione del traffico memorizzata sul nostro server, visualizzazioni di pagina, visualizzazioni di prodotto ed eventi del carrello e del checkout. A tal fine memorizziamo un ID visitatore casuale (ps_vid), un ID di sessione, la pagina di ingresso, la lingua, l’identificativo del browser (user agent) e il tipo di dispositivo che ne deriva, il dominio della pagina di provenienza, i parametri di campagna (UTM) e gli ID di clic dei link pubblicitari (fbclid, ttclid, gclid), ma non l’indirizzo IP. Quando effettua un ordine, colleghiamo la sessione all’ordine per valutare l’efficacia delle campagne (§ 25, comma 1, TDDDG, art. 6, par. 1, lett. a) GDPR). Cancelliamo user agent, dominio di provenienza e ID di clic dopo 90 giorni e gli eventi stessi dopo 395 giorni.',
+        ],
+      },
+      {
+        heading: '8. Meta Pixel e TikTok Pixel',
+        paragraphs: [
+          'Meta Pixel e TikTok Pixel vengono caricati solo con il suo consenso alla categoria Marketing. Consentono a Meta e TikTok di attribuire visite e azioni su questo sito a campagne di marketing, creare gruppi di destinatari e misurare l’efficacia della pubblicità; a tal fine vengono trattati identificativi online, indirizzo IP, dati del browser e del dispositivo e dati su visualizzazioni di pagina e interazioni (§ 25, comma 1, TDDDG, art. 6, par. 1, lett. a) GDPR).',
+          'Con lo stesso consenso inviamo inoltre gli eventi visualizzazione di pagina, visualizzazione di prodotto, aggiunta al carrello, avvio del checkout e acquisto direttamente dal nostro server a Meta (Conversions API) e TikTok (Events API). Vengono trasmessi il suo indirizzo IP, lo user agent, i cookie dei pixel (_fbp, _fbc, _ttp) o gli ID di clic pubblicitari, il valore e il prodotto dell’evento e, in caso di acquisto, il suo indirizzo e-mail come hash SHA-256. Visualizzazioni di pagina, visualizzazioni di prodotto ed eventi del carrello e del checkout vengono inoltrati senza essere memorizzati. Per gli acquisti conserviamo i dati IP e dei cookie fino al pagamento (al massimo 30 giorni) e l’evento risultante fino alla sua trasmissione, al massimo 90 giorni. Con il consenso a Marketing ma senza quello a Statistiche non memorizziamo la nostra misurazione del traffico.',
+          'Fornitore di TikTok Pixel: TikTok Technology Limited, 10 Earlsfort Terrace, Dublin 2, D02 T380, Irlanda; non si può escludere un trattamento in paesi terzi (tra cui Stati Uniti e Singapore), che si basa sulle clausole contrattuali standard dell’UE. Fornitore di Meta Pixel: Meta Platforms Ireland Limited, Merrion Road, Dublin 4, D04 X2K5, Irlanda. Noi e Meta siamo contitolari del trattamento per la raccolta dei dati e la loro trasmissione a Meta (art. 26 GDPR); del trattamento successivo è responsabile solo Meta. È possibile un trattamento da parte di Meta Platforms, Inc. negli Stati Uniti; Meta Platforms, Inc. è certificata nell’ambito dell’EU-US Data Privacy Framework. Può revocare il consenso in qualsiasi momento nelle impostazioni dei cookie. Informativa sulla privacy: https://www.facebook.com/privacy/policy/ e https://www.tiktok.com/legal/privacy-policy-eea',
+        ],
+      },
+      {
+        heading: '9. Periodi di conservazione',
+        paragraphs: [
+          'Cancelliamo i dati personali quando viene meno la loro finalità, salvo che si applichi un obbligo legale di conservazione o un blocco della cancellazione. Le fatture e i relativi dati d’ordine e di pagamento vengono conservati per dieci anni dalla fine dell’anno solare di emissione. Le prove del consenso vengono conservate per tre anni dalla revoca o dall’ultima modifica, i log delle e-mail per 90 giorni. Le richieste di caricamento e di preventivo non seguite da un incarico vengono di norma cancellate dopo dodici mesi; i file dei modelli vengono cancellati secondo i termini più brevi a essi applicabili. I termini di cancellazione completi e la procedura sono definiti internamente nel nostro piano di cancellazione e conservazione.',
+        ],
+      },
+      {
+        heading: '10. I suoi diritti',
+        paragraphs: [
+          'Alle condizioni previste dalla legge, ha diritto di accesso, rettifica, cancellazione, limitazione del trattamento e portabilità dei dati. Può revocare il consenso in qualsiasi momento con effetto per il futuro. Contatto: {email}.',
+          'Diritto di opposizione: se trattiamo dati sulla base dell’art. 6, par. 1, lett. f) GDPR, può opporsi in qualsiasi momento per motivi connessi alla sua situazione particolare (art. 21 GDPR).',
+          'Il conferimento dei dati contrassegnati come obbligatori nel modulo d’ordine è necessario per la conclusione del contratto; senza di essi non possiamo eseguire l’ordine. Le altre informazioni sono facoltative. Non ha luogo alcun processo decisionale automatizzato, compresa la profilazione, ai sensi dell’art. 22 GDPR.',
+          'Ha inoltre il diritto di proporre reclamo a un’autorità di controllo per la protezione dei dati. L’autorità competente per noi è di norma la Landesbeauftragte für Datenschutz und Informationsfreiheit (commissaria per la protezione dei dati e la libertà d’informazione) del Land Renania Settentrionale-Vestfalia.',
+        ],
+      },
+      {
+        heading: '11. Aggiornamenti della presente informativa',
+        paragraphs: [
+          'Aggiorniamo la presente informativa sulla privacy quando cambiano i trattamenti dei dati o i requisiti di legge. La versione aggiornata è sempre disponibile su questa pagina.',
+        ],
+      },
+    ],
+  },
+  terms: {
+    updatedAt: 'Ultimo aggiornamento: 31 ottobre 2026',
+    sections: [
+      {
+        heading: '1. Ambito di applicazione',
+        paragraphs: [
+          'Le presenti Condizioni generali di vendita (CGV) si applicano a tutti i contratti conclusi tra {name}, {street}, {zip} {city}, Germania (di seguito «noi») e i consumatori ai sensi del § 13 BGB (codice civile tedesco) per la vendita di merci tramite questo negozio online.',
+        ],
+      },
+      {
+        heading: '2. Parte contraente, lingua del contratto e conservazione del testo contrattuale',
+        paragraphs: [
+          'La sua controparte contrattuale è {name}, {street}, {zip} {city}, Germania, e-mail: {email}. La lingua del contratto è il tedesco; le traduzioni di questa pagina hanno solo scopo informativo.',
+          'Conserviamo il testo del contratto. Con la conferma d’ordine le inviamo per e-mail i dati dell’ordine, le presenti CGV e l’informativa sul diritto di recesso. Può inoltre consultare il suo ordine tramite il link contenuto nella conferma d’ordine. Le CGV in vigore possono essere consultate e stampate in qualsiasi momento su questa pagina.',
+        ],
+      },
+      {
+        heading: '3. Offerta, procedura d’ordine e conclusione del contratto',
+        paragraphs: [
+          'La presentazione dei prodotti nel negozio online non costituisce un’offerta giuridicamente vincolante, ma un invito non vincolante a effettuare un ordine.',
+          'Procedura d’ordine: configura un prodotto e lo aggiunge al carrello. Nel checkout inserisce i dati di contatto e di consegna e sceglie il metodo di pagamento. Prima dell’invio vede un riepilogo dell’ordine con tutti gli articoli, le spese di spedizione e il prezzo totale. Fino a quel momento può correggere in qualsiasi momento gli errori di inserimento nei campi del modulo o tramite il carrello, oppure interrompere la procedura chiudendo la finestra del browser. Facendo clic su «Ordine con obbligo di pagamento» presenta un’offerta vincolante per l’acquisto delle merci presenti nel carrello.',
+          'Il contratto si conclude quando accettiamo la sua offerta inviando la conferma d’ordine per e-mail o spedendo la merce.',
+          'Per le stampe 3D richieste individualmente sulla base di file caricati, prepariamo un preventivo dopo una verifica. Il preventivo è valido 14 giorni dal ricevimento. Il contratto si conclude con la sua accettazione del preventivo.',
+        ],
+      },
+      {
+        heading: '4. Prodotti e produzione',
+        paragraphs: [
+          'Tutti i prodotti vengono realizzati con stampa 3D solo dopo l’ordine. Calibro, dimensioni e colori si scelgono tra le opzioni offerte per ciascun prodotto; su richiesta e con un sovrapprezzo, una scatola può essere personalizzata con un nome. A causa del procedimento sono visibili sottili linee di strato e leggere strutture superficiali. Le immagini dei prodotti sono a scopo illustrativo; i colori possono variare a seconda dello schermo. Restano salvi i suoi diritti di garanzia previsti dalla legge.',
+          'Le scatole servono a ordinare e suddividere. Non sostituiscono il contenitore o l’armadio di sicurezza per armi prescritto dal § 36 della legge tedesca sulle armi (Waffengesetz) per la custodia delle munizioni. Le munizioni non fanno parte dell’offerta.',
+        ],
+      },
+      {
+        heading: '5. Prezzi e spese di spedizione',
+        paragraphs: [
+          'Tutti i prezzi indicati sono prezzi finali in euro. In quanto piccola impresa ai sensi del § 19 UStG, non addebitiamo l’IVA.',
+          'A questi si aggiungono le spese di spedizione: 6,99 € in Germania (spedizione gratuita a partire da 80,00 € di valore dell’ordine) e 15,00 € verso tutti gli altri paesi di consegna (spedizione gratuita a partire da 100,00 €). A partire da un valore dell’ordine di 100,00 € riceve inoltre in omaggio una scatola porta cartucce da 50 colpi a sua scelta.',
+          'Per le consegne in Svizzera, all’importazione possono essere addebitati dazi doganali, IVA all’importazione e diritti dello spedizioniere. Questi importi non sono compresi nel prezzo e sono a suo carico.',
+        ],
+      },
+      {
+        heading: '6. Pagamento',
+        paragraphs: [
+          'Sono disponibili i seguenti metodi di pagamento: carta e altri metodi di pagamento indicati nel checkout tramite Stripe, pagamento anticipato con bonifico bancario e Bitcoin. Per il pagamento anticipato concediamo lo sconto sul valore della merce indicato nel checkout; le coordinate bancarie e la causale le riceve dopo l’ordine e l’importo è dovuto immediatamente. Per i pagamenti in Bitcoin, l’importo indicato al momento dell’ordine deve essere trasferito all’indirizzo indicato entro il termine di pagamento stabilito. La produzione inizia solo dopo il ricevimento dell’intero pagamento.',
+        ],
+      },
+      {
+        heading: '7. Consegna',
+        paragraphs: [
+          'Consegniamo in Germania, Austria, Svizzera, Paesi Bassi, Belgio, Lussemburgo, Francia, Danimarca, Polonia, Repubblica Ceca, Italia e Spagna. I tempi di consegna sono di 3-8 giorni lavorativi in Germania e di 7-14 giorni lavorativi negli altri paesi di consegna, in entrambi i casi dal ricevimento dell’intero pagamento. Per gli ordini di stampa richiesti individualmente indichiamo il tempo di consegna previsto nel preventivo. La spedizione avviene con DHL o Hermes.',
+        ],
+      },
+      {
+        heading: '8. Riserva di proprietà',
+        paragraphs: ['La merce resta di nostra proprietà fino al completo pagamento.'],
+      },
+      {
+        heading: '9. Diritto di recesso',
+        paragraphs: [
+          'I consumatori hanno un diritto di recesso previsto dalla legge. I dettagli sono indicati nell’informativa sul diritto di recesso. Può dichiarare il recesso anche online tramite «Recedi dal contratto» nel piè di pagina di ogni pagina oppure all’indirizzo {withdrawUrl}.',
+          'Ai sensi del § 312g, comma 2, n. 1 BGB, il diritto di recesso è escluso per le scatole con scritta del nome personale (personalizzazione) e per le stampe 3D realizzate a partire da file da lei caricati. Per le merci per cui esercita il recesso, i costi diretti della restituzione sono a suo carico.',
+        ],
+      },
+      {
+        heading: '10. Garanzia legale',
+        paragraphs: [
+          'Si applicano i diritti di garanzia previsti dalla legge. Può segnalarci i difetti tramite il modulo di reclamo nel negozio o per e-mail a {email}.',
+        ],
+      },
+      {
+        heading: '11. Risoluzione delle controversie',
+        paragraphs: [
+          'Non siamo disposti né obbligati a partecipare a procedure di risoluzione delle controversie dinanzi a un organismo di conciliazione per i consumatori.',
+        ],
+      },
+      {
+        heading: '12. Legge applicabile',
+        paragraphs: [
+          'Si applica il diritto tedesco, con esclusione della Convenzione delle Nazioni Unite sui contratti di compravendita internazionale di merci. Nei confronti dei consumatori, questa scelta di legge vale solo nella misura in cui non li privi della protezione garantita dalle disposizioni imperative della legge dello Stato in cui hanno la residenza abituale.',
+        ],
+      },
+    ],
+  },
+  withdrawal: {
+    updatedAt: 'Ultimo aggiornamento: 31 ottobre 2026',
+    sections: [
+      {
+        heading: 'Diritto di recesso',
+        paragraphs: [
+          'Ha il diritto di recedere dal presente contratto, senza indicarne le ragioni, entro 14 giorni.',
+          'Il periodo di recesso scade dopo 14 giorni dal giorno in cui lei o un terzo, diverso dal vettore e da lei designato, acquisisce il possesso fisico dei beni. Se ha ordinato più beni con un unico ordine e questi vengono consegnati separatamente, il periodo decorre dal giorno in cui lei o un terzo, diverso dal vettore e da lei designato, acquisisce il possesso fisico dell’ultimo bene.',
+          'Per esercitare il diritto di recesso, lei è tenuto a informarci ({name}, {street}, {zip} {city}, Germania, e-mail: {email}) della sua decisione di recedere dal presente contratto tramite una dichiarazione esplicita (ad esempio lettera inviata per posta o e-mail). A tal fine può utilizzare il modulo di recesso tipo riportato di seguito, ma non è obbligatorio.',
+          'Può esercitare il diritto di recesso anche online tramite il pulsante «Recedi dal contratto» nel piè di pagina di ogni pagina del nostro negozio oppure all’indirizzo {withdrawUrl}. Se utilizza questa funzione online, le trasmetteremo senza indugio su un supporto durevole (ad esempio per e-mail) una conferma di ricevimento con il contenuto della sua dichiarazione di recesso e la data e l’ora del suo ricevimento.',
+          'Per rispettare il termine di recesso, è sufficiente che lei invii la comunicazione relativa all’esercizio del diritto di recesso prima della scadenza del periodo di recesso.',
+        ],
+      },
+      {
+        heading: 'Effetti del recesso',
+        paragraphs: [
+          'Se lei recede dal presente contratto, le saranno rimborsati tutti i pagamenti che ha effettuato a nostro favore, compresi i costi di consegna (ad eccezione dei costi supplementari derivanti dalla sua eventuale scelta di un tipo di consegna diverso dal tipo meno costoso di consegna standard da noi offerto), senza indebito ritardo e comunque entro 14 giorni dal giorno in cui siamo informati della sua decisione di recedere dal presente contratto. Detti rimborsi saranno effettuati utilizzando lo stesso mezzo di pagamento da lei usato per la transazione iniziale, salvo che lei non abbia espressamente convenuto altrimenti; in ogni caso, non dovrà sostenere alcun costo quale conseguenza di tale rimborso. Il rimborso può essere sospeso fino al ricevimento dei beni oppure fino all’avvenuta dimostrazione da parte sua di aver rispedito i beni, se precedente.',
+          'È pregato di rispedire i beni o di consegnarli a {name}, {street}, {zip} {city}, Germania, senza indebito ritardo e in ogni caso entro 14 giorni dal giorno in cui ci ha comunicato il suo recesso dal presente contratto. Il termine è rispettato se lei rispedisce i beni prima della scadenza del periodo di 14 giorni. I costi diretti della restituzione dei beni sono a suo carico.',
+          'Lei è responsabile solo della diminuzione del valore dei beni risultante da una manipolazione dei beni diversa da quella necessaria per stabilire la natura, le caratteristiche e il funzionamento dei beni.',
+        ],
+      },
+      {
+        heading: 'Esclusione del diritto di recesso',
+        paragraphs: [
+          'Il diritto di recesso non si applica ai contratti di fornitura di beni non prefabbricati, per la cui produzione è determinante una scelta o una determinazione individuale del consumatore, oppure chiaramente confezionati sulle esigenze personali del consumatore (§ 312g, comma 2, n. 1 BGB).',
+          'Nel nostro negozio ciò riguarda le scatole con scritta del nome personale (personalizzazione) e le stampe 3D realizzate a partire da file da lei caricati. Se un ordine contiene anche altre merci, per queste il diritto di recesso resta valido.',
+        ],
+      },
+      {
+        heading: 'Modulo di recesso tipo',
+        paragraphs: [
+          'Se desidera recedere dal contratto, compili e restituisca il presente modulo.',
+        ],
+        form: [
+          'Destinatario: {name}\n{street}\n{zip} {city}\nGermania\nE-mail: {email}',
+          'Con la presente io/noi (*) notifichiamo il recesso dal mio/nostro (*) contratto di vendita dei seguenti beni (*) / di prestazione del seguente servizio (*):',
+          'Ordinato il (*) / ricevuto il (*)\nNome del/dei consumatore(i)\nIndirizzo del/dei consumatore(i)\nFirma del/dei consumatore(i) (solo se il presente modulo è notificato in versione cartacea)\nData',
+          '(*) Cancellare la dicitura inutile.',
+        ],
+      },
+    ],
+  },
+}
+
 const documents: Record<string, Partial<Record<LegalDocumentKey, LegalDocumentTranslation>>> = {
   de,
   en,
@@ -1351,6 +1598,7 @@ const documents: Record<string, Partial<Record<LegalDocumentKey, LegalDocumentTr
   nl,
   pl,
   cs,
+  it,
 }
 
 const fill = (text: string, company: LegalCompany) =>

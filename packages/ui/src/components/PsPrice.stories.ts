@@ -7,7 +7,7 @@ const meta: Meta<typeof PsPrice> = {
   args: { cents: 2490, locale: 'de', size: 'md' },
   argTypes: {
     size: { control: 'select', options: ['sm', 'md', 'lg'] },
-    locale: { control: 'select', options: ['de', 'en', 'pl', 'fr', 'nl', 'cs'] },
+    locale: { control: 'select', options: ['de', 'en', 'pl', 'fr', 'nl', 'cs', 'it'] },
   },
   render: (args) => ({
     components: { PsPrice },

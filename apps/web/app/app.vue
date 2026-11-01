@@ -28,7 +28,7 @@ useHead({
             '@type': 'WebSite',
             name: 'kaliberbox.de',
             url: siteUrl,
-            inLanguage: ['de', 'en', 'pl', 'fr', 'nl', 'cs'],
+            inLanguage: ['de', 'en', 'pl', 'fr', 'nl', 'cs', 'it'],
           },
         ],
       }),

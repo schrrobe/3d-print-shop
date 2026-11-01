@@ -21,6 +21,7 @@ test.describe('seo & social previews', () => {
     expect(html).toContain('rel="canonical"')
     expect(html).toContain('hreflang="x-default"')
     expect(html).toContain('hreflang="cs"')
+    expect(html).toContain('hreflang="it"')
     expect(html).toMatch(/<title>kaliberbox\.de — [^<]+<\/title>/)
     expect(html).toContain('application/ld+json')
   })

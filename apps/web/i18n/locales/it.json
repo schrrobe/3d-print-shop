@@ -1,0 +1,578 @@
+{
+  "nav": {
+    "home": "Home",
+    "cart": "Carrello",
+    "support": "Assistenza"
+  },
+  "products": {
+    "title": "Scatole porta cartucce",
+    "configure": "Scegli i colori",
+    "addToCart": "Aggiungi al carrello",
+    "search": {
+      "placeholder": "Cerca prodotti …",
+      "noResults": "Nessun prodotto trovato per la tua ricerca."
+    },
+    "gallery": {
+      "placeholder": "Nessuna foto disponibile"
+    },
+    "added": "Aggiunto al carrello",
+    "manufacturingNotice": {
+      "title": "Nota sulla produzione",
+      "production": "Ogni scatola è realizzata con la stampa 3D. Sulla superficie si vedono sottili linee di strato e una leggera texture, cosa normale con questo procedimento. Funzionalità, stabilità e durata non ne risentono."
+    },
+    "viewer": {
+      "hint": "Trascina per ruotare · Scorri per lo zoom"
+    }
+  },
+  "cart": {
+    "title": "Carrello",
+    "empty": "Il tuo carrello è vuoto.",
+    "browse": "Scopri i prodotti",
+    "quantity": "Quantità",
+    "remove": "Rimuovi",
+    "subtotal": "Subtotale",
+    "shipping": "Spedizione",
+    "shippingFree": "Gratuita",
+    "freeShippingHint": "Ancora {amount} per la spedizione gratuita",
+    "freeBoxHint": "Ancora {amount} per la tua scatola da 50 in omaggio",
+    "total": "Totale",
+    "checkout": "Vai alla cassa",
+    "updated": "Carrello aggiornato",
+    "saveChanges": "Salva modifiche",
+    "edit": "Modifica",
+    "voucherLabel": "Buono ({code})",
+    "prepaymentDiscount": "Sconto pagamento anticipato ({percent}%)",
+    "voucherPlaceholder": "Codice buono",
+    "voucherApply": "Applica",
+    "voucherRemove": "Rimuovi",
+    "voucherReason": {
+      "not_found": "Codice buono non trovato",
+      "inactive": "Questo buono non è attivo",
+      "not_yet_valid": "Questo buono non è ancora valido",
+      "expired": "Questo buono è scaduto",
+      "exhausted": "Questo buono è già stato utilizzato per intero",
+      "min_order_not_met": "Ordine minimo di {amount} non raggiunto"
+    },
+    "voucherFromLink": "Il buono {code} è stato aggiunto al tuo carrello"
+  },
+  "checkout": {
+    "title": "Cassa",
+    "contact": "Contatto e indirizzo di consegna",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "company": "Azienda (facoltativo)",
+    "street": "Via e numero civico",
+    "zip": "CAP",
+    "city": "Città",
+    "country": "Paese",
+    "email": "E-mail",
+    "phone": "Telefono (facoltativo)",
+    "note": "Note (facoltativo)",
+    "payment": "Metodo di pagamento",
+    "payStripe": "Carta / Stripe",
+    "payBank": "Pagamento anticipato (bonifico)",
+    "payBitcoin": "Bitcoin",
+    "submit": "Ordine con obbligo di pagamento",
+    "summary": "Riepilogo ordine",
+    "guestHint": "Ordini come ospite, non ti serve un account."
+  },
+  "success": {
+    "title": "Grazie per il tuo ordine!",
+    "orderNumber": "Numero d'ordine",
+    "emailHint": "Ti abbiamo inviato una conferma d'ordine via e-mail.",
+    "viewOrder": "Vedi stato dell'ordine",
+    "simulatePayment": "Simula pagamento (Dev)"
+  },
+  "order": {
+    "title": "Ordine {number}",
+    "status": "Stato",
+    "items": "Articoli",
+    "invoiceDownload": "Scarica la fattura {number}",
+    "bank": {
+      "title": "Effettua il bonifico a:",
+      "holder": "Intestatario del conto",
+      "reference": "Causale"
+    },
+    "bitcoin": {
+      "title": "Pagamento in Bitcoin",
+      "sendTo": "Invia {amount} sats a:",
+      "confirmations": "Conferme: {current}/{required}",
+      "waiting": "In attesa del pagamento …",
+      "check": "Verifica stato del pagamento"
+    },
+    "statuses": {
+      "pending": "Aperto",
+      "awaiting_payment": "In attesa di pagamento",
+      "awaiting_bank_transfer": "In attesa di bonifico",
+      "paid": "Pagato",
+      "in_production": "In produzione",
+      "quality_check": "Controllo qualità",
+      "ready_to_ship": "Pronto per la spedizione",
+      "shipped": "Spedito",
+      "completed": "Completato",
+      "cancelled": "Annullato",
+      "refunded": "Rimborsato"
+    },
+    "stripe": {
+      "title": "Pagamento in sospeso",
+      "hint": "Il tuo pagamento non è ancora stato completato.",
+      "payNow": "Paga ora"
+    }
+  },
+  "quote": {
+    "title": "Il tuo preventivo",
+    "price": "Prezzo del preventivo",
+    "validUntil": "Valido fino al",
+    "accept": "Accetta il preventivo",
+    "decline": "Rifiuta",
+    "declined": "Preventivo rifiutato.",
+    "accepted": "Preventivo accettato. Procedi con il pagamento:",
+    "payNow": "Paga ora",
+    "expired": "Questo preventivo è scaduto.",
+    "addressTitle": "Indirizzo di fatturazione e di consegna"
+  },
+  "consent": {
+    "title": "Cookie e privacy",
+    "text": "Usiamo i cookie necessari al funzionamento del negozio. I cookie statistici e di marketing li carichiamo solo con il tuo consenso.",
+    "acceptAll": "Accetta tutti",
+    "rejectAll": "Solo necessari",
+    "settings": "Impostazioni",
+    "save": "Salva selezione",
+    "necessary": "Necessari",
+    "necessaryText": "Servono per carrello, checkout e impostazione della lingua.",
+    "statistics": "Statistiche",
+    "statisticsText": "Google Analytics 4, per aiutarci a migliorare il negozio.",
+    "marketing": "Marketing",
+    "marketingText": "Meta Pixel e TikTok Pixel (anche lato server), per mostrarti pubblicità più adatta a te."
+  },
+  "footer": {
+    "imprint": "Note legali",
+    "privacy": "Informativa privacy",
+    "terms": "Condizioni di vendita",
+    "withdrawal": "Recesso"
+  },
+  "legal": {
+    "imprintTitle": "Note legali",
+    "privacyTitle": "Informativa sulla privacy",
+    "termsTitle": "Condizioni generali di vendita",
+    "withdrawalTitle": "Informativa sul diritto di recesso",
+    "placeholder": "Segnaposto: aggiungere i contenuti legali prima della pubblicazione.",
+    "translationNote": "Questa traduzione ha solo scopo informativo. Fa fede la versione tedesca."
+  },
+  "common": {
+    "loading": "Caricamento …",
+    "error": "Qualcosa è andato storto.",
+    "back": "Indietro"
+  },
+  "support": {
+    "title": "Assistenza",
+    "subtitle": "Hai una domanda su un ordine, un pagamento o un prodotto? Scrivici qui.",
+    "name": "Nome",
+    "email": "E-mail",
+    "subject": "Oggetto",
+    "category": "Categoria",
+    "orderNumber": "Numero d'ordine (facoltativo)",
+    "orderNumberHint": "Se la tua richiesta riguarda un ordine, indica il numero d'ordine che trovi nell'e-mail di conferma.",
+    "message": "Messaggio",
+    "submit": "Invia richiesta",
+    "categories": {
+      "order": "Ordine",
+      "payment": "Pagamento",
+      "shipping": "Spedizione",
+      "product": "Prodotto",
+      "other": "Altro"
+    },
+    "successTitle": "Richiesta ricevuta!",
+    "successText": "Ti abbiamo inviato un'e-mail con il link al tuo ticket. Il tuo numero di ticket:",
+    "viewTicket": "Vedi ticket",
+    "ticket": {
+      "title": "Ticket di assistenza",
+      "you": "Tu",
+      "team": "Team di assistenza",
+      "reply": "La tua risposta",
+      "send": "Invia risposta",
+      "closedNote": "Questo ticket è chiuso. Per altre domande apri una nuova richiesta.",
+      "status": {
+        "open": "Aperto",
+        "in_progress": "In lavorazione",
+        "waiting_customer": "In attesa della tua risposta",
+        "resolved": "Risolto",
+        "closed": "Chiuso"
+      }
+    }
+  },
+  "seo": {
+    "home": {
+      "title": "Scatole porta cartucce per il tuo calibro, nei tuoi colori · kaliberbox.de",
+      "description": "Scatole porta cartucce su misura per 9 mm Luger, .45 ACP, .22 LR, .223 Rem, .308 Win e 7,62×39. Da 50 o 100 colpi, il colore della scatola e della scritta lo scegli tu. Spedizione gratuita in Germania a partire da 80 €."
+    },
+    "products": {
+      "description": "Scatole porta cartucce per calibro, da 50 o 100 colpi. I colori li scegli tu, la stampa parte dopo il tuo ordine."
+    },
+    "cart": {
+      "title": "Carrello",
+      "description": "Il tuo carrello nel 3D Print Shop. La spedizione in Germania costa 6,99 €, da 80 € è gratuita."
+    },
+    "support": {
+      "title": "Assistenza",
+      "description": "Hai una domanda su ordine, pagamento o spedizione? Scrivici con un ticket di assistenza, ti rispondiamo via e-mail."
+    },
+    "checkout": {
+      "title": "Cassa",
+      "description": "Completa l'ordine e paga con carta, bonifico o Bitcoin."
+    },
+    "legal": {
+      "imprint": "Note legali",
+      "privacy": "Informativa sulla privacy",
+      "terms": "Condizioni generali di vendita",
+      "description": "Informazioni legali sul 3D Print Shop."
+    },
+    "error": {
+      "notFound": "Pagina non trovata",
+      "notFoundText": "Questa pagina non esiste o è stata rimossa.",
+      "generic": "Qualcosa è andato storto",
+      "back": "Torna alla home"
+    },
+    "withdraw": {
+      "description": "Recedi online dal contratto d'acquisto: indica nome, e-mail e numero d'ordine, conferma il recesso e ricevi la conferma di ricezione via e-mail."
+    }
+  },
+  "portal": {
+    "title": "La mia area clienti",
+    "orders": "Ordini",
+    "noOrders": "Non ci sono ordini per questa e-mail.",
+    "quotes": "Preventivi",
+    "quote": "Preventivo",
+    "configurations": "Combinazioni di colori salvate",
+    "complaintsOnOrder": "Reclami",
+    "requestNew": "Richiedi un nuovo link di accesso",
+    "invalid": "Questo link di accesso non è valido.",
+    "request": {
+      "title": "Accedi ai tuoi ordini",
+      "intro": "Inserisci il tuo indirizzo e-mail. Ti invieremo un link di accesso sicuro ai tuoi ordini.",
+      "email": "Indirizzo e-mail",
+      "orderNumber": "Numero d'ordine (facoltativo)",
+      "submit": "Richiedi link di accesso",
+      "confirmation": "Se esistono ordini per questa e-mail, ti abbiamo inviato un link di accesso.",
+      "error": "Non è stato possibile richiedere il link di accesso. Riprova.",
+      "privacy": "Il link è valido 30 giorni e viene inviato solo all'indirizzo e-mail indicato."
+    },
+    "expired": {
+      "title": "Link di accesso scaduto",
+      "intro": "Questo link è scaduto. Richiedine uno nuovo.",
+      "renew": "Richiedi un nuovo link"
+    },
+    "production": {
+      "none": "Produzione non ancora avviata",
+      "progress": "{done}/{total} completati in produzione"
+    },
+    "actions": {
+      "details": "Dettagli",
+      "invoice": "Scarica la fattura",
+      "complaint": "Apri un reclamo",
+      "open": "Apri"
+    }
+  },
+  "complaints": {
+    "reason": {
+      "damaged": "Danneggiato",
+      "wrong_item": "Articolo sbagliato",
+      "quality_issue": "Difetto di qualità",
+      "missing_parts": "Parti mancanti",
+      "color_mismatch": "Colore diverso",
+      "other": "Altro"
+    },
+    "status": {
+      "submitted": "Ricevuto",
+      "in_review": "In verifica",
+      "info_needed": "Servono informazioni",
+      "approved": "Approvato",
+      "rejected": "Respinto",
+      "replacement_planned": "Ristampa prevista",
+      "refund_planned": "Rimborso previsto",
+      "closed": "Chiuso"
+    },
+    "resolution": {
+      "replacement_print": "Ristampa",
+      "refund": "Rimborso",
+      "voucher": "Buono",
+      "rejection": "Rifiuto",
+      "further_review": "Ulteriore verifica"
+    },
+    "form": {
+      "title": "Apri un reclamo",
+      "missingContext": "Nessun ordine valido collegato. Apri il reclamo dalla tua area clienti.",
+      "goToPortal": "Vai all'area clienti",
+      "customMadeNote": "Nota: le scatole personalizzate con un nome e le stampe realizzate dai tuoi file sono escluse dal diritto di recesso. La garanzia legale per i difetti resta comunque valida.",
+      "selectItems": "Articoli interessati",
+      "quantity": "Quantità",
+      "reason": "Motivo",
+      "description": "Descrizione",
+      "photos": "Foto (facoltativo)",
+      "photosHint": "Fino a 5 immagini (JPG, PNG, WebP).",
+      "submit": "Invia reclamo",
+      "noItems": "Seleziona almeno un articolo.",
+      "descriptionTooShort": "Descrivi il problema (almeno 10 caratteri).",
+      "submitError": "Non è stato possibile inviare il reclamo."
+    },
+    "view": {
+      "order": "Ordine",
+      "description": "Descrizione",
+      "items": "Articoli",
+      "photos": "Foto",
+      "decisions": "Decisioni",
+      "replyTitle": "Servono altre informazioni",
+      "replyIntro": "Abbiamo bisogno di qualche dettaglio in più. Rispondi qui sotto.",
+      "replyLabel": "La tua risposta",
+      "replySubmit": "Invia risposta"
+    }
+  },
+  "wishlist": {
+    "title": "Preferiti",
+    "empty": "La tua lista dei preferiti è vuota.",
+    "toCart": "Aggiungi al carrello",
+    "share": "Condividi",
+    "add": "Aggiungi ai preferiti",
+    "remove": "Rimuovi dai preferiti",
+    "added": "Aggiunto ai preferiti",
+    "removed": "Rimosso dai preferiti",
+    "movedToCart": "Spostato nel carrello",
+    "shareCopied": "Link copiato",
+    "shareError": "Impossibile creare il link"
+  },
+  "configurator": {
+    "title": "Configuratore",
+    "popular": "Combinazioni più scelte",
+    "reset": "Ripristina predefiniti",
+    "share": "Condividi configurazione",
+    "shareCopied": "Link della configurazione copiato",
+    "shareError": "Impossibile creare il link",
+    "loadError": "Impossibile caricare la configurazione",
+    "unavailableShort": "non disponibile",
+    "unavailableZone": "{zone}: {color} al momento non è disponibile",
+    "availability": {
+      "unavailable": "{zone}: il colore scelto non è più disponibile",
+      "out_of_stock": "{zone}: il colore scelto è al momento esaurito"
+    }
+  },
+  "recommendations": {
+    "title": "Spesso acquistati insieme",
+    "fallbackTitle": "Potrebbe piacerti anche"
+  },
+  "reviews": {
+    "title": "Recensioni",
+    "empty": "Ancora nessuna recensione.",
+    "count": "Nessuna recensione | {count} recensione | {count} recensioni",
+    "ratingLabel": "{rating} su 5 stelle",
+    "photoAlt": "Foto della recensione di {name}",
+    "verification": "Può lasciare una recensione solo chi ha acquistato il prodotto da noi. Controlliamo ogni recensione prima di pubblicarla."
+  },
+  "shop": {
+    "a11y": {
+      "skipToContent": "Vai al contenuto"
+    },
+    "nav": {
+      "main": "Navigazione principale",
+      "menu": "Menu",
+      "openMenu": "Apri menu",
+      "closeMenu": "Chiudi menu",
+      "homeLabel": "Home page kaliberbox.de",
+      "boxes": "Scatole porta cartucce",
+      "wishlist": "Preferiti",
+      "cartWithCount": "Carrello, {count} articoli",
+      "language": "Lingua",
+      "languageCurrent": "Lingua: {language}",
+      "theme": "Aspetto",
+      "themes": {
+        "light": "Chiaro",
+        "dark": "Scuro",
+        "system": "Sistema"
+      }
+    },
+    "caliberGroups": {
+      "HANDGUN": "Arma corta",
+      "RIFLE": "Arma lunga",
+      "RIMFIRE": "Percussione anulare"
+    },
+    "home": {
+      "title": "Per quale calibro?",
+      "lead": "Scatole porta cartucce su misura, stampate nei tuoi colori. Tu scegli il calibro, noi stampiamo la scatola e te la spediamo.",
+      "pickLegend": "Scegli il calibro",
+      "cta": "Scatole per {caliber}",
+      "ctaAll": "Tutte le scatole",
+      "howTitle": "Come arriva da te la tua scatola",
+      "steps": {
+        "caliber": {
+          "title": "Calibro e misura",
+          "text": "Ogni scatola è fatta per un solo calibro, da 50 o da 100 colpi."
+        },
+        "colors": {
+          "title": "I tuoi colori",
+          "text": "Scegli il colore della scatola e della scritta tra i filamenti che abbiamo in magazzino. L'anteprima ti mostra subito il risultato."
+        },
+        "print": {
+          "title": "Stampata su ordinazione",
+          "text": "Stampiamo la tua scatola quando riceviamo l'ordine e la spediamo al tuo indirizzo."
+        }
+      },
+      "boxesTitle": "Tutti i calibri",
+      "boxesAll": "Vedi tutte"
+    },
+    "list": {
+      "lead": "Una scatola per calibro, nelle versioni da 50 e da 100.",
+      "titleFor": "Scatole porta cartucce per {caliber}",
+      "filterLegend": "Filtra per calibro",
+      "allCalibers": "Tutti i calibri",
+      "searchLabel": "Cerca",
+      "count": "Nessuna scatola | 1 scatola | {count} scatole",
+      "reset": "Azzera filtri"
+    },
+    "caliberMissing": {
+      "title": "Manca il tuo calibro?",
+      "text": "Dicci per quale calibro ti serve una scatola. Raccogliamo le richieste e in base a quelle ampliamo l'assortimento.",
+      "cta": "Richiedi un calibro",
+      "link": "Richiedi un calibro",
+      "subject": "Richiesta calibro: {caliber}"
+    },
+    "product": {
+      "kind": "Scatola porta cartucce",
+      "fromPrice": "da {price}",
+      "sizesShort": "{sizes} colpi",
+      "rounds": "{count} colpi",
+      "sizeLegend": "Misura",
+      "priceNote": "Prezzo finale, spese di spedizione escluse",
+      "personalization": {
+        "label": "Nome sulla scatola",
+        "hint": "Facoltativo, max. 24 caratteri. Personalizzazione + {price} a scatola.",
+        "invalid": "Usa solo lettere, cifre, spazi e . - &.",
+        "line": "Personalizzazione: {name}",
+        "withdrawal": "Le scatole personalizzate sono realizzate secondo le tue indicazioni e quindi sono escluse dal diritto di recesso (§ 312g, comma 2, n. 1 BGB)."
+      },
+      "labelText": {
+        "label": "Scritta",
+        "hint": "Compare sul coperchio e sulle chiusure, max. {max} caratteri. Se lasci vuoto, viene stampato il calibro.",
+        "default": "Calibro",
+        "line": "Scritta: {text}"
+      },
+      "textColor": "Colore della scritta",
+      "summary": "{caliber} · {capacity} colpi · scatola {box} · scritta {label}",
+      "drawingAlt": "Disegno schematico della scatola porta cartucce {caliber} da {capacity} colpi in {box} con scritta in {label}",
+      "drawingCaption": "Rappresentazione schematica, non in scala",
+      "contentsTitle": "Contenuto della confezione",
+      "contentsText": "Una scatola porta cartucce vuota. Le munizioni non sono incluse.",
+      "deliveryTime": "Tempi di consegna: da 3 a 8 giorni lavorativi in Germania, da 7 a 14 giorni lavorativi verso gli altri Paesi, dal ricevimento del pagamento.",
+      "manufacturerTitle": "Produttore",
+      "colorsMissing": "Scegli un colore per ogni zona."
+    },
+    "configurator": {
+      "noColor": "Nessun colore scelto"
+    },
+    "quantity": {
+      "decrease": "Diminuisci quantità",
+      "increase": "Aumenta quantità"
+    },
+    "legalNotice": {
+      "title": "Nota sulla custodia",
+      "text": "Le scatole porta cartucce servono a tenere in ordine e suddividere le munizioni. Non sostituiscono il contenitore chiudibile a chiave o l'armadio blindato che il § 36 della legge tedesca sulle armi (Waffengesetz) prescrive per custodire le munizioni.",
+      "short": "Per tenere in ordine l'armadio blindato. La scatola non sostituisce la custodia prevista dalla legge ai sensi del § 36 WaffG."
+    },
+    "voucher": {
+      "label": "Codice buono"
+    },
+    "totals": {
+      "vatNote": "IVA non applicata ai sensi del § 19 UStG."
+    },
+    "form": {
+      "optional": "facoltativo"
+    },
+    "cart": {
+      "emptyText": "Scegli il tuo calibro e componi la tua scatola.",
+      "itemsLabel": "Articoli nel carrello ({count})",
+      "unitPrice": "{price} cad.",
+      "editItem": "Modifica {name}",
+      "removeItem": "Rimuovi {name}",
+      "continue": "Continua gli acquisti"
+    },
+    "checkout": {
+      "contactTitle": "Contatto",
+      "addressTitle": "Indirizzo di consegna",
+      "emailHint": "Per la conferma d'ordine e le informazioni sulla spedizione.",
+      "phone": "Telefono",
+      "company": "Azienda",
+      "note": "Note sull'ordine",
+      "showSummary": "Mostra riepilogo ordine",
+      "hideSummary": "Nascondi riepilogo ordine",
+      "legal": "Con l'ordine accetti le nostre {terms}. Trovi le informazioni sul diritto di recesso nell'{withdrawal} e quelle sul trattamento dei dati nell'{privacy}.",
+      "withdrawalLink": "informativa sul recesso",
+      "payHints": {
+        "stripe": "Pagamento sicuro tramite Stripe, ad es. con carta di credito.",
+        "bank_transfer": "{percent}% di sconto sul valore della merce. Ricevi coordinate bancarie e fattura dopo l'ordine.",
+        "bitcoin": "Pagamento a un indirizzo Bitcoin dopo l'ordine."
+      },
+      "errors": {
+        "summary": "Controlla i campi evidenziati ({count}).",
+        "email": "Inserisci il tuo indirizzo e-mail.",
+        "emailFormat": "Inserisci un indirizzo e-mail valido, ad es. nome{'@'}esempio.it.",
+        "firstName": "Inserisci il tuo nome.",
+        "lastName": "Inserisci il tuo cognome.",
+        "street": "Inserisci via e numero civico.",
+        "zip": "Inserisci il tuo CAP.",
+        "zipFormat": "Il CAP deve avere da 3 a 12 caratteri.",
+        "city": "Inserisci la tua città.",
+        "colors": "A un articolo nel carrello manca un colore, oppure il colore non è più disponibile. Modifica l'articolo nel carrello.",
+        "freeBoxColors": "Scegli tutti i colori della scatola in omaggio."
+      },
+      "freeBox": {
+        "title": "La tua scatola da 50 in omaggio",
+        "hint": "Con un ordine da 100 € in su ti regaliamo una scatola da 50. Calibro e colori li scegli tu.",
+        "label": "Calibro",
+        "none": "Nessuna scatola in omaggio",
+        "free": "Omaggio"
+      }
+    },
+    "wishlist": {
+      "lead": "Le configurazioni salvate restano memorizzate su questo dispositivo.",
+      "emptyText": "Tocca il cuore nella pagina di un prodotto per salvare una configurazione.",
+      "shareItem": "Condividi {name}",
+      "removeItem": "Rimuovi {name} dai preferiti"
+    },
+    "success": {
+      "hit": "Centro!"
+    },
+    "footer": {
+      "claim": "Scatole porta cartucce per il tuo calibro, stampate su ordinazione nei tuoi colori.",
+      "shop": "Negozio",
+      "shopNav": "Navigazione del negozio",
+      "legal": "Informazioni legali",
+      "legalNav": "Informazioni legali",
+      "vat": "Piccolo imprenditore ai sensi del § 19 UStG"
+    },
+    "promo": {
+      "codeLabel": "Codice sconto",
+      "copy": "Copia codice",
+      "copied": "Copiato!"
+    }
+  },
+  "withdraw": {
+    "cta": "Recedi dal contratto",
+    "title": "Recedi dal contratto",
+    "intro": "Qui puoi recedere online dal tuo contratto d'acquisto entro il periodo di recesso. Dopo l'invio ricevi subito una conferma di ricezione via e-mail.",
+    "name": "Nome e cognome",
+    "email": "Indirizzo e-mail per la conferma di ricezione",
+    "orderNumber": "Numero d'ordine",
+    "orderNumberHint": "Lo trovi nella conferma d'ordine, ad es. PS-2026-…",
+    "items": "Per quali articoli eserciti il recesso? (facoltativo)",
+    "itemsHint": "Lascia vuoto per recedere dall'intero ordine.",
+    "message": "Messaggio (facoltativo)",
+    "next": "Continua alla verifica",
+    "reviewTitle": "Controlla i tuoi dati",
+    "declaration": "Con la presente recedo dal contratto da me concluso relativo all'ordine {orderNumber}.",
+    "wholeOrder": "intero ordine",
+    "edit": "Modifica i dati",
+    "confirm": "Conferma il recesso",
+    "successTitle": "Abbiamo ricevuto il tuo recesso",
+    "successText": "Ricevuto il: {date}. Abbiamo inviato la conferma di ricezione a {email}. Numero di pratica: {ticketNumber}.",
+    "error": "Non è stato possibile trasmettere il recesso. Riprova oppure scrivici un'e-mail a {email}.",
+    "legalLink": "Vai all'informativa sul recesso"
+  }
+}

@@ -27,6 +27,7 @@ enum Locale {
   fr
   nl
   cs
+  it
 }
 
 enum OrderStatus {

@@ -13,7 +13,7 @@ const keys: LegalDocumentKey[] = ['imprint', 'privacy', 'terms', 'withdrawal']
 
 describe('legal texts', () => {
   it('fills every company placeholder in every locale', () => {
-    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs']) {
+    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs', 'it']) {
       for (const key of keys) {
         const doc = getLegalDocument(locale, key, company)
         if (!doc) continue
@@ -24,7 +24,7 @@ describe('legal texts', () => {
   })
 
   it('names the online withdrawal function in terms and withdrawal policy of every locale', () => {
-    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs']) {
+    for (const locale of ['de', 'en', 'fr', 'nl', 'pl', 'cs', 'it']) {
       for (const key of ['terms', 'withdrawal'] as const) {
         expect(
           JSON.stringify(getLegalDocument(locale, key, company)),
