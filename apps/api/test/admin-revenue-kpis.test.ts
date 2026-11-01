@@ -8,7 +8,8 @@ vi.mock('../src/lib/prisma.js', () => ({
     order: { aggregate: vi.fn(), groupBy: vi.fn() },
     salesChannel: { findMany: vi.fn() },
     salesChannelClick: { groupBy: vi.fn() },
-    trackingEvent: { count: vi.fn(), findFirst: vi.fn() },
+    trackingEvent: { count: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
+    trackingSession: { groupBy: vi.fn() },
     $queryRaw: vi.fn(),
   },
 }))
@@ -82,6 +83,8 @@ describe('admin revenue KPIs with Vorkasse discount', () => {
     vi.mocked(prisma.$queryRaw).mockResolvedValue([] as never)
     vi.mocked(prisma.trackingEvent.count).mockResolvedValue(0)
     vi.mocked(prisma.trackingEvent.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.trackingEvent.groupBy).mockResolvedValue([] as never)
+    vi.mocked(prisma.trackingSession.groupBy).mockResolvedValue([] as never)
     vi.mocked(prisma.order.aggregate).mockResolvedValue({ _sum: paidOrderSums, _count: 1 } as never)
 
     const res = await get(`/api/admin/tracking/overview?${range}`)
@@ -91,5 +94,60 @@ describe('admin revenue KPIs with Vorkasse discount', () => {
     }
     expect(body.current.kpis.netRevenueCents).toBe(10199)
     expect(body.current.kpis.grossRevenueCents).toBe(10699)
+  })
+})
+
+describe('admin tracking reach', () => {
+  it('overview returns visitors and top lists', async () => {
+    vi.mocked(prisma.$queryRaw).mockImplementation(((sql: TemplateStringsArray) =>
+      Promise.resolve(sql.join('').includes('DISTINCT "visitorId"') ? [{ n: 3n }] : [])) as never)
+    vi.mocked(prisma.trackingEvent.count).mockResolvedValue(0)
+    vi.mocked(prisma.trackingEvent.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.order.aggregate).mockResolvedValue({ _sum: paidOrderSums, _count: 0 } as never)
+    vi.mocked(prisma.trackingEvent.groupBy).mockResolvedValue([
+      { path: '/de/produkte/9mm', _count: { _all: 7 } },
+    ] as never)
+    vi.mocked(prisma.trackingSession.groupBy).mockResolvedValue([
+      { referrer: 'google.com', utmSource: 'google.com', _count: { _all: 2 } },
+    ] as never)
+
+    const res = await get(`/api/admin/tracking/overview?${range}`)
+    expect(res.status).toBe(200)
+    const { current } = (await res.json()) as {
+      current: { uniqueVisitors: number; topPages: unknown[]; topReferrers: unknown[] }
+    }
+    expect(current.uniqueVisitors).toBe(3)
+    expect(current.topPages).toEqual([{ key: '/de/produkte/9mm', count: 7 }])
+    expect(current.topReferrers).toEqual([{ key: 'google.com', count: 2 }])
+  })
+
+  it('events list filters by name, pages and truncates the visitor id', async () => {
+    vi.mocked(prisma.trackingEvent.count).mockResolvedValue(51)
+    vi.mocked(prisma.trackingEvent.findMany).mockResolvedValue([
+      {
+        id: 'e1',
+        name: 'add_to_cart',
+        source: 'client',
+        occurredAt: new Date('2026-10-05T10:00:00Z'),
+        path: '/de/produkte/9mm',
+        valueCents: null,
+        visitorId: '0192abcd-ef01-7000-8000-000000000000',
+        session: { channel: 'meta_ads', utmSource: 'facebook', referrer: null },
+      },
+    ] as never)
+
+    const res = await get(`/api/admin/tracking/events?${range}&name=add_to_cart&page=2`)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { total: number; items: Record<string, unknown>[] }
+    expect(body.total).toBe(51)
+    expect(body.items[0]).toMatchObject({ visitor: '0192abcd', channel: 'meta_ads', origin: 'facebook' })
+    expect(body.items[0]).not.toHaveProperty('visitorId')
+    const args = vi.mocked(prisma.trackingEvent.findMany).mock.calls.at(-1)?.[0]
+    expect(args).toMatchObject({ where: { name: 'add_to_cart' }, skip: 50, take: 50 })
+  })
+
+  it('events list rejects unknown event names', async () => {
+    const res = await get(`/api/admin/tracking/events?${range}&name=bogus`)
+    expect(res.status).toBe(400)
   })
 })
