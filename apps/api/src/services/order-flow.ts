@@ -3,6 +3,7 @@ import {
   renderInvoice,
   renderOrderConfirmation,
   renderPaymentReceived,
+  renderPaymentReminder,
   renderProductionStarted,
   renderShippingConfirmation,
   type OrderEmailData,
@@ -229,6 +230,25 @@ export async function notifyShipped(orderId: string): Promise<void> {
 }
 
 /** Also used by the admin "resend" action; returns whether the mail was accepted. */
+/** Admin "resend payment link": mails the order page link while the order is unpaid. */
+export async function sendPaymentReminder(
+  orderId: string,
+): Promise<'sent' | 'failed' | 'not_awaiting_payment'> {
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true },
+  })
+  if (order.status !== 'awaiting_payment' && order.status !== 'awaiting_bank_transfer') {
+    return 'not_awaiting_payment'
+  }
+  const delivered = await sendEmail(
+    order.email,
+    'payment_reminder',
+    renderPaymentReminder(orderEmailData(order), order.locale),
+  )
+  return delivered ? 'sent' : 'failed'
+}
+
 export async function sendOrderConfirmation(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUniqueOrThrow({
     where: { id: orderId },

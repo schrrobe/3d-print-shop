@@ -12,6 +12,7 @@ import {
   notifyProductionStarted,
   resendInvoice,
   sendOrderConfirmation,
+  sendPaymentReminder,
 } from '../../services/order-flow.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
@@ -251,6 +252,29 @@ adminOrdersRouter.post(
       const delivered = await sendOrderConfirmation(order.id)
       await audit(req, 'order.confirmation_resend', { type: 'order', id: order.id }, { delivered })
       if (!delivered) {
+        throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
+      }
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Re-sends the payment link (order page with "Pay now") for an unpaid order. */
+adminOrdersRouter.post(
+  '/:id/payment-link/resend',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
+      if (!order) throw notFound('Order not found')
+      const result = await sendPaymentReminder(order.id)
+      if (result === 'not_awaiting_payment') {
+        throw conflict('Die Bestellung wartet nicht auf eine Zahlung')
+      }
+      await audit(req, 'order.payment_link_resend', { type: 'order', id: order.id }, { result })
+      if (result === 'failed') {
         throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
       }
       res.json({ ok: true })

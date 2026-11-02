@@ -7,6 +7,7 @@ import {
   renderOrderConfirmation,
   renderPasswordReset,
   renderPaymentReceived,
+  renderPaymentReminder,
   renderProductionStarted,
   renderQuoteAccepted,
   renderQuoteAvailable,
@@ -108,6 +109,7 @@ describe('email templates', () => {
     expect(
       renderQuoteAccepted({ name: 'Max', priceCents: 100, paymentUrl: 'https://x' }, 'de').html,
     ).toBeTruthy()
+    expect(renderPaymentReminder(orderData, 'de').html).toContain(orderData.orderUrl)
     expect(renderProductionStarted(orderData, 'de').html).toBeTruthy()
     expect(
       renderShippingConfirmation({ ...orderData, carrier: 'dhl', trackingNumber: 'T123' }, 'de')

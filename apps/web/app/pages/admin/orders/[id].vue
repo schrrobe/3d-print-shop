@@ -73,6 +73,17 @@ function resendConfirmation() {
   )
 }
 
+function resendPaymentLink() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/payment-link/resend`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Zahlungslink versendet', error: 'Versand des Zahlungslinks fehlgeschlagen' },
+  )
+}
+
 function setStatus(status: OrderStatus) {
   return run(
     () =>
@@ -158,6 +169,16 @@ function ship() {
           @click="resendConfirmation"
         >
           Bestellbestätigung erneut senden
+        </PsButton>
+        <PsButton
+          v-if="auth.can('orders:write') && ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)"
+          class="mt-md ml-md"
+          variant="secondary"
+          :disabled="pending"
+          data-testid="resend-payment-link"
+          @click="resendPaymentLink"
+        >
+          Zahlungslink erneut senden
         </PsButton>
       </PsCard>
 
