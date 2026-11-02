@@ -11,6 +11,7 @@ export interface RenderedEmail {
 export type EmailTemplateName =
   | 'order_confirmation'
   | 'payment_received'
+  | 'payment_reminder'
   | 'upload_received'
   | 'quote_available'
   | 'quote_accepted'
@@ -159,6 +160,32 @@ export function renderPaymentReceived(data: OrderEmailData, locale: Locale): Ren
     ) + button(data.orderUrl, pick(locale, 'Bestellstatus ansehen', 'View order status')),
   )
   return { subject, html, text: `${title}: ${data.orderNumber}` }
+}
+
+/** Manually triggered by an admin: links to the order page, which offers "Pay now". */
+export function renderPaymentReminder(data: OrderEmailData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Zahlung offen für ${data.orderNumber}`,
+    `Payment pending for ${data.orderNumber}`,
+  )
+  const title = pick(locale, 'Zahlung noch offen', 'Payment still pending')
+  const html = emailLayout(
+    title,
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
+      paragraph(
+        pick(
+          locale,
+          `für deine Bestellung <strong>${data.orderNumber}</strong> über <strong>${formatCents(data.totalCents, locale)}</strong> ist noch keine Zahlung eingegangen. Über den Button kannst du sie jetzt abschließen.`,
+          `we have not yet received payment for your order <strong>${data.orderNumber}</strong> of <strong>${formatCents(data.totalCents, locale)}</strong>. Use the button below to complete it now.`,
+        ),
+      ) +
+      itemsTable(data.items, locale) +
+      button(data.orderUrl, pick(locale, 'Jetzt bezahlen', 'Pay now')),
+  )
+  return { subject, html, text: `${title}: ${data.orderNumber}\n${data.orderUrl}` }
 }
 
 export interface UploadReceivedData {
