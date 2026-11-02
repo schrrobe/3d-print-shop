@@ -2,9 +2,16 @@
 // Notice strip above the header, managed in admin (Einstellungen → Info-Banner).
 // The API returns null when it is switched off. Fetched during SSR so it never pops in late.
 const { locale } = useI18n()
-const { data } = await useFetch<{ text: Record<string, string> | null }>('/api/info-banner', {
+const { data, refresh } = await useFetch<{ text: Record<string, string> | null }>('/api/info-banner', {
   key: 'info-banner',
 })
+
+// Keep open sessions within the one-minute update promise in the admin card.
+let timer: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  timer = setInterval(refresh, 60_000)
+})
+onBeforeUnmount(() => clearInterval(timer))
 
 const message = computed(() => {
   const text = data.value?.text
