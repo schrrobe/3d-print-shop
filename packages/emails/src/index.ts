@@ -15,6 +15,7 @@ export type EmailTemplateName =
   | 'upload_received'
   | 'quote_available'
   | 'quote_accepted'
+  | 'payment_link'
   | 'production_started'
   | 'shipping_confirmation'
   | 'invoice'
@@ -78,6 +79,26 @@ const viewStatus: Texts = {
   it: 'Vedi stato',
 }
 
+const payNow: Texts = {
+  de: 'Jetzt bezahlen',
+  en: 'Pay now',
+  pl: 'Zapłać teraz',
+  fr: 'Payer maintenant',
+  nl: 'Nu betalen',
+  cs: 'Zaplatit nyní',
+  it: 'Paga ora',
+}
+
+const totalLabel: Texts = {
+  de: 'Gesamtbetrag: ',
+  en: 'Total: ',
+  pl: 'Razem: ',
+  fr: 'Total : ',
+  nl: 'Totaal: ',
+  cs: 'Celkem: ',
+  it: 'Totale: ',
+}
+
 export interface OrderEmailData {
   orderNumber: string
   firstName: string
@@ -98,12 +119,18 @@ function itemsTable(items: OrderEmailData['items'], locale: Locale): string {
 
 /**
  * AGB + Widerrufsbelehrung incl. Muster-Formular on a durable medium (§ 312f Abs. 2 BGB).
- * Always the binding German version.
+ * Always the binding German version. `termsOnly` for custom-made orders without withdrawal right.
  */
-function contractDocuments(company: LegalCompany, locale: Locale): { html: string; text: string } {
+function contractDocuments(
+  company: LegalCompany,
+  locale: Locale,
+  { termsOnly = false } = {},
+): { html: string; text: string } {
   const docs = [
     ['Allgemeine Geschäftsbedingungen', getLegalDocument('de', 'terms', company)],
-    ['Widerrufsbelehrung', getLegalDocument('de', 'withdrawal', company)],
+    ...(termsOnly
+      ? []
+      : ([['Widerrufsbelehrung', getLegalDocument('de', 'withdrawal', company)]] as const)),
   ] as const
   const blocks = docs.flatMap(([title, doc]) =>
     doc
@@ -118,15 +145,28 @@ function contractDocuments(company: LegalCompany, locale: Locale): { html: strin
         ]
       : [],
   )
-  const intro = pick(locale, {
-    de: 'Unsere AGB und die Widerrufsbelehrung zu deiner Bestellung:',
-    en: 'Our terms and withdrawal policy for your order (binding German version):',
-    pl: 'Nasz regulamin i pouczenie o odstąpieniu od umowy dla Twojego zamówienia (wiążąca wersja niemiecka):',
-    fr: 'Nos CGV et les informations sur le droit de rétractation pour votre commande (version allemande faisant foi) :',
-    nl: 'Onze algemene voorwaarden en informatie over het herroepingsrecht voor je bestelling (bindende Duitse versie):',
-    cs: 'Naše obchodní podmínky a poučení o odstoupení od smlouvy k tvé objednávce (závazné německé znění):',
-    it: "Le nostre condizioni generali e l'informativa sul recesso per il tuo ordine (versione tedesca vincolante):",
-  })
+  const intro = pick(
+    locale,
+    termsOnly
+      ? {
+          de: 'Unsere AGB zu deiner Bestellung:',
+          en: 'Our terms for your order (binding German version):',
+          pl: 'Nasz regulamin dla Twojego zamówienia (wiążąca wersja niemiecka):',
+          fr: 'Nos CGV pour votre commande (version allemande faisant foi) :',
+          nl: 'Onze algemene voorwaarden voor je bestelling (bindende Duitse versie):',
+          cs: 'Naše obchodní podmínky k tvé objednávce (závazné německé znění):',
+          it: 'Le nostre condizioni generali per il tuo ordine (versione tedesca vincolante):',
+        }
+      : {
+          de: 'Unsere AGB und die Widerrufsbelehrung zu deiner Bestellung:',
+          en: 'Our terms and withdrawal policy for your order (binding German version):',
+          pl: 'Nasz regulamin i pouczenie o odstąpieniu od umowy dla Twojego zamówienia (wiążąca wersja niemiecka):',
+          fr: 'Nos CGV et les informations sur le droit de rétractation pour votre commande (version allemande faisant foi) :',
+          nl: 'Onze algemene voorwaarden en informatie over het herroepingsrecht voor je bestelling (bindende Duitse versie):',
+          cs: 'Naše obchodní podmínky a poučení o odstoupení od smlouvy k tvé objednávce (závazné německé znění):',
+          it: "Le nostre condizioni generali e l'informativa sul recesso per il tuo ordine (versione tedesca vincolante):",
+        },
+  )
   const html =
     paragraph(`<strong>${intro}</strong>`) +
     blocks
@@ -190,15 +230,7 @@ export function renderOrderConfirmation(
       ) +
       itemsTable(data.items, locale) +
       paragraph(
-        pick(locale, {
-          de: 'Gesamtbetrag: ',
-          en: 'Total: ',
-          pl: 'Razem: ',
-          fr: 'Total : ',
-          nl: 'Totaal: ',
-          cs: 'Celkem: ',
-          it: 'Totale: ',
-        }) + `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+        pick(locale, totalLabel) + `<strong>${formatCents(data.totalCents, locale)}</strong>`,
       ) +
       button(data.orderUrl, pick(locale, viewOrder)) +
       documents.html,
@@ -257,30 +289,53 @@ export function renderPaymentReceived(data: OrderEmailData, locale: Locale): Ren
   return { subject, html, text: `${title}: ${n}` }
 }
 
-/** Manually triggered by an admin: links to the order page, which offers "Pay now". */
-export function renderPaymentReminder(data: OrderEmailData, locale: Locale): RenderedEmail {
-  const subject = pick(
-    locale,
-    `Zahlung offen für ${data.orderNumber}`,
-    `Payment pending for ${data.orderNumber}`,
-  )
-  const title = pick(locale, 'Zahlung noch offen', 'Payment still pending')
+/**
+ * Manually triggered by an admin: links to the order page, which offers "Pay now" —
+ * or to `paymentUrl` for admin paylink orders, which the order page can't pay.
+ */
+export function renderPaymentReminder(
+  data: OrderEmailData & { paymentUrl?: string },
+  locale: Locale,
+): RenderedEmail {
+  const n = data.orderNumber
+  const url = data.paymentUrl ?? data.orderUrl
+  const total = formatCents(data.totalCents, locale)
+  const subject = pick(locale, {
+    de: `Zahlung offen für ${n}`,
+    en: `Payment pending for ${n}`,
+    pl: `Oczekujemy na płatność za zamówienie ${n}`,
+    fr: `Paiement en attente pour la commande ${n}`,
+    nl: `Betaling openstaand voor ${n}`,
+    cs: `Čekáme na platbu za objednávku ${n}`,
+    it: `Pagamento in sospeso per l'ordine ${n}`,
+  })
+  const title = pick(locale, {
+    de: 'Zahlung noch offen',
+    en: 'Payment still pending',
+    pl: 'Płatność wciąż oczekuje',
+    fr: 'Paiement toujours en attente',
+    nl: 'Betaling nog open',
+    cs: 'Platba zatím nedorazila',
+    it: 'Pagamento ancora in sospeso',
+  })
   const html = emailLayout(
     title,
-    paragraph(
-      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
-    ) +
+    greeting(data.firstName, locale) +
       paragraph(
-        pick(
-          locale,
-          `für deine Bestellung <strong>${data.orderNumber}</strong> über <strong>${formatCents(data.totalCents, locale)}</strong> ist noch keine Zahlung eingegangen. Über den Button kannst du sie jetzt abschließen.`,
-          `we have not yet received payment for your order <strong>${data.orderNumber}</strong> of <strong>${formatCents(data.totalCents, locale)}</strong>. Use the button below to complete it now.`,
-        ),
+        pick(locale, {
+          de: `für deine Bestellung <strong>${n}</strong> über <strong>${total}</strong> ist noch keine Zahlung eingegangen. Über den Button kannst du sie jetzt abschließen.`,
+          en: `we have not yet received payment for your order <strong>${n}</strong> of <strong>${total}</strong>. Use the button below to complete it now.`,
+          pl: `nie otrzymaliśmy jeszcze płatności za Twoje zamówienie <strong>${n}</strong> na kwotę <strong>${total}</strong>. Możesz ją teraz dokończyć za pomocą przycisku poniżej.`,
+          fr: `nous n’avons pas encore reçu le paiement de votre commande <strong>${n}</strong> d’un montant de <strong>${total}</strong>. Vous pouvez le finaliser dès maintenant via le bouton ci-dessous.`,
+          nl: `we hebben voor je bestelling <strong>${n}</strong> van <strong>${total}</strong> nog geen betaling ontvangen. Met de knop hieronder kun je die nu afronden.`,
+          cs: `k tvé objednávce <strong>${n}</strong> na částku <strong>${total}</strong> jsme zatím neobdrželi platbu. Tlačítkem níže ji můžeš hned dokončit.`,
+          it: `non abbiamo ancora ricevuto il pagamento per il tuo ordine <strong>${n}</strong> di <strong>${total}</strong>. Puoi completarlo ora con il pulsante qui sotto.`,
+        }),
       ) +
       itemsTable(data.items, locale) +
-      button(data.orderUrl, pick(locale, 'Jetzt bezahlen', 'Pay now')),
+      button(url, pick(locale, payNow)),
   )
-  return { subject, html, text: `${title}: ${data.orderNumber}\n${data.orderUrl}` }
+  return { subject, html, text: `${title}: ${n}\n${url}` }
 }
 
 export interface UploadReceivedData {
@@ -426,21 +481,104 @@ export function renderQuoteAccepted(data: QuoteAcceptedData, locale: Locale): Re
         cs: `Děkujeme! Jakmile dorazí tvoje platba ve výši ${price}, spustíme výrobu.`,
         it: `Grazie ${name}! Appena riceviamo il tuo pagamento di ${price}, avviamo la produzione.`,
       }),
-    ) +
-      button(
-        data.paymentUrl,
-        pick(locale, {
-          de: 'Jetzt bezahlen',
-          en: 'Pay now',
-          pl: 'Zapłać teraz',
-          fr: 'Payer maintenant',
-          nl: 'Nu betalen',
-          cs: 'Zaplatit nyní',
-          it: 'Paga ora',
-        }),
-      ),
+    ) + button(data.paymentUrl, pick(locale, payNow)),
   )
   return { subject, html, text: `${title}: ${data.paymentUrl}` }
+}
+
+export interface CustomMadeLegal {
+  termsUrl: string
+  /** Company data for the attached terms. */
+  legal: LegalCompany
+}
+
+/**
+ * Admin paylink orders are made to order: no right of withdrawal (§ 312g Abs. 2 Nr. 1 BGB).
+ * The full terms go along on a durable medium (§ 312f Abs. 2 BGB).
+ */
+function customMadeNotice(
+  { termsUrl, legal }: CustomMadeLegal,
+  locale: Locale,
+): { html: string; text: string } {
+  const text = pick(locale, {
+    de: 'Hinweis: Es handelt sich um eine Sonderanfertigung nach deinen Vorgaben. Ein Widerrufsrecht besteht daher nicht (§ 312g Abs. 2 Nr. 1 BGB). Es gelten unsere AGB:',
+    en: 'Please note: this is a custom-made item to your specification, so there is no right of withdrawal (§ 312g (2) no. 1 BGB). Our terms and conditions apply:',
+    pl: 'Uwaga: jest to produkt wykonany na zamówienie według Twoich wytycznych, dlatego prawo odstąpienia od umowy nie przysługuje (§ 312g ust. 2 pkt 1 BGB). Obowiązuje nasz regulamin:',
+    fr: 'Remarque : il s’agit d’une fabrication sur mesure selon vos spécifications ; le droit de rétractation ne s’applique donc pas (§ 312g al. 2 n° 1 BGB). Nos CGV s’appliquent :',
+    nl: 'Let op: dit is maatwerk volgens jouw specificaties, daarom geldt er geen herroepingsrecht (§ 312g lid 2 nr. 1 BGB). Onze algemene voorwaarden zijn van toepassing:',
+    cs: 'Upozornění: jde o výrobek zhotovený na zakázku podle tvých požadavků, proto nemáš právo na odstoupení od smlouvy (§ 312g odst. 2 č. 1 BGB). Platí naše obchodní podmínky:',
+    it: 'Nota: si tratta di un prodotto su misura realizzato secondo le tue indicazioni, pertanto non sussiste il diritto di recesso (§ 312g co. 2 n. 1 BGB). Si applicano le nostre condizioni generali:',
+  })
+  const terms = contractDocuments(legal, locale, { termsOnly: true })
+  return {
+    html:
+      paragraph(
+        `<small>${text} <a href="${escapeHtml(termsUrl)}">${escapeHtml(termsUrl)}</a></small>`,
+      ) + terms.html,
+    text: `${text} ${termsUrl}\n\n${terms.text}`,
+  }
+}
+
+export interface PaymentLinkData extends OrderEmailData, CustomMadeLegal {
+  shippingCents: number
+  paymentUrl: string
+}
+
+export function renderPaymentLink(data: PaymentLinkData, locale: Locale): RenderedEmail {
+  const n = data.orderNumber
+  const subject = pick(locale, {
+    de: `Dein Zahlungslink für ${n}`,
+    en: `Your payment link for ${n}`,
+    pl: `Twój link do płatności za zamówienie ${n}`,
+    fr: `Votre lien de paiement pour la commande ${n}`,
+    nl: `Je betaallink voor ${n}`,
+    cs: `Tvůj platební odkaz k objednávce ${n}`,
+    it: `Il tuo link di pagamento per l'ordine ${n}`,
+  })
+  const title = pick(locale, {
+    de: 'Dein Zahlungslink',
+    en: 'Your payment link',
+    pl: 'Twój link do płatności',
+    fr: 'Votre lien de paiement',
+    nl: 'Je betaallink',
+    cs: 'Tvůj platební odkaz',
+    it: 'Il tuo link di pagamento',
+  })
+  const notice = customMadeNotice(data, locale)
+  const html = emailLayout(
+    title,
+    greeting(data.firstName, locale) +
+      paragraph(
+        pick(locale, {
+          de: `hier ist deine individuelle Bestellung <strong>${n}</strong>. Sobald die Zahlung eingeht, starten wir die Produktion und du bekommst deine Rechnung.`,
+          en: `here is your individual order <strong>${n}</strong>. As soon as your payment arrives we start production and send your invoice.`,
+          pl: `oto Twoje indywidualne zamówienie <strong>${n}</strong>. Gdy tylko otrzymamy płatność, rozpoczniemy produkcję i wyślemy Ci fakturę.`,
+          fr: `voici votre commande personnalisée <strong>${n}</strong>. Dès réception de votre paiement, nous lançons la production et vous envoyons votre facture.`,
+          nl: `hier is je individuele bestelling <strong>${n}</strong>. Zodra je betaling binnen is, starten we de productie en ontvang je je factuur.`,
+          cs: `tady je tvoje individuální objednávka <strong>${n}</strong>. Jakmile dorazí platba, spustíme výrobu a pošleme ti fakturu.`,
+          it: `ecco il tuo ordine personalizzato <strong>${n}</strong>. Appena riceviamo il pagamento, avviamo la produzione e ti inviamo la fattura.`,
+        }),
+      ) +
+      itemsTable(data.items, locale) +
+      paragraph(
+        pick(locale, {
+          de: 'Versand: ',
+          en: 'Shipping: ',
+          pl: 'Wysyłka: ',
+          fr: 'Livraison : ',
+          nl: 'Verzending: ',
+          cs: 'Doprava: ',
+          it: 'Spedizione: ',
+        }) + formatCents(data.shippingCents, locale),
+      ) +
+      paragraph(
+        pick(locale, totalLabel) + `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+      ) +
+      button(data.paymentUrl, pick(locale, payNow)) +
+      notice.html,
+  )
+  const text = `${title}\n${n}\n${data.paymentUrl}\n\n${notice.text}`
+  return { subject, html, text }
 }
 
 export function renderProductionStarted(data: OrderEmailData, locale: Locale): RenderedEmail {
@@ -529,6 +667,8 @@ export interface InvoiceEmailData {
   invoiceNumber: string
   totalCents: number
   orderUrl: string
+  /** Set for admin paylink orders: adds the custom-made / no-withdrawal notice and the terms. */
+  customMade?: CustomMadeLegal
 }
 
 /** The attached PDF itself stays German. */
@@ -554,6 +694,7 @@ export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedE
     cs: 'Tvoje faktura',
     it: 'La tua fattura',
   })
+  const notice = data.customMade ? customMadeNotice(data.customMade, locale) : null
   const html = emailLayout(
     title,
     paragraph(
@@ -566,9 +707,10 @@ export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedE
         cs: `V příloze najdeš fakturu <strong>${inv}</strong> k objednávce ${n} na částku ${total}.`,
         it: `In allegato trovi la fattura <strong>${inv}</strong> del tuo ordine ${n} per un importo di ${total}.`,
       }),
-    ),
+    ) + (notice?.html ?? ''),
   )
-  return { subject, html, text: `${title}: ${inv}` }
+  const text = `${title}: ${inv}${notice ? `\n\n${notice.text}` : ''}`
+  return { subject, html, text }
 }
 
 export interface PasswordResetData {

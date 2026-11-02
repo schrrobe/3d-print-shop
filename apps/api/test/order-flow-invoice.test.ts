@@ -176,6 +176,20 @@ describe('sendPaymentReminder', () => {
     expect(rendered?.html).toContain('/order/B-1?token=t')
   })
 
+  it('links admin paylink orders to their Stripe payment link, not the order page', async () => {
+    // The order page only offers "Pay now" for embedded-checkout payments (method 'stripe').
+    const url = 'https://buy.stripe.com/test_abc'
+    db.order.findUniqueOrThrow.mockResolvedValue({
+      ...order('awaiting_payment', {}),
+      payments: [{ method: 'stripe_payment_link', status: 'pending', stripePaymentLinkUrl: url }],
+    })
+    vi.mocked(sendEmail).mockResolvedValueOnce(true)
+    await expect(sendPaymentReminder('o1')).resolves.toBe('sent')
+    const rendered = vi.mocked(sendEmail).mock.calls[0]?.[2]
+    expect(rendered?.html).toContain(url)
+    expect(rendered?.text).toContain(url)
+  })
+
   it('reports a failed delivery', async () => {
     db.order.findUniqueOrThrow.mockResolvedValue(order('awaiting_bank_transfer', {}))
     vi.mocked(sendEmail).mockResolvedValueOnce(false)

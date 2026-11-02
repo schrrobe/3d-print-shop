@@ -6,6 +6,8 @@ import {
   PsOrderStatusBadge,
   PsPrice,
   PsSelect,
+  PsBadge,
+  useToast,
 } from '@print-shop/ui'
 import { ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { OrderStatus } from '@print-shop/types'
@@ -20,6 +22,8 @@ interface AdminOrderDetail {
   id: string
   orderNumber: string
   status: OrderStatus
+  source: 'shop' | 'admin' | 'quote'
+  note: string | null
   email: string
   firstName: string
   lastName: string
@@ -31,7 +35,13 @@ interface AdminOrderDetail {
   carrier: string | null
   trackingNumber: string | null
   items: { id: string; name: string; quantity: number; unitPriceCents: number }[]
-  payments: { id: string; method: string; status: string; amountCents: number }[]
+  payments: {
+    id: string
+    method: string
+    status: string
+    amountCents: number
+    stripePaymentLinkUrl: string | null
+  }[]
   invoice: { id: string; number: string; sentAt: string | null } | null
   tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
 }
@@ -50,6 +60,24 @@ const carrier = ref('dhl')
 const trackingNumber = ref('')
 
 const { run, pending } = useAdminAction({ refresh })
+const toast = useToast()
+
+const openPaymentLink = computed(
+  () =>
+    order.value?.payments.find(
+      (p) => p.method === 'stripe_payment_link' && p.status === 'pending' && p.stripePaymentLinkUrl,
+    )?.stripePaymentLinkUrl ?? null,
+)
+
+async function copyPaymentLink() {
+  if (!openPaymentLink.value) return
+  try {
+    await navigator.clipboard.writeText(openPaymentLink.value)
+    toast.show('Link kopiert', { variant: 'success' })
+  } catch {
+    toast.show('Kopieren fehlgeschlagen', { variant: 'error' })
+  }
+}
 
 function resendInvoice() {
   return run(
@@ -69,7 +97,10 @@ function resendConfirmation() {
         method: 'POST',
         credentials: 'include',
       }),
-    { success: 'Bestellbestätigung versendet', error: 'Versand der Bestellbestätigung fehlgeschlagen' },
+    {
+      success: 'Bestellbestätigung versendet',
+      error: 'Versand der Bestellbestätigung fehlgeschlagen',
+    },
   )
 }
 
@@ -126,6 +157,7 @@ function ship() {
     <div class="flex flex-wrap items-center gap-md">
       <h2 class="text-heading-small">{{ order.orderNumber }}</h2>
       <PsOrderStatusBadge :status="order.status" data-testid="admin-order-status" />
+      <PsBadge v-if="order.source === 'admin'" variant="info">Paylink</PsBadge>
     </div>
 
     <div class="grid gap-lg lg:grid-cols-2">
@@ -194,6 +226,26 @@ function ship() {
         <ul class="mt-sm text-body-regular text-secondary">
           <li v-for="p in order.payments" :key="p.id">{{ p.method }} — {{ p.status }}</li>
         </ul>
+        <div
+          v-if="openPaymentLink"
+          class="mt-sm flex flex-wrap items-center gap-sm"
+          data-testid="payment-link"
+        >
+          <a
+            :href="openPaymentLink"
+            target="_blank"
+            rel="noopener"
+            class="break-all text-caption text-brand hover:underline"
+            >{{ openPaymentLink }}</a
+          >
+          <PsButton variant="secondary" data-testid="copy-payment-link" @click="copyPaymentLink"
+            >Link kopieren</PsButton
+          >
+        </div>
+        <template v-if="order.note">
+          <h3 class="mt-lg text-label-medium">Notiz</h3>
+          <p class="mt-sm whitespace-pre-line text-body-regular text-secondary">{{ order.note }}</p>
+        </template>
         <template v-if="order.tickets.length">
           <h3 class="mt-lg text-label-medium">Support-Tickets</h3>
           <ul class="mt-sm text-body-regular" data-testid="order-tickets">
@@ -201,18 +253,24 @@ function ship() {
               <NuxtLink :to="`/admin/tickets/${ticketRow.id}`" class="text-brand hover:underline">
                 {{ ticketRow.ticketNumber }}
               </NuxtLink>
-              <span class="text-secondary"> — {{ ticketRow.subject }} ({{ ticketRow.status }})</span>
+              <span class="text-secondary">
+                — {{ ticketRow.subject }} ({{ ticketRow.status }})</span
+              >
             </li>
           </ul>
         </template>
       </PsCard>
     </div>
 
-    <PsCard v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')">
+    <PsCard
+      v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')"
+    >
       <h3 class="text-label-medium">Aktionen</h3>
       <div class="mt-md flex flex-wrap items-center gap-md">
         <template v-if="auth.can('payments:write') && order.status === 'awaiting_bank_transfer'">
-          <PsButton data-testid="mark-paid" @click="markPaid">Zahlung erhalten (Überweisung)</PsButton>
+          <PsButton data-testid="mark-paid" @click="markPaid"
+            >Zahlung erhalten (Überweisung)</PsButton
+          >
         </template>
         <template v-if="auth.can('orders:write')">
           <PsButton
@@ -228,7 +286,10 @@ function ship() {
       </div>
 
       <div
-        v-if="auth.can('orders:ship') && ['ready_to_ship', 'quality_check', 'in_production', 'paid'].includes(order.status)"
+        v-if="
+          auth.can('orders:ship') &&
+          ['ready_to_ship', 'quality_check', 'in_production', 'paid'].includes(order.status)
+        "
         class="mt-lg flex flex-wrap items-end gap-md border-t border-subtle pt-lg"
         data-testid="shipping-form"
       >
@@ -241,7 +302,11 @@ function ship() {
           ]"
         />
         <PsInput v-model="trackingNumber" label="Trackingnummer" name="trackingNumber" />
-        <PsButton :disabled="trackingNumber.length < 4 || order.status !== 'ready_to_ship'" data-testid="ship-order" @click="ship">
+        <PsButton
+          :disabled="trackingNumber.length < 4 || order.status !== 'ready_to_ship'"
+          data-testid="ship-order"
+          @click="ship"
+        >
           Versand bestätigen
         </PsButton>
       </div>

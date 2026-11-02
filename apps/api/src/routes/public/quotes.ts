@@ -146,6 +146,7 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
             orderNumber,
             accessToken,
             status: 'awaiting_payment',
+            source: 'quote',
             locale: quote.quoteRequest.locale,
             email: address.email,
             firstName: address.firstName,

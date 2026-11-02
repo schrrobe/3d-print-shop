@@ -1,19 +1,35 @@
+import { renderPaymentLink } from '@print-shop/emails'
 import { ORDER_STATUSES } from '@print-shop/types'
-import { assertOrderTransition, REVENUE_ORDER_STATUSES } from '@print-shop/utils'
-import { markPaidSchema, shippingUpdateSchema } from '@print-shop/validators'
+import { assertOrderTransition, REVENUE_ORDER_STATUSES, TERMS_PATH } from '@print-shop/utils'
+import {
+  adminOrderCreateSchema,
+  markPaidSchema,
+  shippingUpdateSchema,
+} from '@print-shop/validators'
 import { Router } from 'express'
 import { z } from 'zod'
+import { env } from '../../env.js'
 import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
+import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { ApiError, badRequest, conflict, notFound } from '../../middleware/error.js'
+import { assertCompanyComplete } from '../../services/company.js'
+import { sendEmail } from '../../services/email.js'
 import {
+  issuePrepaymentInvoice,
+  legalCompany,
   markOrderPaid,
   notifyProductionStarted,
+  orderEmailData,
   resendInvoice,
   sendOrderConfirmation,
   sendPaymentReminder,
 } from '../../services/order-flow.js'
+import {
+  createStripePaymentLink,
+  deactivateStripePaymentLink,
+} from '../../services/payments/stripe.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
@@ -35,8 +51,12 @@ const ORDER_OMIT = {
 adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, next) => {
   try {
     const status = req.query.status ? String(req.query.status) : undefined
+    const source = req.query.source ? String(req.query.source) : undefined
     const orders = await prisma.order.findMany({
-      where: status ? { status: status as never } : undefined,
+      where: {
+        ...(status ? { status: status as never } : {}),
+        ...(source ? { source: source as never } : {}),
+      },
       include: { items: true, payments: true, invoice: { select: { number: true } } },
       omit: ORDER_OMIT,
       orderBy: { createdAt: 'desc' },
@@ -82,18 +102,155 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   }
 })
 
+/**
+ * Admin paylink: order with free items (e.g. a caliber the shop does not list),
+ * paid via a single-use Stripe payment link or Vorkasse. Payment, invoice and
+ * production then run through the regular order flow.
+ */
+adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, next) => {
+  try {
+    const input = adminOrderCreateSchema.parse(req.body)
+    assertCompanyComplete()
+    const productIds = [...new Set(input.items.flatMap((i) => (i.productId ? [i.productId] : [])))]
+    if (productIds.length > 0) {
+      const found = await prisma.product.count({ where: { id: { in: productIds } } })
+      if (found !== productIds.length) throw badRequest('Unknown product')
+    }
+
+    const subtotalCents = input.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
+    const totalCents = subtotalCents + input.shippingCents
+    const orderNumber = generateOrderNumber()
+    const accessToken = randomToken()
+    const { address } = input
+    const link =
+      input.paymentMethod === 'stripe_payment_link'
+        ? await createStripePaymentLink({
+            orderNumber,
+            accessToken,
+            amountCents: totalCents,
+            email: address.email,
+            locale: input.locale,
+            description: `Bestellung ${orderNumber}`,
+          })
+        : null
+
+    let order
+    try {
+      order = await prisma.order.create({
+        data: {
+          orderNumber,
+          accessToken,
+          source: 'admin',
+          status: link ? 'awaiting_payment' : 'awaiting_bank_transfer',
+          locale: input.locale,
+          email: address.email,
+          firstName: address.firstName,
+          lastName: address.lastName,
+          company: address.company,
+          street: address.street,
+          zip: address.zip,
+          city: address.city,
+          country: address.country,
+          phone: address.phone,
+          note: input.note,
+          subtotalCents,
+          shippingCents: input.shippingCents,
+          totalCents,
+          items: { create: input.items },
+          payments: {
+            create: {
+              method: input.paymentMethod,
+              status: 'pending',
+              amountCents: totalCents,
+              stripeSessionId: link?.sessionId,
+              stripePaymentLinkUrl: link?.url,
+              reference: link ? null : orderNumber,
+            },
+          },
+        },
+        include: { items: true },
+      })
+    } catch (err) {
+      // Never leave a payable link behind for an order that does not exist.
+      if (link) await deactivateStripePaymentLink(link.sessionId).catch(() => undefined)
+      throw err
+    }
+
+    let emailSent: boolean
+    if (link) {
+      emailSent = await sendEmail(
+        order.email,
+        'payment_link',
+        renderPaymentLink(
+          {
+            ...orderEmailData(order),
+            shippingCents: order.shippingCents,
+            paymentUrl: link.url,
+            termsUrl: `${env.WEB_URL}${TERMS_PATH}`,
+            legal: legalCompany(),
+          },
+          order.locale,
+        ),
+      )
+    } else {
+      // The order stands even if the invoice fails; the admin sees emailSent=false and follows up.
+      try {
+        await issuePrepaymentInvoice(order.id)
+        emailSent = true
+      } catch (err) {
+        console.error(`[invoice] prepayment invoice failed for ${order.orderNumber}:`, err)
+        emailSent = false
+      }
+    }
+
+    await audit(
+      req,
+      'order.create_admin',
+      { type: 'order', id: order.id },
+      { paymentMethod: input.paymentMethod, totalCents },
+    )
+    res.status(201).json({
+      order: { id: order.id, orderNumber: order.orderNumber },
+      paymentUrl: link?.url ?? null,
+      emailSent,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 const statusSchema = z.object({ status: z.enum(ORDER_STATUSES) })
 
 /** Generic status transition (validated against the status machine). */
 adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (req, res, next) => {
   try {
     const { status } = statusSchema.parse(req.body)
-    const order = await prisma.order.findUnique({ where: { id: String(req.params.id) } })
+    const order = await prisma.order.findUnique({
+      where: { id: String(req.params.id) },
+      include: { payments: true },
+    })
     if (!order) throw notFound('Order not found')
     assertOrderTransition(order.status, status)
-    const updated = await prisma.order.update({
-      where: { id: order.id },
+    if (status === 'cancelled') {
+      // An open payment link must stop taking money before the order is cancelled.
+      for (const p of order.payments) {
+        if (p.method !== 'stripe_payment_link' || p.status !== 'pending' || !p.stripeSessionId)
+          continue
+        await deactivateStripePaymentLink(p.stripeSessionId)
+        await prisma.payment.updateMany({
+          where: { id: p.id, status: 'pending' },
+          data: { status: 'expired' },
+        })
+      }
+    }
+    // Conditional write: a webhook may have marked the order paid meanwhile.
+    const changed = await prisma.order.updateMany({
+      where: { id: order.id, status: order.status },
       data: { status },
+    })
+    if (changed.count !== 1) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+    const updated = await prisma.order.findUniqueOrThrow({
+      where: { id: order.id },
       omit: ORDER_OMIT,
     })
     if (status === 'in_production') await notifyProductionStarted(order.id)

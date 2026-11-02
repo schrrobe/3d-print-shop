@@ -1,9 +1,12 @@
 import { timingSafeEqual } from 'node:crypto'
+import { renderAdminNotification } from '@print-shop/emails'
+import { formatCents } from '@print-shop/utils'
 import { Router, json, raw } from 'express'
 import type Stripe from 'stripe'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest } from '../../middleware/error.js'
+import { sendEmail } from '../../services/email.js'
 import { markOrderPaid } from '../../services/order-flow.js'
 import { processInboundTicketEmail } from '../../services/ticket.js'
 import { constructStripeWebhookEvent } from '../../services/payments/stripe.js'
@@ -37,12 +40,46 @@ webhooksRouter.post('/stripe', raw({ type: 'application/json' }), async (req, re
       const stripeIds = [session.id, paymentLinkId].filter((id): id is string => Boolean(id))
       const payment = await prisma.payment.findFirst({
         where: { stripeSessionId: { in: stripeIds } },
+        include: { order: { select: { id: true, orderNumber: true, status: true } } },
       })
-      if (payment && payment.status !== 'paid') {
-        if (session.currency !== 'eur' || session.amount_total !== payment.amountCents) {
-          throw badRequest('Stripe session amount or currency does not match the payment')
+      if (payment) {
+        const payable =
+          (payment.status === 'pending' || payment.status === 'processing') &&
+          payment.order.status !== 'cancelled'
+        // The first completed session claims the payment (reference = session id), so a
+        // second session — two open tabs on one payment link — cannot pass as a retry.
+        const claimed =
+          payable &&
+          (
+            await prisma.payment.updateMany({
+              where: { id: payment.id, OR: [{ reference: null }, { reference: session.id }] },
+              data: { reference: session.id },
+            })
+          ).count === 1
+        if (claimed) {
+          if (session.currency !== 'eur' || session.amount_total !== payment.amountCents) {
+            throw badRequest('Stripe session amount or currency does not match the payment')
+          }
+          await markOrderPaid(payment.orderId, payment.id)
+        } else if (!(payment.status === 'paid' && payment.reference === session.id)) {
+          // Money no order expects: paid after cancellation or a second time. Stripe
+          // must not retry this, so acknowledge it and hand the refund to an admin.
+          console.error(
+            `[stripe] unexpected payment ${session.id} for ${payment.order.orderNumber} (${payment.order.status})`,
+          )
+          await sendEmail(
+            env.ADMIN_NOTIFICATION_EMAIL,
+            'admin_notification',
+            renderAdminNotification(
+              {
+                event: 'Unerwartete Stripe-Zahlung – bitte erstatten',
+                detail: `${payment.order.orderNumber} (${payment.order.status}): Session ${session.id} über ${formatCents(session.amount_total ?? 0)}`,
+                adminUrl: `${env.WEB_URL}/admin/orders/${payment.order.id}`,
+              },
+              'de',
+            ),
+          )
         }
-        await markOrderPaid(payment.orderId, payment.id)
       }
     }
 

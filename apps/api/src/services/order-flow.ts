@@ -8,7 +8,7 @@ import {
   renderShippingConfirmation,
   type OrderEmailData,
 } from '@print-shop/emails'
-import { assertOrderTransition, WITHDRAW_PATH } from '@print-shop/utils'
+import { assertOrderTransition, TERMS_PATH, WITHDRAW_PATH } from '@print-shop/utils'
 import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -20,6 +20,11 @@ import { recordPurchaseWithOutbox } from './tracking/outbox.js'
 
 export function orderUrl(order: { orderNumber: string; accessToken: string }): string {
   return `${env.WEB_URL}/order/${order.orderNumber}?token=${order.accessToken}`
+}
+
+/** Company data for the contract documents attached to customer mails (§ 312f Abs. 2 BGB). */
+export function legalCompany() {
+  return { ...company(), withdrawUrl: `${env.WEB_URL}${WITHDRAW_PATH}` }
 }
 
 export function orderEmailData(order: Order & { items: OrderItem[] }): OrderEmailData {
@@ -155,6 +160,10 @@ async function sendInvoiceEmail(
           invoiceNumber: invoice.number,
           totalCents: invoice.totalCents,
           orderUrl: orderUrl(order),
+          customMade:
+            order.source === 'admin'
+              ? { termsUrl: `${env.WEB_URL}${TERMS_PATH}`, legal: legalCompany() }
+              : undefined,
         },
         order.locale,
       ),
@@ -236,15 +245,22 @@ export async function sendPaymentReminder(
 ): Promise<'sent' | 'failed' | 'not_awaiting_payment'> {
   const order = await prisma.order.findUniqueOrThrow({
     where: { id: orderId },
-    include: { items: true },
+    include: { items: true, payments: true },
   })
   if (order.status !== 'awaiting_payment' && order.status !== 'awaiting_bank_transfer') {
     return 'not_awaiting_payment'
   }
+  // Admin paylink orders are paid via their Stripe payment link, not the order page.
+  const paymentUrl = order.payments.find(
+    (p) => p.method === 'stripe_payment_link' && p.status === 'pending',
+  )?.stripePaymentLinkUrl
   const delivered = await sendEmail(
     order.email,
     'payment_reminder',
-    renderPaymentReminder(orderEmailData(order), order.locale),
+    renderPaymentReminder(
+      { ...orderEmailData(order), paymentUrl: paymentUrl ?? undefined },
+      order.locale,
+    ),
   )
   return delivered ? 'sent' : 'failed'
 }
@@ -260,7 +276,7 @@ export async function sendOrderConfirmation(orderId: string): Promise<boolean> {
     renderOrderConfirmation(
       {
         ...orderEmailData(order),
-        legal: { ...company(), withdrawUrl: `${env.WEB_URL}${WITHDRAW_PATH}` },
+        legal: legalCompany(),
       },
       order.locale,
     ),
