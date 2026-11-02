@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.12.0...api-v0.13.0) (2026-11-02)
+
+
+### Features
+
+* **admin:** Bestellte Farben und Aufdruck in allen Admin-Ansichten ([#96](https://github.com/schrrobe/3d-print-shop/issues/96)) ([6cf49b5](https://github.com/schrrobe/3d-print-shop/commit/6cf49b58420ad48adbc400a37f8bf820fbf7749f))
+
 ## [0.12.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.11.0...api-v0.12.0) (2026-11-02)
 
 
