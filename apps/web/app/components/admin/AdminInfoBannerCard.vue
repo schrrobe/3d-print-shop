@@ -8,8 +8,15 @@ interface InfoBannerDto {
 }
 
 // Prefilled while nothing is stored, so switching it on is one click.
-const SUGGESTION =
-  'Gerade kommen sehr viele Bestellungen bei uns an. Neue Bestellungen verschicken wir deshalb ab dem 14. November.'
+const SUGGESTION: Record<Locale, string> = {
+  de: 'Gerade kommen sehr viele Bestellungen bei uns an. Neue Bestellungen verschicken wir deshalb ab dem 14. November.',
+  en: "We're getting a lot of orders right now, so new orders will ship from 14 November.",
+  pl: 'Mamy teraz bardzo dużo zamówień, dlatego nowe zamówienia wysyłamy od 14 listopada.',
+  fr: 'Nous recevons beaucoup de commandes en ce moment. Les nouvelles commandes partiront donc à partir du 14 novembre.',
+  nl: 'We krijgen op dit moment erg veel bestellingen binnen. Nieuwe bestellingen versturen we daarom vanaf 14 november.',
+  cs: 'Právě k nám přichází hodně objednávek. Nové objednávky proto odešleme od 14. listopadu.',
+  it: 'In questo periodo riceviamo moltissimi ordini. I nuovi ordini partiranno quindi dal 14 novembre.',
+}
 
 const auth = useAdminAuthStore()
 const canWrite = computed(() => auth.can('settings:write'))
@@ -30,7 +37,7 @@ watch(
     if (!s) return
     enabled.value = s.enabled
     for (const l of LOCALES) text[l] = s.text[l] ?? ''
-    if (!Object.values(s.text).some(Boolean)) text.de = SUGGESTION
+    if (!Object.values(s.text).some(Boolean)) Object.assign(text, SUGGESTION)
   },
   { immediate: true },
 )
