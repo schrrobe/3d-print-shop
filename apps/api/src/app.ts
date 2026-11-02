@@ -32,6 +32,7 @@ import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { adminSalesChannelsRouter } from './routes/admin/sales-channels.js'
 import { checkoutRouter } from './routes/public/checkout.js'
+import { infoBannerRouter } from './routes/public/info-banner.js'
 import { promoBannerRouter } from './routes/public/promo-banner.js'
 import { trackingSettingsRouter } from './routes/public/tracking-settings.js'
 import { calibersRouter } from './routes/public/calibers.js'
@@ -110,6 +111,7 @@ export function createApp(): Express {
   app.use('/api/social-media', socialMediaRouter)
   app.use('/api/tracking-settings', trackingSettingsRouter)
   app.use('/api/promo-banner', promoBannerRouter)
+  app.use('/api/info-banner', infoBannerRouter)
 
   // Admin API (session cookie + RBAC per route)
   app.use('/api/admin', adminMutationLimiter)

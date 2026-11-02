@@ -1,6 +1,7 @@
 import type { ShopSettings } from '@prisma/client'
 import {
   companySettingsSchema,
+  infoBannerSchema,
   promoBannerSchema,
   trackingSettingsSchema,
 } from '@print-shop/validators'
@@ -15,6 +16,7 @@ import {
   missingCompanyFields,
   type CompanyField,
 } from '../../services/company.js'
+import { infoBannerText } from '../public/info-banner.js'
 import { promoBannerData, promoVoucherCheck } from '../../services/promo-banner.js'
 
 export const adminSettingsRouter = Router()
@@ -178,6 +180,51 @@ adminSettingsRouter.put(
         { enabled, code: promoBanner.code },
       )
       res.json(await promoDto(row))
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// ---------- Info banner ----------
+
+const infoDto = (row: Pick<ShopSettings, 'infoBannerEnabled' | 'infoBanner'> | null) => ({
+  enabled: row?.infoBannerEnabled ?? false,
+  text: infoBannerText(row?.infoBanner),
+})
+
+adminSettingsRouter.get(
+  '/info-banner',
+  requirePermission('settings:read'),
+  async (_req, res, next) => {
+    try {
+      const row = await prisma.shopSettings.findUnique({ where: { id: SINGLETON_ID } })
+      res.json(infoDto(row))
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+adminSettingsRouter.put(
+  '/info-banner',
+  requirePermission('settings:write'),
+  async (req, res, next) => {
+    try {
+      const { enabled, text } = infoBannerSchema.parse(req.body)
+      const data = { infoBannerEnabled: enabled, infoBanner: text }
+      const row = await prisma.shopSettings.upsert({
+        where: { id: SINGLETON_ID },
+        create: { id: SINGLETON_ID, ...data },
+        update: data,
+      })
+      await audit(
+        req,
+        'settings.info_banner.update',
+        { type: 'settings', id: SINGLETON_ID },
+        { enabled },
+      )
+      res.json(infoDto(row))
     } catch (err) {
       next(err)
     }
