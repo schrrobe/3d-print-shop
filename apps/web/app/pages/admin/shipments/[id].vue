@@ -44,7 +44,16 @@ interface ShipmentDetail {
     firstName: string
     lastName: string
   }
-  items: { quantity: number; orderItem: { id: string; name: string; quantity: number } }[]
+  items: {
+    quantity: number
+    orderItem: {
+      id: string
+      name: string
+      quantity: number
+      personalization: string | null
+      colors: { slot: string; label: string; name: string; hex: string | null }[]
+    }
+  }[]
   statusEvents: StatusEvent[]
 }
 interface QcClearance {
@@ -145,6 +154,10 @@ const pdfBase = `${config.public.apiBase}/admin/shipments/${id}`
           <ul class="mt-sm flex flex-col gap-xs text-body-regular">
             <li v-for="(item, i) in shipment.items" :key="i">
               {{ item.quantity }}× {{ item.orderItem.name }}
+              <AdminItemColors
+                :colors="item.orderItem.colors"
+                :personalization="item.orderItem.personalization"
+              />
             </li>
           </ul>
         </PsCard>

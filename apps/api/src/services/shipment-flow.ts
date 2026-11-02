@@ -13,6 +13,7 @@ import { prisma } from '../lib/prisma.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { company } from './company.js'
+import { itemColorResolver } from './item-colors.js'
 import { notifyShipped } from './order-flow.js'
 import { allJobsQcCleared } from './qc.js'
 
@@ -257,13 +258,19 @@ async function renderShipmentPdf(
   doc.fontSize(11).text('Positionen', { underline: true })
   doc.moveDown(0.5)
   doc.fontSize(10)
+  const colorsOf = isPackingList
+    ? await itemColorResolver(shipment.items.map((i) => i.orderItem))
+    : () => []
   for (const item of shipment.items) {
     doc.text(`${item.quantity}× ${item.orderItem.name}`)
-    if (isPackingList && item.orderItem.colorSelection) {
-      doc
-        .fontSize(8)
-        .fillColor('#5e5e5e')
-        .text(`   Farbkonfiguration: ${JSON.stringify(item.orderItem.colorSelection)}`)
+    if (!isPackingList) continue
+    const details = [
+      ...colorsOf(item.orderItem).map((c) => `${c.label}: ${c.name}`),
+      ...(item.orderItem.personalization ? [`Aufdruck: „${item.orderItem.personalization}“`] : []),
+    ]
+    if (details.length) {
+      doc.fontSize(8).fillColor('#5e5e5e')
+      for (const line of details) doc.text(`   ${line}`)
       doc.fontSize(10).fillColor('#000000')
     }
   }

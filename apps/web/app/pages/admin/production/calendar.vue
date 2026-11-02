@@ -14,7 +14,12 @@ interface CalendarJob {
   printerId: string | null
   printer: { id: string; name: string } | null
   order: { orderNumber: string; status: string }
-  orderItem: { name: string; quantity: number } | null
+  orderItem: {
+    name: string
+    quantity: number
+    personalization: string | null
+    colors: { slot: string; label: string; name: string; hex: string | null }[]
+  } | null
 }
 interface MaintenanceWindow {
   id: string
@@ -85,7 +90,10 @@ const events = computed<WeekCalendarEvent[]>(() => {
       resourceId: j.printerId!,
       date: localDate(j.plannedStartAt!),
       title: j.order.orderNumber,
-      subtitle: j.orderItem?.name,
+      // Calendar cells are tight: color names only, zone labels live in the job lists
+      subtitle: [j.orderItem?.name, j.orderItem?.colors.map((c) => c.name).join(' / ')]
+        .filter(Boolean)
+        .join(' · '),
       timeLabel: `${timeLabel(j.plannedStartAt!)}–${timeLabel(j.plannedEndAt!)}`,
       kind: 'job',
       status: j.status,
@@ -231,7 +239,13 @@ function deleteMaintenance(id: string) {
           class="flex items-center justify-between rounded-card border border-subtle p-md text-body-regular"
           data-testid="unscheduled-job"
         >
-          <span>{{ job.order.orderNumber }} · {{ job.orderItem?.name }}</span>
+          <div>
+            <span>{{ job.order.orderNumber }} · {{ job.orderItem?.name }}</span>
+            <AdminItemColors
+              :colors="job.orderItem?.colors"
+              :personalization="job.orderItem?.personalization"
+            />
+          </div>
           <PsButton variant="secondary" size="sm" data-testid="unscheduled-plan" @click="openScheduleForJob(job)">
             Planen
           </PsButton>
