@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.6.0...validators-v0.7.0) (2026-11-02)
+
+
+### Features
+
+* **admin:** Paylinks mit freien Positionen für Kundenanfragen ([#88](https://github.com/schrrobe/3d-print-shop/issues/88)) ([be4edce](https://github.com/schrrobe/3d-print-shop/commit/be4edce2ff4803a688fadf7db090006d38a114be))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.5.0
+
 ## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.5.1...validators-v0.6.0) (2026-11-02)
 
 
