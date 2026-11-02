@@ -23,7 +23,7 @@ const message = computed(() => {
   <div
     v-if="message"
     role="status"
-    class="bg-mirror px-4 py-2 text-center text-sm text-on-mirror"
+    class="bg-hit px-4 py-2 text-center text-sm text-on-hit"
     data-testid="info-banner"
   >
     {{ message }}
