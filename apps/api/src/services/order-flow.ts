@@ -7,7 +7,7 @@ import {
   renderShippingConfirmation,
   type OrderEmailData,
 } from '@print-shop/emails'
-import { assertOrderTransition, WITHDRAW_PATH } from '@print-shop/utils'
+import { assertOrderTransition, TERMS_PATH, WITHDRAW_PATH } from '@print-shop/utils'
 import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -19,6 +19,11 @@ import { recordPurchaseWithOutbox } from './tracking/outbox.js'
 
 export function orderUrl(order: { orderNumber: string; accessToken: string }): string {
   return `${env.WEB_URL}/order/${order.orderNumber}?token=${order.accessToken}`
+}
+
+/** Company data for the contract documents attached to customer mails (§ 312f Abs. 2 BGB). */
+export function legalCompany() {
+  return { ...company(), withdrawUrl: `${env.WEB_URL}${WITHDRAW_PATH}` }
 }
 
 export function orderEmailData(order: Order & { items: OrderItem[] }): OrderEmailData {
@@ -154,6 +159,10 @@ async function sendInvoiceEmail(
           invoiceNumber: invoice.number,
           totalCents: invoice.totalCents,
           orderUrl: orderUrl(order),
+          customMade:
+            order.source === 'admin'
+              ? { termsUrl: `${env.WEB_URL}${TERMS_PATH}`, legal: legalCompany() }
+              : undefined,
         },
         order.locale,
       ),
@@ -240,7 +249,7 @@ export async function sendOrderConfirmation(orderId: string): Promise<boolean> {
     renderOrderConfirmation(
       {
         ...orderEmailData(order),
-        legal: { ...company(), withdrawUrl: `${env.WEB_URL}${WITHDRAW_PATH}` },
+        legal: legalCompany(),
       },
       order.locale,
     ),

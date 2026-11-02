@@ -12,6 +12,7 @@ defineProps<{
   name?: string
   min?: number | string
   max?: number | string
+  step?: number | string
 }>()
 
 const model = defineModel<string>({ default: '' })
@@ -33,6 +34,7 @@ const id = useId()
       :disabled="disabled"
       :min="min"
       :max="max"
+      :step="step"
       :autocomplete="autocomplete"
       :aria-invalid="error ? 'true' : undefined"
       :aria-describedby="error ? `${id}-error` : undefined"

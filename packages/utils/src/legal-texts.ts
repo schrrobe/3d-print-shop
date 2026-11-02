@@ -26,6 +26,7 @@ export interface LegalCompany {
 
 /** Path of the electronic withdrawal function (§ 356a BGB) in the shop. */
 export const WITHDRAW_PATH = '/withdraw'
+export const TERMS_PATH = '/legal/terms'
 
 /**
  * German is the binding contract language. Imprint and privacy policy are

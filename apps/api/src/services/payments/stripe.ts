@@ -127,8 +127,27 @@ export async function createStripePaymentLink(
     line_items: [{ price: price.id, quantity: 1 }],
     metadata: { orderNumber: params.orderNumber },
     after_completion: { type: 'redirect', redirect: { url: successUrl(params) } },
+    // One order, one payment: Stripe deactivates the link after the first completed session.
+    restrictions: { completed_sessions: { limit: 1 } },
+    // Needs the terms URL under Stripe Dashboard → Settings → Public details.
+    consent_collection: { terms_of_service: 'required' },
   })
   return { sessionId: link.id, url: link.url }
+}
+
+/**
+ * Cancelled order: the link must no longer accept payments (mock links are ignored).
+ * Deactivating only blocks new sessions, so checkout pages already open are expired too.
+ */
+export async function deactivateStripePaymentLink(linkId: string): Promise<void> {
+  if (!stripe || linkId.startsWith('mock_')) return
+  await stripe.paymentLinks.update(linkId, { active: false })
+  for await (const session of stripe.checkout.sessions.list({
+    payment_link: linkId,
+    status: 'open',
+  })) {
+    await stripe.checkout.sessions.expire(session.id)
+  }
 }
 
 /**

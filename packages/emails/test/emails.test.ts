@@ -4,6 +4,7 @@ import {
   renderInvoice,
   renderOrderConfirmation,
   renderPasswordReset,
+  renderPaymentLink,
   renderPaymentReceived,
   renderProductionStarted,
   renderQuoteAccepted,
@@ -140,5 +141,35 @@ describe('email templates', () => {
     expect(rendered.html).toContain('13:34:56')
     expect(rendered.html).toContain('Max &lt;b&gt;')
     expect(rendered.text).toContain('Hiermit widerrufe ich')
+  })
+
+  it('marks admin paylink mails as custom-made without withdrawal right', () => {
+    const terms = 'https://shop.example/legal/terms'
+    const link = renderPaymentLink(
+      { ...orderData, shippingCents: 699, paymentUrl: 'https://buy.stripe.com/x', termsUrl: terms },
+      'de',
+    )
+    // Full terms on a durable medium (§ 312f Abs. 2 BGB), but no withdrawal policy.
+    expect(link.html).toContain('Allgemeine Geschäftsbedingungen')
+    expect(link.html).not.toContain('Muster-Widerrufsformular')
+    expect(link.text).not.toMatch(/\{(name|street|zip|city|email)\}/)
+    expect(link.html).toContain('https://buy.stripe.com/x')
+    expect(link.html).toContain('6,99')
+    expect(link.text).toContain('§ 312g Abs. 2 Nr. 1 BGB')
+    expect(link.html).toContain(terms)
+
+    const invoice = {
+      orderNumber: 'PS-1',
+      invoiceNumber: 'RE-1',
+      totalCents: 100,
+      orderUrl: 'https://x',
+    }
+    expect(renderInvoice(invoice, 'de').text).not.toContain('Sonderanfertigung')
+    const custom = renderInvoice(
+      { ...invoice, customMade: { termsUrl: terms, legal: orderData.legal } },
+      'en',
+    )
+    expect(custom.text).toContain(terms)
+    expect(custom.html).toContain('Allgemeine Geschäftsbedingungen')
   })
 })

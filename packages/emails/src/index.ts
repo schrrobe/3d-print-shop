@@ -14,6 +14,7 @@ export type EmailTemplateName =
   | 'upload_received'
   | 'quote_available'
   | 'quote_accepted'
+  | 'payment_link'
   | 'production_started'
   | 'shipping_confirmation'
   | 'invoice'
@@ -58,12 +59,18 @@ function itemsTable(items: OrderEmailData['items'], locale: Locale): string {
 
 /**
  * AGB + Widerrufsbelehrung incl. Muster-Formular on a durable medium (§ 312f Abs. 2 BGB).
- * Always the binding German version.
+ * Always the binding German version. `termsOnly` for custom-made orders without withdrawal right.
  */
-function contractDocuments(company: LegalCompany, locale: Locale): { html: string; text: string } {
+function contractDocuments(
+  company: LegalCompany,
+  locale: Locale,
+  { termsOnly = false } = {},
+): { html: string; text: string } {
   const docs = [
     ['Allgemeine Geschäftsbedingungen', getLegalDocument('de', 'terms', company)],
-    ['Widerrufsbelehrung', getLegalDocument('de', 'withdrawal', company)],
+    ...(termsOnly
+      ? []
+      : ([['Widerrufsbelehrung', getLegalDocument('de', 'withdrawal', company)]] as const)),
   ] as const
   const blocks = docs.flatMap(([title, doc]) =>
     doc
@@ -78,11 +85,17 @@ function contractDocuments(company: LegalCompany, locale: Locale): { html: strin
         ]
       : [],
   )
-  const intro = pick(
-    locale,
-    'Unsere AGB und die Widerrufsbelehrung zu deiner Bestellung:',
-    'Our terms and withdrawal policy for your order (binding German version):',
-  )
+  const intro = termsOnly
+    ? pick(
+        locale,
+        'Unsere AGB zu deiner Bestellung:',
+        'Our terms for your order (binding German version):',
+      )
+    : pick(
+        locale,
+        'Unsere AGB und die Widerrufsbelehrung zu deiner Bestellung:',
+        'Our terms and withdrawal policy for your order (binding German version):',
+      )
   const html =
     paragraph(`<strong>${intro}</strong>`) +
     blocks
@@ -242,6 +255,73 @@ export function renderQuoteAccepted(data: QuoteAcceptedData, locale: Locale): Re
   return { subject, html, text: `${title}: ${data.paymentUrl}` }
 }
 
+export interface CustomMadeLegal {
+  termsUrl: string
+  /** Company data for the attached terms. */
+  legal: LegalCompany
+}
+
+/**
+ * Admin paylink orders are made to order: no right of withdrawal (§ 312g Abs. 2 Nr. 1 BGB).
+ * The full terms go along on a durable medium (§ 312f Abs. 2 BGB).
+ */
+function customMadeNotice(
+  { termsUrl, legal }: CustomMadeLegal,
+  locale: Locale,
+): { html: string; text: string } {
+  const text = pick(
+    locale,
+    'Hinweis: Es handelt sich um eine Sonderanfertigung nach deinen Vorgaben. Ein Widerrufsrecht besteht daher nicht (§ 312g Abs. 2 Nr. 1 BGB). Es gelten unsere AGB:',
+    'Please note: this is a custom-made item to your specification, so there is no right of withdrawal (§ 312g (2) no. 1 BGB). Our terms and conditions apply:',
+  )
+  const terms = contractDocuments(legal, locale, { termsOnly: true })
+  return {
+    html:
+      paragraph(
+        `<small>${text} <a href="${escapeHtml(termsUrl)}">${escapeHtml(termsUrl)}</a></small>`,
+      ) + terms.html,
+    text: `${text} ${termsUrl}\n\n${terms.text}`,
+  }
+}
+
+export interface PaymentLinkData extends OrderEmailData, CustomMadeLegal {
+  shippingCents: number
+  paymentUrl: string
+}
+
+export function renderPaymentLink(data: PaymentLinkData, locale: Locale): RenderedEmail {
+  const subject = pick(
+    locale,
+    `Dein Zahlungslink für ${data.orderNumber}`,
+    `Your payment link for ${data.orderNumber}`,
+  )
+  const title = pick(locale, 'Dein Zahlungslink', 'Your payment link')
+  const notice = customMadeNotice(data, locale)
+  const html = emailLayout(
+    title,
+    paragraph(
+      pick(locale, `Hallo ${escapeHtml(data.firstName)},`, `Hi ${escapeHtml(data.firstName)},`),
+    ) +
+      paragraph(
+        pick(
+          locale,
+          `hier ist deine individuelle Bestellung <strong>${data.orderNumber}</strong>. Sobald die Zahlung eingeht, starten wir die Produktion und du bekommst deine Rechnung.`,
+          `here is your individual order <strong>${data.orderNumber}</strong>. As soon as your payment arrives we start production and send your invoice.`,
+        ),
+      ) +
+      itemsTable(data.items, locale) +
+      paragraph(pick(locale, 'Versand: ', 'Shipping: ') + formatCents(data.shippingCents, locale)) +
+      paragraph(
+        pick(locale, 'Gesamtbetrag: ', 'Total: ') +
+          `<strong>${formatCents(data.totalCents, locale)}</strong>`,
+      ) +
+      button(data.paymentUrl, pick(locale, 'Jetzt bezahlen', 'Pay now')) +
+      notice.html,
+  )
+  const text = `${title}\n${data.orderNumber}\n${data.paymentUrl}\n\n${notice.text}`
+  return { subject, html, text }
+}
+
 export function renderProductionStarted(data: OrderEmailData, locale: Locale): RenderedEmail {
   const subject = pick(
     locale,
@@ -292,11 +372,14 @@ export interface InvoiceEmailData {
   invoiceNumber: string
   totalCents: number
   orderUrl: string
+  /** Set for admin paylink orders: adds the custom-made / no-withdrawal notice and the terms. */
+  customMade?: CustomMadeLegal
 }
 
 export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedEmail {
   const subject = pick(locale, `Rechnung ${data.invoiceNumber}`, `Invoice ${data.invoiceNumber}`)
   const title = pick(locale, 'Deine Rechnung', 'Your invoice')
+  const notice = data.customMade ? customMadeNotice(data.customMade, locale) : null
   const html = emailLayout(
     title,
     paragraph(
@@ -305,9 +388,10 @@ export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedE
         `im Anhang findest du die Rechnung <strong>${data.invoiceNumber}</strong> zu deiner Bestellung ${data.orderNumber} über ${formatCents(data.totalCents, locale)}.`,
         `please find attached invoice <strong>${data.invoiceNumber}</strong> for your order ${data.orderNumber} over ${formatCents(data.totalCents, locale)}.`,
       ),
-    ),
+    ) + (notice?.html ?? ''),
   )
-  return { subject, html, text: `${title}: ${data.invoiceNumber}` }
+  const text = `${title}: ${data.invoiceNumber}${notice ? `\n\n${notice.text}` : ''}`
+  return { subject, html, text }
 }
 
 export interface PasswordResetData {

@@ -44,6 +44,12 @@ enum OrderStatus {
   refunded
 }
 
+enum OrderSource {
+  shop
+  admin
+  quote
+}
+
 enum PaymentMethod {
   stripe
   stripe_payment_link
@@ -500,6 +506,8 @@ model Order {
   /// Client-generated retry key; prevents duplicate orders on checkout retries.
   checkoutKey             String?     @unique
   status                  OrderStatus @default(pending)
+  /// Who created the order: shop checkout, admin paylink or accepted quote.
+  source                  OrderSource @default(shop)
   locale                  Locale      @default(de)
   email                   String
   firstName               String
@@ -557,6 +565,7 @@ model Order {
   @@index([voucherId])
   @@index([trackingSessionId])
   @@index([salesChannelId])
+  @@index([source])
 }
 
 model OrderItem {

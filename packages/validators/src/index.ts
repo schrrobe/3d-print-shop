@@ -213,6 +213,38 @@ export const quoteCreateSchema = z.object({
   validDays: z.number().int().min(1).max(90).default(14),
 })
 
+/** Stripe rejects charges below 0,50 €. */
+export const MIN_PAYLINK_TOTAL_CENTS = 50
+
+/** Admin paylink order: free items (optionally linked to a shop product), gross prices. */
+export const adminOrderCreateSchema = z
+  .object({
+    address: addressSchema,
+    locale: z.enum(['de', 'en']).default('de'),
+    paymentMethod: z.enum(['stripe_payment_link', 'bank_transfer']),
+    shippingCents: priceCentsSchema,
+    /** Internal only — never shown to the customer. */
+    note: z.string().trim().max(2000).optional(),
+    items: z
+      .array(
+        z.object({
+          productId: cuidSchema.optional(),
+          name: z.string().trim().min(1).max(200),
+          quantity: z.number().int().min(1).max(999),
+          unitPriceCents: priceCentsSchema,
+        }),
+      )
+      .min(1)
+      .max(50),
+  })
+  .refine(
+    (o) =>
+      o.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0) + o.shippingCents >=
+      MIN_PAYLINK_TOTAL_CENTS,
+    { message: 'Total must be at least 0,50 €', path: ['items'] },
+  )
+export type AdminOrderCreateInput = z.infer<typeof adminOrderCreateSchema>
+
 export const quoteDecisionSchema = z.object({
   token: z.string().min(16).max(128),
   decision: z.enum(['accept', 'decline']),
