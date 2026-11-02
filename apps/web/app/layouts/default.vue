@@ -16,6 +16,7 @@ useHead({ htmlAttrs: { class: 'kb' } })
     >
       {{ t('shop.a11y.skipToContent') }}
     </a>
+    <InfoBanner />
     <SiteHeader />
     <main id="main" tabindex="-1" class="flex-1 focus:outline-none">
       <slot />
