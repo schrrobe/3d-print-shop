@@ -63,7 +63,7 @@ export default defineNuxtConfig({
         email:
           process.env.NUXT_PUBLIC_COMPANY_EMAIL ??
           process.env.COMPANY_EMAIL ??
-          'info@prestige-webdesign.de',
+          'info@kaliberbox.de',
       },
     },
   },
