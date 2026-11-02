@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.11.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.10.0...web-v0.11.0) (2026-11-02)
+
+
+### Features
+
+* **admin:** Paylinks mit freien Positionen für Kundenanfragen ([#88](https://github.com/schrrobe/3d-print-shop/issues/88)) ([be4edce](https://github.com/schrrobe/3d-print-shop/commit/be4edce2ff4803a688fadf7db090006d38a114be))
+* **shop:** Info-Banner in Akzent-Orange ([#94](https://github.com/schrrobe/3d-print-shop/issues/94)) ([3b5a4ef](https://github.com/schrrobe/3d-print-shop/commit/3b5a4efb026fab08d6f8e7df69afc4f70ff93bf9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.3.0
+    * @print-shop/ui bumped to 0.3.0
+    * @print-shop/utils bumped to 0.5.0
+    * @print-shop/validators bumped to 0.7.0
+
 ## [0.10.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.9.0...web-v0.10.0) (2026-11-02)
 
 

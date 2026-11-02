@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.2.0...ui-v0.3.0) (2026-11-02)
+
+
+### Features
+
+* **admin:** Paylinks mit freien Positionen für Kundenanfragen ([#88](https://github.com/schrrobe/3d-print-shop/issues/88)) ([be4edce](https://github.com/schrrobe/3d-print-shop/commit/be4edce2ff4803a688fadf7db090006d38a114be))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.5.0
+
 ## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.1.1...ui-v0.2.0) (2026-11-01)
 
 
