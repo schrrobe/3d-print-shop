@@ -22,6 +22,12 @@ interface Checklist {
   completenessOk: boolean
   packagingOk: boolean
 }
+interface QcOrderItem {
+  name: string
+  quantity: number
+  personalization: string | null
+  colors: { slot: string; label: string; name: string; hex: string | null }[]
+}
 interface QcRecord extends Checklist {
   id: string
   status: QcStatus
@@ -34,7 +40,7 @@ interface QcRecord extends Checklist {
     id: string
     status: string
     order: { orderNumber: string }
-    orderItem: { name: string; quantity: number } | null
+    orderItem: QcOrderItem | null
     printer: { name: string } | null
   }
   attachments: { id: string }[]
@@ -43,7 +49,7 @@ interface JobInQc {
   id: string
   status: string
   order: { orderNumber: string }
-  orderItem: { name: string; quantity: number } | null
+  orderItem: QcOrderItem | null
   qcRecords: QcRecord[]
 }
 
@@ -228,6 +234,10 @@ async function submitOverride() {
               <span class="ml-sm text-body-regular text-secondary">{{
                 entry.job.orderItem?.name
               }}</span>
+              <AdminItemColors
+                :colors="entry.job.orderItem?.colors"
+                :personalization="entry.job.orderItem?.personalization"
+              />
             </div>
             <PsButton
               v-if="!entry.record"
@@ -326,6 +336,12 @@ async function submitOverride() {
           :override-reason="record.overrideReason"
           data-testid="qc-record"
         >
+          <template #details>
+            <AdminItemColors
+              :colors="record.printerJob.orderItem?.colors"
+              :personalization="record.printerJob.orderItem?.personalization"
+            />
+          </template>
           <template #actions>
             <PsButton
               v-if="record.status === 'failed'"

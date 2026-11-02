@@ -26,6 +26,7 @@ import {
   sendOrderConfirmation,
   sendPaymentReminder,
 } from '../../services/order-flow.js'
+import { itemColorResolver } from '../../services/item-colors.js'
 import {
   createStripePaymentLink,
   deactivateStripePaymentLink,
@@ -82,9 +83,11 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
       },
     })
     if (!order) throw notFound('Order not found')
+    const colorsOf = await itemColorResolver(order.items)
     res.json({
       order: {
         ...order,
+        items: order.items.map((item) => ({ ...item, colors: colorsOf(item) })),
         payments: order.payments.map((p) => ({
           ...p,
           bitcoinPayment: p.bitcoinPayment

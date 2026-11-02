@@ -10,7 +10,12 @@ interface QueueJob {
   status: ProductionStatus
   printDurationMinutes: number | null
   order: { orderNumber: string }
-  orderItem: { name: string; quantity: number } | null
+  orderItem: {
+    name: string
+    quantity: number
+    personalization: string | null
+    colors: { slot: string; label: string; name: string; hex: string | null }[]
+  } | null
   printer: { id: string; name: string } | null
 }
 
@@ -118,6 +123,10 @@ function etaLabel(job: QueueJob): string {
           </template>
         </template>
       </PsProductionQueueItem>
+      <AdminItemColors
+        :colors="job.orderItem?.colors"
+        :personalization="job.orderItem?.personalization"
+      />
     </PsCard>
     <p v-if="(data?.jobs ?? []).length === 0" class="text-secondary">Queue ist leer.</p>
 

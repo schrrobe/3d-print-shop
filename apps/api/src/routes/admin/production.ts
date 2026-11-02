@@ -7,9 +7,18 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
+import { itemColorResolver } from '../../services/item-colors.js'
 import { allJobsQcCleared } from '../../services/qc.js'
 
 export const adminProductionRouter = Router()
+
+const calendarItemSelect = {
+  name: true,
+  quantity: true,
+  personalization: true,
+  colorSelection: true,
+  productId: true,
+} as const
 
 /** Production queue with per-printer ETA (sum of open job durations). */
 adminProductionRouter.get('/queue', requirePermission('print-jobs:read'), async (_req, res, next) => {
@@ -34,7 +43,14 @@ adminProductionRouter.get('/queue', requirePermission('print-jobs:read'), async 
     const etaByPrinter = Object.fromEntries(
       [...byPrinter.entries()].map(([printerId, list]) => [printerId, calcPrinterEtaMs(list)]),
     )
-    res.json({ jobs, etaByPrinter })
+    const colorsOf = await itemColorResolver(jobs.flatMap((j) => (j.orderItem ? [j.orderItem] : [])))
+    res.json({
+      jobs: jobs.map((j) => ({
+        ...j,
+        orderItem: j.orderItem && { ...j.orderItem, colors: colorsOf(j.orderItem) },
+      })),
+      etaByPrinter,
+    })
   } catch (err) {
     next(err)
   }
@@ -140,7 +156,7 @@ adminProductionRouter.get('/calendar', requirePermission('print-jobs:read'), asy
         },
         include: {
           order: { select: { orderNumber: true, status: true } },
-          orderItem: { select: { name: true, quantity: true } },
+          orderItem: { select: calendarItemSelect },
           printer: { select: { id: true, name: true } },
         },
         orderBy: { plannedStartAt: 'asc' },
@@ -149,7 +165,7 @@ adminProductionRouter.get('/calendar', requirePermission('print-jobs:read'), asy
         where: { plannedStartAt: null, status: { notIn: ['shipped', 'ready_to_ship'] } },
         include: {
           order: { select: { orderNumber: true, status: true } },
-          orderItem: { select: { name: true, quantity: true } },
+          orderItem: { select: calendarItemSelect },
           printer: { select: { id: true, name: true } },
         },
         orderBy: { createdAt: 'asc' },
@@ -161,7 +177,19 @@ adminProductionRouter.get('/calendar', requirePermission('print-jobs:read'), asy
       }),
       prisma.printer.findMany({ orderBy: { name: 'asc' } }),
     ])
-    res.json({ jobs, unscheduledJobs, maintenanceWindows, printers })
+    const colorsOf = await itemColorResolver(
+      [...jobs, ...unscheduledJobs].flatMap((j) => (j.orderItem ? [j.orderItem] : [])),
+    )
+    const withColors = (j: (typeof jobs)[number]) => ({
+      ...j,
+      orderItem: j.orderItem && { ...j.orderItem, colors: colorsOf(j.orderItem) },
+    })
+    res.json({
+      jobs: jobs.map(withColors),
+      unscheduledJobs: unscheduledJobs.map(withColors),
+      maintenanceWindows,
+      printers,
+    })
   } catch (err) {
     next(err)
   }

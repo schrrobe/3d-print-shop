@@ -36,6 +36,7 @@ const meta = computed(() => STATUS_META[props.status])
           <span class="text-caption text-secondary">{{ orderNumber }}</span>
           <span class="truncate text-label-medium text-primary">{{ itemName }}</span>
           <span v-if="printerName" class="text-caption text-secondary">{{ printerName }}</span>
+          <slot name="details" />
         </div>
         <PsBadge :variant="meta.variant">{{ meta.label }}</PsBadge>
       </div>

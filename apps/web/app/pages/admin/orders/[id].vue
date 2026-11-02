@@ -18,6 +18,8 @@ const route = useRoute()
 const auth = useAdminAuthStore()
 const orderId = String(route.params.id)
 
+type ItemColor = { slot: string; label: string; name: string; hex: string | null }
+
 interface AdminOrderDetail {
   id: string
   orderNumber: string
@@ -34,7 +36,14 @@ interface AdminOrderDetail {
   totalCents: number
   carrier: string | null
   trackingNumber: string | null
-  items: { id: string; name: string; quantity: number; unitPriceCents: number }[]
+  items: {
+    id: string
+    name: string
+    quantity: number
+    unitPriceCents: number
+    personalization: string | null
+    colors: ItemColor[]
+  }[]
   payments: {
     id: string
     method: string
@@ -164,9 +173,12 @@ function ship() {
       <PsCard>
         <h3 class="text-label-medium">Positionen</h3>
         <ul class="mt-md flex flex-col gap-sm text-body-regular">
-          <li v-for="item in order.items" :key="item.id" class="flex justify-between">
-            <span>{{ item.quantity }}× {{ item.name }}</span>
-            <PsPrice :cents="item.unitPriceCents * item.quantity" size="sm" />
+          <li v-for="item in order.items" :key="item.id">
+            <div class="flex justify-between">
+              <span>{{ item.quantity }}× {{ item.name }}</span>
+              <PsPrice :cents="item.unitPriceCents * item.quantity" size="sm" />
+            </div>
+            <AdminItemColors :colors="item.colors" :personalization="item.personalization" />
           </li>
         </ul>
         <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">

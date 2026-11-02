@@ -20,16 +20,25 @@ import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { sendEmail } from '../../services/email.js'
+import { itemColorResolver } from '../../services/item-colors.js'
 
 export const adminQcRouter = Router()
 
 const photoUpload = createImageUpload('qc', { maxFiles: 5, maxBytes: 10 * 1024 * 1024 })
 
+const orderItemSelect = {
+  name: true,
+  quantity: true,
+  personalization: true,
+  colorSelection: true,
+  productId: true,
+} as const
+
 const qcInclude = {
   printerJob: {
     include: {
       order: { select: { orderNumber: true } },
-      orderItem: { select: { name: true, quantity: true } },
+      orderItem: { select: orderItemSelect },
       printer: { select: { name: true } },
     },
   },
@@ -64,13 +73,25 @@ adminQcRouter.get('/', requirePermission('qc:read'), async (req, res, next) => {
         where: { status: 'quality_check' },
         include: {
           order: { select: { orderNumber: true } },
-          orderItem: { select: { name: true, quantity: true } },
+          orderItem: { select: orderItemSelect },
           qcRecords: { orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 1 },
         },
         orderBy: { createdAt: 'asc' },
       }),
     ])
-    res.json({ records, jobsInQc })
+    const colorsOf = await itemColorResolver(
+      [...records.map((r) => r.printerJob), ...jobsInQc].flatMap((j) =>
+        j.orderItem ? [j.orderItem] : [],
+      ),
+    )
+    const withColors = <T extends { orderItem: Parameters<typeof colorsOf>[0] | null }>(j: T) => ({
+      ...j,
+      orderItem: j.orderItem && { ...j.orderItem, colors: colorsOf(j.orderItem) },
+    })
+    res.json({
+      records: records.map((r) => ({ ...r, printerJob: withColors(r.printerJob) })),
+      jobsInQc: jobsInQc.map(withColors),
+    })
   } catch (err) {
     next(err)
   }

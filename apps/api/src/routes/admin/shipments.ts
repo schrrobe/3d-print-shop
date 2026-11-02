@@ -4,6 +4,7 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { notFound } from '../../middleware/error.js'
+import { itemColorResolver } from '../../services/item-colors.js'
 import { jobsQcClearance } from '../../services/qc.js'
 import {
   createShipment,
@@ -20,7 +21,20 @@ const shipmentInclude = {
   order: {
     select: { id: true, orderNumber: true, status: true, email: true, firstName: true, lastName: true },
   },
-  items: { include: { orderItem: { select: { id: true, name: true, quantity: true, colorSelection: true } } } },
+  items: {
+    include: {
+      orderItem: {
+        select: {
+          id: true,
+          name: true,
+          quantity: true,
+          colorSelection: true,
+          productId: true,
+          personalization: true,
+        },
+      },
+    },
+  },
   statusEvents: {
     orderBy: { createdAt: 'asc' as const },
     include: { byUser: { select: { name: true, email: true } } },
@@ -72,7 +86,17 @@ adminShipmentsRouter.get('/:id', requirePermission('shipments:read'), async (req
     if (!shipment) throw notFound('Shipment not found')
     const jobIds = await shipmentJobIds(shipment.id)
     const qcClearance = await jobsQcClearance(jobIds)
-    res.json({ shipment, qcClearance })
+    const colorsOf = await itemColorResolver(shipment.items.map((i) => i.orderItem))
+    res.json({
+      shipment: {
+        ...shipment,
+        items: shipment.items.map((i) => ({
+          ...i,
+          orderItem: { ...i.orderItem, colors: colorsOf(i.orderItem) },
+        })),
+      },
+      qcClearance,
+    })
   } catch (err) {
     next(err)
   }
