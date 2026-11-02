@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.10.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.9.0...web-v0.10.0) (2026-11-02)
+
+
+### Features
+
+* **shop:** Info-Banner oben im Shop ([#89](https://github.com/schrrobe/3d-print-shop/issues/89)) ([3ce3ba8](https://github.com/schrrobe/3d-print-shop/commit/3ce3ba874f770b8d9a6939aa34a9d3e05dcf68b6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/validators bumped to 0.6.0
+
 ## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.8.0...web-v0.9.0) (2026-11-01)
 
 

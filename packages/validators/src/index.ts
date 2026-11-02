@@ -220,7 +220,7 @@ export const MIN_PAYLINK_TOTAL_CENTS = 50
 export const adminOrderCreateSchema = z
   .object({
     address: addressSchema,
-    locale: z.enum(['de', 'en']).default('de'),
+    locale: localeSchema.default('de'),
     paymentMethod: z.enum(['stripe_payment_link', 'bank_transfer']),
     shippingCents: priceCentsSchema,
     /** Internal only — never shown to the customer. */
@@ -486,6 +486,20 @@ export const promoBannerSchema = z.object({
   }),
 })
 export type PromoBannerInput = z.infer<typeof promoBannerSchema>
+
+// ---------- Admin: info banner ----------
+
+/** Text per locale; German is required while the banner is on, other locales fall back to it. */
+export const infoBannerSchema = z
+  .object({
+    enabled: z.boolean(),
+    text: z.record(z.enum(LOCALES), z.string().trim().max(300)),
+  })
+  .refine((b) => !b.enabled || !!b.text.de, {
+    path: ['text', 'de'],
+    message: 'Required in German',
+  })
+export type InfoBannerInput = z.infer<typeof infoBannerSchema>
 
 // ---------- Payments ----------
 

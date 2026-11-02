@@ -988,6 +988,9 @@ model ShopSettings {
   /// so content only: { code: string | null, content: { de: {title,text,cta}, en?: … } }.
   promoBannerEnabled Boolean  @default(false)
   promoBanner        Json?
+  /// Hinweis-Leiste oben im Shop. Public via /api/info-banner, so text only: Record<Locale, string>.
+  infoBannerEnabled Boolean @default(false)
+  infoBanner Json?
   /// Shop-wide default color per zone: Record<ColorZoneSlot, colorId>. Saving copies it
   /// onto every product's ProductColorSlot; new products start with it.
   defaultColors      Json?

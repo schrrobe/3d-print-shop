@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Locale } from '@print-shop/types'
 import { PsButton, PsCard, PsInput, PsPrice, PsSelect, PsTextarea } from '@print-shop/ui'
 import { calcShippingCents, eurosToCents } from '@print-shop/utils'
 
@@ -38,7 +39,7 @@ const form = reactive({
   country: 'DE',
   email: '',
   phone: '',
-  locale: 'de' as 'de' | 'en',
+  locale: 'de' as Locale,
   paymentMethod: 'stripe_payment_link' as 'stripe_payment_link' | 'bank_transfer',
   note: '',
 })
@@ -163,6 +164,11 @@ async function create() {
             :options="[
               { value: 'de', label: 'Deutsch' },
               { value: 'en', label: 'Englisch' },
+              { value: 'pl', label: 'Polnisch' },
+              { value: 'fr', label: 'Französisch' },
+              { value: 'nl', label: 'Niederländisch' },
+              { value: 'cs', label: 'Tschechisch' },
+              { value: 'it', label: 'Italienisch' },
             ]"
           />
         </div>

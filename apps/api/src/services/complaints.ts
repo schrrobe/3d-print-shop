@@ -15,18 +15,6 @@ export function complaintUrl(complaint: { complaintNumber: string; accessToken: 
   return `${env.WEB_URL}/complaint/${complaint.complaintNumber}?token=${complaint.accessToken}`
 }
 
-/** Customer-facing status labels (German first — shop default; emails pick by locale). */
-export const COMPLAINT_STATUS_LABELS: Record<ComplaintStatus, string> = {
-  submitted: 'Eingereicht',
-  in_review: 'In Prüfung',
-  info_needed: 'Weitere Informationen benötigt',
-  approved: 'Genehmigt',
-  rejected: 'Abgelehnt',
-  replacement_planned: 'Ersatzdruck geplant',
-  refund_planned: 'Erstattung geplant',
-  closed: 'Abgeschlossen',
-}
-
 export async function sendComplaintReceivedEmail(
   complaint: Complaint,
   order: Order,
@@ -60,7 +48,7 @@ export async function sendComplaintUpdatedEmail(
         orderNumber: order.orderNumber,
         firstName: order.firstName,
         complaintUrl: complaintUrl(complaint),
-        statusLabel: COMPLAINT_STATUS_LABELS[complaint.status],
+        status: complaint.status,
         message,
       },
       order.locale,

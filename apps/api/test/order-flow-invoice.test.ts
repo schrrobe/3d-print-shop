@@ -31,7 +31,8 @@ vi.mock('../src/services/tracking/outbox.js', () => ({ recordPurchaseWithOutbox:
 const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
 const { generateInvoicePdf } = await import('../src/services/invoice.js')
-const { markOrderPaid, resendInvoice, sendOrderConfirmation } = await import('../src/services/order-flow.js')
+const { markOrderPaid, resendInvoice, sendOrderConfirmation, sendPaymentReminder } =
+  await import('../src/services/order-flow.js')
 
 const db = prisma as unknown as {
   tx: {
@@ -161,6 +162,43 @@ describe('resendInvoice', () => {
     db.order.findUniqueOrThrow.mockResolvedValue({ ...order('pending', {}), invoice: null })
 
     await expect(resendInvoice('o1')).resolves.toBe('no_invoice')
+    expect(sendEmail).not.toHaveBeenCalled()
+  })
+})
+
+describe('sendPaymentReminder', () => {
+  it('mails the order page link while the order is unpaid', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('awaiting_payment', {}))
+    vi.mocked(sendEmail).mockResolvedValueOnce(true)
+    await expect(sendPaymentReminder('o1')).resolves.toBe('sent')
+    const [to, template, rendered] = vi.mocked(sendEmail).mock.calls[0] ?? []
+    expect([to, template]).toEqual(['kunde@example.com', 'payment_reminder'])
+    expect(rendered?.html).toContain('/order/B-1?token=t')
+  })
+
+  it('links admin paylink orders to their Stripe payment link, not the order page', async () => {
+    // The order page only offers "Pay now" for embedded-checkout payments (method 'stripe').
+    const url = 'https://buy.stripe.com/test_abc'
+    db.order.findUniqueOrThrow.mockResolvedValue({
+      ...order('awaiting_payment', {}),
+      payments: [{ method: 'stripe_payment_link', status: 'pending', stripePaymentLinkUrl: url }],
+    })
+    vi.mocked(sendEmail).mockResolvedValueOnce(true)
+    await expect(sendPaymentReminder('o1')).resolves.toBe('sent')
+    const rendered = vi.mocked(sendEmail).mock.calls[0]?.[2]
+    expect(rendered?.html).toContain(url)
+    expect(rendered?.text).toContain(url)
+  })
+
+  it('reports a failed delivery', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('awaiting_bank_transfer', {}))
+    vi.mocked(sendEmail).mockResolvedValueOnce(false)
+    await expect(sendPaymentReminder('o1')).resolves.toBe('failed')
+  })
+
+  it('refuses paid orders', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('paid', {}))
+    await expect(sendPaymentReminder('o1')).resolves.toBe('not_awaiting_payment')
     expect(sendEmail).not.toHaveBeenCalled()
   })
 })

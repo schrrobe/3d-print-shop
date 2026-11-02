@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.5.1...validators-v0.6.0) (2026-11-02)
+
+
+### Features
+
+* **shop:** Info-Banner oben im Shop ([#89](https://github.com/schrrobe/3d-print-shop/issues/89)) ([3ce3ba8](https://github.com/schrrobe/3d-print-shop/commit/3ce3ba874f770b8d9a6939aa34a9d3e05dcf68b6))
+
 ## [0.5.1](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.5.0...validators-v0.5.1) (2026-11-01)
 
 
