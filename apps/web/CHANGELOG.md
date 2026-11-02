@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.12.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.11.0...web-v0.12.0) (2026-11-02)
+
+
+### Features
+
+* **admin:** Bestellte Farben und Aufdruck in allen Admin-Ansichten ([#96](https://github.com/schrrobe/3d-print-shop/issues/96)) ([6cf49b5](https://github.com/schrrobe/3d-print-shop/commit/6cf49b58420ad48adbc400a37f8bf820fbf7749f))
+
+
+### Bug Fixes
+
+* **web:** Impressum-E-Mail auf info@kaliberbox.de umgestellt ([#95](https://github.com/schrrobe/3d-print-shop/issues/95)) ([f381447](https://github.com/schrrobe/3d-print-shop/commit/f381447f59cd23ace781f4c83b1fe6b8f0a99aa2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/ui bumped to 0.4.0
+
 ## [0.11.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.10.0...web-v0.11.0) (2026-11-02)
 
 
