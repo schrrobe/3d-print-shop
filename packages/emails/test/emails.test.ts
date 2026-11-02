@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { LOCALES } from '@print-shop/types'
 import {
   renderAdminNotification,
+  renderComplaintUpdated,
   renderInvoice,
   renderOrderConfirmation,
   renderPasswordReset,
@@ -58,9 +60,28 @@ describe('email templates', () => {
     expect(en.subject).toContain('Order confirmation')
   })
 
-  it('falls back to English for untranslated locales', () => {
-    const pl = renderOrderConfirmation(orderData, 'pl')
-    expect(pl.subject).toContain('Order confirmation')
+  it('renders every shop locale in its own language', () => {
+    const subjects = LOCALES.map((l) => renderOrderConfirmation(orderData, l).subject)
+    expect(new Set(subjects).size).toBe(LOCALES.length)
+    expect(renderOrderConfirmation(orderData, 'it').subject).toContain('Conferma')
+    expect(
+      renderComplaintUpdated(
+        {
+          complaintNumber: 'REK-1',
+          orderNumber: 'PS-1',
+          firstName: 'Max',
+          complaintUrl: 'https://x',
+          status: 'refund_planned',
+        },
+        'fr',
+      ).html,
+    ).toContain('Remboursement prévu')
+  })
+
+  it('keeps the attached contract documents German in every locale', () => {
+    for (const locale of LOCALES) {
+      expect(renderOrderConfirmation(orderData, locale).html).toContain('Widerrufsbelehrung')
+    }
   })
 
   it('escapes HTML in user-provided values', () => {
