@@ -16,6 +16,8 @@ interface Dashboard {
   buyerLocations: { lat: number; lon: number; count: number }[]
   buyerCountries: string[]
   paymentMethods: { method: string; count: number; amountCents: number }[]
+  /** null when the role lacks tracking:read */
+  returningVisitors: { returning: number; total: number; days: number } | null
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -39,6 +41,7 @@ const WIDGETS = {
   quoteRequests: { title: 'Offene Upload-Anfragen', rows: 1, class: 'row-span-1' },
   productionWaiting: { title: 'Produktionsqueue (wartet)', rows: 1, class: 'row-span-1' },
   openTickets: { title: 'Offene Support-Tickets', rows: 1, class: 'row-span-1' },
+  returningVisitors: { title: 'Wiederkehrende Besucher', rows: 1, class: 'row-span-1' },
   ordersByStatus: { title: 'Bestellungen', rows: 2, class: 'row-span-2' },
   buyerMap: { title: 'Käufer-Heatmap', rows: 3, class: 'row-span-3 md:col-span-2' },
   paymentMethods: { title: 'Zahlungsmethoden', rows: 2, class: 'row-span-2' },
@@ -79,11 +82,14 @@ function swap(a: WidgetId, b: WidgetId) {
 }
 
 const announcement = ref('')
+// Tracking widget only for roles with tracking:read (API sends null otherwise).
+const visible = computed(() => order.value.filter((id) => id !== 'returningVisitors' || data.value?.returningVisitors))
+
 function move(id: WidgetId, delta: -1 | 1) {
-  const target = order.value[order.value.indexOf(id) + delta]
+  const target = visible.value[visible.value.indexOf(id) + delta]
   if (!target) return
   swap(id, target)
-  announcement.value = `${WIDGETS[id].title}: Position ${order.value.indexOf(id) + 1} von ${order.value.length}`
+  announcement.value = `${WIDGETS[id].title}: Position ${visible.value.indexOf(id) + 1} von ${visible.value.length}`
 }
 
 const dragged = ref<WidgetId | null>(null)
@@ -113,7 +119,7 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
       :style="{ gridAutoRows: `${ROW_PX}px`, gap: `${GAP_PX}px` }"
     >
       <PsCard
-        v-for="(id, i) in order"
+        v-for="(id, i) in visible"
         :key="id"
         :padded="false"
         draggable="true"
@@ -142,7 +148,7 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
             <button
               type="button"
               class="px-xs text-secondary hover:text-primary disabled:opacity-30"
-              :disabled="i === order.length - 1"
+              :disabled="i === visible.length - 1"
               :aria-label="`${WIDGETS[id].title} nach hinten`"
               @click="move(id, 1)"
             >
@@ -164,6 +170,16 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
           >
             {{ data.openTickets }}
           </NuxtLink>
+          <template v-else-if="id === 'returningVisitors' && data.returningVisitors">
+            <p class="text-heading-small" data-testid="dashboard-returning-visitors">{{ data.returningVisitors.returning }}</p>
+            <p class="text-caption text-secondary">
+              von {{ data.returningVisitors.total }} Besuchern
+              <template v-if="data.returningVisitors.total">
+                ({{ Math.round((data.returningVisitors.returning / data.returningVisitors.total) * 100) }} %)
+              </template>
+              · letzte {{ data.returningVisitors.days }} Tage
+            </p>
+          </template>
           <p v-else-if="id === 'productionWaiting'" class="text-heading-small">{{ data.productionWaiting }}</p>
           <ul v-else-if="id === 'ordersByStatus'" class="text-body-regular">
             <li v-for="(count, status) in data.ordersByStatus" :key="status" class="flex justify-between">
