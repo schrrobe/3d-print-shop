@@ -44,7 +44,7 @@ const id = useId()
       </SelectTrigger>
       <SelectPortal>
         <SelectContent
-          class="z-50 min-w-40 overflow-hidden rounded-card border border-subtle bg-surface-elevated shadow-card"
+          class="z-50 max-h-[var(--radix-select-content-available-height)] min-w-40 overflow-hidden rounded-card border border-subtle bg-surface-elevated shadow-card"
           position="popper"
           :side-offset="4"
         >
