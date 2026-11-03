@@ -39,6 +39,7 @@ interface Overview {
     funnel: { stage: string; sessions: number }[]
     timeseries: { day: string; sessions: number; purchases: number; revenueCents: number }[]
     channels: { channel: string; campaign: string; orders: number; revenueCents: number }[]
+    hourly: { hour: number; sessions: number }[]
     uniqueVisitors: number
     topPages: TopRow[]
     topReferrers: TopRow[]
@@ -62,8 +63,13 @@ function localBoundary(day: string, endOfDay: boolean): string {
 const today = new Date()
 const periodStart = new Date(today)
 periodStart.setDate(periodStart.getDate() - 29)
-const from = ref(inputDay(periodStart))
-const to = ref(inputDay(today))
+// Cookie-backed so the chosen range survives reloads and revisits.
+const cookieOpts = { maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' as const }
+const from = useCookie('admin-analytics-from', {
+  ...cookieOpts,
+  default: () => inputDay(periodStart),
+})
+const to = useCookie('admin-analytics-to', { ...cookieOpts, default: () => inputDay(today) })
 const compare = ref(true)
 
 const query = computed(() => ({
@@ -128,6 +134,7 @@ const seriesCategories = {
   sessions: { name: 'Sessions', color: 'var(--color-brand)' },
   purchases: { name: 'Käufe', color: '#f59e0b' },
 }
+const hourlyCategories = { sessions: { name: 'Aktive Sessions', color: 'var(--color-brand)' } }
 const revenueCategories = { revenue: { name: 'Umsatz (€)', color: 'var(--color-brand)' } }
 const revenueSeries = computed(() =>
   (data.value?.current.timeseries ?? []).map((p) => ({
@@ -385,6 +392,36 @@ function exportCsv() {
           </tr>
         </table>
       </div>
+
+      <PsCard>
+        <p class="text-caption text-secondary">Aktive Sessions nach Uhrzeit</p>
+        <div class="mt-md" role="img" aria-label="Aktive Sessions nach Uhrzeit (Diagramm)">
+          <LineChart
+            :data="data.current.hourly"
+            :height="240"
+            :categories="hourlyCategories"
+            :x-formatter="(i: number) => `${String(i).padStart(2, '0')} Uhr`"
+            :x-num-ticks="12"
+            :y-num-ticks="4"
+            :curve-type="CurveType.MonotoneX"
+            hide-legend
+            y-grid-line
+          />
+        </div>
+        <table class="sr-only">
+          <caption>
+            Aktive Sessions nach Uhrzeit
+          </caption>
+          <tr>
+            <th scope="col">Stunde</th>
+            <th scope="col">Sessions</th>
+          </tr>
+          <tr v-for="h in data.current.hourly" :key="h.hour">
+            <td>{{ h.hour }} Uhr</td>
+            <td>{{ h.sessions }}</td>
+          </tr>
+        </table>
+      </PsCard>
 
       <div class="grid gap-lg md:grid-cols-3">
         <PsCard v-for="t in tops" :key="t.title">

@@ -33,6 +33,10 @@ interface TimeseriesRow {
   purchases: bigint
   revenue_cents: bigint | null
 }
+interface HourRow {
+  hour: number
+  sessions: bigint
+}
 interface CountRow {
   n: bigint
 }
@@ -105,63 +109,74 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
         )
       GROUP BY 1, 2 ORDER BY revenue_cents DESC NULLS LAST`
 
+  // Active sessions per hour of day (Berlin), summed over the whole range.
+  const hourlyQuery = prisma.$queryRaw<HourRow[]>`
+    SELECT EXTRACT(HOUR FROM "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin')::int AS hour,
+           COUNT(DISTINCT "sessionId")::bigint AS sessions
+    FROM "TrackingEvent"
+    WHERE "occurredAt" BETWEEN ${from} AND ${to} AND "sessionId" IS NOT NULL
+    GROUP BY 1`
+
   const inRange = { gte: from, lte: to }
   const top = <T extends { _count: { _all: number } }>(rows: T[], key: (r: T) => string | null) =>
     rows.map((r) => ({ key: key(r) ?? '', count: r._count._all }))
   const reachQuery = () =>
     Promise.all([
-    prisma.$queryRaw<CountRow[]>`
+      prisma.$queryRaw<CountRow[]>`
       SELECT COUNT(DISTINCT "visitorId")::bigint AS n
       FROM "TrackingEvent"
       WHERE "occurredAt" BETWEEN ${from} AND ${to}`,
-    prisma.trackingEvent.groupBy({
-      by: ['path'],
-      where: { name: 'page_view', occurredAt: inRange, path: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { path: 'desc' } },
-      take: 10,
-    }),
-    prisma.trackingSession.groupBy({
-      by: ['referrer'],
-      where: { startedAt: inRange, referrer: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { referrer: 'desc' } },
-      take: 10,
-    }),
-    prisma.trackingSession.groupBy({
-      by: ['utmSource'],
-      where: { startedAt: inRange, utmSource: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { utmSource: 'desc' } },
-      take: 10,
-    }),
-  ])
+      prisma.trackingEvent.groupBy({
+        by: ['path'],
+        where: { name: 'page_view', occurredAt: inRange, path: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { path: 'desc' } },
+        take: 10,
+      }),
+      prisma.trackingSession.groupBy({
+        by: ['referrer'],
+        where: { startedAt: inRange, referrer: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { referrer: 'desc' } },
+        take: 10,
+      }),
+      prisma.trackingSession.groupBy({
+        by: ['utmSource'],
+        where: { startedAt: inRange, utmSource: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { utmSource: 'desc' } },
+        take: 10,
+      }),
+    ])
 
-  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels, reach] = await Promise.all([
-    prisma.$queryRaw<FunnelRow[]>`
+  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels, reach, hourly] =
+    await Promise.all([
+      prisma.$queryRaw<FunnelRow[]>`
       SELECT name, COUNT(DISTINCT "sessionId")::bigint AS sessions
       FROM "TrackingEvent"
       WHERE "occurredAt" BETWEEN ${from} AND ${to}
         AND name IN ('page_view','view_item','add_to_cart','begin_checkout')
       GROUP BY name`,
-    prisma.order.aggregate({
-      _sum: { totalCents: true, discountCents: true, prepaymentDiscountCents: true },
-      _count: true,
-      where: {
-        status: REVENUE_STATUSES,
-        payments: { some: { status: 'paid', paidAt: { gte: from, lte: to } } },
-      },
-    }),
-    prisma.trackingEvent.count({
-      where: { name: 'refund', occurredAt: { gte: from, lte: to } },
-    }),
-    prisma.trackingEvent.count({
-      where: { name: 'order_cancelled', occurredAt: { gte: from, lte: to } },
-    }),
-    kpisOnly ? Promise.resolve<TimeseriesRow[]>([]) : timeseriesQuery,
-    kpisOnly ? Promise.resolve<ChannelRow[]>([]) : channelsQuery,
-    kpisOnly ? null : reachQuery(),
-  ])
+      prisma.order.aggregate({
+        _sum: { totalCents: true, discountCents: true, prepaymentDiscountCents: true },
+        _count: true,
+        where: {
+          status: REVENUE_STATUSES,
+          payments: { some: { status: 'paid', paidAt: { gte: from, lte: to } } },
+        },
+      }),
+      prisma.trackingEvent.count({
+        where: { name: 'refund', occurredAt: { gte: from, lte: to } },
+      }),
+      prisma.trackingEvent.count({
+        where: { name: 'order_cancelled', occurredAt: { gte: from, lte: to } },
+      }),
+      kpisOnly ? Promise.resolve<TimeseriesRow[]>([]) : timeseriesQuery,
+      kpisOnly ? Promise.resolve<ChannelRow[]>([]) : channelsQuery,
+      kpisOnly ? null : reachQuery(),
+      kpisOnly ? Promise.resolve<HourRow[]>([]) : hourlyQuery,
+    ])
+  const hourMap = new Map(hourly.map((r) => [Number(r.hour), Number(r.sessions)]))
 
   const funnelMap = new Map(funnel.map((r) => [r.name, Number(r.sessions)]))
   const purchases = orderAgg._count
@@ -205,6 +220,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
       orders: Number(r.orders),
       revenueCents: Number(r.revenue_cents ?? 0),
     })),
+    hourly: Array.from({ length: 24 }, (_, hour) => ({ hour, sessions: hourMap.get(hour) ?? 0 })),
     uniqueVisitors: Number(reach?.[0][0]?.n ?? 0),
     topPages: top(reach?.[1] ?? [], (r) => r.path),
     topReferrers: top(reach?.[2] ?? [], (r) => r.referrer),

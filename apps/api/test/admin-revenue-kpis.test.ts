@@ -121,6 +121,33 @@ describe('admin tracking reach', () => {
     expect(current.topReferrers).toEqual([{ key: 'google.com', count: 2 }])
   })
 
+  it('overview returns 24 zero-filled hourly buckets', async () => {
+    vi.mocked(prisma.$queryRaw).mockImplementation(((sql: TemplateStringsArray) =>
+      Promise.resolve(
+        sql.join('').includes('EXTRACT(HOUR')
+          ? [
+              { hour: 9, sessions: 4n },
+              { hour: 20, sessions: 11n },
+            ]
+          : [],
+      )) as never)
+    vi.mocked(prisma.trackingEvent.count).mockResolvedValue(0)
+    vi.mocked(prisma.trackingEvent.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.order.aggregate).mockResolvedValue({ _sum: paidOrderSums, _count: 0 } as never)
+    vi.mocked(prisma.trackingEvent.groupBy).mockResolvedValue([] as never)
+    vi.mocked(prisma.trackingSession.groupBy).mockResolvedValue([] as never)
+
+    const res = await get(`/api/admin/tracking/overview?${range}`)
+    expect(res.status).toBe(200)
+    const { current } = (await res.json()) as {
+      current: { hourly: { hour: number; sessions: number }[] }
+    }
+    expect(current.hourly).toHaveLength(24)
+    expect(current.hourly[0]).toEqual({ hour: 0, sessions: 0 })
+    expect(current.hourly[9]).toEqual({ hour: 9, sessions: 4 })
+    expect(current.hourly[20]).toEqual({ hour: 20, sessions: 11 })
+  })
+
   it('events list filters by name, pages and truncates the visitor id', async () => {
     vi.mocked(prisma.trackingEvent.count).mockResolvedValue(51)
     vi.mocked(prisma.trackingEvent.findMany).mockResolvedValue([
@@ -140,7 +167,11 @@ describe('admin tracking reach', () => {
     expect(res.status).toBe(200)
     const body = (await res.json()) as { total: number; items: Record<string, unknown>[] }
     expect(body.total).toBe(51)
-    expect(body.items[0]).toMatchObject({ visitor: '0192abcd', channel: 'meta_ads', origin: 'facebook' })
+    expect(body.items[0]).toMatchObject({
+      visitor: '0192abcd',
+      channel: 'meta_ads',
+      origin: 'facebook',
+    })
     expect(body.items[0]).not.toHaveProperty('visitorId')
     const args = vi.mocked(prisma.trackingEvent.findMany).mock.calls.at(-1)?.[0]
     expect(args).toMatchObject({ where: { name: 'add_to_cart' }, skip: 50, take: 50 })
