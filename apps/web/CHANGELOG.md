@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.13.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.12.0...web-v0.13.0) (2026-11-04)
+
+
+### Features
+
+* **admin:** Aktivität nach Uhrzeit, gespeicherter Zeitraum, wiederkehrende Besucher ([#100](https://github.com/schrrobe/3d-print-shop/issues/100)) ([8d308f7](https://github.com/schrrobe/3d-print-shop/commit/8d308f71b5d716cefc3b75187c706cf524ca5804))
+* **admin:** Dashboard-Widgets per Drag & Drop verschieben statt tauschen ([#101](https://github.com/schrrobe/3d-print-shop/issues/101)) ([65c92f1](https://github.com/schrrobe/3d-print-shop/commit/65c92f157451ecb1a6bbf5dc7e9dcbc4a6cf4860))
+* **admin:** Shop-Produkt im Paylink per Suche auswählen ([#98](https://github.com/schrrobe/3d-print-shop/issues/98)) ([a04073a](https://github.com/schrrobe/3d-print-shop/commit/a04073a857f55d334f913d2034e912438d895c30))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/ui bumped to 0.5.0
+
 ## [0.12.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.11.0...web-v0.12.0) (2026-11-02)
 
 

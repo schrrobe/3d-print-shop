@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.13.0...api-v0.14.0) (2026-11-04)
+
+
+### Features
+
+* **admin:** Aktivität nach Uhrzeit, gespeicherter Zeitraum, wiederkehrende Besucher ([#100](https://github.com/schrrobe/3d-print-shop/issues/100)) ([8d308f7](https://github.com/schrrobe/3d-print-shop/commit/8d308f71b5d716cefc3b75187c706cf524ca5804))
+
 ## [0.13.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.12.0...api-v0.13.0) (2026-11-02)
 
 
