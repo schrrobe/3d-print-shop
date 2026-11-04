@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** Admin dashboard: widget grid (after storylo), reorder by drag & drop or arrows, order kept per browser. */
-import { PsCard, PsPrinterStatusCard } from '@print-shop/ui'
+import { PsCard, PsPrinterStatusCard, useDragging } from '@print-shop/ui'
 import { formatCents } from '@print-shop/utils'
 import type { PrinterStatus } from '@print-shop/types'
 
@@ -92,11 +92,10 @@ function move(id: WidgetId, delta: -1 | 1) {
   announcement.value = `${WIDGETS[id].title}: Position ${visible.value.indexOf(id) + 1} von ${visible.value.length}`
 }
 
-const dragged = ref<WidgetId | null>(null)
-function onDrop(target: WidgetId) {
-  if (dragged.value) swap(dragged.value, target)
-  dragged.value = null
-}
+// Drag over the visible widgets only, so indices match what is rendered; hidden ones stay in the stored order.
+const { items, draggedItem, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = useDragging(visible, (next) => {
+  order.value = [...next, ...order.value.filter((id) => !next.includes(id))]
+})
 
 const paymentTotal = computed(() => data.value?.paymentMethods.reduce((sum, p) => sum + p.count, 0) ?? 0)
 
@@ -112,25 +111,28 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
       </button>
     </div>
 
-    <div
+    <TransitionGroup
+      tag="div"
+      move-class="transition-transform duration-200 ease-out motion-reduce:transition-none"
       role="group"
       aria-label="Dashboard-Widgets"
       class="grid grid-flow-row-dense grid-cols-1 md:grid-cols-4"
       :style="{ gridAutoRows: `${ROW_PX}px`, gap: `${GAP_PX}px` }"
+      @dragover.prevent
+      @drop="handleDrop"
     >
       <PsCard
-        v-for="(id, i) in visible"
+        v-for="(id, i) in items"
         :key="id"
         :padded="false"
         draggable="true"
         :aria-label="WIDGETS[id].title"
         class="group flex min-h-0 flex-col overflow-hidden p-0!"
-        :class="[WIDGETS[id].class, dragged === id && 'opacity-50']"
+        :class="[WIDGETS[id].class, draggedItem === id && 'opacity-50']"
         :data-widget="id"
-        @dragstart="dragged = id"
-        @dragend="dragged = null"
-        @dragover.prevent
-        @drop.prevent="onDrop(id)"
+        @dragstart="handleDragStart($event, i)"
+        @dragover="handleDragOver($event, i)"
+        @dragend="handleDragEnd"
       >
         <header class="flex items-center gap-xs border-b border-subtle px-md py-xs">
           <span class="cursor-grab text-secondary" aria-hidden="true">⠿</span>
@@ -222,7 +224,7 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
           </div>
         </div>
       </PsCard>
-    </div>
+    </TransitionGroup>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>
 </template>

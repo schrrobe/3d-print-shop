@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { Locale } from '@print-shop/types'
-import { PsButton, PsCard, PsInput, PsPrice, PsSelect, PsTextarea } from '@print-shop/ui'
+import {
+  PsButton,
+  PsCard,
+  PsCombobox,
+  PsInput,
+  PsPrice,
+  PsSelect,
+  PsTextarea,
+} from '@print-shop/ui'
 import { calcShippingCents, eurosToCents } from '@print-shop/utils'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -46,7 +54,6 @@ const form = reactive({
 const lines = ref<Line[]>([{ name: '', quantity: '1', priceEuros: '' }])
 const pickedProduct = ref('')
 
-// radix-vue SelectItem rejects an empty value, so the prompt is the select's placeholder.
 const productOptions = computed(() =>
   (productData.value?.products ?? []).map((p) => ({ value: p.id, label: productName(p) })),
 )
@@ -214,11 +221,11 @@ async function create() {
           >
             Freie Position
           </PsButton>
-          <PsSelect
+          <PsCombobox
             v-if="auth.can('products:read')"
             v-model="pickedProduct"
             label="Aus dem Shop"
-            placeholder="Shop-Produkt hinzufügen …"
+            placeholder="Shop-Produkt suchen …"
             :options="productOptions"
           />
         </div>
