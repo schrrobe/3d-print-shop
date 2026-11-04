@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.4.0...ui-v0.5.0) (2026-11-04)
+
+
+### Features
+
+* **admin:** Dashboard-Widgets per Drag & Drop verschieben statt tauschen ([#101](https://github.com/schrrobe/3d-print-shop/issues/101)) ([65c92f1](https://github.com/schrrobe/3d-print-shop/commit/65c92f157451ecb1a6bbf5dc7e9dcbc4a6cf4860))
+* **admin:** Shop-Produkt im Paylink per Suche auswählen ([#98](https://github.com/schrrobe/3d-print-shop/issues/98)) ([a04073a](https://github.com/schrrobe/3d-print-shop/commit/a04073a857f55d334f913d2034e912438d895c30))
+
 ## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.3.0...ui-v0.4.0) (2026-11-02)
 
 
