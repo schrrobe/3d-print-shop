@@ -33,6 +33,10 @@ interface TimeseriesRow {
   purchases: bigint
   revenue_cents: bigint | null
 }
+interface HourRow {
+  hour: number
+  sessions: bigint
+}
 interface CountRow {
   n: bigint
 }
@@ -105,6 +109,19 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
         )
       GROUP BY 1, 2 ORDER BY revenue_cents DESC NULLS LAST`
 
+  // Active sessions per hour of day (Berlin), summed over the whole range.
+  const hourlyQuery = prisma.$queryRaw<HourRow[]>`
+    SELECT hour, COUNT(*)::bigint AS sessions
+    FROM (
+      SELECT DISTINCT
+             EXTRACT(HOUR FROM "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin')::int AS hour,
+             date_trunc('day', "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin') AS day,
+             "sessionId"
+      FROM "TrackingEvent"
+      WHERE "occurredAt" BETWEEN ${from} AND ${to} AND "sessionId" IS NOT NULL
+    ) per_day
+    GROUP BY hour`
+
   const inRange = { gte: from, lte: to }
   const top = <T extends { _count: { _all: number } }>(rows: T[], key: (r: T) => string | null) =>
     rows.map((r) => ({ key: key(r) ?? '', count: r._count._all }))
@@ -137,7 +154,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
     }),
   ])
 
-  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels, reach] = await Promise.all([
+  const [funnel, orderAgg, refundAgg, cancelAgg, timeseries, channels, reach, hourly] = await Promise.all([
     prisma.$queryRaw<FunnelRow[]>`
       SELECT name, COUNT(DISTINCT "sessionId")::bigint AS sessions
       FROM "TrackingEvent"
@@ -161,7 +178,9 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
     kpisOnly ? Promise.resolve<TimeseriesRow[]>([]) : timeseriesQuery,
     kpisOnly ? Promise.resolve<ChannelRow[]>([]) : channelsQuery,
     kpisOnly ? null : reachQuery(),
+    kpisOnly ? Promise.resolve<HourRow[]>([]) : hourlyQuery,
   ])
+  const hourMap = new Map(hourly.map((r) => [Number(r.hour), Number(r.sessions)]))
 
   const funnelMap = new Map(funnel.map((r) => [r.name, Number(r.sessions)]))
   const purchases = orderAgg._count
@@ -205,6 +224,7 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
       orders: Number(r.orders),
       revenueCents: Number(r.revenue_cents ?? 0),
     })),
+    hourly: Array.from({ length: 24 }, (_, hour) => ({ hour, sessions: hourMap.get(hour) ?? 0 })),
     uniqueVisitors: Number(reach?.[0][0]?.n ?? 0),
     topPages: top(reach?.[1] ?? [], (r) => r.path),
     topReferrers: top(reach?.[2] ?? [], (r) => r.referrer),
