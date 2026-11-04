@@ -111,11 +111,16 @@ async function metricsForRange(from: Date, to: Date, opts: { kpisOnly?: boolean 
 
   // Active sessions per hour of day (Berlin), summed over the whole range.
   const hourlyQuery = prisma.$queryRaw<HourRow[]>`
-    SELECT EXTRACT(HOUR FROM "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin')::int AS hour,
-           COUNT(DISTINCT "sessionId")::bigint AS sessions
-    FROM "TrackingEvent"
-    WHERE "occurredAt" BETWEEN ${from} AND ${to} AND "sessionId" IS NOT NULL
-    GROUP BY 1`
+    SELECT hour, COUNT(*)::bigint AS sessions
+    FROM (
+      SELECT DISTINCT
+             EXTRACT(HOUR FROM "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin')::int AS hour,
+             date_trunc('day', "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Berlin') AS day,
+             "sessionId"
+      FROM "TrackingEvent"
+      WHERE "occurredAt" BETWEEN ${from} AND ${to} AND "sessionId" IS NOT NULL
+    ) per_day
+    GROUP BY hour`
 
   const inRange = { gte: from, lte: to }
   const top = <T extends { _count: { _all: number } }>(rows: T[], key: (r: T) => string | null) =>
