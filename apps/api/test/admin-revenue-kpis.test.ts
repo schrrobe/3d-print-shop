@@ -148,6 +148,30 @@ describe('admin tracking reach', () => {
     expect(current.hourly[20]).toEqual({ hour: 20, sessions: 11 })
   })
 
+  it('compare window skips the hourly aggregation', async () => {
+    // Prisma queries only run when awaited, so count awaits, not mock calls:
+    // hourlyQuery is built for both windows but only awaited for the current one.
+    const executed: string[] = []
+    vi.mocked(prisma.$queryRaw).mockImplementation(((sql: TemplateStringsArray) => {
+      const text = sql.join('')
+      return {
+        then: (ok: (v: unknown) => unknown, fail?: (e: unknown) => unknown) => {
+          executed.push(text)
+          return Promise.resolve([]).then(ok, fail)
+        },
+      }
+    }) as never)
+    vi.mocked(prisma.trackingEvent.count).mockResolvedValue(0)
+    vi.mocked(prisma.trackingEvent.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.order.aggregate).mockResolvedValue({ _sum: paidOrderSums, _count: 0 } as never)
+    vi.mocked(prisma.trackingEvent.groupBy).mockResolvedValue([] as never)
+    vi.mocked(prisma.trackingSession.groupBy).mockResolvedValue([] as never)
+
+    const res = await get(`/api/admin/tracking/overview?${range}&compare=true`)
+    expect(res.status).toBe(200)
+    expect(executed.filter((t) => t.includes('EXTRACT(HOUR'))).toHaveLength(1)
+  })
+
   it('events list filters by name, pages and truncates the visitor id', async () => {
     vi.mocked(prisma.trackingEvent.count).mockResolvedValue(51)
     vi.mocked(prisma.trackingEvent.findMany).mockResolvedValue([

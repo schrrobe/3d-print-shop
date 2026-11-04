@@ -70,6 +70,11 @@ const from = useCookie('admin-analytics-from', {
   default: () => inputDay(periodStart),
 })
 const to = useCookie('admin-analytics-to', { ...cookieOpts, default: () => inputDay(today) })
+// An empty, unparsable or reversed stored range would make every overview request 400.
+if (!localBoundary(from.value, false) || !localBoundary(to.value, true) || from.value > to.value) {
+  from.value = inputDay(periodStart)
+  to.value = inputDay(today)
+}
 const compare = ref(true)
 
 const query = computed(() => ({
@@ -394,8 +399,8 @@ function exportCsv() {
       </div>
 
       <PsCard>
-        <p class="text-caption text-secondary">Aktive Sessions nach Uhrzeit</p>
-        <div class="mt-md" role="img" aria-label="Aktive Sessions nach Uhrzeit (Diagramm)">
+        <p class="text-caption text-secondary">Aktive Sessions nach Uhrzeit (Berliner Zeit)</p>
+        <div class="mt-md" role="img" aria-label="Aktive Sessions nach Uhrzeit in Berliner Zeit (Diagramm)">
           <LineChart
             :data="data.current.hourly"
             :height="240"
@@ -410,7 +415,7 @@ function exportCsv() {
         </div>
         <table class="sr-only">
           <caption>
-            Aktive Sessions nach Uhrzeit
+            Aktive Sessions nach Uhrzeit (Berliner Zeit)
           </caption>
           <tr>
             <th scope="col">Stunde</th>
