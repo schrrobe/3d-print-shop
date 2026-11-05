@@ -26,7 +26,7 @@ const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
 const { markOrderPaid } = await import('../src/services/order-flow.js')
 const { syncProviderRefund } = await import('../src/services/refunds.js')
-const { capturePaypalOrder, verifyPaypalWebhook } =
+const { capturePaypalOrder, verifyPaypalWebhook, PaypalApiError } =
   await import('../src/services/payments/paypal.js')
 
 const orderFind = vi.mocked(prisma.order.findUnique)
@@ -115,6 +115,13 @@ describe('GET /api/payments/paypal/return', () => {
     expect(vi.mocked(markOrderPaid)).not.toHaveBeenCalled()
   })
 
+  it('cancel goes back to the order page without capturing', async () => {
+    expect(await paypalReturn('order=PS-1&access=acc&cancelled=1&token=PP1')).toMatch(
+      /\/order\/PS-1\?token=acc&paypal=cancelled$/,
+    )
+    expect(capture).not.toHaveBeenCalled()
+  })
+
   it('refuses a token that is not the payment’s current PayPal order', async () => {
     paymentFind.mockResolvedValueOnce(null)
     expect(await paypalReturn('order=PS-1&access=acc&token=OLD')).toContain('paypal=failed')
@@ -157,12 +164,19 @@ describe('GET /api/payments/paypal/return', () => {
   })
 
   it('releases the claim when PayPal declines the capture', async () => {
-    capture.mockRejectedValueOnce(new Error('INSTRUMENT_DECLINED'))
+    capture.mockRejectedValueOnce(new PaypalApiError(422, 'INSTRUMENT_DECLINED', 'declined'))
     expect(await paypalReturn()).toContain('paypal=failed')
     expect(updateMany).toHaveBeenLastCalledWith({
       where: { id: 'pay_1', status: 'processing' },
       data: { status: 'pending' },
     })
+  })
+
+  it('keeps the claim and alerts when the capture outcome is unknown (timeout/5xx)', async () => {
+    capture.mockRejectedValueOnce(new PaypalApiError(503, undefined, 'unavailable'))
+    expect(await paypalReturn()).toContain('paypal=failed')
+    expect(updateMany).toHaveBeenCalledTimes(1) // only the claim, never released to pending
+    expect(adminAlerts()).toHaveLength(1)
   })
 })
 
@@ -205,6 +219,16 @@ describe('POST /api/webhooks/paypal', () => {
     })
     expect(res.status).toBe(200)
     expect(vi.mocked(markOrderPaid)).toHaveBeenCalledWith('order_1', 'pay_1')
+  })
+
+  it('alerts on a verified capture that matches no payment', async () => {
+    paymentFindFirst.mockResolvedValueOnce(null)
+    await webhook({
+      event_type: 'PAYMENT.CAPTURE.COMPLETED',
+      resource: { id: 'CAP9', status: 'COMPLETED', amount: { value: '56.99', currency_code: 'EUR' } },
+    })
+    expect(vi.mocked(markOrderPaid)).not.toHaveBeenCalled()
+    expect(adminAlerts()).toHaveLength(1)
   })
 
   it('alerts instead of marking a cancelled order paid', async () => {

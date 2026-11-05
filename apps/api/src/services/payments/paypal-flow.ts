@@ -4,7 +4,11 @@ import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { sendEmail } from '../email.js'
 import { markOrderPaid } from '../order-flow.js'
-import { capturePaypalOrder, type PaypalCapture } from './paypal.js'
+import { capturePaypalOrder, PaypalApiError, type PaypalCapture } from './paypal.js'
+
+/** PayPal said no for sure (4xx): nothing was captured, the customer may pay again. */
+const isDefinitiveRejection = (err: unknown) =>
+  err instanceof PaypalApiError && err.status >= 400 && err.status < 500
 
 /** paid: order is paid · pending: captured, PayPal still clearing · refused: not capturable · failed */
 export type PaypalOutcome = 'paid' | 'pending' | 'refused' | 'failed'
@@ -92,12 +96,18 @@ export async function capturePaypalPayment(
   try {
     capture = await capturePaypalOrder(paypalOrderId)
   } catch (err) {
-    // Declined or not approved: let the customer try again from the order page.
     console.error(`[paypal] capture failed for ${payment.order.orderNumber}:`, err)
-    await prisma.payment.updateMany({
-      where: { id: payment.id, status: 'processing' },
-      data: { status: 'pending' },
-    })
+    if (isDefinitiveRejection(err)) {
+      // Declined or not approved: let the customer try again from the order page.
+      await prisma.payment.updateMany({
+        where: { id: payment.id, status: 'processing' },
+        data: { status: 'pending' },
+      })
+    } else {
+      // Timeout / 5xx: the capture may have gone through. Stay `processing` (blocks a
+      // switch to Stripe, so no double charge); the webhook or a retried return settles it.
+      await alertAdmin(payment, `Capture-Ergebnis unklar (${String(err)}) – bitte in PayPal prüfen`)
+    }
     return 'failed'
   }
   return settleCapture(payment, capture)
@@ -114,7 +124,23 @@ export async function completePaypalCapture(
     },
     include: withOrder,
   })
-  if (!payment) return 'refused'
+  if (!payment) {
+    // Verified PayPal money we can't match (e.g. order switched to Stripe meanwhile).
+    console.error(`[paypal] capture ${capture.captureId} (order ${paypalOrderId}) matches no payment`)
+    await sendEmail(
+      env.ADMIN_NOTIFICATION_EMAIL,
+      'admin_notification',
+      renderAdminNotification(
+        {
+          event: 'PayPal-Zahlung ohne Bestellung',
+          detail: `Capture ${capture.captureId} (PayPal-Order ${paypalOrderId ?? '?'}) über ${capture.amountCents} ${capture.currency} – bitte prüfen/erstatten`,
+          adminUrl: `${env.WEB_URL}/admin/orders`,
+        },
+        'de',
+      ),
+    )
+    return 'refused'
+  }
   if (payment.status === 'paid') return 'paid'
   if (payment.order.status !== 'awaiting_payment' || payment.method !== 'paypal') {
     await alertAdmin(payment, `Unerwartete PayPal-Zahlung ${capture.captureId} – bitte erstatten`)

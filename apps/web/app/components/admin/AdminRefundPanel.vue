@@ -153,7 +153,13 @@ function resend(correctionId: string) {
           min="0.01"
           name="refundAmount"
         />
-        <PsTextarea v-model="reason" label="Grund" name="refundReason" :rows="2" required />
+        <PsTextarea
+          v-model="reason"
+          label="Grund (erscheint auf der Rechnungskorrektur und in der Kunden-Mail)"
+          name="refundReason"
+          :rows="2"
+          required
+        />
         <label v-if="isManual" class="flex items-center gap-sm text-body-regular">
           <input v-model="confirmManual" type="checkbox" data-testid="refund-confirm-manual" />
           Ich habe den Betrag bereits zurücküberwiesen

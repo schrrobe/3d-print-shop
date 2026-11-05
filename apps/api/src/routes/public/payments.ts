@@ -38,6 +38,10 @@ paymentsRouter.get('/paypal/return', sensitiveLimiter, async (req, res, next) =>
       res.redirect(303, env.WEB_URL)
       return
     }
+    if (req.query.cancelled) {
+      res.redirect(303, `${orderUrl(order)}&paypal=cancelled`)
+      return
+    }
     let outcome: PaypalOutcome
     try {
       outcome = await capturePaypalPayment(String(req.query.token ?? ''), order.id)

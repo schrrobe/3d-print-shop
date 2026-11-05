@@ -208,6 +208,14 @@ const envSchema = z
         message: 'PAYPAL_CLIENT_SECRET and PAYPAL_WEBHOOK_ID are required in production when PAYPAL_CLIENT_ID is set',
       })
     }
+    // Sandbox credentials in production would let free sandbox buyers "pay" real orders.
+    if (val.NODE_ENV === 'production' && val.PAYPAL_CLIENT_ID && val.PAYPAL_ENV !== 'live') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['PAYPAL_ENV'],
+        message: 'PAYPAL_ENV must be "live" in production when PAYPAL_CLIENT_ID is set',
+      })
+    }
     if (val.BITCOIN_ENABLED && val.BITCOIN_PROVIDER === 'mock' && val.NODE_ENV === 'production') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

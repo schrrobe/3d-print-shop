@@ -80,7 +80,7 @@ describe('PayPal client (live mode, mocked fetch)', () => {
       locale: 'en-GB',
     })
     expect(ctx.return_url).toContain('/api/payments/paypal/return?order=PS-1&access=acc')
-    expect(ctx.cancel_url).toContain('/order/PS-1?token=acc')
+    expect(ctx.cancel_url).toContain('/api/payments/paypal/return?order=PS-1&access=acc&cancelled=1')
   })
 
   it('captures with an idempotency key and reads back an already captured order', async () => {
@@ -151,7 +151,7 @@ describe('PayPal client (live mode, mocked fetch)', () => {
     const raw = Buffer.from('{"event_type":"X",  "resource":{}}')
     const headers: Record<string, string> = {
       'paypal-auth-algo': 'SHA256withRSA',
-      'paypal-cert-url': 'https://cert',
+      'paypal-cert-url': 'https://api.paypal.com/v1/notifications/certs/CERT-1',
       'paypal-transmission-id': 't1',
       'paypal-transmission-sig': 'sig',
       'paypal-transmission-time': '2026-01-01T00:00:00Z',
@@ -161,8 +161,14 @@ describe('PayPal client (live mode, mocked fetch)', () => {
     expect(body).toContain('"webhook_id":"WH-1"')
     expect(body.endsWith(',"webhook_event":{"event_type":"X",  "resource":{}}}')).toBe(true)
 
-    // Missing transmission headers are rejected without asking PayPal.
+    // Missing headers, foreign cert hosts and other algorithms are rejected without asking PayPal.
+    const calls = fetchMock.mock.calls.length
     expect(await paypal.verifyPaypalWebhook(raw, () => undefined)).toBe(false)
+    const forged: Record<string, string> = { ...headers, 'paypal-cert-url': 'https://evil.example/cert' }
+    expect(await paypal.verifyPaypalWebhook(raw, (n) => forged[n])).toBe(false)
+    const algo: Record<string, string> = { ...headers, 'paypal-auth-algo': 'none' }
+    expect(await paypal.verifyPaypalWebhook(raw, (n) => algo[n])).toBe(false)
+    expect(fetchMock.mock.calls.length).toBe(calls)
   })
 })
 

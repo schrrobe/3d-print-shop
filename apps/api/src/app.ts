@@ -72,8 +72,9 @@ export function createApp(): Express {
     }),
   )
 
-  // Stripe webhook needs the raw body — mount before the JSON parser.
-  app.use('/api/webhooks/paypal', paypalWebhookRouter)
+  // Webhooks need the raw body — mount before the JSON parser. PayPal verification
+  // costs an API call, so cap floods first.
+  app.use('/api/webhooks/paypal', publicLimiter, paypalWebhookRouter)
   app.use('/api/webhooks', webhooksRouter)
 
   // Tracking ingest brings its own body parser (accepts sendBeacon text/plain) —

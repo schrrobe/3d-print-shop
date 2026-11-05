@@ -128,7 +128,9 @@ export async function createPaypalOrder(
           paypal: {
             experience_context: {
               return_url: returnUrl(params),
-              cancel_url: `${env.WEB_URL}/order/${params.orderNumber}?token=${params.accessToken}&paypal=cancelled`,
+              // PayPal appends its own `token=<order id>` here too, which would clash with
+              // the order page's `token` param — so cancel also goes through the API.
+              cancel_url: `${returnUrl(params)}&cancelled=1`,
               brand_name: company().name.slice(0, 127),
               locale: PAYPAL_LOCALES[params.locale] ?? 'de-DE',
               user_action: 'PAY_NOW',
@@ -250,6 +252,9 @@ export async function verifyPaypalWebhook(
     webhook_id: env.PAYPAL_WEBHOOK_ID,
   }
   if (Object.values(fields).some((v) => !v)) return false
+  // Reject forgeries without spending a PayPal API call (quota) on them.
+  if (fields.auth_algo !== 'SHA256withRSA') return false
+  if (!/^https:\/\/api(\.sandbox)?\.paypal\.com\//.test(fields.cert_url ?? '')) return false
   const body = `${JSON.stringify(fields).slice(0, -1)},"webhook_event":${raw}}`
   const result = await paypalFetch<{ verification_status?: string }>(
     'POST',
