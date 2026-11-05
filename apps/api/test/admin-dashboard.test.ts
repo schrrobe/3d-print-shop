@@ -11,6 +11,8 @@ vi.mock('../src/lib/prisma.js', () => ({
     printerJob: { count: vi.fn() },
     payment: { groupBy: vi.fn() },
     ticket: { count: vi.fn() },
+    orderItem: { groupBy: vi.fn() },
+    productTranslation: { findMany: vi.fn() },
     $queryRaw: vi.fn(),
   },
 }))
@@ -73,5 +75,31 @@ describe('admin dashboard returning visitors', () => {
     vi.mocked(prisma.$queryRaw).mockClear()
     expect((await getDashboard()).returningVisitors).toBeNull()
     expect(prisma.$queryRaw).not.toHaveBeenCalled()
+  })
+})
+
+describe('admin dashboard top products', () => {
+  it('returns the five best sellers with their share of all units sold', async () => {
+    asRole('admin')
+    const group = (productId: string, quantity: number) => ({ productId, _sum: { quantity } })
+    vi.mocked(prisma.orderItem.groupBy).mockResolvedValue(
+      [group('p1', 9), group('p2', 5), group('p3', 4), group('p4', 3), group('p5', 2), group('p6', 1)] as never,
+    )
+    vi.mocked(prisma.productTranslation.findMany).mockResolvedValue([{ productId: 'p1', name: 'Kaliberbox 9mm' }] as never)
+
+    const res = await fetch(`${baseUrl}/api/admin/dashboard/top-products?days=30`, { headers: { cookie } })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { total: number; products: { productId: string; name: string; quantity: number }[] }
+    expect(body.total).toBe(24)
+    expect(body.products.map((p) => p.productId)).toEqual(['p1', 'p2', 'p3', 'p4', 'p5'])
+    expect(body.products[0]).toEqual({ productId: 'p1', name: 'Kaliberbox 9mm', quantity: 9 })
+    const where = vi.mocked(prisma.orderItem.groupBy).mock.calls[0]![0].where as { order: { createdAt: { gte: Date } } }
+    expect(Date.now() - where.order.createdAt.gte.getTime()).toBeCloseTo(30 * 24 * 60 * 60 * 1000, -4)
+  })
+
+  it('rejects periods outside the offered choices', async () => {
+    asRole('admin')
+    const res = await fetch(`${baseUrl}/api/admin/dashboard/top-products?days=12`, { headers: { cookie } })
+    expect(res.status).toBe(400)
   })
 })

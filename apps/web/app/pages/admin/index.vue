@@ -32,6 +32,24 @@ const { data } = await useFetch<Dashboard>('/api/admin/dashboard', {
   server: false,
 })
 
+const TOP_PRODUCT_PERIODS = [
+  { days: 7, label: 'Letzte 7 Tage' },
+  { days: 30, label: 'Letzte 30 Tage' },
+  { days: 90, label: 'Letzte 90 Tage' },
+  { days: 365, label: 'Letzte 12 Monate' },
+] as const
+// Cookie-backed so the chosen period survives reloads, like the analytics range.
+const topDays = useCookie<number>('admin-dashboard-top-days', { maxAge: 60 * 60 * 24 * 365, sameSite: 'lax', default: () => 30 })
+if (!TOP_PRODUCT_PERIODS.some((p) => p.days === topDays.value)) topDays.value = 30
+const { data: topProducts } = await useFetch<{
+  total: number
+  products: { productId: string; name: string; quantity: number }[]
+}>('/api/admin/dashboard/top-products', {
+  credentials: 'include',
+  server: false,
+  query: computed(() => ({ days: topDays.value })),
+})
+
 const ROW_PX = 120
 const GAP_PX = 16
 
@@ -45,6 +63,7 @@ const WIDGETS = {
   ordersByStatus: { title: 'Bestellungen', rows: 2, class: 'row-span-2' },
   buyerMap: { title: 'Käufer-Heatmap', rows: 3, class: 'row-span-3 md:col-span-2' },
   paymentMethods: { title: 'Zahlungsmethoden', rows: 2, class: 'row-span-2' },
+  topProducts: { title: 'Beliebteste Artikel', rows: 3, class: 'row-span-3' },
   printers: { title: 'Drucker', rows: 2, class: 'row-span-2 md:col-span-4' },
 } as const
 type WidgetId = keyof typeof WIDGETS
@@ -202,6 +221,35 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
                 <p class="text-caption text-secondary">{{ formatCents(p.amountCents) }}</p>
               </li>
             </ul>
+          </template>
+          <template v-else-if="id === 'topProducts'">
+            <div class="flex items-start justify-between gap-xs">
+              <div>
+                <p class="text-caption text-secondary">Verkaufte Artikel</p>
+                <p class="text-heading-small" data-testid="dashboard-top-products-total">{{ topProducts?.total ?? '–' }}</p>
+              </div>
+              <select
+                v-model.number="topDays"
+                aria-label="Zeitraum"
+                class="rounded-sm border border-subtle bg-transparent px-xs py-1 text-caption"
+              >
+                <option v-for="p in TOP_PRODUCT_PERIODS" :key="p.days" :value="p.days">{{ p.label }}</option>
+              </select>
+            </div>
+            <p v-if="topProducts && !topProducts.total" class="mt-sm text-caption text-secondary">
+              Keine Verkäufe im Zeitraum.
+            </p>
+            <ol v-else-if="topProducts" class="mt-sm flex flex-col gap-sm text-body-regular" data-testid="dashboard-top-products">
+              <li v-for="p in topProducts.products" :key="p.productId">
+                <div class="flex justify-between gap-xs">
+                  <span class="truncate">{{ p.name }}</span>
+                  <span class="shrink-0">{{ p.quantity }} · {{ Math.round((p.quantity / topProducts.total) * 100) }} %</span>
+                </div>
+                <div class="h-1 rounded-full bg-black/10 dark:bg-white/10" aria-hidden="true">
+                  <div class="h-full rounded-full bg-current text-brand" :style="{ width: `${(p.quantity / topProducts.total) * 100}%` }" />
+                </div>
+              </li>
+            </ol>
           </template>
           <template v-else-if="id === 'buyerMap'">
             <p v-if="!data.buyerCountries.length" class="text-caption text-secondary">Noch keine Bestellungen.</p>
