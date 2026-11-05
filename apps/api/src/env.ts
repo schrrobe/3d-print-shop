@@ -42,7 +42,9 @@ const envSchema = z
     STRIPE_PUBLISHABLE_KEY: z.string().optional().default(''),
     // PayPal direct (Orders API v2, ADR 0001). Empty client id = mock mode in
     // dev, PayPal not offered in production.
-    PAYPAL_ENV: z.enum(['sandbox', 'live']).default('sandbox'),
+    // No default in the schema: production (incl. dev.kaliberbox.de, NODE_ENV=production)
+    // must say sandbox or live explicitly, see the check below.
+    PAYPAL_ENV: z.enum(['sandbox', 'live']).optional(),
     PAYPAL_CLIENT_ID: z.string().optional().default(''),
     PAYPAL_CLIENT_SECRET: z.string().optional().default(''),
     PAYPAL_WEBHOOK_ID: z.string().optional().default(''),
@@ -208,12 +210,13 @@ const envSchema = z
         message: 'PAYPAL_CLIENT_SECRET and PAYPAL_WEBHOOK_ID are required in production when PAYPAL_CLIENT_ID is set',
       })
     }
-    // Sandbox credentials in production would let free sandbox buyers "pay" real orders.
-    if (val.NODE_ENV === 'production' && val.PAYPAL_CLIENT_ID && val.PAYPAL_ENV !== 'live') {
+    // A silent sandbox default on the live shop would let free sandbox buyers "pay"
+    // real orders — so production must choose explicitly (dev server: sandbox).
+    if (val.NODE_ENV === 'production' && val.PAYPAL_CLIENT_ID && !val.PAYPAL_ENV) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['PAYPAL_ENV'],
-        message: 'PAYPAL_ENV must be "live" in production when PAYPAL_CLIENT_ID is set',
+        message: 'PAYPAL_ENV ("sandbox" or "live") must be set in production when PAYPAL_CLIENT_ID is set',
       })
     }
     if (val.BITCOIN_ENABLED && val.BITCOIN_PROVIDER === 'mock' && val.NODE_ENV === 'production') {
