@@ -70,6 +70,7 @@
     "note": "Note (facoltativo)",
     "payment": "Metodo di pagamento",
     "payStripe": "Carta / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Pagamento anticipato (bonifico)",
     "payBitcoin": "Bitcoin",
     "submit": "Ordine con obbligo di pagamento",
@@ -117,6 +118,11 @@
       "title": "Pagamento in sospeso",
       "hint": "Il tuo pagamento non è ancora stato completato.",
       "payNow": "Paga ora"
+    },
+    "paypal": {
+      "payNow": "Paga con PayPal",
+      "failed": "Il pagamento PayPal non è riuscito. Riprova o scegli un altro metodo di pagamento.",
+      "cancelled": "Il pagamento PayPal è stato annullato. Puoi pagare ora."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "informativa sul recesso",
       "payHints": {
         "stripe": "Pagamento sicuro tramite Stripe, ad es. con carta di credito.",
+        "paypal": "Pagamento sicuro con il tuo account PayPal. Verrai reindirizzato a PayPal.",
         "bank_transfer": "{percent}% di sconto sul valore della merce. Ricevi coordinate bancarie e fattura dopo l'ordine.",
         "bitcoin": "Pagamento a un indirizzo Bitcoin dopo l'ordine."
       },

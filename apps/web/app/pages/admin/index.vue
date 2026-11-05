@@ -25,6 +25,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   stripe_payment_link: 'Stripe-Zahlungslink',
   bank_transfer: 'Vorkasse (Überweisung)',
   bitcoin: 'Bitcoin',
+  paypal: 'PayPal',
 }
 
 const { data } = await useFetch<Dashboard>('/api/admin/dashboard', {

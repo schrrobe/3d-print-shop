@@ -11,11 +11,6 @@ const stripe = env.STRIPE_SECRET_KEY ? new Stripe(env.STRIPE_SECRET_KEY) : null
 
 export const stripeConfigured = stripe !== null
 
-export interface StripeCheckoutResult {
-  sessionId: string
-  url: string
-}
-
 /** Mock mode has no embedded form: `url` jumps straight to the success page. */
 export type StripeEmbeddedResult =
   | { sessionId: string; clientSecret: string; url?: never }
@@ -110,33 +105,9 @@ export async function expireStripeCheckoutSession(sessionId: string): Promise<vo
   await stripe?.checkout.sessions.expire(sessionId)
 }
 
-/** Payment link for accepted quotes (Stripe Payment Links or mock). */
-export async function createStripePaymentLink(
-  params: CheckoutParams,
-): Promise<StripeCheckoutResult> {
-  if (!stripe) {
-    const sessionId = `mock_plink_${randomToken(12)}`
-    return { sessionId, url: `${successUrl(params)}&session=${sessionId}&mock=1` }
-  }
-  const price = await stripe.prices.create({
-    currency: 'eur',
-    unit_amount: params.amountCents,
-    product_data: { name: params.description },
-  })
-  const link = await stripe.paymentLinks.create({
-    line_items: [{ price: price.id, quantity: 1 }],
-    metadata: { orderNumber: params.orderNumber },
-    after_completion: { type: 'redirect', redirect: { url: successUrl(params) } },
-    // One order, one payment: Stripe deactivates the link after the first completed session.
-    restrictions: { completed_sessions: { limit: 1 } },
-    // Needs the terms URL under Stripe Dashboard → Settings → Public details.
-    consent_collection: { terms_of_service: 'required' },
-  })
-  return { sessionId: link.id, url: link.url }
-}
-
 /**
- * Cancelled order: the link must no longer accept payments (mock links are ignored).
+ * Legacy (ADR 0002: no new Stripe Payment Links are created): already-sent
+ * links of a cancelled order must no longer accept payments (mock links are ignored).
  * Deactivating only blocks new sessions, so checkout pages already open are expired too.
  */
 export async function deactivateStripePaymentLink(linkId: string): Promise<void> {
@@ -168,4 +139,58 @@ export function constructStripeWebhookEvent(
   if (isProduction)
     throw new Error('Refusing to accept unsigned Stripe webhook event in production')
   return JSON.parse(rawBody.toString('utf8')) as Stripe.Event
+}
+
+/**
+ * Switching an unpaid order to PayPal: closes its open session. Returns false when
+ * the session already completed (paid, webhook pending), so the switch must not happen.
+ */
+export async function closeStripeCheckoutSession(sessionId: string): Promise<boolean> {
+  if (!stripe) return true
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  if (session.status === 'complete') return false
+  if (session.status === 'open') await stripe.checkout.sessions.expire(sessionId)
+  return true
+}
+
+export type StripeRefundStatus = 'pending' | 'succeeded' | 'failed'
+
+/** Stripe refund states → ours (requires_action counts as still pending). */
+export function mapStripeRefundStatus(status: string | null | undefined): StripeRefundStatus {
+  if (status === 'succeeded') return 'succeeded'
+  if (status === 'failed' || status === 'canceled') return 'failed'
+  return 'pending'
+}
+
+/** PaymentIntent of a paid Checkout Session (legacy payments stored only the session). */
+export async function stripePaymentIntentForSession(sessionId: string): Promise<string> {
+  if (!stripe) throw new Error('Stripe is not configured')
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const pi =
+    typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
+  if (!pi) throw new Error(`Stripe session ${sessionId} has no PaymentIntent`)
+  return pi
+}
+
+/**
+ * Refunds (part of) a PaymentIntent. The idempotency key (our Refund id) makes a
+ * retried request return the same Stripe refund. Mock mode: instantly succeeded.
+ */
+export async function createStripeRefund(input: {
+  paymentIntentId: string | null
+  amountCents: number
+  idempotencyKey: string
+}): Promise<{ id: string; status: StripeRefundStatus; failureReason: string | null }> {
+  if (!stripe) return { id: `mock_re_${randomToken(12)}`, status: 'succeeded', failureReason: null }
+  if (!input.paymentIntentId) throw new Error('Payment has no Stripe PaymentIntent')
+  const refund = await stripe.refunds.create(
+    { payment_intent: input.paymentIntentId, amount: input.amountCents },
+    { idempotencyKey: input.idempotencyKey },
+  )
+  const status = mapStripeRefundStatus(refund.status)
+  return {
+    id: refund.id,
+    status,
+    failureReason: status === 'failed' ? (refund.failure_reason ?? refund.status) : null,
+  }
 }

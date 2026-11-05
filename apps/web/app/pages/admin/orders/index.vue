@@ -78,11 +78,11 @@ const columns = [
       >
         <option value="">Alle Herkünfte</option>
         <option value="shop">Shop</option>
-        <option value="admin">Paylink</option>
+        <option value="admin">Admin-Bestellung</option>
         <option value="quote">Angebot</option>
       </select>
       <NuxtLink v-if="auth.can('orders:write')" to="/admin/orders/new" class="ml-auto">
-        <PsButton data-testid="create-paylink">Paylink erstellen</PsButton>
+        <PsButton data-testid="create-paylink">Bestellung anlegen</PsButton>
       </NuxtLink>
     </div>
 
@@ -91,7 +91,7 @@ const columns = [
         <span class="inline-flex flex-wrap items-center gap-xs">
           <PsOrderStatusBadge :status="(row as unknown as AdminOrder).status" />
           <PsBadge v-if="(row as unknown as AdminOrder).source === 'admin'" variant="info"
-            >Paylink</PsBadge
+            >Admin-Bestellung</PsBadge
           >
         </span>
       </template>

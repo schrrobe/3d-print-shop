@@ -70,6 +70,7 @@
     "note": "Poznámka (volitelné)",
     "payment": "Způsob platby",
     "payStripe": "Karta / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Platba předem (převod)",
     "payBitcoin": "Bitcoin",
     "submit": "Objednat s povinností platby",
@@ -117,6 +118,11 @@
       "title": "Platba čeká",
       "hint": "Vaše platba ještě nebyla dokončena.",
       "payNow": "Zaplatit nyní"
+    },
+    "paypal": {
+      "payNow": "Zaplatit přes PayPal",
+      "failed": "Platba přes PayPal se nezdařila. Zkus to znovu nebo zvol jiný způsob platby.",
+      "cancelled": "Platba přes PayPal byla zrušena. Nyní můžeš zaplatit."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "poučení o odstoupení",
       "payHints": {
         "stripe": "Bezpečná platba přes Stripe, např. kartou.",
+        "paypal": "Bezpečná platba účtem PayPal. Budeš přesměrován(a) na PayPal.",
         "bank_transfer": "{percent} % sleva na zboží. Bankovní údaje a fakturu dostaneš po objednávce.",
         "bitcoin": "Platba na bitcoinovou adresu po objednávce."
       },

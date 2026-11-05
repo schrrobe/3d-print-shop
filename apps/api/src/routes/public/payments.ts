@@ -4,13 +4,56 @@ import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
 import { badRequest, notFound } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
-import { markOrderPaid } from '../../services/order-flow.js'
+import { markOrderPaid, orderUrl } from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
+import { isPaypalEnabled } from '../../services/payments/paypal.js'
+import { capturePaypalPayment, type PaypalOutcome } from '../../services/payments/paypal-flow.js'
 
 export const paymentsRouter = Router()
 
 paymentsRouter.get('/methods', (_req, res) => {
-  res.json({ methods: ['stripe', 'bank_transfer', ...(env.BITCOIN_ENABLED ? ['bitcoin'] : [])] })
+  res.json({
+    methods: [
+      'stripe',
+      ...(isPaypalEnabled() ? ['paypal'] : []),
+      'bank_transfer',
+      ...(env.BITCOIN_ENABLED ? ['bitcoin'] : []),
+    ],
+  })
+})
+
+/**
+ * PayPal return_url (`?order&access` from us, `token` = PayPal order id appended by
+ * PayPal): captures server-side, then 303 to the success page — or back to the
+ * order page with `paypal=failed`. Declared before `/:paymentId`.
+ */
+paymentsRouter.get('/paypal/return', sensitiveLimiter, async (req, res, next) => {
+  try {
+    const access = String(req.query.access ?? '')
+    const order = await prisma.order.findUnique({
+      where: { orderNumber: String(req.query.order ?? '') },
+      select: { id: true, orderNumber: true, accessToken: true },
+    })
+    if (!order || !access || access !== order.accessToken) {
+      res.redirect(303, env.WEB_URL)
+      return
+    }
+    let outcome: PaypalOutcome
+    try {
+      outcome = await capturePaypalPayment(String(req.query.token ?? ''), order.id)
+    } catch (err) {
+      console.error(`[paypal] return failed for ${order.orderNumber}:`, err)
+      outcome = 'failed'
+    }
+    res.redirect(
+      303,
+      outcome === 'paid' || outcome === 'pending'
+        ? `${env.WEB_URL}/checkout/success?order=${order.orderNumber}&token=${order.accessToken}`
+        : `${orderUrl(order)}&paypal=failed`,
+    )
+  } catch (err) {
+    next(err)
+  }
 })
 
 /** Payment status polling (used by the confirmation page). */

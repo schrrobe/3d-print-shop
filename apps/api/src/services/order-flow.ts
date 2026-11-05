@@ -250,7 +250,7 @@ export async function sendPaymentReminder(
   if (order.status !== 'awaiting_payment' && order.status !== 'awaiting_bank_transfer') {
     return 'not_awaiting_payment'
   }
-  // Admin paylink orders are paid via their Stripe payment link, not the order page.
+  // Legacy (ADR 0002): orders with an already-sent Stripe Payment Link keep that link.
   const paymentUrl = order.payments.find(
     (p) => p.method === 'stripe_payment_link' && p.status === 'pending',
   )?.stripePaymentLinkUrl

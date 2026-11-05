@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { apiContext } from '../helpers/api.js'
 import { AdminPage } from '../pages/admin.js'
 import { gotoHydrated } from '../helpers/hydration.js'
@@ -12,7 +12,18 @@ async function emailsFor(to: string): Promise<string[]> {
   return data.emails.map((e) => e.template)
 }
 
-async function fillPaylink(page: Page, email: string, method: 'stripe' | 'bank') {
+/** Mock Stripe: "Pay now" on the order page hands out the session to complete. */
+async function startStripePayment(request: APIRequestContext, orderPageUrl: string) {
+  const url = new URL(orderPageUrl)
+  const orderNumber = url.pathname.split('/').pop()!
+  const response = await request.post(
+    `http://localhost:3001/api/orders/${orderNumber}/stripe-session?token=${url.searchParams.get('token')}`,
+  )
+  const { redirectUrl } = (await response.json()) as { redirectUrl: string }
+  return new URL(redirectUrl).searchParams.get('session')!
+}
+
+async function fillPaylink(page: Page, email: string, method: 'online' | 'bank') {
   await gotoHydrated(page, '/admin/orders')
   await page.getByTestId('create-paylink').click()
   await page.waitForURL(/\/admin\/orders\/new/)
@@ -29,7 +40,7 @@ async function fillPaylink(page: Page, email: string, method: 'stripe' | 'bank')
   await line.getByLabel(/^Bezeichnung/).fill('Patronenbox .17 HMR, 50 Schuss, schwarz/rot')
   await line.getByLabel(/^Menge/).fill('2')
   await line.getByLabel(/^Stückpreis/).fill('24.50')
-  if (method === 'bank') await page.getByLabel('Vorkasse (Rechnung sofort)').check()
+  if (method === 'bank') await page.getByLabel('Banküberweisung (Rechnung sofort)').check()
 
   // 2 × 24,50 € + 6,99 € default domestic shipping
   await expect(page.getByTestId('paylink-total')).toContainText('55,99')
@@ -37,19 +48,20 @@ async function fillPaylink(page: Page, email: string, method: 'stripe' | 'bank')
   await page.waitForURL(/\/admin\/orders\/(?!new)[^/]+$/)
 }
 
-test.describe('admin paylinks', () => {
-  test('stripe paylink: link mailed, paid via link, invoice sent', async ({ page, request }) => {
+test.describe('Admin-Bestellung with Zahlungslink', () => {
+  test('online: order page link mailed, paid there, invoice sent', async ({ page, request }) => {
     const email = `paylink-stripe-${Date.now()}@example.com`
     await new AdminPage(page).login()
-    await fillPaylink(page, email, 'stripe')
+    await fillPaylink(page, email, 'online')
 
     const link = page.getByTestId('payment-link')
     await expect(link).toBeVisible()
     const href = await link.locator('a').getAttribute('href')
+    expect(href).toMatch(/\/order\/[^/?]+\?token=/)
     expect(await emailsFor(email)).toContain('payment_link')
     expect(await emailsFor(email)).not.toContain('order_confirmation')
 
-    const sessionId = new URL(href!).searchParams.get('session')!
+    const sessionId = await startStripePayment(request, href!)
     await request.post(`http://localhost:3001/api/dev/stripe/complete/${sessionId}`)
     await page.reload()
     await expect(page.getByTestId('admin-order-status')).toContainText('paid')
@@ -59,7 +71,7 @@ test.describe('admin paylinks', () => {
       .toEqual(expect.arrayContaining(['payment_received', 'invoice']))
   })
 
-  test('Vorkasse paylink: invoice issued immediately, no link', async ({ page }) => {
+  test('Banküberweisung: invoice issued immediately, no link', async ({ page }) => {
     const email = `paylink-bank-${Date.now()}@example.com`
     await new AdminPage(page).login()
     await fillPaylink(page, email, 'bank')
@@ -85,9 +97,9 @@ test.describe('admin paylinks', () => {
     await expect(lines.nth(1).getByLabel(/^Stückpreis/)).not.toHaveValue('')
   })
 
-  test('cancelling a stripe paylink removes the open link', async ({ page }) => {
+  test('cancelling an online order removes the open link', async ({ page }) => {
     await new AdminPage(page).login()
-    await fillPaylink(page, `paylink-cancel-${Date.now()}@example.com`, 'stripe')
+    await fillPaylink(page, `paylink-cancel-${Date.now()}@example.com`, 'online')
     await expect(page.getByTestId('payment-link')).toBeVisible()
 
     await page.getByTestId('status-cancelled').click()
@@ -96,6 +108,8 @@ test.describe('admin paylinks', () => {
 
     await gotoHydrated(page, '/admin/orders')
     await page.getByTestId('order-source-filter').selectOption('admin')
-    await expect(page.locator('td').getByText('Paylink', { exact: true }).first()).toBeVisible()
+    await expect(
+      page.locator('td').getByText('Admin-Bestellung', { exact: true }).first(),
+    ).toBeVisible()
   })
 })

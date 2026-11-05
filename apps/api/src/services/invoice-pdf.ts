@@ -17,17 +17,17 @@ import {
  */
 
 const MM = 72 / 25.4
-const mm = (v: number): number => v * MM
+export const mm = (v: number): number => v * MM
 
-const FONT = 'Helvetica'
-const FONT_BOLD = 'Helvetica-Bold'
-const INK = '#1E1714'
+export const FONT = 'Helvetica'
+export const FONT_BOLD = 'Helvetica-Bold'
+export const INK = '#1E1714'
 const GRAY = '#555555'
 const RULE = '#dddddd'
 /** Brand accent (shop --kb-hit) for the logo's hit mark. */
 const HIT = '#c2410c'
 
-const SIZE = { body: 10, sender: 8, footer: 7.5, title: 18 } as const
+export const SIZE = { body: 10, sender: 8, footer: 7.5, title: 18 } as const
 
 export const LAYOUT = {
   /** 20 mm page padding left/right/top. */
@@ -49,7 +49,7 @@ export const LAYOUT = {
 } as const
 
 /** Items/totals table columns (widths sum to the 170 mm content width). */
-const COLS = {
+export const COLS = {
   desc: { x: LAYOUT.left, w: mm(100), align: 'left' },
   qty: { x: LAYOUT.left + mm(100), w: mm(18), align: 'right' },
   unitPrice: { x: LAYOUT.left + mm(118), w: mm(26), align: 'right' },
@@ -91,6 +91,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, { de: string; en: string }> =
   stripe_payment_link: { de: 'Zahlungslink (Stripe)', en: 'Payment link (Stripe)' },
   bank_transfer: { de: 'Vorkasse (Überweisung)', en: 'Prepayment (bank transfer)' },
   bitcoin: { de: 'Bitcoin', en: 'Bitcoin' },
+  paypal: { de: 'PayPal', en: 'PayPal' },
 }
 
 // ---------- pure helpers ----------
@@ -180,13 +181,13 @@ export function recipientLines(
   return lines
 }
 
-type Translate = (de: string, en: string) => string
-const translator =
+export type Translate = (de: string, en: string) => string
+export const translator =
   (de: boolean): Translate =>
   (d, e) =>
     de ? d : e
 
-interface Cursor {
+export interface Cursor {
   y: number
 }
 
@@ -236,7 +237,12 @@ function drawLogo(doc: PDFKit.PDFDocument, x: number, y: number): void {
   doc.fillColor(GRAY).text('.de', { lineBreak: false })
 }
 
-function drawHead(doc: PDFKit.PDFDocument, data: InvoicePdfData, de: boolean, cur: Cursor): void {
+export function drawHead(
+  doc: PDFKit.PDFDocument,
+  data: Pick<InvoicePdfData, 'company' | 'order'>,
+  de: boolean,
+  cur: Cursor,
+): void {
   const c = data.company
   const leftW = LAYOUT.side.x - LAYOUT.left - mm(10)
 
@@ -329,7 +335,7 @@ function addContinuationPage(doc: PDFKit.PDFDocument, cur: Cursor): void {
 }
 
 /** Breaks the page before `needed` points would cross the content floor. */
-function ensureSpace(
+export function ensureSpace(
   doc: PDFKit.PDFDocument,
   t: Translate,
   cur: Cursor,
@@ -341,7 +347,7 @@ function ensureSpace(
   if (opts?.redrawTableHeader) drawTableHeader(doc, t, cur)
 }
 
-function hRule(doc: PDFKit.PDFDocument, y: number, width = 0.2, color = RULE): void {
+export function hRule(doc: PDFKit.PDFDocument, y: number, width = 0.2, color = RULE): void {
   doc
     .save()
     .lineWidth(mm(width))
@@ -352,7 +358,7 @@ function hRule(doc: PDFKit.PDFDocument, y: number, width = 0.2, color = RULE): v
     .restore()
 }
 
-function cell(
+export function cell(
   doc: PDFKit.PDFDocument,
   col: { x: number; w: number; align: 'left' | 'right' },
   text: string,
@@ -366,7 +372,7 @@ function cell(
   })
 }
 
-function drawTableHeader(doc: PDFKit.PDFDocument, t: Translate, cur: Cursor): void {
+export function drawTableHeader(doc: PDFKit.PDFDocument, t: Translate, cur: Cursor): void {
   doc.font(FONT_BOLD).fontSize(SIZE.body).fillColor(INK)
   const y = cur.y + LAYOUT.cellPadY
   cell(doc, COLS.desc, t('Leistung', 'Item'), y)
@@ -492,7 +498,13 @@ function drawTotals(
   cur.y += mm(6)
 }
 
-function drawNotes(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Translate, cur: Cursor): void {
+/** VAT note — the same on invoices and invoice corrections. */
+export function drawNotes(
+  doc: PDFKit.PDFDocument,
+  data: Pick<InvoicePdfData, 'company'>,
+  t: Translate,
+  cur: Cursor,
+): void {
   if (!data.company.vatExempt) return
   const note = t(
     'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.',
@@ -501,7 +513,7 @@ function drawNotes(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Translate, 
   paragraph(doc, t, cur, note)
 }
 
-function paragraph(
+export function paragraph(
   doc: PDFKit.PDFDocument,
   t: Translate,
   cur: Cursor,
@@ -602,7 +614,11 @@ function drawPaymentBlock(
  * One-line company footer on every page, stamped last because the page count
  * is only known then (requires bufferPages: true on the document).
  */
-function stampFooters(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Translate): void {
+export function stampFooters(
+  doc: PDFKit.PDFDocument,
+  data: { company: CompanyInfo; invoice: Pick<Invoice, 'number'> },
+  t: Translate,
+): void {
   const c = data.company
   const range = doc.bufferedPageRange()
   const base = [

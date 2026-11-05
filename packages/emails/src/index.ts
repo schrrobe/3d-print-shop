@@ -19,6 +19,7 @@ export type EmailTemplateName =
   | 'production_started'
   | 'shipping_confirmation'
   | 'invoice'
+  | 'invoice_correction'
   | 'password_reset'
   | 'admin_notification'
   | 'ticket_created'
@@ -291,7 +292,7 @@ export function renderPaymentReceived(data: OrderEmailData, locale: Locale): Ren
 
 /**
  * Manually triggered by an admin: links to the order page, which offers "Pay now" —
- * or to `paymentUrl` for admin paylink orders, which the order page can't pay.
+ * or to `paymentUrl` for legacy Stripe Payment Link orders (ADR 0002).
  */
 export function renderPaymentReminder(
   data: OrderEmailData & { paymentUrl?: string },
@@ -493,7 +494,7 @@ export interface CustomMadeLegal {
 }
 
 /**
- * Admin paylink orders are made to order: no right of withdrawal (§ 312g Abs. 2 Nr. 1 BGB).
+ * Admin-Bestellungen are made to order: no right of withdrawal (§ 312g Abs. 2 Nr. 1 BGB).
  * The full terms go along on a durable medium (§ 312f Abs. 2 BGB).
  */
 function customMadeNotice(
@@ -667,7 +668,7 @@ export interface InvoiceEmailData {
   invoiceNumber: string
   totalCents: number
   orderUrl: string
-  /** Set for admin paylink orders: adds the custom-made / no-withdrawal notice and the terms. */
+  /** Set for Admin-Bestellungen: adds the custom-made / no-withdrawal notice and the terms. */
   customMade?: CustomMadeLegal
 }
 
@@ -711,6 +712,82 @@ export function renderInvoice(data: InvoiceEmailData, locale: Locale): RenderedE
   )
   const text = `${title}: ${inv}${notice ? `\n\n${notice.text}` : ''}`
   return { subject, html, text }
+}
+
+export interface InvoiceCorrectionEmailData {
+  orderNumber: string
+  invoiceNumber: string
+  correctionNumber: string
+  amountCents: number
+  /** How the money went back: provider API or a manual transfer (bank/bitcoin). */
+  provider: 'stripe' | 'paypal' | 'manual'
+  orderUrl: string
+}
+
+/** Erstattung + Rechnungskorrektur (attached PDF stays German/English like the invoice). */
+export function renderInvoiceCorrection(
+  data: InvoiceCorrectionEmailData,
+  locale: Locale,
+): RenderedEmail {
+  const rk = data.correctionNumber
+  const inv = data.invoiceNumber
+  const n = data.orderNumber
+  const amount = `<strong>${formatCents(data.amountCents, locale)}</strong>`
+  const subject = pick(locale, {
+    de: `Erstattung zu deiner Bestellung ${n}`,
+    en: `Refund for your order ${n}`,
+    pl: `Zwrot środków za zamówienie ${n}`,
+    fr: `Remboursement de votre commande ${n}`,
+    nl: `Terugbetaling voor je bestelling ${n}`,
+    cs: `Vrácení peněz k objednávce ${n}`,
+    it: `Rimborso per il tuo ordine ${n}`,
+  })
+  const title = pick(locale, {
+    de: 'Deine Erstattung',
+    en: 'Your refund',
+    pl: 'Twój zwrot',
+    fr: 'Votre remboursement',
+    nl: 'Je terugbetaling',
+    cs: 'Tvoje vrácení peněz',
+    it: 'Il tuo rimborso',
+  })
+  const channel =
+    data.provider === 'manual'
+      ? pick(locale, {
+          de: 'Wir haben dir den Betrag zurücküberwiesen.',
+          en: 'We have transferred the amount back to you.',
+          pl: 'Przelaliśmy Ci tę kwotę z powrotem.',
+          fr: 'Nous vous avons reversé ce montant.',
+          nl: 'We hebben het bedrag naar je teruggestort.',
+          cs: 'Částku jsme ti poslali zpět.',
+          it: 'Ti abbiamo restituito l’importo.',
+        })
+      : pick(locale, {
+          de: `Das Geld geht über ${data.provider === 'paypal' ? 'PayPal' : 'dein ursprüngliches Zahlungsmittel'} an dich zurück; je nach Anbieter kann die Gutschrift auf deinem Konto einige Tage dauern.`,
+          en: `The money goes back via ${data.provider === 'paypal' ? 'PayPal' : 'your original payment method'}; depending on the provider it may take a few days to show up.`,
+          pl: `Pieniądze wrócą przez ${data.provider === 'paypal' ? 'PayPal' : 'pierwotną metodę płatności'}; w zależności od dostawcy może to potrwać kilka dni.`,
+          fr: `L’argent vous est reversé via ${data.provider === 'paypal' ? 'PayPal' : 'votre moyen de paiement initial'} ; selon le prestataire, cela peut prendre quelques jours.`,
+          nl: `Het geld gaat terug via ${data.provider === 'paypal' ? 'PayPal' : 'je oorspronkelijke betaalmethode'}; afhankelijk van de aanbieder kan dat een paar dagen duren.`,
+          cs: `Peníze se vrátí přes ${data.provider === 'paypal' ? 'PayPal' : 'původní platební metodu'}; podle poskytovatele to může trvat několik dní.`,
+          it: `Il denaro ti verrà restituito tramite ${data.provider === 'paypal' ? 'PayPal' : 'il metodo di pagamento originale'}; a seconda del fornitore potrebbero volerci alcuni giorni.`,
+        })
+  const html = emailLayout(
+    title,
+    paragraph(
+      pick(locale, {
+        de: `Wir haben dir ${amount} zu deiner Bestellung ${n} erstattet. Im Anhang findest du die Rechnungskorrektur <strong>${rk}</strong> zur Rechnung ${inv}.`,
+        en: `We have refunded ${amount} for your order ${n}. Please find attached invoice correction <strong>${rk}</strong> for invoice ${inv}.`,
+        pl: `Zwróciliśmy Ci ${amount} za zamówienie ${n}. W załączniku znajdziesz korektę faktury <strong>${rk}</strong> do faktury ${inv}.`,
+        fr: `Nous vous avons remboursé ${amount} pour votre commande ${n}. Vous trouverez ci-joint la facture rectificative <strong>${rk}</strong> relative à la facture ${inv}.`,
+        nl: `We hebben ${amount} terugbetaald voor je bestelling ${n}. In de bijlage vind je de factuurcorrectie <strong>${rk}</strong> bij factuur ${inv}.`,
+        cs: `Vrátili jsme ti ${amount} k objednávce ${n}. V příloze najdeš opravu faktury <strong>${rk}</strong> k faktuře ${inv}.`,
+        it: `Ti abbiamo rimborsato ${amount} per il tuo ordine ${n}. In allegato trovi la fattura di rettifica <strong>${rk}</strong> relativa alla fattura ${inv}.`,
+      }),
+    ) +
+      paragraph(channel) +
+      button(data.orderUrl, pick(locale, viewOrder)),
+  )
+  return { subject, html, text: `${title}: ${formatCents(data.amountCents, locale)} (${rk})` }
 }
 
 export interface PasswordResetData {

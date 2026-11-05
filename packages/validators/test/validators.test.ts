@@ -75,9 +75,13 @@ describe('checkoutSchema', () => {
         .success,
     ).toBe(false)
     expect(
-      checkoutSchema.safeParse({ items: [item], address: validAddress, paymentMethod: 'paypal' })
+      checkoutSchema.safeParse({ items: [item], address: validAddress, paymentMethod: 'cash' })
         .success,
     ).toBe(false)
+    expect(
+      checkoutSchema.safeParse({ items: [item], address: validAddress, paymentMethod: 'paypal' })
+        .success,
+    ).toBe(true)
     expect(
       checkoutSchema.safeParse({
         items: [{ ...item, colorSelection: { zone_9_bogus: 'col_1' } }],

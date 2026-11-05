@@ -3,8 +3,8 @@ import { createQuoteViaApi } from '../helpers/api.js'
 import { ShopPage } from '../pages/shop.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
-test.describe('quote acceptance via payment link', () => {
-  test('customer accepts a quote and receives a payment link', async ({ page }) => {
+test.describe('quote acceptance via Zahlungslink (order page)', () => {
+  test('customer accepts a quote and is sent to the order page', async ({ page }) => {
     const { token } = await createQuoteViaApi('accept-e2e@example.com')
 
     await gotoHydrated(page, `/quote/${token}`)
@@ -27,7 +27,7 @@ test.describe('quote acceptance via payment link', () => {
     const payLink = page.getByTestId('quote-pay-link')
     await expect(payLink).toBeVisible()
     const href = await payLink.getAttribute('href')
-    expect(href).toContain('/checkout/success')
+    expect(href).toMatch(/\/order\/[^/?]+\?token=/)
   })
 
   test('customer can decline a quote', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('quote acceptance via payment link', () => {
     await expect(page.getByTestId('quote-declined')).toBeVisible()
   })
 
-  test('accepted quote payment link completes to a paid order', async ({ page, request }) => {
+  test('accepted quote is paid on the order page', async ({ page, request }) => {
     const { token } = await createQuoteViaApi('paylink-e2e@example.com')
     const accept = await request.post(`http://localhost:3001/api/quotes/${token}/accept`, {
       data: {
@@ -59,7 +59,12 @@ test.describe('quote acceptance via payment link', () => {
       orderNumber: string
       accessToken: string
     }
-    const sessionId = new URL(paymentUrl).searchParams.get('session')!
+    expect(paymentUrl).toContain(`/order/${orderNumber}?token=${accessToken}`)
+    const session = await request.post(
+      `http://localhost:3001/api/orders/${orderNumber}/stripe-session?token=${accessToken}`,
+    )
+    const { redirectUrl } = (await session.json()) as { redirectUrl: string }
+    const sessionId = new URL(redirectUrl).searchParams.get('session')!
     await request.post(`http://localhost:3001/api/dev/stripe/complete/${sessionId}`)
 
     await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)

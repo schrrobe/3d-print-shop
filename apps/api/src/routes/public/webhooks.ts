@@ -9,7 +9,11 @@ import { badRequest } from '../../middleware/error.js'
 import { sendEmail } from '../../services/email.js'
 import { markOrderPaid } from '../../services/order-flow.js'
 import { processInboundTicketEmail } from '../../services/ticket.js'
-import { constructStripeWebhookEvent } from '../../services/payments/stripe.js'
+import {
+  constructStripeWebhookEvent,
+  mapStripeRefundStatus,
+} from '../../services/payments/stripe.js'
+import { syncProviderRefund } from '../../services/refunds.js'
 
 export const webhooksRouter = Router()
 
@@ -48,12 +52,20 @@ webhooksRouter.post('/stripe', raw({ type: 'application/json' }), async (req, re
           payment.order.status !== 'cancelled'
         // The first completed session claims the payment (reference = session id), so a
         // second session — two open tabs on one payment link — cannot pass as a retry.
+        // The PaymentIntent is kept for refunds.
+        const paymentIntentId =
+          typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.id
         const claimed =
           payable &&
           (
             await prisma.payment.updateMany({
               where: { id: payment.id, OR: [{ reference: null }, { reference: session.id }] },
-              data: { reference: session.id },
+              data: {
+                reference: session.id,
+                ...(paymentIntentId ? { stripePaymentIntentId: paymentIntentId } : {}),
+              },
             })
           ).count === 1
         if (claimed) {
@@ -81,6 +93,32 @@ webhooksRouter.post('/stripe', raw({ type: 'application/json' }), async (req, re
           )
         }
       }
+    }
+
+    // Erstattungen, incl. ones made in the Stripe dashboard. charge.refunded only
+    // embeds the refund list on older API versions; refund.* events cover the rest.
+    const refunds =
+      event.type === 'charge.refunded'
+        ? (event.data.object.refunds?.data ?? [])
+        : event.type === 'refund.created' ||
+            event.type === 'refund.updated' ||
+            event.type === 'refund.failed'
+          ? [event.data.object]
+          : []
+    for (const refund of refunds) {
+      const paymentIntentId =
+        typeof refund.payment_intent === 'string'
+          ? refund.payment_intent
+          : refund.payment_intent?.id
+      if (!paymentIntentId) continue
+      await syncProviderRefund({
+        provider: 'stripe',
+        payment: { stripePaymentIntentId: paymentIntentId },
+        providerRefundId: refund.id,
+        amountCents: refund.amount,
+        status: mapStripeRefundStatus(refund.status),
+        failureReason: refund.failure_reason ?? null,
+      })
     }
 
     res.json({ received: true })

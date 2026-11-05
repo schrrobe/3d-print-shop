@@ -70,6 +70,7 @@
     "note": "Uwagi (opcjonalnie)",
     "payment": "Metoda płatności",
     "payStripe": "Karta / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Przedpłata (przelew)",
     "payBitcoin": "Bitcoin",
     "submit": "Zamawiam i płacę",
@@ -117,6 +118,11 @@
       "title": "Płatność oczekująca",
       "hint": "Twoja płatność nie została jeszcze zakończona.",
       "payNow": "Zapłać teraz"
+    },
+    "paypal": {
+      "payNow": "Zapłać przez PayPal",
+      "failed": "Płatność PayPal nie powiodła się. Spróbuj ponownie lub wybierz inną metodę płatności.",
+      "cancelled": "Płatność PayPal została anulowana. Możesz zapłacić teraz."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "pouczeniu o odstąpieniu",
       "payHints": {
         "stripe": "Bezpieczna płatność przez Stripe, np. kartą kredytową.",
+        "paypal": "Bezpieczna płatność kontem PayPal. Zostaniesz przekierowany do PayPal.",
         "bank_transfer": "{percent} % rabatu na towary. Dane do przelewu i fakturę otrzymasz po złożeniu zamówienia.",
         "bitcoin": "Płatność na adres Bitcoin po złożeniu zamówienia."
       },

@@ -1,11 +1,14 @@
 import { Router } from 'express'
 import { env } from '../../env.js'
 import { prisma } from '../../lib/prisma.js'
-import { conflict, notFound, unauthorized } from '../../middleware/error.js'
+import { badRequest, conflict, notFound, unauthorized } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { publicOrderDto } from '../../services/order-dto.js'
 import { generateInvoicePdf } from '../../services/invoice.js'
+import { createPaypalOrder, isPaypalEnabled } from '../../services/payments/paypal.js'
 import {
+  closeStripeCheckoutSession,
+  createStripeCheckoutSession,
   expireStripeCheckoutSession,
   resumeStripeCheckoutSession,
   stripeConfigured,
@@ -47,9 +50,35 @@ ordersRouter.get('/:orderNumber', async (req, res, next) => {
   }
 })
 
+/** The unpaid online payment the order page may (re)start: Stripe or PayPal, not Vorkasse/Bitcoin. */
+function switchablePayment(order: Awaited<ReturnType<typeof orderByNumberAndToken>>) {
+  const payment = order.payments.find(
+    (p) => (p.method === 'stripe' || p.method === 'paypal') && p.status === 'pending',
+  )
+  if (order.status !== 'awaiting_payment' || !payment) {
+    throw conflict('Order is not awaiting an online payment')
+  }
+  return payment
+}
+
+function paymentParams(
+  order: { orderNumber: string; accessToken: string; email: string; locale: string },
+  amountCents: number,
+) {
+  return {
+    orderNumber: order.orderNumber,
+    accessToken: order.accessToken,
+    amountCents,
+    email: order.email,
+    locale: order.locale,
+    description: `Bestellung ${order.orderNumber}`,
+  }
+}
+
 /**
- * "Pay now" for an unpaid Stripe order (customer left the embedded checkout).
- * Returns a client secret for the embedded form, or the mock success URL.
+ * "Pay now" with Stripe for an unpaid online order (left the embedded checkout,
+ * or switching from PayPal). Returns a client secret for the embedded form, or
+ * the mock success URL.
  */
 ordersRouter.post('/:orderNumber/stripe-session', sensitiveLimiter, async (req, res, next) => {
   try {
@@ -57,36 +86,84 @@ ordersRouter.post('/:orderNumber/stripe-session', sensitiveLimiter, async (req, 
       String(req.params.orderNumber),
       String(req.query.token ?? ''),
     )
-    const payment = order.payments.find((p) => p.method === 'stripe' && p.status === 'pending')
-    if (order.status !== 'awaiting_payment' || !payment?.stripeSessionId) {
-      throw conflict('Order is not awaiting a Stripe payment')
-    }
-    if (!stripeConfigured) {
+    const payment = switchablePayment(order)
+    if (!stripeConfigured && payment.method === 'stripe' && payment.stripePaymentLinkUrl) {
       res.json({ redirectUrl: payment.stripePaymentLinkUrl })
       return
     }
-    const session = await resumeStripeCheckoutSession(payment.stripeSessionId, {
-      orderNumber: order.orderNumber,
-      accessToken: order.accessToken,
-      amountCents: payment.amountCents,
-      email: order.email,
-      locale: order.locale,
-      description: `Bestellung ${order.orderNumber}`,
-    })
-    if (!session) throw conflict('Payment already completed')
-    if (session.sessionId !== payment.stripeSessionId) {
-      // Guarded swap: a concurrent request may have replaced the session first.
-      // The webhook only knows the stored session, so a lost one must not stay payable.
+    const params = paymentParams(order, payment.amountCents)
+    let session: { sessionId: string; clientSecret?: string; url?: string }
+    if (stripeConfigured && payment.stripeSessionId) {
+      const resumed = await resumeStripeCheckoutSession(payment.stripeSessionId, params)
+      if (!resumed) throw conflict('Payment already completed')
+      session = resumed
+    } else {
+      session = await createStripeCheckoutSession(params)
+    }
+    if (session.sessionId !== payment.stripeSessionId || payment.method !== 'stripe') {
+      // Guarded swap: a concurrent request may have replaced the session or switched
+      // the method first. The webhook only knows the stored session, so a lost one must
+      // not stay payable; clearing paypalOrderId makes a late PayPal return a no-op.
       const swapped = await prisma.payment.updateMany({
-        where: { id: payment.id, stripeSessionId: payment.stripeSessionId },
-        data: { stripeSessionId: session.sessionId, stripePaymentLinkUrl: null },
+        where: {
+          id: payment.id,
+          status: 'pending',
+          method: payment.method,
+          stripeSessionId: payment.stripeSessionId,
+          paypalOrderId: payment.paypalOrderId,
+        },
+        data: {
+          method: 'stripe',
+          stripeSessionId: session.sessionId,
+          stripePaymentLinkUrl: session.url ?? null,
+          paypalOrderId: null,
+        },
       })
       if (swapped.count === 0) {
         await expireStripeCheckoutSession(session.sessionId)
         throw conflict('Payment session changed, please retry')
       }
     }
-    res.json({ clientSecret: session.clientSecret, publishableKey: env.STRIPE_PUBLISHABLE_KEY })
+    res.json(
+      session.url
+        ? { redirectUrl: session.url }
+        : { clientSecret: session.clientSecret, publishableKey: env.STRIPE_PUBLISHABLE_KEY },
+    )
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * "Pay with PayPal" for an unpaid online order: closes an open Stripe session,
+ * starts a fresh PayPal order (replacing an older one) and returns its approve URL.
+ */
+ordersRouter.post('/:orderNumber/paypal-order', sensitiveLimiter, async (req, res, next) => {
+  try {
+    const order = await orderByNumberAndToken(
+      String(req.params.orderNumber),
+      String(req.query.token ?? ''),
+    )
+    if (!isPaypalEnabled()) throw badRequest('PayPal payments are not enabled')
+    const payment = switchablePayment(order)
+    if (payment.method === 'stripe' && payment.stripeSessionId) {
+      if (!(await closeStripeCheckoutSession(payment.stripeSessionId))) {
+        throw conflict('Payment already completed')
+      }
+    }
+    const paypalOrder = await createPaypalOrder(paymentParams(order, payment.amountCents))
+    const switched = await prisma.payment.updateMany({
+      where: {
+        id: payment.id,
+        status: 'pending',
+        method: payment.method,
+        stripeSessionId: payment.stripeSessionId,
+        paypalOrderId: payment.paypalOrderId,
+      },
+      data: { method: 'paypal', paypalOrderId: paypalOrder.id, stripePaymentLinkUrl: null },
+    })
+    if (switched.count === 0) throw conflict('Payment changed, please retry')
+    res.json({ redirectUrl: paypalOrder.approveUrl })
   } catch (err) {
     next(err)
   }

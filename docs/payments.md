@@ -1,6 +1,6 @@
 # Zahlungen
 
-Drei Zahlungswege, alle münden in `markOrderPaid()` (`apps/api/src/services/order-flow.ts`):
+Vier Zahlungswege (Stripe, PayPal, Banküberweisung, Bitcoin), alle münden in `markOrderPaid()` (`apps/api/src/services/order-flow.ts`):
 Order → `paid`, Payment → `paid`, Rechnung (Nummer + PDF + E-Mail), Produktionsjobs (`waiting`),
 E-Mails `payment_received` + `invoice`. Idempotent (Webhook-Retries sicher).
 
@@ -19,7 +19,11 @@ E-Mails `payment_received` + `invoice`. Idempotent (Webhook-Retries sicher).
   wird wiederverwendet; abgelaufene (bzw. alte hosted Sessions, die vorher expired werden)
   werden durch eine neue ersetzt. Der Tausch von `stripeSessionId` ist gegen parallele Requests
   abgesichert, weil der Webhook nur die gespeicherte Session kennt.
-- **Upload-Angebote**: Angebotsannahme erstellt einen **Payment Link**.
+- **Zahlungslink** (Admin-Bestellung „Zahlungslink (Karte/PayPal)“, angenommenes Angebot):
+  Bestellung `awaiting_payment` mit Payment `stripe` ohne Session; die Mail verlinkt auf die
+  Bestellseite, dort startet „Jetzt bezahlen“ Karte oder PayPal (ADR 0002). Alte Stripe
+  Payment Links (`stripe_payment_link`) bleiben gültig und werden beim Stornieren deaktiviert;
+  Stornieren einer offenen `stripe`-Zahlung lässt deren Checkout-Session ablaufen.
 - **Webhook** `POST /api/webhooks/stripe` verarbeitet `checkout.session.completed`
   (raw body, Signaturprüfung mit `STRIPE_WEBHOOK_SECRET`).
 
@@ -30,6 +34,34 @@ Abschluss über `POST /api/dev/stripe/complete/:sessionId` (nutzt die Success-Se
 Echtbetrieb: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` setzen
 (API-env, in Produktion Pflicht); Webhook-Endpoint
 `https://<domain>/api/webhooks/stripe` im Stripe-Dashboard registrieren.
+
+## PayPal (direkt, ADR 0001)
+
+`apps/api/src/services/payments/paypal.ts` (Orders API v2 per `fetch`),
+`apps/api/src/services/payments/paypal-flow.ts` (Capture + `markOrderPaid`).
+
+- **Checkout**: `POST /api/checkout` mit `paymentMethod: "paypal"` legt eine PayPal-Order an
+  (`intent: CAPTURE`, EUR, `user_action: PAY_NOW`, `NO_SHIPPING`); die Antwort liefert
+  `payment.redirectUrl` (Freigabe bei PayPal). Kein PayPal-Script im Shop.
+- **Rückkehr**: `GET /api/payments/paypal/return?order&access&token` captured serverseitig und
+  leitet per 303 auf `/checkout/success` (bei Fehler: Bestellseite mit `?paypal=failed`,
+  Abbruch: `?paypal=cancelled`). Capture nur bei `awaiting_payment`, `method = paypal` und
+  passender `paypalOrderId`; abgesichert per `updateMany` (Payment → `processing`),
+  `PayPal-Request-Id` und `ORDER_ALREADY_CAPTURED`. Betrag/Währung werden vor `markOrderPaid`
+  geprüft, `paypalCaptureId` gespeichert.
+- **Bestellseite**: unbezahlte Online-Bestellungen (Stripe oder PayPal) bieten beide Zahlarten.
+  `POST /api/orders/:orderNumber/paypal-order?token=…` schließt eine offene Stripe-Session und
+  startet eine neue PayPal-Order; `…/stripe-session` stellt zurück auf Stripe und löscht
+  `paypalOrderId`. Vorkasse/Bitcoin/Stripe-Zahlungslinks sind nicht umstellbar.
+- **Webhook** `POST /api/webhooks/paypal` (Signatur über `verify-webhook-signature` mit
+  `PAYPAL_WEBHOOK_ID`): `CHECKOUT.ORDER.APPROVED` (Capture wie oben),
+  `PAYMENT.CAPTURE.COMPLETED`/`DENIED`, Erstattungen (`PAYMENT.CAPTURE.REFUNDED`/`REVERSED`,
+  `PAYMENT.REFUND.PENDING`/`FAILED`) → `syncProviderRefund`.
+
+Ohne `PAYPAL_CLIENT_ID` **Mock-Modus** (nicht in Produktion): `mock_pp_<cent>_*`-Orders, die
+Freigabe-URL führt direkt auf den Rückkehr-Endpunkt. Echtbetrieb: `PAYPAL_ENV`,
+`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`; Webhook
+`https://<domain>/api/webhooks/paypal` im PayPal-Developer-Dashboard registrieren.
 
 ## Banküberweisung
 
@@ -65,3 +97,18 @@ Kette wird über `POST /api/dev/bitcoin/:paymentId/advance` simuliert.
 `InvoiceCounter`-Transaktion (Race-sicher, pro Jahr neu ab 1), PDF via pdfkit nach
 `INVOICE_DIR`, Download im Admin (`GET /api/admin/invoices/:id/pdf`), Versand per E-Mail-Anhang.
 USt-Angaben sind Platzhalter → vor Livegang ergänzen.
+
+## Erstattungen und Rechnungskorrekturen
+
+`apps/api/src/services/refunds.ts`, Admin-API unter `/api/admin/refunds` (Schreiben nur mit
+`payments:refund`). Teil- und Mehrfacherstattungen bis zum gezahlten Betrag; `pending` zählt
+gegen den Rest (Zeilensperre auf der Zahlung). Stripe und PayPal erstatten per API, Banküberweisung
+und Bitcoin manuell (Admin bestätigt die Rücküberweisung). Ohne Rechnung keine Erstattung.
+
+Erst bei `succeeded` entsteht die Rechnungskorrektur `RK-<Jahr>-<hash>` (eigener Zähler, PDF
+nach `INVOICE_DIR`, Kunden-Mail mit Anhang). Vollständig erstattet → Zahlung und Bestellung
+`refunded`, offene Druckjobs (`waiting`/`assigned`) → `failed`, Tracking-Event `refund` einmal.
+
+Stripe-Webhook zusätzlich abonnieren: `charge.refunded`, `refund.created`, `refund.updated`,
+`refund.failed`. Erstattungen aus dem Stripe-Dashboard werden übernommen; Altzahlungen ohne
+gespeicherte PaymentIntent werden dabei ignoriert (API-Erstattungen lösen sie über die Session auf).

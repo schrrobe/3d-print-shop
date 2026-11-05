@@ -21,8 +21,13 @@ import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { ApiError, badRequest, conflict } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { assertCompanyComplete, company } from '../../services/company.js'
-import { issuePrepaymentInvoice, sendOrderConfirmation } from '../../services/order-flow.js'
+import {
+  issuePrepaymentInvoice,
+  orderUrl,
+  sendOrderConfirmation,
+} from '../../services/order-flow.js'
 import { bitcoinProvider } from '../../services/payments/bitcoin.js'
+import { createPaypalOrder, isPaypalEnabled } from '../../services/payments/paypal.js'
 import {
   createStripeCheckoutSession,
   getStripeClientSecret,
@@ -87,7 +92,11 @@ async function issuePrepaymentInvoiceSafely(order: CheckoutOrder): Promise<Check
   })
 }
 
-async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: string) {
+async function checkoutResponse(
+  order: CheckoutOrder,
+  stripeClientSecret?: string,
+  paypalApproveUrl?: string,
+) {
   const payment = order.payments[0]
   if (!payment) throw new Error(`No payment found for order ${order.orderNumber}`)
 
@@ -104,6 +113,9 @@ async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: strin
         clientSecret: stripeClientSecret ?? (await getStripeClientSecret(payment.stripeSessionId)),
       }
     }
+  } else if (payment.method === 'paypal') {
+    // A replay has no approve link at hand: the order page starts a fresh PayPal order.
+    paymentResponse = { method: 'paypal', redirectUrl: paypalApproveUrl ?? orderUrl(order) }
   } else if (payment.method === 'bank_transfer') {
     paymentResponse = {
       method: 'bank_transfer',
@@ -155,6 +167,9 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
     }
     if (input.paymentMethod === 'bitcoin' && !env.BITCOIN_ENABLED) {
       throw badRequest('Bitcoin payments are not enabled')
+    }
+    if (input.paymentMethod === 'paypal' && !isPaypalEnabled()) {
+      throw badRequest('PayPal payments are not enabled')
     }
 
     const previous = await prisma.order.findUnique({
@@ -273,6 +288,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
 
     let paymentData: Prisma.PaymentCreateWithoutOrderInput
     let stripeClientSecret: string | undefined
+    let paypalApproveUrl: string | undefined
     if (input.paymentMethod === 'stripe') {
       const session = await createStripeCheckoutSession({
         orderNumber,
@@ -289,6 +305,21 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
         amountCents: totals.totalCents,
         stripeSessionId: session.sessionId,
         stripePaymentLinkUrl: session.url ?? null,
+      }
+    } else if (input.paymentMethod === 'paypal') {
+      const paypalOrder = await createPaypalOrder({
+        orderNumber,
+        accessToken,
+        amountCents: totals.totalCents,
+        locale: input.locale,
+        description: `Bestellung ${orderNumber}`,
+      })
+      paypalApproveUrl = paypalOrder.approveUrl
+      paymentData = {
+        method: 'paypal',
+        status: 'pending',
+        amountCents: totals.totalCents,
+        paypalOrderId: paypalOrder.id,
       }
     } else if (input.paymentMethod === 'bank_transfer') {
       paymentData = {
@@ -404,7 +435,13 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
 
     res
       .status(created ? 201 : 200)
-      .json(await checkoutResponse(order, created ? stripeClientSecret : undefined))
+      .json(
+        await checkoutResponse(
+          order,
+          created ? stripeClientSecret : undefined,
+          created ? paypalApproveUrl : undefined,
+        ),
+      )
   } catch (err) {
     next(err)
   }
