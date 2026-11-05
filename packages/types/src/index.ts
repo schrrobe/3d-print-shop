@@ -189,10 +189,6 @@ export const COMPLAINT_RESOLUTIONS = [
 ] as const
 export type ComplaintResolution = (typeof COMPLAINT_RESOLUTIONS)[number]
 
-/** QC-Status: offen, bestanden, fehlgeschlagen, Reprint erforderlich, überschrieben */
-export const QC_STATUSES = ['open', 'passed', 'failed', 'reprint_required', 'overridden'] as const
-export type QcStatus = (typeof QC_STATUSES)[number]
-
 export const AMS_SLOT_STATUSES = ['empty', 'loaded', 'low', 'error', 'disabled'] as const
 export type AmsSlotStatus = (typeof AMS_SLOT_STATUSES)[number]
 

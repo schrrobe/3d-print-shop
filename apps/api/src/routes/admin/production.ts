@@ -8,7 +8,6 @@ import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { itemColorResolver } from '../../services/item-colors.js'
-import { allJobsQcCleared } from '../../services/qc.js'
 
 export const adminProductionRouter = Router()
 
@@ -95,10 +94,6 @@ adminProductionRouter.post('/:jobId/status', requirePermission('print-jobs:write
     if (!job) throw notFound('Print job not found')
     assertProductionTransition(job.status, status)
 
-    // QC-Gate: kein Versand ohne bestandene (oder bewusst überschriebene) Qualitätsprüfung
-    if (status === 'ready_to_ship' && !(await allJobsQcCleared([job.id]))) {
-      throw conflict('Print job has not passed quality control — pass QC or use an admin override first')
-    }
 
     const updated = await prisma.$transaction(async (tx) => {
       if (job.printerId) {

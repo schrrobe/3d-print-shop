@@ -11,7 +11,7 @@ const ALLOWED_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 
 /**
  * Multer instance for photo uploads into a private UPLOAD_DIR subdirectory
- * (complaints/, qc/, reviews/). These directories are NEVER served statically —
+ * (complaints/, reviews/). These directories are NEVER served statically —
  * files are only delivered through token-/permission-checked endpoints that
  * read the stored path from the database.
  */

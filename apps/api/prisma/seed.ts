@@ -740,8 +740,8 @@ async function seedProductionSchedule() {
   })
 }
 
-async function seedQcAndShipments() {
-  if ((await prisma.qcRecord.count()) > 0) return
+async function seedShipments() {
+  if ((await prisma.shipment.count()) > 0) return
   const admin = await prisma.user.findUniqueOrThrow({ where: { email: DEV_ADMIN_EMAIL } })
   const order4 = await prisma.order.findUniqueOrThrow({
     where: { orderNumber: 'PS-2026-00000004' },
@@ -753,8 +753,8 @@ async function seedQcAndShipments() {
   })
   const x1c = await prisma.printer.findUniqueOrThrow({ where: { name: 'Bambu Lab X1C #1' } })
 
-  // Historischer Job (versendet) mit bestandener QC
-  const shippedJob = await prisma.printerJob.create({
+  // Historischer Job (versendet)
+  await prisma.printerJob.create({
     data: {
       orderId: order4.id,
       orderItemId: order4.items[0]?.id,
@@ -765,33 +765,14 @@ async function seedQcAndShipments() {
       finishedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000),
     },
   })
-  await prisma.qcRecord.create({
-    data: {
-      printerJobId: shippedJob.id,
-      status: 'passed',
-      colorOk: true,
-      surfaceOk: true,
-      dimensionsOk: true,
-      stabilityOk: true,
-      completenessOk: true,
-      packagingOk: true,
-      note: 'Einwandfrei — Seed-Beispiel',
-      approvedById: admin.id,
-      approvedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    },
-  })
-
-  // Offene QC an einem Job in der Qualitätsprüfung
-  const qcJob = await prisma.printerJob.create({
+  // Job in der Qualitätsprüfung
+  await prisma.printerJob.create({
     data: {
       orderId: order4.id,
       orderItemId: order4.items[1]?.id,
       status: 'quality_check',
       printDurationMinutes: 90,
     },
-  })
-  await prisma.qcRecord.create({
-    data: { printerJobId: qcJob.id, status: 'open', colorOk: true, surfaceOk: true },
   })
 
   // Versand: 1 versendete Sendung (Historie) + 1 wartet auf QC
@@ -1062,7 +1043,7 @@ async function main() {
   console.log('Seeding production schedule …')
   await seedProductionSchedule()
   console.log('Seeding QC & shipments …')
-  await seedQcAndShipments()
+  await seedShipments()
   console.log('Seeding complaints …')
   await seedComplaints()
   console.log('Seeding portal tokens …')

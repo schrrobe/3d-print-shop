@@ -12,8 +12,8 @@ Preisberechnung · Versandkosten (6,99 € / frei ab 150 €, inkl. Grenzwert) �
 (Zonen-Extraktion aus Mesh-Namen, Auswahl-Validierung, Defaults, inaktive Farben) ·
 Social-Post-Statusmaschine, -RBAC und -Zod-Schemas · Social-Scheduler (Idempotenz per
 CAS-Claim, Lock-Recovery, Retry) · Mock-Publisher & Meta-Error-Mapping ·
-Rollen/Rechte-Matrix (inkl. Reklamationen/QC/Filament/Versand/Reviews) · Order-,
-Produktions-, Reklamations-, QC-, Versand- und Review-Statusmaschinen · Kalender-Overlap
+Rollen/Rechte-Matrix (inkl. Reklamationen/Filament/Versand/Reviews) · Order-,
+Produktions-, Reklamations-, Versand- und Review-Statusmaschinen · Kalender-Overlap
 (halboffene Intervalle, Berührung ≠ Überlappung) · Filament-Bestand (Mindestbestand,
 Nachbestellung, Farb-Aggregat) · `lineKey`/kanonische Farbauswahl (Cart/Wishlist-Merge) ·
 Magic-Link-Token (nur Hash, Ablauf, Cap) · Review-Eligibility & öffentliches DTO
@@ -41,7 +41,7 @@ checkout-stripe (Mock-Stripe, Bank, Bitcoin 2-Confirmations) · upload-request (
 Fehlerfälle) · quote-payment-link (annehmen/ablehnen/bezahlen) · support-tickets
 (Formular→Token-Thread, Order-Matching, Reopen/Close, Support-RBAC) · admin-orders
 (mark-paid, Statusmaschine, Versand) · admin-products · admin-colors · admin-printers ·
-production-queue (inkl. QC-Gate vor `ready_to_ship`) · invoice (Sequenz, PDF-Magic-Bytes) ·
+production-queue · invoice (Sequenz, PDF-Magic-Bytes) ·
 email-notifications (EmailLog-Dev-Modus) · consent-tracking · i18n (6 Sprachen) · theme
 (dark/light/system/persistenz) · animations (inkl. prefers-reduced-motion) ·
 accessibility (axe, WCAG A/AA) · seo (SSR-Meta, robots, Sitemap, 404) ·
@@ -49,10 +49,9 @@ social-media-planner (Planner-Ansichten, Editor-Prefill, Planen/Bearbeiten/Lösc
 Retry via Mock-Provider `[e2e-fail]`, RBAC, Publish-Sperre).
 
 Neue Feature-Specs: **complaints** (Kunde eröffnet + Foto, Admin-Entscheidung
-`replacement_print` → Job in Queue, Ticket-Link, falscher Token 401) · **quality-control**
-(Checkliste erzwingt alle 6, Fail→Reprint, Override nur Admin — Produktion 403) ·
+`replacement_print` → Job in Queue, Ticket-Link, falscher Token 401) ·
 **filament-ams** (Spulen-CRUD, Warnungen/Einkaufsliste, `outOfStock` im Shop, Slot-Kollision 409) · **production-calendar** (Overlap-409 + `force`, verschieben, Wartungsfenster blockt) ·
-**shipping-management** (QC-Gate 409, DHL-Versand, `shipping_confirmation`-Mail, PDFs,
+**shipping-management** (DHL-Versand, `shipping_confirmation`-Mail, PDFs,
 Historie) · **customer-portal** (Magic-Link via Seed-Token, Bearer-only, abgelaufen→Renewal,
 Anti-Enumeration 202) · **wishlist** (localStorage-Persistenz, in den Warenkorb, Toggle) ·
 **product-configurator-advanced** (Speichern/Teilen dedupliziert, `?config=`-Laden mit

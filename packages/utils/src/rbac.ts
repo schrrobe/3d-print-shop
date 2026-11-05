@@ -32,9 +32,6 @@ export const PERMISSIONS = [
   'complaints:read',
   'complaints:write',
   'complaints:decide',
-  'qc:read',
-  'qc:write',
-  'qc:override',
   'filament:read',
   'filament:write',
   'shipments:read',
@@ -59,7 +56,6 @@ export type Permission = (typeof PERMISSIONS)[number]
  * support: read-only orders, customer requests, statuses; owns support tickets.
  * Social posts: admin & product_manager plan/publish, support reads.
  * Complaints: support handles communication, only admin decides (complaints:decide).
- * QC: production performs checks, only admin overrides (qc:override).
  * Filament/AMS: production manages stock, product_manager reads.
  * Shipments: shipping owns the flow, production/support read.
  * Reviews: product_manager & support moderate.
@@ -94,21 +90,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'print-jobs:read',
     'print-jobs:write',
     'orders:read',
-    'qc:read',
-    'qc:write',
     'filament:read',
     'filament:write',
     'complaints:read',
     'shipments:read',
   ],
-  shipping: [
-    'dashboard:read',
-    'orders:read',
-    'orders:ship',
-    'shipments:read',
-    'shipments:write',
-    'qc:read',
-  ],
+  shipping: ['dashboard:read', 'orders:read', 'orders:ship', 'shipments:read', 'shipments:write'],
   support: [
     'dashboard:read',
     'orders:read',

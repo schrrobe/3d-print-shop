@@ -5,12 +5,10 @@ import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { notFound } from '../../middleware/error.js'
 import { itemColorResolver } from '../../services/item-colors.js'
-import { jobsQcClearance } from '../../services/qc.js'
 import {
   createShipment,
   generateDeliveryNotePdf,
   generatePackingListPdf,
-  shipmentJobIds,
   shipShipment,
   transitionShipment,
 } from '../../services/shipment-flow.js'
@@ -76,7 +74,7 @@ adminShipmentsRouter.post('/', requirePermission('shipments:write'), async (req,
   }
 })
 
-/** Detail with status history + QC clearance per print job behind the items. */
+/** Detail with status history. */
 adminShipmentsRouter.get('/:id', requirePermission('shipments:read'), async (req, res, next) => {
   try {
     const shipment = await prisma.shipment.findUnique({
@@ -84,8 +82,6 @@ adminShipmentsRouter.get('/:id', requirePermission('shipments:read'), async (req
       include: shipmentInclude,
     })
     if (!shipment) throw notFound('Shipment not found')
-    const jobIds = await shipmentJobIds(shipment.id)
-    const qcClearance = await jobsQcClearance(jobIds)
     const colorsOf = await itemColorResolver(shipment.items.map((i) => i.orderItem))
     res.json({
       shipment: {
@@ -95,18 +91,13 @@ adminShipmentsRouter.get('/:id', requirePermission('shipments:read'), async (req
           orderItem: { ...i.orderItem, colors: colorsOf(i.orderItem) },
         })),
       },
-      qcClearance,
     })
   } catch (err) {
     next(err)
   }
 })
 
-/**
- * Status transition via the shipment status machine. The QC gate lives in
- * transitionShipment(): waiting_for_qc → ready_for_shipping requires every
- * print job behind the items to be QC-cleared (409 otherwise).
- */
+/** Status transition via the shipment status machine. */
 adminShipmentsRouter.post('/:id/status', requirePermission('shipments:write'), async (req, res, next) => {
   try {
     const input = shipmentStatusSchema.parse(req.body)

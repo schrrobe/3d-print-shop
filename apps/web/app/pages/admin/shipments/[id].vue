@@ -56,19 +56,11 @@ interface ShipmentDetail {
   }[]
   statusEvents: StatusEvent[]
 }
-interface QcClearance {
-  jobId: string
-  cleared: boolean
-  latestStatus: string | null
-}
-
-const { data, refresh } = await useFetch<{ shipment: ShipmentDetail; qcClearance: QcClearance[] }>(
+const { data, refresh } = await useFetch<{ shipment: ShipmentDetail }>(
   `/api/admin/shipments/${id}`,
   { credentials: 'include', server: false },
 )
 const shipment = computed(() => data.value?.shipment)
-const qcClearance = computed(() => data.value?.qcClearance ?? [])
-const qcAllCleared = computed(() => qcClearance.value.every((c) => c.cleared))
 
 const statusLabels: Record<ShipmentStatus, string> = {
   waiting_for_qc: 'Wartet auf QC',
@@ -160,28 +152,6 @@ const pdfBase = `${config.public.apiBase}/admin/shipments/${id}`
               />
             </li>
           </ul>
-        </PsCard>
-
-        <PsCard data-testid="shipment-qc-state">
-          <h3 class="text-label-medium">Qualitätskontrolle</h3>
-          <p v-if="qcClearance.length === 0" class="mt-sm text-body-regular text-secondary">
-            Keine Druckjobs — QC-Gate nicht erforderlich.
-          </p>
-          <ul v-else class="mt-sm flex flex-col gap-xs text-body-regular">
-            <li
-              v-for="c in qcClearance"
-              :key="c.jobId"
-              :class="c.cleared ? 'text-brand' : 'text-amber-500'"
-            >
-              {{ c.cleared ? '✓ freigegeben' : `⚠️ offen (${c.latestStatus ?? 'keine Prüfung'})` }}
-            </li>
-          </ul>
-          <p
-            v-if="!qcAllCleared && shipment.status === 'waiting_for_qc'"
-            class="mt-sm text-caption text-amber-500"
-          >
-            Versandbereit erst nach bestandener QC (oder Admin-Override).
-          </p>
         </PsCard>
 
         <PsCard>

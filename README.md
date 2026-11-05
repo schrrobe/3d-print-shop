@@ -66,12 +66,12 @@ Theme-Umschalter in der Toolbar.
 ## Tests
 
 - **Unit (Vitest):** Preis-/Versandlogik (DE 6,99 € / frei ab 80 €, Ausland 15 € / frei ab 100 €), Statusmaschinen
-  (Bestellung, Produktion, Reklamation, QC, Versand, Review, Social Posts),
+  (Bestellung, Produktion, Reklamation, Versand, Review, Social Posts),
   Kalender-Overlap, Filament-Bestand, Magic-Link-Token (nur Hash), Review-Eligibility,
   Popular-Configs, Bitcoin-2-Bestätigungen, Rechnungsnummern, Upload-Validierung,
   RBAC, Consent, Farbmapping, Social-Scheduler-Idempotenz und Meta-Error-Mapping.
-- **E2E (Playwright, 32 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
-  Reklamations-, QC-, Filament/AMS-, Produktionskalender-, Versand-, Kundenbereich-,
+- **E2E (Playwright, 35 Specs):** kompletter Kauf-, Upload-/Angebots-, Support-Ticket-,
+  Reklamations-, Filament/AMS-, Produktionskalender-, Versand-, Kundenbereich-,
   Wunschlisten-, Konfigurator-, Review-, Admin-, Produktions-, Social-Planner-, Consent-,
   i18n-, Theme- und Accessibility-Flow. Details: [docs/testing.md](docs/testing.md)
 
@@ -126,7 +126,7 @@ git remote add origin https://github.com/<user>/3d-print-shop.git && git push -u
 [architecture](docs/architecture.md) · [design-system](docs/design-system.md) ·
 [database](docs/database.md) · [api](docs/api.md) · [product-photos](docs/product-photos.md) · [testing](docs/testing.md) ·
 [payments](docs/payments.md) · [production-workflow](docs/production-workflow.md) ·
-[quality-control](docs/quality-control.md) · [filament-ams](docs/filament-ams.md) ·
+[filament-ams](docs/filament-ams.md) ·
 [shipping](docs/shipping.md) · [complaints](docs/complaints.md) ·
 [customer-portal](docs/customer-portal.md) · [reviews](docs/reviews.md) ·
 [support](docs/support.md) · [privacy-consent](docs/privacy-consent.md) ·

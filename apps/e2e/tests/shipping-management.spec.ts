@@ -3,7 +3,6 @@ import { AdminPage } from '../pages/admin.js'
 import {
   adminApiContext,
   apiContext,
-  clearOrderJobsQc,
   createPaidOrderViaApi,
   getAdminOrder,
 } from '../helpers/api.js'
@@ -35,28 +34,13 @@ test.describe('shipping management', () => {
     await admin.dispose()
   })
 
-  test('QC gate blocks ready_for_shipping until QC passes', async () => {
-    const admin = await adminApiContext()
-    const products = (await (await admin.get('/api/products')).json()) as { products: { id: string }[] }
-    const { orderNumber } = await createPaidOrderViaApi(products.products[0]!.id, 'ship-gate@example.com')
-    const { shipmentId } = await createShipmentForOrder(admin, orderNumber)
-
-    // Jobs are still 'waiting' → not QC-cleared → 409
-    const blocked = await admin.post(`/api/admin/shipments/${shipmentId}/status`, {
-      data: { status: 'ready_for_shipping' },
-    })
-    expect(blocked.status()).toBe(409)
-    await admin.dispose()
-  })
-
-  test('full flow: QC → ship with DHL, order shipped, email + PDF', async () => {
+  test('full flow: ship with DHL, order shipped, email + PDF', async () => {
     const admin = await adminApiContext()
     const ctx = await apiContext()
     const email = `ship-full-${Date.now()}@example.com`
     const products = (await (await admin.get('/api/products')).json()) as { products: { id: string }[] }
     const { orderNumber } = await createPaidOrderViaApi(products.products[0]!.id, email)
 
-    await clearOrderJobsQc(admin, orderNumber)
     const order = await getAdminOrder(admin, orderNumber)
     // Drive the order status machine to ready_to_ship
     for (const status of ['in_production', 'quality_check', 'ready_to_ship']) {
