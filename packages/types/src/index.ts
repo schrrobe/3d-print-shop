@@ -25,6 +25,7 @@ export const PAYMENT_METHODS = [
   'stripe_payment_link',
   'bank_transfer',
   'bitcoin',
+  'paypal',
 ] as const
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 

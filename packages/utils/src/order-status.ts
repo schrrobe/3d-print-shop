@@ -5,10 +5,12 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ['awaiting_payment', 'awaiting_bank_transfer', 'cancelled'],
   awaiting_payment: ['paid', 'cancelled'],
   awaiting_bank_transfer: ['paid', 'cancelled'],
-  paid: ['in_production', 'refunded', 'cancelled'],
-  in_production: ['quality_check', 'ready_to_ship'],
-  quality_check: ['ready_to_ship', 'in_production'],
-  ready_to_ship: ['shipped'],
+  // A paid order can no longer be just "cancelled": money must go back via a
+  // full refund (services/refunds.ts), which ends in `refunded`.
+  paid: ['in_production', 'refunded'],
+  in_production: ['quality_check', 'ready_to_ship', 'refunded'],
+  quality_check: ['ready_to_ship', 'in_production', 'refunded'],
+  ready_to_ship: ['shipped', 'refunded'],
   shipped: ['completed', 'refunded'],
   completed: ['refunded'],
   cancelled: [],

@@ -40,6 +40,12 @@ const envSchema = z
     STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
     // Public key for the embedded checkout; handed to the browser via /api/checkout.
     STRIPE_PUBLISHABLE_KEY: z.string().optional().default(''),
+    // PayPal direct (Orders API v2, ADR 0001). Empty client id = mock mode in
+    // dev, PayPal not offered in production.
+    PAYPAL_ENV: z.enum(['sandbox', 'live']).default('sandbox'),
+    PAYPAL_CLIENT_ID: z.string().optional().default(''),
+    PAYPAL_CLIENT_SECRET: z.string().optional().default(''),
+    PAYPAL_WEBHOOK_ID: z.string().optional().default(''),
     BITCOIN_PROVIDER: z.enum(['mock', 'blockchain-api']).default('mock'),
     BITCOIN_ENABLED: z
       .enum(['true', 'false'])
@@ -189,6 +195,18 @@ const envSchema = z
           message: 'STRIPE_WEBHOOK_SECRET is required in production when STRIPE_SECRET_KEY is set',
         })
       }
+    }
+    // Without the webhook id, PayPal webhook signatures can't be verified.
+    if (
+      val.NODE_ENV === 'production' &&
+      val.PAYPAL_CLIENT_ID &&
+      (!val.PAYPAL_CLIENT_SECRET || !val.PAYPAL_WEBHOOK_ID)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['PAYPAL_CLIENT_SECRET'],
+        message: 'PAYPAL_CLIENT_SECRET and PAYPAL_WEBHOOK_ID are required in production when PAYPAL_CLIENT_ID is set',
+      })
     }
     if (val.BITCOIN_ENABLED && val.BITCOIN_PROVIDER === 'mock' && val.NODE_ENV === 'production') {
       ctx.addIssue({

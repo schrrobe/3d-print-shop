@@ -26,6 +26,13 @@ describe('RBAC', () => {
     expect(hasPermission('product_manager', 'payments:write')).toBe(false)
   })
 
+  it('only admins may refund', () => {
+    expect(hasPermission('admin', 'payments:refund')).toBe(true)
+    for (const role of ['product_manager', 'production', 'shipping', 'support'] as const) {
+      expect(hasPermission(role, 'payments:refund')).toBe(false)
+    }
+  })
+
   it('production reviews uploads and manages printers/jobs', () => {
     expect(hasPermission('production', 'uploads:review')).toBe(true)
     expect(hasPermission('production', 'printers:write')).toBe(true)

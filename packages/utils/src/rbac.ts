@@ -17,6 +17,8 @@ export const PERMISSIONS = [
   'orders:ship',
   'payments:read',
   'payments:write',
+  /** Pay money back to customers (Stripe/PayPal API or manual). */
+  'payments:refund',
   'invoices:read',
   'printers:read',
   'printers:write',
