@@ -2,6 +2,8 @@ import type { ComplaintStatus, Locale } from '@print-shop/types'
 import { formatCents, getLegalDocument, type LegalCompany } from '@print-shop/utils'
 import { button, emailLayout, escapeHtml, paragraph } from './layout.js'
 
+export { type EmailCompany, setEmailCompany } from './layout.js'
+
 export interface RenderedEmail {
   subject: string
   html: string

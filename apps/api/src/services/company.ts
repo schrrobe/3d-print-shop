@@ -1,3 +1,4 @@
+import { setEmailCompany } from '@print-shop/emails'
 import type { ShopSettings } from '@prisma/client'
 import { env, isProduction } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -124,6 +125,10 @@ export function company(): Company {
 export async function loadCompanySettings(): Promise<Company> {
   const row = await prisma.shopSettings.findUnique({ where: { id: 'singleton' } })
   cached = mergeCompany(row)
+  // Example defaults (e.g. "Print Shop GmbH") never go into a customer email footer.
+  const real = (k: 'name' | 'street' | 'zip' | 'city') =>
+    cached[k] === PLACEHOLDERS[k] ? '' : cached[k]
+  setEmailCompany({ name: real('name'), street: real('street'), zip: real('zip'), city: real('city') })
   return cached
 }
 
