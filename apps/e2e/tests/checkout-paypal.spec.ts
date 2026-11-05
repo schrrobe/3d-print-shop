@@ -38,15 +38,19 @@ test.describe('checkout with paypal (mock)', () => {
 
     // Customer never comes back from PayPal
     await page.route('**/api/payments/paypal/return**', (route) => route.abort())
-    const checkout = page.waitForResponse(
-      (res) => res.url().endsWith('/api/checkout') && res.request().method() === 'POST',
-    )
+    // The page redirects right after the response, which discards its body in the
+    // browser — so read it while proxying the request.
+    let order: { orderNumber: string; accessToken: string } | undefined
+    await page.route('**/api/checkout', async (route) => {
+      const response = await route.fetch()
+      order = (await response.json()) as typeof order
+      await route.fulfill({ response })
+    })
     await page.getByTestId('submit-order').click()
-    const { orderNumber, accessToken } = (await (await checkout).json()) as {
-      orderNumber: string
-      accessToken: string
-    }
+    await expect.poll(() => order).toBeDefined()
+    await page.unroute('**/api/checkout')
     await page.unroute('**/api/payments/paypal/return**')
+    const { orderNumber, accessToken } = order!
 
     await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)
     await expect(page.getByTestId('paypal-pay-now')).toBeVisible()
