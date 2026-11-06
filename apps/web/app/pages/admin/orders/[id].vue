@@ -23,6 +23,7 @@ type ItemColor = { slot: string; label: string; name: string; hex: string | null
 interface AdminOrderDetail {
   id: string
   orderNumber: string
+  accessToken: string
   status: OrderStatus
   source: 'shop' | 'admin' | 'quote'
   note: string | null
@@ -61,8 +62,9 @@ const { data, refresh } = await useFetch<{ order: AdminOrderDetail }>(
 )
 
 const order = computed(() => data.value?.order)
+// `refunded` is reached only through a refund, never as a manual status change.
 const nextStatuses = computed(() =>
-  order.value ? ORDER_STATUS_TRANSITIONS[order.value.status] : [],
+  order.value ? ORDER_STATUS_TRANSITIONS[order.value.status].filter((s) => s !== 'refunded') : [],
 )
 
 const carrier = ref('dhl')
@@ -71,12 +73,16 @@ const trackingNumber = ref('')
 const { run, pending } = useAdminAction({ refresh })
 const toast = useToast()
 
-const openPaymentLink = computed(
-  () =>
-    order.value?.payments.find(
-      (p) => p.method === 'stripe_payment_link' && p.status === 'pending' && p.stripePaymentLinkUrl,
-    )?.stripePaymentLinkUrl ?? null,
-)
+const requestOrigin = useRequestURL().origin
+/** Zahlungslink: legacy Stripe Payment Link if one was sent, else our order page. */
+const openPaymentLink = computed(() => {
+  const o = order.value
+  if (!o || o.status !== 'awaiting_payment') return null
+  const legacy = o.payments.find(
+    (p) => p.method === 'stripe_payment_link' && p.status === 'pending' && p.stripePaymentLinkUrl,
+  )?.stripePaymentLinkUrl
+  return legacy ?? `${requestOrigin}/order/${o.orderNumber}?token=${o.accessToken}`
+})
 
 async function copyPaymentLink() {
   if (!openPaymentLink.value) return
@@ -166,7 +172,7 @@ function ship() {
     <div class="flex flex-wrap items-center gap-md">
       <h2 class="text-heading-small">{{ order.orderNumber }}</h2>
       <PsOrderStatusBadge :status="order.status" data-testid="admin-order-status" />
-      <PsBadge v-if="order.source === 'admin'" variant="info">Paylink</PsBadge>
+      <PsBadge v-if="order.source === 'admin'" variant="info">Admin-Bestellung</PsBadge>
     </div>
 
     <div class="grid gap-lg lg:grid-cols-2">
@@ -215,7 +221,10 @@ function ship() {
           Bestellbestätigung erneut senden
         </PsButton>
         <PsButton
-          v-if="auth.can('orders:write') && ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)"
+          v-if="
+            auth.can('orders:write') &&
+            ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)
+          "
           class="mt-md ml-md"
           variant="secondary"
           :disabled="pending"
@@ -273,6 +282,13 @@ function ship() {
         </template>
       </PsCard>
     </div>
+
+    <AdminRefundPanel
+      v-if="auth.can('payments:refund')"
+      :order-id="order.id"
+      :order-status="order.status"
+      @changed="refresh"
+    />
 
     <PsCard
       v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')"

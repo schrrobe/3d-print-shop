@@ -70,6 +70,7 @@
     "note": "Anmerkung (optional)",
     "payment": "Zahlungsart",
     "payStripe": "Karte / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Vorkasse (Überweisung)",
     "payBitcoin": "Bitcoin",
     "submit": "Jetzt kostenpflichtig bestellen",
@@ -117,6 +118,11 @@
       "title": "Zahlung ausstehend",
       "hint": "Deine Zahlung wurde noch nicht abgeschlossen.",
       "payNow": "Jetzt bezahlen"
+    },
+    "paypal": {
+      "payNow": "Mit PayPal bezahlen",
+      "failed": "Die PayPal-Zahlung ist fehlgeschlagen. Bitte versuche es erneut oder wähle eine andere Zahlart.",
+      "cancelled": "Die PayPal-Zahlung wurde abgebrochen. Du kannst jetzt bezahlen."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "Widerrufsbelehrung",
       "payHints": {
         "stripe": "Sichere Zahlung über Stripe, z. B. per Kreditkarte.",
+        "paypal": "Sichere Zahlung mit deinem PayPal-Konto. Du wirst dafür zu PayPal weitergeleitet.",
         "bank_transfer": "{percent} % Rabatt auf den Warenwert. Bankdaten und Rechnung erhältst du nach der Bestellung.",
         "bitcoin": "Zahlung per Bitcoin-Adresse nach der Bestellung."
       },

@@ -216,12 +216,13 @@ export const quoteCreateSchema = z.object({
 /** Stripe rejects charges below 0,50 €. */
 export const MIN_PAYLINK_TOTAL_CENTS = 50
 
-/** Admin paylink order: free items (optionally linked to a shop product), gross prices. */
+/** Admin-Bestellung: free items (optionally linked to a shop product), gross prices. */
 export const adminOrderCreateSchema = z
   .object({
     address: addressSchema,
     locale: localeSchema.default('de'),
-    paymentMethod: z.enum(['stripe_payment_link', 'bank_transfer']),
+    /** `online`: Zahlungslink to the order page (card or PayPal there). */
+    paymentMethod: z.enum(['online', 'bank_transfer']),
     shippingCents: priceCentsSchema,
     /** Internal only — never shown to the customer. */
     note: z.string().trim().max(2000).optional(),
@@ -822,3 +823,4 @@ export type ReviewModerateInput = z.infer<typeof reviewModerateSchema>
 
 // ---------- Conversion tracking ----------
 export * from './track.js'
+export * from './refunds.js'

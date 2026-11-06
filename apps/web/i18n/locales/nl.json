@@ -70,6 +70,7 @@
     "note": "Opmerking (optioneel)",
     "payment": "Betaalmethode",
     "payStripe": "Kaart / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Vooruitbetaling (overschrijving)",
     "payBitcoin": "Bitcoin",
     "submit": "Bestellen met betalingsverplichting",
@@ -117,6 +118,11 @@
       "title": "Betaling openstaand",
       "hint": "Je betaling is nog niet afgerond.",
       "payNow": "Nu betalen"
+    },
+    "paypal": {
+      "payNow": "Betalen met PayPal",
+      "failed": "De PayPal-betaling is mislukt. Probeer het opnieuw of kies een andere betaalmethode.",
+      "cancelled": "De PayPal-betaling is geannuleerd. Je kunt nu betalen."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "herroepingsinformatie",
       "payHints": {
         "stripe": "Veilig betalen via Stripe, bijv. met creditcard.",
+        "paypal": "Veilig betalen met je PayPal-account. Je wordt doorgestuurd naar PayPal.",
         "bank_transfer": "{percent} % korting op de artikelen. Je ontvangt de bankgegevens en factuur na je bestelling.",
         "bitcoin": "Betaling naar een Bitcoin-adres na je bestelling."
       },

@@ -72,12 +72,22 @@ async function checkBitcoin() {
   await refresh()
 }
 
-/** "Pay now" for an unpaid Stripe order — reopens the embedded checkout here. */
+/** "Pay now" for an unpaid online order — Stripe (embedded here) or PayPal (redirect). */
 const stripePayment = computed(() =>
   order.value.status === 'awaiting_payment'
-    ? order.value.payments.find((p) => p.method === 'stripe' && p.status === 'pending')
+    ? order.value.payments.find(
+        (p) => (p.method === 'stripe' || p.method === 'paypal') && p.status === 'pending',
+      )
     : undefined,
 )
+const { data: methodsData } = useFetch<{ methods: string[] }>('/api/payments/methods', {
+  server: false,
+})
+const paypalAvailable = computed(() => methodsData.value?.methods.includes('paypal') ?? false)
+const paypalNotice = computed(() => {
+  const flag = route.query.paypal
+  return flag === 'failed' || flag === 'cancelled' ? t(`order.paypal.${flag}`) : ''
+})
 const { mountEl: stripeMount, mount: mountStripe } = useStripeEmbedded()
 const stripeOpen = ref(false)
 const stripeLoading = ref(false)
@@ -108,6 +118,22 @@ async function payNow() {
     console.error(err)
   } finally {
     stripeLoading.value = false
+  }
+}
+
+async function payWithPaypal() {
+  stripeLoading.value = true
+  stripeError.value = ''
+  try {
+    const { redirectUrl } = await $fetch<{ redirectUrl: string }>(
+      `/api/orders/${orderNumber}/paypal-order`,
+      { method: 'POST', query: { token } },
+    )
+    window.location.href = redirectUrl
+  } catch (err) {
+    stripeError.value = t('common.error')
+    stripeLoading.value = false
+    console.error(err)
   }
 }
 </script>
@@ -238,18 +264,28 @@ async function payNow() {
       >
         <h2 class="text-label-medium">{{ t('order.stripe.title') }}</h2>
         <p class="mt-md text-body-regular">{{ t('order.stripe.hint') }}</p>
-        <p v-if="stripeError" class="mt-md text-body-regular text-danger" role="alert">
-          {{ stripeError }}
-        </p>
-        <PsButton
-          v-if="!stripeOpen"
-          class="mt-md"
-          :disabled="stripeLoading"
-          data-testid="stripe-pay-now"
-          @click="payNow"
+        <p
+          v-if="stripeError || paypalNotice"
+          class="mt-md text-body-regular text-danger"
+          role="alert"
+          data-testid="payment-error"
         >
-          {{ t('order.stripe.payNow') }}
-        </PsButton>
+          {{ stripeError || paypalNotice }}
+        </p>
+        <div v-if="!stripeOpen" class="mt-md flex flex-wrap gap-sm">
+          <PsButton :disabled="stripeLoading" data-testid="stripe-pay-now" @click="payNow">
+            {{ paypalAvailable ? t('checkout.payStripe') : t('order.stripe.payNow') }}
+          </PsButton>
+          <PsButton
+            v-if="paypalAvailable"
+            variant="secondary"
+            :disabled="stripeLoading"
+            data-testid="paypal-pay-now"
+            @click="payWithPaypal"
+          >
+            {{ t('order.paypal.payNow') }}
+          </PsButton>
+        </div>
         <div v-else ref="stripeMount" class="mt-md min-h-96" />
       </div>
 

@@ -20,7 +20,7 @@ const localePath = useLocalePath()
 const cart = useCartStore()
 const consentStore = useConsentStore()
 const router = useRouter()
-type CheckoutPaymentMethod = 'stripe' | 'bank_transfer' | 'bitcoin'
+type CheckoutPaymentMethod = 'stripe' | 'paypal' | 'bank_transfer' | 'bitcoin'
 const paymentMethods = ref<CheckoutPaymentMethod[]>(['stripe', 'bank_transfer'])
 
 useSeo({
@@ -219,8 +219,11 @@ async function submit() {
         console.error(err)
         return router.push(orderPath)
       })
-    } else if (response.payment.method === 'stripe' && response.payment.redirectUrl) {
-      // Mock mode redirects straight to the success page
+    } else if (
+      (response.payment.method === 'stripe' || response.payment.method === 'paypal') &&
+      response.payment.redirectUrl
+    ) {
+      // PayPal approval page (mock: straight back via the return endpoint); Stripe mock: success page
       window.location.href = response.payment.redirectUrl
     } else {
       await router.push(orderPath)
@@ -251,6 +254,11 @@ const paymentOptions = computed(() => {
       value: 'stripe' as const,
       label: t('checkout.payStripe'),
       hint: t('shop.checkout.payHints.stripe'),
+    },
+    paypal: {
+      value: 'paypal' as const,
+      label: t('checkout.payPaypal'),
+      hint: t('shop.checkout.payHints.paypal'),
     },
     bank_transfer: {
       value: 'bank_transfer' as const,

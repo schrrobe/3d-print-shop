@@ -48,7 +48,7 @@ const form = reactive({
   email: '',
   phone: '',
   locale: 'de' as Locale,
-  paymentMethod: 'stripe_payment_link' as 'stripe_payment_link' | 'bank_transfer',
+  paymentMethod: 'online' as 'online' | 'bank_transfer',
   note: '',
 })
 const lines = ref<Line[]>([{ name: '', quantity: '1', priceEuros: '' }])
@@ -129,7 +129,7 @@ async function create() {
         },
       })
     },
-    { success: 'Paylink-Bestellung angelegt', error: 'Anlegen fehlgeschlagen' },
+    { success: 'Bestellung angelegt', error: 'Anlegen fehlgeschlagen' },
   )
   if (ok && created) await router.push(`/admin/orders/${created.order.id}`)
 }
@@ -235,17 +235,12 @@ async function create() {
         <h3 class="text-label-medium">Zahlung</h3>
         <fieldset class="mt-md flex flex-wrap gap-lg" role="radiogroup" aria-label="Zahlungsart">
           <label class="flex cursor-pointer items-center gap-sm">
-            <input
-              v-model="form.paymentMethod"
-              type="radio"
-              value="stripe_payment_link"
-              name="pm"
-            />
-            <span>Stripe-Zahlungslink</span>
+            <input v-model="form.paymentMethod" type="radio" value="online" name="pm" />
+            <span>Zahlungslink (Karte/PayPal)</span>
           </label>
           <label class="flex cursor-pointer items-center gap-sm">
             <input v-model="form.paymentMethod" type="radio" value="bank_transfer" name="pm" />
-            <span>Vorkasse (Rechnung sofort)</span>
+            <span>Banküberweisung (Rechnung sofort)</span>
           </label>
         </fieldset>
         <div class="mt-md grid gap-md sm:grid-cols-2">
@@ -271,7 +266,7 @@ async function create() {
           {{
             form.paymentMethod === 'bank_transfer'
               ? 'Anlegen & Rechnung senden'
-              : 'Anlegen & Link senden'
+              : 'Anlegen & Zahlungslink senden'
           }}
         </PsButton>
         <NuxtLink to="/admin/orders"

@@ -55,6 +55,7 @@ enum PaymentMethod {
   stripe_payment_link
   bank_transfer
   bitcoin
+  paypal
 }
 
 enum PaymentStatus {
@@ -64,6 +65,20 @@ enum PaymentStatus {
   failed
   refunded
   expired
+}
+
+/// Erstattung: angestoßen, erfolgreich, fehlgeschlagen
+enum RefundStatus {
+  pending
+  succeeded
+  failed
+}
+
+/// Wer das Geld zurückzahlt: Stripe-/PayPal-API oder manuell (Banküberweisung, Bitcoin)
+enum RefundProvider {
+  stripe
+  paypal
+  manual
 }
 
 enum BitcoinPaymentStatus {
@@ -261,19 +276,19 @@ enum ReviewStatus {
 // ---------- Auth / RBAC ----------
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  name           String
-  passwordHash   String
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  name                  String
+  passwordHash          String
   /// Incremented on password changes to invalidate all previously issued JWTs.
-  sessionVersion Int      @default(0)
+  sessionVersion        Int       @default(0)
   /// Sessions issued before this moment are rejected (set on logout).
   sessionsInvalidatedAt DateTime?
-  active         Boolean  @default(true)
-  roleId         String
-  role           Role     @relation(fields: [roleId], references: [id])
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  active                Boolean   @default(true)
+  roleId                String
+  role                  Role      @relation(fields: [roleId], references: [id])
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   auditLogs       AdminAuditLog[]      @relation("AuditActor")
   passwordResets  PasswordResetToken[]
@@ -287,6 +302,7 @@ model User {
   maintenanceWindows MaintenanceWindow[]   @relation("MaintenanceAuthor")
   shipments          Shipment[]            @relation("ShipmentAuthor")
   shipmentEvents     ShipmentStatusEvent[] @relation("ShipmentEventActor")
+  refunds            Refund[]              @relation("RefundCreator")
 }
 
 model Role {
@@ -569,16 +585,16 @@ model Order {
 }
 
 model OrderItem {
-  id             String   @id @default(cuid())
-  orderId        String
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId      String?
-  product        Product? @relation(fields: [productId], references: [id])
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id])
   /// Snapshot of the product/quote name at purchase time
-  name           String
-  quantity       Int
-  unitPriceCents Int
-  colorSelection Json?
+  name            String
+  quantity        Int
+  unitPriceCents  Int
+  colorSelection  Json?
   /// Name printed on the box; unitPriceCents includes PERSONALIZATION_PRICE_CENTS
   personalization String?
 
@@ -591,22 +607,28 @@ model OrderItem {
 // ---------- Payments ----------
 
 model Payment {
-  id                   String        @id @default(cuid())
-  orderId              String
-  order                Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  method               PaymentMethod
-  status               PaymentStatus @default(pending)
-  amountCents          Int
+  id                    String        @id @default(cuid())
+  orderId               String
+  order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method                PaymentMethod
+  status                PaymentStatus @default(pending)
+  amountCents           Int
   /// Stripe checkout session / payment link id
-  stripeSessionId      String?       @unique
-  stripePaymentLinkUrl String?
+  stripeSessionId       String?       @unique
+  stripePaymentLinkUrl  String?
+  /// Stripe PaymentIntent of the paid session (needed for refunds)
+  stripePaymentIntentId String?       @unique
+  /// PayPal Orders API v2 order id / capture id (capture needed for refunds)
+  paypalOrderId         String?       @unique
+  paypalCaptureId       String?       @unique
   /// Manual reference (e.g. bank transfer reference)
-  reference            String?
-  paidAt               DateTime?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  reference             String?
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   bitcoinPayment BitcoinPayment?
+  refunds        Refund[]
 }
 
 model BitcoinPayment {
@@ -639,7 +661,7 @@ model QuoteRequest {
   /// Customer accepted the published upload conditions before submitting.
   acceptedUploadTerms Boolean            @default(false)
   /// Immutable identifier of the conditions accepted by the customer.
-  uploadTermsVersion   String?
+  uploadTermsVersion  String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -840,30 +862,86 @@ model QcAttachment {
 // ---------- Invoices ----------
 
 model Invoice {
-  id            String        @id @default(cuid())
-  number        String        @unique
+  id            String              @id @default(cuid())
+  number        String              @unique
   year          Int
   sequence      Int
-  orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id])
-  locale        Locale        @default(de)
+  orderId       String              @unique
+  order         Order               @relation(fields: [orderId], references: [id])
+  locale        Locale              @default(de)
   subtotalCents Int
   shippingCents Int
-  discountCents Int           @default(0)
+  discountCents Int                 @default(0)
   totalCents    Int
   paymentMethod PaymentMethod
   pdfPath       String?
-  issuedAt      DateTime      @default(now())
+  issuedAt      DateTime            @default(now())
   /// Set once the invoice email was delivered; null = (re)send pending.
   sentAt        DateTime?
   /// Lease of the request currently mailing the invoice (CAS claim); expires on crash.
   sendLockUntil DateTime?
+  corrections   InvoiceCorrection[]
 
   @@unique([year, sequence])
 }
 
 /// Single-row-per-year counter for sequential invoice numbers (locked via transaction)
 model InvoiceCounter {
+  year         Int @id
+  lastSequence Int @default(0)
+}
+
+/// Erstattung einer Zahlung (Teil- oder Vollbetrag), siehe GLOSSARY.md
+model Refund {
+  id                String             @id @default(cuid())
+  paymentId         String
+  payment           Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents       Int
+  status            RefundStatus       @default(pending)
+  provider          RefundProvider
+  /// Stripe re_… / PayPal refund id; null for manual refunds
+  providerRefundId  String?            @unique
+  reason            String?
+  failureReason     String?
+  /// Admin who triggered it; null when imported from a provider webhook
+  createdById       String?
+  createdBy         User?              @relation("RefundCreator", fields: [createdById], references: [id])
+  complaintId       String?
+  complaint         Complaint?         @relation(fields: [complaintId], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  invoiceCorrection InvoiceCorrection?
+
+  @@index([paymentId])
+  @@index([complaintId])
+}
+
+/// Rechnungskorrektur zu einer erfolgreichen Erstattung, z. B. RK-2026-7Q3K9X
+model InvoiceCorrection {
+  id            String    @id @default(cuid())
+  number        String    @unique
+  year          Int
+  sequence      Int
+  invoiceId     String
+  invoice       Invoice   @relation(fields: [invoiceId], references: [id])
+  refundId      String    @unique
+  refund        Refund    @relation(fields: [refundId], references: [id])
+  locale        Locale    @default(de)
+  /// Refunded amount (positive); printed as a negative position
+  amountCents   Int
+  reason        String?
+  pdfPath       String?
+  issuedAt      DateTime  @default(now())
+  /// Set once the correction email was delivered; null = (re)send pending.
+  sentAt        DateTime?
+  /// Lease of the request currently mailing the correction (CAS claim).
+  sendLockUntil DateTime?
+
+  @@unique([year, sequence])
+  @@index([invoiceId])
+}
+
+model InvoiceCorrectionCounter {
   year         Int @id
   lastSequence Int @default(0)
 }
@@ -955,47 +1033,47 @@ model ConsentLog {
 /// Singleton row (id = "singleton"). Tracking IDs are public in page source by
 /// nature, but only loaded client-side after the matching consent category.
 model ShopSettings {
-  id               String   @id @default("singleton")
-  metaPixelId      String?
-  ga4MeasurementId String?
-  gtmContainerId   String?
+  id                  String   @id @default("singleton")
+  metaPixelId         String?
+  ga4MeasurementId    String?
+  gtmContainerId      String?
   /// Server-side marketing destinations (Phase 3). Access TOKENS stay in env —
   /// this row is exposed publicly via /api/tracking-settings, so never store
   /// secrets here, only the enable flags and non-secret pixel/code identifiers.
-  metaCapiEnabled    Boolean @default(false)
-  tiktokEventsEnabled Boolean @default(false)
-  tiktokPixelCode    String?
+  metaCapiEnabled     Boolean  @default(false)
+  tiktokEventsEnabled Boolean  @default(false)
+  tiktokPixelCode     String?
   /// Invoice letterhead + bank details (§14 UStG). NULL = fall back to the
   /// COMPANY_ / BANK_ env value. Not secret (printed on every invoice), but
   /// never add these to the public /api/tracking-settings response.
-  companyName        String?
-  companyOwner       String?
-  companyStreet      String?
-  companyZip         String?
-  companyCity        String?
-  companyEmail       String?
-  companyPhone       String?
-  companyWebsite     String?
-  companyTaxNumber   String?
-  bankAccountHolder  String?
-  bankIban           String?
-  bankBic            String?
+  companyName         String?
+  companyOwner        String?
+  companyStreet       String?
+  companyZip          String?
+  companyCity         String?
+  companyEmail        String?
+  companyPhone        String?
+  companyWebsite      String?
+  companyTaxNumber    String?
+  bankAccountHolder   String?
+  bankIban            String?
+  bankBic             String?
   /// Optional BCC recipient for every invoice email (e.g. bookkeeping inbox).
-  invoiceBccEmail    String?
+  invoiceBccEmail     String?
   /// §19 UStG small business (no VAT, tax number optional). NULL = COMPANY_VAT_EXEMPT env.
-  vatExempt          Boolean?
+  vatExempt           Boolean?
   /// Shop promo modal (opens on the first product page). Public via /api/promo-banner,
   /// so content only: { code: string | null, content: { de: {title,text,cta}, en?: … } }.
-  promoBannerEnabled Boolean  @default(false)
-  promoBanner        Json?
+  promoBannerEnabled  Boolean  @default(false)
+  promoBanner         Json?
   /// Hinweis-Leiste oben im Shop. Public via /api/info-banner, so text only: Record<Locale, string>.
-  infoBannerEnabled Boolean @default(false)
-  infoBanner Json?
+  infoBannerEnabled   Boolean  @default(false)
+  infoBanner          Json?
   /// Shop-wide default color per zone: Record<ColorZoneSlot, colorId>. Saving copies it
   /// onto every product's ProductColorSlot; new products start with it.
-  defaultColors      Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  defaultColors       Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 // ---------- Social media planner ----------
@@ -1080,6 +1158,7 @@ model Complaint {
   items       ComplaintItem[]
   attachments ComplaintAttachment[]
   decisions   ComplaintDecision[]
+  refunds     Refund[]
 
   @@index([orderId])
   @@index([status])
@@ -1374,10 +1453,10 @@ model TrackingEvent {
 
 /// Frozen attribution for a paid order (computed once after the payment claim).
 model OrderAttribution {
-  orderId          String   @id
-  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  model            String   @default("last_non_direct_30d")
-  computedAt       DateTime @default(now())
+  orderId          String    @id
+  order            Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  model            String    @default("last_non_direct_30d")
+  computedAt       DateTime  @default(now())
   lastChannel      String
   lastUtmSource    String?
   lastUtmMedium    String?
@@ -1390,7 +1469,7 @@ model OrderAttribution {
   firstUtmSource   String?
   firstUtmCampaign String?
   firstTouchAt     DateTime?
-  touchpointCount  Int      @default(0)
+  touchpointCount  Int       @default(0)
   daysToConversion Int?
 
   @@index([lastChannel])

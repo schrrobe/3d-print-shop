@@ -70,6 +70,7 @@
     "note": "Note (optional)",
     "payment": "Payment method",
     "payStripe": "Card / Stripe",
+    "payPaypal": "PayPal",
     "payBank": "Prepayment (bank transfer)",
     "payBitcoin": "Bitcoin",
     "submit": "Order with obligation to pay",
@@ -117,6 +118,11 @@
       "title": "Payment pending",
       "hint": "Your payment has not been completed yet.",
       "payNow": "Pay now"
+    },
+    "paypal": {
+      "payNow": "Pay with PayPal",
+      "failed": "The PayPal payment failed. Please try again or choose another payment method.",
+      "cancelled": "The PayPal payment was cancelled. You can pay now."
     }
   },
   "quote": {
@@ -506,6 +512,7 @@
       "withdrawalLink": "withdrawal policy",
       "payHints": {
         "stripe": "Secure payment via Stripe, e.g. by credit card.",
+        "paypal": "Pay securely with your PayPal account. You will be redirected to PayPal.",
         "bank_transfer": "{percent} % off the goods. You receive the bank details and invoice after ordering.",
         "bitcoin": "Pay to a Bitcoin address after ordering."
       },

@@ -87,6 +87,13 @@ const attachmentGallery = computed(() =>
   })),
 )
 const canDecide = computed(() => auth.can('complaints:decide'))
+/** "Erstattung ausführen": order page with the refund form prefilled (latest refund decision). */
+const refundLink = computed(() => {
+  const c = complaint.value
+  if (c?.status !== 'refund_planned' || !auth.can('payments:refund')) return null
+  const cents = c.decisions.filter((d) => d.resolution === 'refund').at(-1)?.refundAmountCents ?? 0
+  return `/admin/orders/${c.order.id}?refund=${cents}&complaint=${c.id}#refund`
+})
 const decisionAllowed = computed(
   () => complaint.value?.status === 'in_review' || complaint.value?.status === 'approved',
 )
@@ -274,6 +281,14 @@ function createTicket() {
           >
             Entscheidung treffen
           </PsButton>
+          <NuxtLink
+            v-if="refundLink"
+            :to="refundLink"
+            class="mt-md block text-body-regular text-brand hover:underline"
+            data-testid="complaint-refund-execute"
+          >
+            Erstattung ausführen →
+          </NuxtLink>
         </PsCard>
 
         <PsCard>

@@ -14,6 +14,7 @@ import { adminComplaintsRouter } from './routes/admin/complaints.js'
 import { adminDashboardRouter } from './routes/admin/dashboard.js'
 import { adminFilamentRouter } from './routes/admin/filament.js'
 import { adminInvoicesRouter } from './routes/admin/invoices.js'
+import { adminRefundsRouter } from './routes/admin/refunds.js'
 import { adminOrdersRouter } from './routes/admin/orders.js'
 import { adminPaymentsRouter } from './routes/admin/payments.js'
 import { adminPrintersRouter } from './routes/admin/printers.js'
@@ -56,6 +57,7 @@ import { trackRouter } from './routes/public/track.js'
 import { uploadsRouter } from './routes/public/uploads.js'
 import { vouchersRouter } from './routes/public/vouchers.js'
 import { salesChannelRedirectRouter } from './routes/public/sales-channels.js'
+import { paypalWebhookRouter } from './routes/public/paypal-webhook.js'
 import { webhooksRouter } from './routes/public/webhooks.js'
 
 export function createApp(): Express {
@@ -70,7 +72,9 @@ export function createApp(): Express {
     }),
   )
 
-  // Stripe webhook needs the raw body — mount before the JSON parser.
+  // Webhooks need the raw body — mount before the JSON parser. PayPal verification
+  // costs an API call, so cap floods first.
+  app.use('/api/webhooks/paypal', publicLimiter, paypalWebhookRouter)
   app.use('/api/webhooks', webhooksRouter)
 
   // Tracking ingest brings its own body parser (accepts sendBeacon text/plain) —
@@ -124,6 +128,7 @@ export function createApp(): Express {
   app.use('/api/admin/orders', requireAuth, adminOrdersRouter)
   app.use('/api/admin/payments', requireAuth, adminPaymentsRouter)
   app.use('/api/admin/invoices', requireAuth, adminInvoicesRouter)
+  app.use('/api/admin/refunds', requireAuth, adminRefundsRouter)
   app.use('/api/admin/printers', requireAuth, adminPrintersRouter)
   app.use('/api/admin/production', requireAuth, adminProductionRouter)
   app.use('/api/admin/users', requireAuth, adminUsersRouter)

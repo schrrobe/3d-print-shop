@@ -107,6 +107,22 @@ useSeo({
           mitgeteilt werden.
         </p>
         <p class="mt-sm">
+          Wählst du PayPal, leiten wir dich nach dem Absenden der Bestellung zu PayPal weiter und
+          übermitteln dazu Bestellnummer, Betrag, Währung sowie die Rücksprungadresse zu deiner
+          Bestellung. Deine Zahlungs- und Kontodaten gibst
+          du unmittelbar bei PayPal ein. Anbieter ist die PayPal (Europe) S.à r.l. et Cie, S.C.A.,
+          22-24 Boulevard Royal, L-2449 Luxemburg, die als Zahlungsdienstleister eigenverantwortlich
+          handelt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO [OFFEN: Drittlandübermittlung
+          durch PayPal prüfen]. Weitere Informationen findest du in der
+          <a
+            class="underline"
+            href="https://www.paypal.com/de/legalhub/paypal/privacy-full"
+            rel="noopener noreferrer"
+            target="_blank"
+            >Datenschutzerklärung von PayPal</a
+          >.
+        </p>
+        <p class="mt-sm">
           Bei Auswahl von Bitcoin leiten wir aus unserer eigenen Wallet eine Zahlungsadresse ab und
           prüfen den Zahlungseingang anhand öffentlicher Blockchain-Daten [OFFEN: ggf. genutzten
           Blockchain-Abfragedienst benennen]. Blockchain-Transaktionen sind öffentlich einsehbar und

@@ -26,9 +26,7 @@ vi.mock('../src/services/order-flow.js', async (importOriginal) => ({
 }))
 vi.mock('../src/services/payments/stripe.js', async (importOriginal) => ({
   ...(await importOriginal<object>()),
-  createStripePaymentLink: vi
-    .fn()
-    .mockResolvedValue({ sessionId: 'plink_1', url: 'https://buy.stripe.com/x' }),
+  closeStripeCheckoutSession: vi.fn().mockResolvedValue(true),
   deactivateStripePaymentLink: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -37,8 +35,9 @@ const { prisma } = await import('../src/lib/prisma.js')
 const { signSession, SESSION_COOKIE } = await import('../src/middleware/auth.js')
 const { sendEmail } = await import('../src/services/email.js')
 const { issuePrepaymentInvoice } = await import('../src/services/order-flow.js')
-const { createStripePaymentLink, deactivateStripePaymentLink } =
+const { closeStripeCheckoutSession, deactivateStripePaymentLink } =
   await import('../src/services/payments/stripe.js')
+const { env } = await import('../src/env.js')
 
 const orderCreate = vi.mocked(prisma.order.create)
 let server: Server
@@ -101,33 +100,27 @@ const base = {
   items: [{ name: '9mm Sonderbox', quantity: 2, unitPriceCents: 2500 }],
 }
 
-describe('POST /api/admin/orders (paylink)', () => {
-  it('creates a stripe paylink order and mails the link', async () => {
-    const res = await post('/api/admin/orders', { ...base, paymentMethod: 'stripe_payment_link' })
+describe('POST /api/admin/orders (Admin-Bestellung)', () => {
+  it('creates an online order and mails the Zahlungslink to the order page', async () => {
+    const res = await post('/api/admin/orders', { ...base, paymentMethod: 'online' })
 
     expect(res.status).toBe(201)
-    expect(await res.json()).toMatchObject({
-      paymentUrl: 'https://buy.stripe.com/x',
-      emailSent: true,
-    })
-    expect(vi.mocked(createStripePaymentLink)).toHaveBeenCalledWith(
-      expect.objectContaining({ amountCents: 5699 }),
-    )
-    const data = orderCreate.mock.calls[0]![0].data
+    const data = orderCreate.mock.calls[0]![0].data as Record<string, unknown>
+    const orderPage = `${env.WEB_URL}/order/${String(data.orderNumber)}?token=${String(data.accessToken)}`
+    expect(await res.json()).toMatchObject({ paymentUrl: orderPage, emailSent: true })
     expect(data).toMatchObject({
       source: 'admin',
       status: 'awaiting_payment',
       subtotalCents: 5000,
       totalCents: 5699,
-      payments: {
-        create: { method: 'stripe_payment_link', amountCents: 5699, stripeSessionId: 'plink_1' },
-      },
+      payments: { create: { method: 'stripe', status: 'pending', amountCents: 5699 } },
     })
-    expect(vi.mocked(sendEmail)).toHaveBeenCalledWith(
-      'max@example.com',
-      'payment_link',
-      expect.anything(),
-    )
+    // No Stripe object up front: the order page starts card or PayPal.
+    expect(data.payments).not.toHaveProperty('create.stripeSessionId')
+    expect(data.payments).not.toHaveProperty('create.stripePaymentLinkUrl')
+    const mail = vi.mocked(sendEmail).mock.calls.find((c) => c[1] === 'payment_link')
+    expect(mail?.[0]).toBe('max@example.com')
+    expect(mail?.[2].text).toContain(orderPage)
     expect(vi.mocked(issuePrepaymentInvoice)).not.toHaveBeenCalled()
   })
 
@@ -135,9 +128,10 @@ describe('POST /api/admin/orders (paylink)', () => {
     const res = await post('/api/admin/orders', { ...base, paymentMethod: 'bank_transfer' })
 
     expect(res.status).toBe(201)
-    expect(vi.mocked(createStripePaymentLink)).not.toHaveBeenCalled()
+    expect(await res.json()).toMatchObject({ paymentUrl: null })
     expect(orderCreate.mock.calls[0]![0].data).toMatchObject({
       status: 'awaiting_bank_transfer',
+      payments: { create: { method: 'bank_transfer' } },
     })
     expect(vi.mocked(issuePrepaymentInvoice)).toHaveBeenCalledWith('order_1')
     expect(vi.mocked(sendEmail)).not.toHaveBeenCalledWith(
@@ -145,6 +139,12 @@ describe('POST /api/admin/orders (paylink)', () => {
       'payment_link',
       expect.anything(),
     )
+  })
+
+  it('rejects the retired stripe_payment_link method', async () => {
+    const res = await post('/api/admin/orders', { ...base, paymentMethod: 'stripe_payment_link' })
+    expect(res.status).toBe(400)
+    expect(orderCreate).not.toHaveBeenCalled()
   })
 
   it('rejects unknown products and totals below 0,50 €', async () => {
@@ -158,39 +158,66 @@ describe('POST /api/admin/orders (paylink)', () => {
 
     const tooSmall = await post('/api/admin/orders', {
       ...base,
-      paymentMethod: 'stripe_payment_link',
+      paymentMethod: 'online',
       shippingCents: 0,
       items: [{ name: 'X', quantity: 1, unitPriceCents: 10 }],
     })
     expect(tooSmall.status).toBe(400)
     expect(orderCreate).not.toHaveBeenCalled()
   })
-
-  it('deactivates the stripe link when the order cannot be stored', async () => {
-    orderCreate.mockRejectedValueOnce(new Error('db down'))
-    const res = await post('/api/admin/orders', { ...base, paymentMethod: 'stripe_payment_link' })
-
-    expect(res.status).toBe(500)
-    expect(vi.mocked(deactivateStripePaymentLink)).toHaveBeenCalledWith('plink_1')
-  })
 })
 
-describe('POST /api/admin/orders/:id/status cancelled', () => {
-  it('deactivates an open payment link before cancelling', async () => {
-    vi.mocked(prisma.order.findUnique).mockResolvedValue({
-      id: 'order_1',
-      status: 'awaiting_payment',
-      payments: [
-        {
-          id: 'pay_1',
-          method: 'stripe_payment_link',
-          status: 'pending',
-          stripeSessionId: 'plink_1',
-        },
-      ],
-    } as never)
-    vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 })
-    vi.mocked(prisma.order.findUniqueOrThrow).mockResolvedValue({ id: 'order_1' } as never)
+function mockOrder(status: string, payments: unknown[] = []) {
+  vi.mocked(prisma.order.findUnique).mockResolvedValue({ id: 'order_1', status, payments } as never)
+  vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 })
+  vi.mocked(prisma.order.findUniqueOrThrow).mockResolvedValue({ id: 'order_1' } as never)
+}
+
+describe('POST /api/admin/orders/:id/status', () => {
+  it('expires the open Stripe checkout session before cancelling', async () => {
+    mockOrder('awaiting_payment', [
+      { id: 'pay_1', method: 'stripe', status: 'pending', stripeSessionId: 'cs_1' },
+    ])
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(closeStripeCheckoutSession)).toHaveBeenCalledWith('cs_1')
+    expect(vi.mocked(deactivateStripePaymentLink)).not.toHaveBeenCalled()
+    expect(vi.mocked(prisma.payment.updateMany)).toHaveBeenCalledWith({
+      where: { id: 'pay_1', status: 'pending' },
+      data: { status: 'expired' },
+    })
+  })
+
+  it('refuses to cancel when the Stripe session just completed', async () => {
+    mockOrder('awaiting_payment', [
+      { id: 'pay_1', method: 'stripe', status: 'pending', stripeSessionId: 'cs_1' },
+    ])
+    vi.mocked(closeStripeCheckoutSession).mockResolvedValueOnce(false)
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(409)
+    expect(vi.mocked(prisma.order.updateMany)).not.toHaveBeenCalled()
+  })
+
+  it('cancels an online order without a Stripe session yet (or a PayPal one) directly', async () => {
+    mockOrder('awaiting_payment', [
+      { id: 'pay_1', method: 'paypal', status: 'pending', stripeSessionId: null },
+    ])
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(closeStripeCheckoutSession)).not.toHaveBeenCalled()
+    expect(vi.mocked(prisma.payment.updateMany)).not.toHaveBeenCalled()
+  })
+
+  it('still deactivates a legacy Stripe payment link before cancelling', async () => {
+    mockOrder('awaiting_payment', [
+      { id: 'pay_1', method: 'stripe_payment_link', status: 'pending', stripeSessionId: 'plink_1' },
+    ])
 
     const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
 
@@ -203,15 +230,31 @@ describe('POST /api/admin/orders/:id/status cancelled', () => {
   })
 
   it('refuses to cancel an order a webhook just marked paid', async () => {
-    vi.mocked(prisma.order.findUnique).mockResolvedValue({
-      id: 'order_1',
-      status: 'awaiting_payment',
-      payments: [],
-    } as never)
+    mockOrder('awaiting_payment')
     vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 0 })
 
     const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
 
     expect(res.status).toBe(409)
+  })
+
+  it('rejects a manual switch to refunded (refunds go through the refund function)', async () => {
+    mockOrder('paid')
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'refunded' })
+
+    expect(res.status).toBe(409)
+    expect(((await res.json()) as { message: string }).message).toContain('Erstattung')
+    expect(vi.mocked(prisma.order.updateMany)).not.toHaveBeenCalled()
+  })
+
+  it('rejects paid → cancelled (use "Stornieren & erstatten")', async () => {
+    mockOrder('paid')
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(409)
+    expect(((await res.json()) as { message: string }).message).toContain('Stornieren & erstatten')
+    expect(vi.mocked(prisma.order.updateMany)).not.toHaveBeenCalled()
   })
 })

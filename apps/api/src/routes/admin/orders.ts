@@ -22,17 +22,17 @@ import {
   markOrderPaid,
   notifyProductionStarted,
   orderEmailData,
+  orderUrl,
   resendInvoice,
   sendOrderConfirmation,
   sendPaymentReminder,
 } from '../../services/order-flow.js'
 import { itemColorResolver } from '../../services/item-colors.js'
 import {
-  createStripePaymentLink,
+  closeStripeCheckoutSession,
   deactivateStripePaymentLink,
 } from '../../services/payments/stripe.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
-import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
@@ -106,9 +106,9 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
 })
 
 /**
- * Admin paylink: order with free items (e.g. a caliber the shop does not list),
- * paid via a single-use Stripe payment link or Vorkasse. Payment, invoice and
- * production then run through the regular order flow.
+ * Admin-Bestellung: order with free items (e.g. a caliber the shop does not list),
+ * paid online via the Zahlungslink to our order page (card, or PayPal there) or
+ * Vorkasse. Payment, invoice and production then run through the regular order flow.
  */
 adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, next) => {
   try {
@@ -125,62 +125,43 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
     const orderNumber = generateOrderNumber()
     const accessToken = randomToken()
     const { address } = input
-    const link =
-      input.paymentMethod === 'stripe_payment_link'
-        ? await createStripePaymentLink({
-            orderNumber,
-            accessToken,
+    // Online: no Stripe object yet; the order page starts card or PayPal (ADR 0002).
+    const online = input.paymentMethod === 'online'
+    const order = await prisma.order.create({
+      data: {
+        orderNumber,
+        accessToken,
+        source: 'admin',
+        status: online ? 'awaiting_payment' : 'awaiting_bank_transfer',
+        locale: input.locale,
+        email: address.email,
+        firstName: address.firstName,
+        lastName: address.lastName,
+        company: address.company,
+        street: address.street,
+        zip: address.zip,
+        city: address.city,
+        country: address.country,
+        phone: address.phone,
+        note: input.note,
+        subtotalCents,
+        shippingCents: input.shippingCents,
+        totalCents,
+        items: { create: input.items },
+        payments: {
+          create: {
+            method: online ? 'stripe' : 'bank_transfer',
+            status: 'pending',
             amountCents: totalCents,
-            email: address.email,
-            locale: input.locale,
-            description: `Bestellung ${orderNumber}`,
-          })
-        : null
-
-    let order
-    try {
-      order = await prisma.order.create({
-        data: {
-          orderNumber,
-          accessToken,
-          source: 'admin',
-          status: link ? 'awaiting_payment' : 'awaiting_bank_transfer',
-          locale: input.locale,
-          email: address.email,
-          firstName: address.firstName,
-          lastName: address.lastName,
-          company: address.company,
-          street: address.street,
-          zip: address.zip,
-          city: address.city,
-          country: address.country,
-          phone: address.phone,
-          note: input.note,
-          subtotalCents,
-          shippingCents: input.shippingCents,
-          totalCents,
-          items: { create: input.items },
-          payments: {
-            create: {
-              method: input.paymentMethod,
-              status: 'pending',
-              amountCents: totalCents,
-              stripeSessionId: link?.sessionId,
-              stripePaymentLinkUrl: link?.url,
-              reference: link ? null : orderNumber,
-            },
+            reference: online ? null : orderNumber,
           },
         },
-        include: { items: true },
-      })
-    } catch (err) {
-      // Never leave a payable link behind for an order that does not exist.
-      if (link) await deactivateStripePaymentLink(link.sessionId).catch(() => undefined)
-      throw err
-    }
+      },
+      include: { items: true },
+    })
 
     let emailSent: boolean
-    if (link) {
+    if (online) {
       emailSent = await sendEmail(
         order.email,
         'payment_link',
@@ -188,7 +169,7 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
           {
             ...orderEmailData(order),
             shippingCents: order.shippingCents,
-            paymentUrl: link.url,
+            paymentUrl: orderUrl(order),
             termsUrl: `${env.WEB_URL}${TERMS_PATH}`,
             legal: legalCompany(),
           },
@@ -214,7 +195,7 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
     )
     res.status(201).json({
       order: { id: order.id, orderNumber: order.orderNumber },
-      paymentUrl: link?.url ?? null,
+      paymentUrl: online ? orderUrl(order) : null,
       emailSent,
     })
   } catch (err) {
@@ -233,13 +214,28 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       include: { payments: true },
     })
     if (!order) throw notFound('Order not found')
+    // Money goes back only through a Refund (routes/admin/refunds.ts), which sets `refunded`.
+    if (status === 'refunded') {
+      throw conflict('„Erstattet“ lässt sich nicht manuell setzen – bitte die Erstattung nutzen')
+    }
+    if (
+      status === 'cancelled' &&
+      (REVENUE_ORDER_STATUSES as readonly string[]).includes(order.status)
+    ) {
+      throw conflict('Bezahlte Bestellungen bitte über „Stornieren & erstatten“ stornieren')
+    }
     assertOrderTransition(order.status, status)
     if (status === 'cancelled') {
-      // An open payment link must stop taking money before the order is cancelled.
+      // An open checkout session / legacy payment link must stop taking money first.
       for (const p of order.payments) {
-        if (p.method !== 'stripe_payment_link' || p.status !== 'pending' || !p.stripeSessionId)
-          continue
-        await deactivateStripePaymentLink(p.stripeSessionId)
+        if (p.status !== 'pending' || !p.stripeSessionId) continue
+        if (p.method === 'stripe') {
+          if (!(await closeStripeCheckoutSession(p.stripeSessionId))) {
+            throw conflict('Die Zahlung wurde gerade abgeschlossen')
+          }
+        } else if (p.method === 'stripe_payment_link')
+          await deactivateStripePaymentLink(p.stripeSessionId)
+        else continue
         await prisma.payment.updateMany({
           where: { id: p.id, status: 'pending' },
           data: { status: 'expired' },
@@ -259,17 +255,6 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     if (status === 'in_production') await notifyProductionStarted(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
-    // Conversion tracking — best-effort, must never break the status change.
-    try {
-      if (status === 'refunded') await emitRefund(prisma, order)
-      else if (
-        status === 'cancelled' &&
-        (REVENUE_ORDER_STATUSES as readonly string[]).includes(order.status)
-      )
-        await emitCancel(prisma, order)
-    } catch (err) {
-      console.error('[tracking] refund/cancel emit failed:', err)
-    }
     await audit(
       req,
       'order.status',

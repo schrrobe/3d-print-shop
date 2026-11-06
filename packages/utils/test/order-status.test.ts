@@ -36,6 +36,13 @@ describe('order status transitions', () => {
     expect(canTransitionOrder('awaiting_payment', 'in_production')).toBe(false)
   })
 
+  it('paid orders end via a refund, never plain cancellation', () => {
+    expect(canTransitionOrder('paid', 'cancelled')).toBe(false)
+    for (const from of ['paid', 'in_production', 'quality_check', 'ready_to_ship', 'shipped', 'completed'] as const) {
+      expect(canTransitionOrder(from, 'refunded')).toBe(true)
+    }
+  })
+
   it('rejects transitions out of terminal states', () => {
     expect(canTransitionOrder('cancelled', 'paid')).toBe(false)
     expect(canTransitionOrder('refunded', 'pending')).toBe(false)

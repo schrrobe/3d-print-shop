@@ -1,5 +1,4 @@
 import { renderQuoteAccepted } from '@print-shop/emails'
-import type { Prisma } from '@prisma/client'
 import { addressSchema } from '@print-shop/validators'
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
@@ -8,7 +7,7 @@ import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { sensitiveLimiter } from '../../middleware/rate-limit.js'
 import { assertCompanyComplete } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
-import { createStripePaymentLink } from '../../services/payments/stripe.js'
+import { orderUrl } from '../../services/order-flow.js'
 
 export const quotesRouter = Router()
 
@@ -16,73 +15,6 @@ const acceptedQuoteInclude = {
   quoteRequest: true,
   order: { include: { payments: true } },
 } as const
-
-const STALE_PAYMENT_PREPARATION_MS = 15 * 60 * 1000
-
-async function ensureQuotePaymentLink(
-  order: Prisma.OrderGetPayload<{ include: { payments: true } }>,
-  locale: string,
-): Promise<{ url: string; created: boolean }> {
-  const payment = order.payments.find((p) => p.status !== 'failed')
-  if (!payment) throw new Error(`Quote order ${order.orderNumber} has no payment`)
-  if (payment.stripePaymentLinkUrl) return { url: payment.stripePaymentLinkUrl, created: false }
-
-  if (payment.status === 'processing') {
-    await prisma.payment.updateMany({
-      where: {
-        id: payment.id,
-        status: 'processing',
-        stripeSessionId: null,
-        updatedAt: { lte: new Date(Date.now() - STALE_PAYMENT_PREPARATION_MS) },
-      },
-      data: { status: 'pending' },
-    })
-  }
-
-  const claimed = await prisma.payment.updateMany({
-    where: { id: payment.id, status: 'pending', stripeSessionId: null },
-    data: { status: 'processing' },
-  })
-  if (claimed.count !== 1) throw conflict('Payment link is already being prepared; retry shortly')
-
-  try {
-    const link = await createStripePaymentLink({
-      orderNumber: order.orderNumber,
-      accessToken: order.accessToken,
-      amountCents: order.totalCents,
-      email: order.email,
-      locale,
-      description: `Individuelles Angebot ${order.orderNumber}`,
-    })
-    const updated = await prisma.payment.updateMany({
-      where: { id: payment.id, status: 'processing', stripeSessionId: null },
-      data: {
-        status: 'pending',
-        stripeSessionId: link.sessionId,
-        stripePaymentLinkUrl: link.url,
-      },
-    })
-    if (updated.count !== 1) {
-      // Our claim was lost (e.g. a stale-reset let another request take over).
-      // Don't overwrite the newer link; return it if present, else signal retry.
-      const existing = await prisma.payment.findUnique({
-        where: { id: payment.id },
-        select: { stripePaymentLinkUrl: true },
-      })
-      if (existing?.stripePaymentLinkUrl) {
-        return { url: existing.stripePaymentLinkUrl, created: false }
-      }
-      throw conflict('Payment link state changed; retry shortly')
-    }
-    return { url: link.url, created: true }
-  } catch (err) {
-    await prisma.payment.updateMany({
-      where: { id: payment.id, status: 'processing', stripeSessionId: null },
-      data: { status: 'pending' },
-    })
-    throw err
-  }
-}
 
 /** Public quote view for the customer (token from the quote email). */
 quotesRouter.get('/:token', async (req, res, next) => {
@@ -114,7 +46,10 @@ quotesRouter.get('/:token', async (req, res, next) => {
   }
 })
 
-/** Customer accepts the quote → order + Stripe payment link. */
+/**
+ * Customer accepts the quote → order awaiting payment, paid via the order page
+ * (card or PayPal there; ADR 0002). Retrying an accepted quote returns the same link.
+ */
 quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => {
   try {
     const quote = await prisma.quote.findUnique({
@@ -135,6 +70,7 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
       const address = addressSchema.parse(req.body?.address ?? {})
       const orderNumber = generateOrderNumber()
       const accessToken = randomToken()
+      // No Stripe object yet: the order page starts card or PayPal payment.
       order = await prisma.$transaction(async (tx) => {
         const claimed = await tx.quote.updateMany({
           where: { id: quote.id, status: 'sent', validUntil: { gt: new Date() } },
@@ -171,7 +107,7 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
             },
             payments: {
               create: {
-                method: 'stripe_payment_link',
+                method: 'stripe',
                 status: 'pending',
                 amountCents: quote.priceCents,
               },
@@ -186,25 +122,28 @@ quotesRouter.post('/:token/accept', sensitiveLimiter, async (req, res, next) => 
         })
         return created
       })
-    } else if (quote.status !== 'accepted' || !order) {
-      throw conflict(`Quote already ${quote.status}`)
-    }
-
-    const link = await ensureQuotePaymentLink(order, quote.quoteRequest.locale)
-
-    if (link.created) {
       await sendEmail(
         order.email,
         'quote_accepted',
         renderQuoteAccepted(
-          { name: quote.quoteRequest.name, priceCents: quote.priceCents, paymentUrl: link.url },
+          {
+            name: quote.quoteRequest.name,
+            priceCents: quote.priceCents,
+            paymentUrl: orderUrl(order),
+          },
           quote.quoteRequest.locale,
         ),
       )
+    } else if (quote.status !== 'accepted' || !order) {
+      throw conflict(`Quote already ${quote.status}`)
     }
 
+    // Legacy: quotes accepted before ADR 0002 keep their already-sent Stripe Payment Link.
+    const legacyLink = order.payments.find(
+      (p) => p.method === 'stripe_payment_link' && p.stripePaymentLinkUrl,
+    )?.stripePaymentLinkUrl
     res.json({
-      paymentUrl: link.url,
+      paymentUrl: legacyLink ?? orderUrl(order),
       orderNumber: order.orderNumber,
       accessToken: order.accessToken,
     })
