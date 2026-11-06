@@ -69,7 +69,7 @@ const de: Partial<Record<LegalDocumentKey, LegalDocumentTranslation>> = {
         heading: '5. Preise und Versandkosten',
         paragraphs: [
           'Alle angegebenen Preise sind Endpreise in Euro. Als Kleinunternehmer im Sinne von § 19 UStG weisen wir keine Umsatzsteuer aus.',
-          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in alle anderen Lieferländer 15,00 € (ab 100,00 € Bestellwert 10,00 €). Ab einem Bestellwert von 100,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
+          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in alle anderen Lieferländer 15,00 € (ab 100,00 € Bestellwert 10,00 €, versandkostenfrei ab 200,00 €). Ab einem Bestellwert von 100,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
           'Bei Lieferungen in die Schweiz können bei der Einfuhr Zölle, Einfuhrumsatzsteuer und Gebühren des Versanddienstleisters anfallen. Diese sind nicht im Preis enthalten und von dir zu tragen.',
         ],
       },
@@ -316,7 +316,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
         heading: '5. Prices and shipping costs',
         paragraphs: [
           'All prices stated are final prices in euros. As a small business within the meaning of section 19 UStG, we do not charge VAT.',
-          'Shipping costs are added: €6.99 within Germany (free shipping from an order value of €80.00) and €15.00 to all other delivery countries (€10.00 from an order value of €100.00). From an order value of €100.00 you also receive one 50-round cartridge box of your choice free of charge.',
+          'Shipping costs are added: €6.99 within Germany (free shipping from an order value of €80.00) and €15.00 to all other delivery countries (€10.00 from an order value of €100.00, free shipping from €200.00). From an order value of €100.00 you also receive one 50-round cartridge box of your choice free of charge.',
           'For deliveries to Switzerland, customs duties, import VAT and fees of the shipping carrier may be charged on import. These are not included in the price and are borne by you.',
         ],
       },
