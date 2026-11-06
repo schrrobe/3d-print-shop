@@ -4,6 +4,7 @@ import {
   adminApiContext,
   apiContext,
   createPaidOrderViaApi,
+  finishOrderJobs,
   getAdminOrder,
 } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
@@ -38,7 +39,9 @@ test.describe('shipping management', () => {
     const admin = await adminApiContext()
     const ctx = await apiContext()
     const email = `ship-full-${Date.now()}@example.com`
-    const products = (await (await admin.get('/api/products')).json()) as { products: { id: string }[] }
+    const products = (await (await admin.get('/api/products')).json()) as {
+      products: { id: string }[]
+    }
     const { orderNumber } = await createPaidOrderViaApi(products.products[0]!.id, email)
 
     const order = await getAdminOrder(admin, orderNumber)
@@ -54,17 +57,30 @@ test.describe('shipping management', () => {
     expect(toReady.ok()).toBe(true)
     await admin.post(`/api/admin/shipments/${shipmentId}/status`, { data: { status: 'packed' } })
 
+    // Print jobs still in production → shipping is rejected
+    const blocked = await admin.post(`/api/admin/shipments/${shipmentId}/ship`, {
+      data: { carrier: 'dhl', trackingNumber: 'DHL-E2E-777001' },
+    })
+    expect(blocked.status()).toBe(409)
+
+    const ready = await finishOrderJobs(admin, orderNumber)
+    expect(ready.printerJobs.length).toBeGreaterThan(0)
+    expect(ready.printerJobs.every((j) => j.status === 'ready_to_ship')).toBe(true)
+
     const shipped = await admin.post(`/api/admin/shipments/${shipmentId}/ship`, {
       data: { carrier: 'dhl', trackingNumber: 'DHL-E2E-777001' },
     })
     expect(shipped.ok()).toBe(true)
 
-    // Order marked shipped with carrier + tracking (single writer)
+    // Order marked shipped with carrier + tracking (single writer), jobs closed
     const afterOrder = await getAdminOrder(admin, orderNumber)
     expect(afterOrder.status).toBe('shipped')
+    expect(afterOrder.printerJobs.every((j) => j.status === 'shipped')).toBe(true)
 
     // Shipping confirmation email logged
-    const emails = (await (await ctx.get(`/api/dev/emails?to=${encodeURIComponent(email)}`)).json()) as {
+    const emails = (await (
+      await ctx.get(`/api/dev/emails?to=${encodeURIComponent(email)}`)
+    ).json()) as {
       emails: { template: string }[]
     }
     expect(emails.emails.map((e) => e.template)).toContain('shipping_confirmation')

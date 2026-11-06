@@ -31,7 +31,9 @@ problem ─> waiting_for_qc | ready_for_shipping | packed | shipped
 `Order.shippedAt` und den Bestellstatus auf `shipped` schreibt. Alles in einer
 Transaktion: Sendung → `shipped`, Bestellung → `shipped`, versandfähige Jobs → `shipped`,
 StatusEvent, danach Versandbestätigung (`shipping_confirmation`). Das verhindert Drift
-zwischen Bestellung und Sendung.
+zwischen Bestellung und Sendung. Steht noch ein Druckjob der Bestellung nicht auf
+`ready_to_ship` (oder `shipped`), lehnt `shipShipment()` mit `409` ab — sonst bliebe er
+aktiv und zuweisbar in der Produktions-Queue.
 
 Die Alt-Route `POST /api/admin/orders/:id/shipping` bleibt als dünner Wrapper erhalten:
 Sie legt (falls nötig) eine implizite Sendung an (`packed`, Event-Notiz `legacy-route`)

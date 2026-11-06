@@ -116,7 +116,8 @@ export async function transitionShipment(
 /**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
  * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
- * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped.
+ * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped
+ * (409 while any job of the order is not yet ready_to_ship).
  * The shipping confirmation email goes out after the transaction commits.
  */
 export async function shipShipment(input: {
@@ -136,6 +137,14 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
+    // The order ships as a whole: no print job may still be in production,
+    // otherwise it would stay active (and assignable) in the production queue.
+    const jobs = await tx.printerJob.findMany({
+      where: { orderId: shipment.orderId, status: { not: 'shipped' } },
+    })
+    if (jobs.some((job) => !canTransitionProduction(job.status, 'shipped'))) {
+      throw conflict('All print jobs of this order must be ready to ship before shipping')
+    }
     const result = await tx.shipment.update({
       where: { id: shipment.id },
       data: {
@@ -154,12 +163,10 @@ export async function shipShipment(input: {
         shippedAt: now,
       },
     })
-    const jobs = await tx.printerJob.findMany({ where: { orderId: shipment.orderId } })
-    for (const job of jobs) {
-      if (canTransitionProduction(job.status, 'shipped')) {
-        await tx.printerJob.update({ where: { id: job.id }, data: { status: 'shipped' } })
-      }
-    }
+    await tx.printerJob.updateMany({
+      where: { id: { in: jobs.map((job) => job.id) } },
+      data: { status: 'shipped' },
+    })
     await tx.shipmentStatusEvent.create({
       data: {
         shipmentId: shipment.id,
