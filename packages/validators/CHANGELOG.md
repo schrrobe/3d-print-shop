@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.7.0...validators-v0.8.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.2.0
+    * @print-shop/utils bumped to 0.6.0
+
 ## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.6.0...validators-v0.7.0) (2026-11-02)
 
 

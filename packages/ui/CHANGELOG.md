@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.5.0...ui-v0.6.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.2.0
+    * @print-shop/utils bumped to 0.6.0
+
 ## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.4.0...ui-v0.5.0) (2026-11-04)
 
 

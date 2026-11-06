@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.15.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.14.0...api-v0.15.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Dashboard-Widget „Beliebteste Artikel“ ([#105](https://github.com/schrrobe/3d-print-shop/issues/105)) ([826daec](https://github.com/schrrobe/3d-print-shop/commit/826daec9d6d929dfa30eb930e60e96b740fcadfb))
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+
+
+### Bug Fixes
+
+* **emails:** Kein "Print Shop GmbH" mehr im E-Mail-Footer ([#102](https://github.com/schrrobe/3d-print-shop/issues/102)) ([97a920b](https://github.com/schrrobe/3d-print-shop/commit/97a920b08ca7975bb59d7355c2da07eaa098f953))
+* **shipping:** Druckjob-Prüfung vor dem Anlegen der impliziten Sendung ([#109](https://github.com/schrrobe/3d-print-shop/issues/109)) ([6f33183](https://github.com/schrrobe/3d-print-shop/commit/6f3318363dfaa8788052910e94170c371351ab8c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.3.1
+    * @print-shop/types bumped to 0.2.0
+    * @print-shop/utils bumped to 0.6.0
+    * @print-shop/validators bumped to 0.8.0
+
 ## [0.14.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.13.0...api-v0.14.0) (2026-11-04)
 
 

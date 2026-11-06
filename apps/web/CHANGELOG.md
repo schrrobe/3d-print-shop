@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.13.0...web-v0.14.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Dashboard-Widget „Beliebteste Artikel“ ([#105](https://github.com/schrrobe/3d-print-shop/issues/105)) ([826daec](https://github.com/schrrobe/3d-print-shop/commit/826daec9d6d929dfa30eb930e60e96b740fcadfb))
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+* **checkout:** Auslandsversand ab 100 € für 10 € statt kostenlos ([#107](https://github.com/schrrobe/3d-print-shop/issues/107)) ([66c54d0](https://github.com/schrrobe/3d-print-shop/commit/66c54d02528aeadc68fdcdcf78f0b7fe8fb38d1c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.3.1
+    * @print-shop/types bumped to 0.2.0
+    * @print-shop/ui bumped to 0.6.0
+    * @print-shop/utils bumped to 0.6.0
+    * @print-shop/validators bumped to 0.8.0
+
 ## [0.13.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.12.0...web-v0.13.0) (2026-11-04)
 
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.1](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.3.0...emails-v0.3.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **emails:** Kein "Print Shop GmbH" mehr im E-Mail-Footer ([#102](https://github.com/schrrobe/3d-print-shop/issues/102)) ([97a920b](https://github.com/schrrobe/3d-print-shop/commit/97a920b08ca7975bb59d7355c2da07eaa098f953))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.2.0
+    * @print-shop/utils bumped to 0.6.0
+
 ## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.2.1...emails-v0.3.0) (2026-11-02)
 
 
