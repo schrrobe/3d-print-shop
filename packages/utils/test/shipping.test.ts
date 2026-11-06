@@ -18,12 +18,14 @@ describe('shipping', () => {
     expect(calcShippingCents(999999, 'DE')).toBe(0)
   })
 
-  it('charges 15 € abroad below 100 €, 10 € from exactly 100 €', () => {
+  it('charges 15 € abroad below 100 €, 10 € from 100 €, free from 200 €', () => {
     expect(calcShippingCents(1, 'AT')).toBe(1500)
     expect(calcShippingCents(8000, 'AT')).toBe(1500)
     expect(calcShippingCents(9999, 'CH')).toBe(1500)
     expect(calcShippingCents(10000, 'FR')).toBe(1000)
-    expect(calcShippingCents(999999, 'ch')).toBe(1000)
+    expect(calcShippingCents(19999, 'ch')).toBe(1000)
+    expect(calcShippingCents(20000, 'ch')).toBe(0)
+    expect(calcShippingCents(999999, 'NL')).toBe(0)
   })
 
   it('costs nothing for an empty cart', () => {
@@ -36,12 +38,14 @@ describe('shipping', () => {
     expect(isFreeShipping(8000, 'DE')).toBe(true)
     expect(isFreeShipping(8000, 'NL')).toBe(false)
     expect(isFreeShipping(10000, 'NL')).toBe(false)
+    expect(isFreeShipping(20000, 'NL')).toBe(true)
   })
 
   it('computes cents until free shipping per country', () => {
     expect(centsUntilFreeShipping(7000, 'DE')).toBe(1000)
     expect(centsUntilFreeShipping(8000, 'DE')).toBe(0)
-    expect(centsUntilFreeShipping(8000, 'PL')).toBe(0)
+    expect(centsUntilFreeShipping(8000, 'PL')).toBe(12000)
+    expect(centsUntilFreeShipping(20000, 'PL')).toBe(0)
   })
 
   it('grants the free 50 box from exactly 100 €', () => {
