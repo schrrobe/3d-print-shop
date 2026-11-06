@@ -124,13 +124,13 @@ describe('calcCartTotalsWithVoucher', () => {
 
   it('keeps free shipping based on the pre-discount subtotal', () => {
     const totals = calcCartTotalsWithVoucher(
-      [{ unitPriceCents: 15000, quantity: 1 }],
-      { type: 'fixed', value: 5000 },
-      'AT',
+      [{ unitPriceCents: 9000, quantity: 1 }],
+      { type: 'fixed', value: 2000 },
+      'DE',
     )
     expect(totals.shippingCents).toBe(0)
     expect(totals.freeShippingApplied).toBe(true)
-    expect(totals.totalCents).toBe(10000)
+    expect(totals.totalCents).toBe(7000)
   })
 
   it('drops the discount when the minimum order value is not met', () => {
