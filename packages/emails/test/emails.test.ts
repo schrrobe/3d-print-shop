@@ -10,6 +10,7 @@ import {
   renderPaymentReceived,
   renderPaymentReminder,
   renderProductionStarted,
+  setEmailCompany,
   renderQuoteAccepted,
   renderQuoteAvailable,
   renderShippingConfirmation,
@@ -46,10 +47,22 @@ describe('email templates', () => {
     expect(rendered.html).toContain('Robert Schreiner · Kapitelwiese 14 · 44263 Dortmund')
   })
 
-  it('renders the shop wordmark and default company name', () => {
+  it('renders the shop wordmark and no placeholder company name', () => {
     const rendered = renderOrderConfirmation(orderData, 'de')
     expect(rendered.html).toContain('>kaliber</span>')
-    expect(rendered.html).toContain('Print Shop GmbH')
+    expect(rendered.html).not.toContain('Print Shop GmbH')
+  })
+
+  it('prefers the company set from admin settings over env', () => {
+    vi.stubEnv('COMPANY_NAME', 'Env GmbH')
+    setEmailCompany({ name: 'Kaliberbox', city: 'Dortmund' })
+    try {
+      const html = renderOrderConfirmation(orderData, 'de').html
+      expect(html).toContain('Kaliberbox · Dortmund')
+      expect(html).not.toContain('Env GmbH')
+    } finally {
+      setEmailCompany(null)
+    }
   })
 
   it('renders order confirmation in de and en', () => {

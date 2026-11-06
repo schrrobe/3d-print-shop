@@ -16,11 +16,31 @@ const kb = {
   font: "'Archivo',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif",
 }
 
+export interface EmailCompany {
+  name?: string
+  street?: string
+  zip?: string
+  city?: string
+}
+
+let emailCompany: EmailCompany | null = null
+
+/** Company data from the admin settings; env is only the fallback until this is set. */
+export function setEmailCompany(company: EmailCompany | null): void {
+  emailCompany = company
+}
+
 function companyFooter(): string {
-  const name = process.env.COMPANY_NAME?.trim() || 'Print Shop GmbH'
-  const street = process.env.COMPANY_STREET?.trim()
-  const zip = process.env.COMPANY_ZIP?.trim()
-  const city = process.env.COMPANY_CITY?.trim()
+  const c = emailCompany ?? {
+    name: process.env.COMPANY_NAME,
+    street: process.env.COMPANY_STREET,
+    zip: process.env.COMPANY_ZIP,
+    city: process.env.COMPANY_CITY,
+  }
+  const name = c.name?.trim()
+  const street = c.street?.trim()
+  const zip = c.zip?.trim()
+  const city = c.city?.trim()
   const address = [street, [zip, city].filter(Boolean).join(' ')].filter(Boolean).join(' · ')
   return [name, address]
     .filter((value): value is string => Boolean(value))
