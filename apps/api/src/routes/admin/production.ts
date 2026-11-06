@@ -94,7 +94,6 @@ adminProductionRouter.post('/:jobId/status', requirePermission('print-jobs:write
     if (!job) throw notFound('Print job not found')
     assertProductionTransition(job.status, status)
 
-
     const updated = await prisma.$transaction(async (tx) => {
       if (job.printerId) {
         if (status === 'printing') {
