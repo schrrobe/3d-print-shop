@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.1.0...types-v0.2.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+
 ## [0.1.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.0.1...types-v0.1.0) (2026-11-01)
 
 

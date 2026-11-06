@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.5.0...utils-v0.6.0) (2026-11-06)
+
+
+### Features
+
+* **admin:** Qualitätsprüfung (/admin/qc) entfernt ([#104](https://github.com/schrrobe/3d-print-shop/issues/104)) ([8eab006](https://github.com/schrrobe/3d-print-shop/commit/8eab006cbb8bb27a9740c23613929b632a48e76d))
+* **checkout:** Auslandsversand ab 100 € für 10 € statt kostenlos ([#107](https://github.com/schrrobe/3d-print-shop/issues/107)) ([66c54d0](https://github.com/schrrobe/3d-print-shop/commit/66c54d02528aeadc68fdcdcf78f0b7fe8fb38d1c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.2.0
+
 ## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.4.0...utils-v0.5.0) (2026-11-02)
 
 
