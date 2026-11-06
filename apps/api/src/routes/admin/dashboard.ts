@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import type { OrderStatus } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { hasPermission } from '@print-shop/utils'
@@ -52,6 +53,38 @@ adminDashboardRouter.get('/', requirePermission('dashboard:read'), async (req, r
         .map((p) => ({ method: p.method, count: p._count, amountCents: p._sum.amountCents ?? 0 }))
         .sort((a, b) => b.count - a.count),
       returningVisitors: returning,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+const topProductsQuery = z.object({ days: z.coerce.number().pipe(z.union([z.literal(7), z.literal(30), z.literal(90), z.literal(365)])) })
+
+/** Best-selling shop products (units) among paid orders placed in the last `days` days. */
+adminDashboardRouter.get('/top-products', requirePermission('dashboard:read'), async (req, res, next) => {
+  try {
+    const { days } = topProductsQuery.parse(req.query)
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    const groups = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: { productId: { not: null }, order: { status: { in: PAID }, createdAt: { gte: since } } },
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+    })
+    const top = groups.slice(0, 5)
+    const names = await prisma.productTranslation.findMany({
+      where: { productId: { in: top.map((g) => g.productId!) }, locale: 'de' },
+      select: { productId: true, name: true },
+    })
+    res.json({
+      days,
+      total: groups.reduce((sum, g) => sum + (g._sum.quantity ?? 0), 0),
+      products: top.map((g) => ({
+        productId: g.productId,
+        name: names.find((n) => n.productId === g.productId)?.name ?? g.productId,
+        quantity: g._sum.quantity ?? 0,
+      })),
     })
   } catch (err) {
     next(err)
