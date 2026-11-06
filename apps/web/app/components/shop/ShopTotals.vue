@@ -2,9 +2,9 @@
 import {
   calcPrepaymentDiscountCents,
   centsUntilFreeShipping,
+  DOMESTIC_FREE_SHIPPING_CENTS,
   FREE_BOX_THRESHOLD_CENTS,
   formatCents,
-  freeShippingThresholdCents,
   PREPAYMENT_DISCOUNT_PERCENT,
 } from '@print-shop/utils'
 import type { Locale } from '@print-shop/types'
@@ -20,10 +20,7 @@ const missingForFree = computed(() =>
   centsUntilFreeShipping(cart.totals.subtotalCents, cart.country),
 )
 const progress = computed(() =>
-  Math.min(
-    100,
-    Math.round((cart.totals.subtotalCents / freeShippingThresholdCents(cart.country)) * 100),
-  ),
+  Math.min(100, Math.round((cart.totals.subtotalCents / DOMESTIC_FREE_SHIPPING_CENTS) * 100)),
 )
 const missingForFreeBox = computed(() =>
   Math.max(0, FREE_BOX_THRESHOLD_CENTS - cart.totals.subtotalCents),
