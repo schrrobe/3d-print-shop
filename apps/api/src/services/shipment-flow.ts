@@ -15,24 +15,10 @@ import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { company } from './company.js'
 import { itemColorResolver } from './item-colors.js'
 import { notifyShipped } from './order-flow.js'
-import { allJobsQcCleared } from './qc.js'
 
 /** Per-year shipment number (VER-2026-7Q3K9X). */
 export async function nextShipmentNumber(): Promise<string> {
   return (await nextSequentialNumber(prisma.shipmentCounter, 'VER')).number
-}
-
-/** Jobs whose QC clearance gates this shipment = jobs of the shipped order items. */
-export async function shipmentJobIds(shipmentId: string): Promise<string[]> {
-  const items = await prisma.shipmentItem.findMany({
-    where: { shipmentId },
-    select: { orderItemId: true },
-  })
-  const jobs = await prisma.printerJob.findMany({
-    where: { orderItemId: { in: items.map((i) => i.orderItemId) }, status: { not: 'shipped' } },
-    select: { id: true },
-  })
-  return jobs.map((j) => j.id)
 }
 
 export async function createShipment(input: {
@@ -89,11 +75,7 @@ export async function createShipment(input: {
   })
 }
 
-/**
- * Shipment status transition with the QC gate: `waiting_for_qc → ready_for_shipping`
- * requires every print job behind the shipped items to be QC-cleared
- * (latest record passed or consciously overridden).
- */
+/** Shipment status transition via the shipment status machine. */
 export async function transitionShipment(
   shipmentId: string,
   toStatus: Shipment['status'],
@@ -108,15 +90,6 @@ export async function transitionShipment(
     throw conflict('Use the ship action (carrier + tracking) to mark a shipment as shipped')
   }
   assertShipmentTransition(shipment.status, toStatus)
-
-  if (shipment.status === 'waiting_for_qc' && toStatus === 'ready_for_shipping') {
-    const jobIds = await shipmentJobIds(shipment.id)
-    if (jobIds.length > 0 && !(await allJobsQcCleared(jobIds))) {
-      throw conflict(
-        'Quality check pending: all print jobs of this shipment must pass QC (or be consciously overridden) before shipping',
-      )
-    }
-  }
 
   return prisma.$transaction(async (tx) => {
     const updated = await tx.shipment.update({
@@ -143,7 +116,8 @@ export async function transitionShipment(
 /**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
  * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
- * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped.
+ * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped
+ * (409 while any job of the order is not yet ready_to_ship).
  * The shipping confirmation email goes out after the transaction commits.
  */
 export async function shipShipment(input: {
@@ -163,6 +137,14 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
+    // The order ships as a whole: no print job may still be in production,
+    // otherwise it would stay active (and assignable) in the production queue.
+    const jobs = await tx.printerJob.findMany({
+      where: { orderId: shipment.orderId, status: { not: 'shipped' } },
+    })
+    if (jobs.some((job) => !canTransitionProduction(job.status, 'shipped'))) {
+      throw conflict('All print jobs of this order must be ready to ship before shipping')
+    }
     const result = await tx.shipment.update({
       where: { id: shipment.id },
       data: {
@@ -181,12 +163,10 @@ export async function shipShipment(input: {
         shippedAt: now,
       },
     })
-    const jobs = await tx.printerJob.findMany({ where: { orderId: shipment.orderId } })
-    for (const job of jobs) {
-      if (canTransitionProduction(job.status, 'shipped')) {
-        await tx.printerJob.update({ where: { id: job.id }, data: { status: 'shipped' } })
-      }
-    }
+    await tx.printerJob.updateMany({
+      where: { id: { in: jobs.map((job) => job.id) } },
+      data: { status: 'shipped' },
+    })
     await tx.shipmentStatusEvent.create({
       data: {
         shipmentId: shipment.id,

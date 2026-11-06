@@ -20,7 +20,6 @@ import { adminPrintersRouter } from './routes/admin/printers.js'
 import { adminProductionRouter } from './routes/admin/production.js'
 import { adminProductsRouter } from './routes/admin/products.js'
 import { adminCalibersRouter } from './routes/admin/calibers.js'
-import { adminQcRouter } from './routes/admin/qc.js'
 import { adminQuoteRequestsRouter } from './routes/admin/quote-requests.js'
 import { adminReviewsRouter } from './routes/admin/reviews.js'
 import { adminSettingsRouter } from './routes/admin/settings.js'
@@ -131,7 +130,6 @@ export function createApp(): Express {
   app.use('/api/admin/tickets', requireAuth, adminTicketsRouter)
   app.use('/api/admin/social-posts', requireAuth, adminSocialPostsRouter)
   app.use('/api/admin/complaints', requireAuth, adminComplaintsRouter)
-  app.use('/api/admin/qc', requireAuth, adminQcRouter)
   app.use('/api/admin/filament', requireAuth, adminFilamentRouter)
   app.use('/api/admin/shipments', requireAuth, adminShipmentsRouter)
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)

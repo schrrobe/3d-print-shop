@@ -10,7 +10,6 @@ import {
   CONSENT_CATEGORIES,
   LOCALES,
   PAYMENT_METHODS,
-  QC_STATUSES,
   REVIEW_STATUSES,
   SHIPMENT_STATUSES,
   SOCIAL_PLATFORMS,
@@ -659,34 +658,6 @@ export type ComplaintDecisionInput = z.infer<typeof complaintDecisionSchema>
 /** Empty ticketId = create a new ticket from the complaint; set = link an existing one. */
 export const complaintTicketSchema = z.object({
   ticketId: cuidSchema.nullable().optional(),
-})
-
-// ---------- Quality control ----------
-
-export const qcCreateSchema = z.object({
-  printerJobId: cuidSchema,
-})
-
-export const qcChecklistSchema = z.object({
-  colorOk: z.boolean().optional(),
-  surfaceOk: z.boolean().optional(),
-  dimensionsOk: z.boolean().optional(),
-  stabilityOk: z.boolean().optional(),
-  completenessOk: z.boolean().optional(),
-  packagingOk: z.boolean().optional(),
-  note: z.string().trim().max(4000).nullable().optional(),
-})
-
-export const qcStatusSchema = z.object({
-  status: z.enum(QC_STATUSES),
-})
-
-export const qcOverrideSchema = z.object({
-  overrideReason: z
-    .string()
-    .trim()
-    .min(10, 'Override reason must explain the conscious decision (min 10 chars)')
-    .max(2000),
 })
 
 // ---------- Filament & AMS ----------

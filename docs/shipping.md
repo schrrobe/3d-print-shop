@@ -25,16 +25,15 @@ delivered (terminal)
 problem ─> waiting_for_qc | ready_for_shipping | packed | shipped
 ```
 
-`waiting_for_qc → ready_for_shipping` ist QC-gegated (siehe
-[quality-control.md](quality-control.md)).
-
 ## Single-Writer-Regel
 
 `shipShipment()` ist die **einzige** Stelle, die `Order.carrier`, `Order.trackingNumber`,
 `Order.shippedAt` und den Bestellstatus auf `shipped` schreibt. Alles in einer
 Transaktion: Sendung → `shipped`, Bestellung → `shipped`, versandfähige Jobs → `shipped`,
 StatusEvent, danach Versandbestätigung (`shipping_confirmation`). Das verhindert Drift
-zwischen Bestellung und Sendung.
+zwischen Bestellung und Sendung. Steht noch ein Druckjob der Bestellung nicht auf
+`ready_to_ship` (oder `shipped`), lehnt `shipShipment()` mit `409` ab — sonst bliebe er
+aktiv und zuweisbar in der Produktions-Queue.
 
 Die Alt-Route `POST /api/admin/orders/:id/shipping` bleibt als dünner Wrapper erhalten:
 Sie legt (falls nötig) eine implizite Sendung an (`packed`, Event-Notiz `legacy-route`)
@@ -49,8 +48,8 @@ Packliste listet die Farbkonfiguration je Position.
 ## Endpunkte (Admin, RBAC + Audit)
 
 - `GET /api/admin/shipments`, `POST /api/admin/shipments` (`{ orderId, items[] }`).
-- `GET /api/admin/shipments/:id` — inkl. `statusEvents` + QC-Clearance je Job.
-- `POST /api/admin/shipments/:id/status` — Statusmaschine inkl. QC-Gate.
+- `GET /api/admin/shipments/:id` — inkl. `statusEvents`.
+- `POST /api/admin/shipments/:id/status` — Statusmaschine.
 - `POST /api/admin/shipments/:id/ship` — `orders:ship`, `{ carrier, trackingNumber }`.
 - `GET /api/admin/shipments/:id/packing-list.pdf` / `…/delivery-note.pdf`.
 

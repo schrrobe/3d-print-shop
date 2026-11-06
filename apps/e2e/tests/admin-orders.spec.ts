@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
+import { adminApiContext, createPaidOrderViaApi, finishOrderJobs } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin orders', () => {
@@ -28,14 +29,24 @@ test.describe('admin orders', () => {
   })
 
   test('shipping with tracking number marks order as shipped', async ({ page }) => {
+    // Fresh order with finished print jobs — shipping is rejected while jobs are in production
+    const api = await adminApiContext()
+    const products = (await (await api.get('/api/products')).json()) as {
+      products: { id: string }[]
+    }
+    const { orderNumber } = await createPaidOrderViaApi(
+      products.products[0]!.id,
+      'admin-ship@example.com',
+    )
+    const order = await finishOrderJobs(api, orderNumber)
+    await api.dispose()
+
     const admin = new AdminPage(page)
     await admin.login()
-    // Seed order 1 is in_production → quality_check → ready_to_ship → ship
-    await gotoHydrated(page, '/admin/orders')
-    await page.getByTestId('order-status-filter').selectOption('in_production')
-    await page.getByTestId('order-detail-link').first().click()
-    await page.waitForURL(/\/admin\/orders\//)
+    await gotoHydrated(page, `/admin/orders/${order.id}`)
 
+    await page.getByTestId('status-in_production').click()
+    await expect(page.getByTestId('admin-order-status')).toContainText('in_production')
     await page.getByTestId('status-quality_check').click()
     await expect(page.getByTestId('admin-order-status')).toContainText('quality_check')
     await page.getByTestId('status-ready_to_ship').click()

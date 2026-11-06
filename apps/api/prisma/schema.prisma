@@ -223,15 +223,6 @@ enum AttachmentAuthor {
   staff
 }
 
-/// offen, bestanden, fehlgeschlagen, Reprint erforderlich, überschrieben
-enum QcStatus {
-  open
-  passed
-  failed
-  reprint_required
-  overridden
-}
-
 enum AmsSlotStatus {
   empty
   loaded
@@ -282,7 +273,6 @@ model User {
   socialPosts     SocialMediaPost[]    @relation("SocialPostAuthor")
 
   complaintDecisions ComplaintDecision[]   @relation("ComplaintDecider")
-  qcApprovals        QcRecord[]            @relation("QcApprover")
   moderatedReviews   Review[]              @relation("ReviewModerator")
   maintenanceWindows MaintenanceWindow[]   @relation("MaintenanceAuthor")
   shipments          Shipment[]            @relation("ShipmentAuthor")
@@ -714,7 +704,6 @@ model PrinterJob {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
-  qcRecords         QcRecord[]
   complaintDecision ComplaintDecision?
 
   @@index([printerId, plannedStartAt])
@@ -789,52 +778,6 @@ model MaintenanceWindow {
   createdAt   DateTime @default(now())
 
   @@index([printerId, startsAt])
-}
-
-// ---------- Qualitätskontrolle ----------
-
-/// QC-Prüfung eines Druckauftrags vor Versand. Mehrere Records pro Job = Historie
-/// (nach Reprint entsteht ein neuer Record). Aktueller Stand = neuester Record.
-model QcRecord {
-  id           String     @id @default(cuid())
-  printerJobId String
-  printerJob   PrinterJob @relation(fields: [printerJobId], references: [id])
-  shipmentId   String?
-  shipment     Shipment?  @relation(fields: [shipmentId], references: [id])
-  status       QcStatus   @default(open)
-
-  colorOk        Boolean @default(false)
-  surfaceOk      Boolean @default(false)
-  dimensionsOk   Boolean @default(false)
-  stabilityOk    Boolean @default(false)
-  completenessOk Boolean @default(false)
-  packagingOk    Boolean @default(false)
-
-  note           String?
-  /// Pflicht bei Status "overridden" (bewusste Freigabe trotz nicht bestandener QC)
-  overrideReason String?
-  approvedById   String?
-  approvedBy     User?     @relation("QcApprover", fields: [approvedById], references: [id])
-  approvedAt     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  attachments QcAttachment[]
-
-  @@index([printerJobId])
-  @@index([status])
-}
-
-model QcAttachment {
-  id           String   @id @default(cuid())
-  qcRecordId   String
-  qcRecord     QcRecord @relation(fields: [qcRecordId], references: [id], onDelete: Cascade)
-  originalName String
-  /// Absoluter Pfad im UPLOAD_DIR — niemals in Public-Responses
-  storedPath   String
-  mimeType     String
-  sizeBytes    Int
-  createdAt    DateTime @default(now())
 }
 
 // ---------- Invoices ----------
@@ -1159,7 +1102,6 @@ model Shipment {
 
   items        ShipmentItem[]
   statusEvents ShipmentStatusEvent[]
-  qcRecords    QcRecord[]
 
   @@index([orderId])
   @@index([status])

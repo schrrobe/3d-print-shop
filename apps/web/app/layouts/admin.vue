@@ -33,7 +33,6 @@ const navItems = computed(() => {
     { key: 'filament', label: 'Filament & AMS', href: '/admin/filament', icon: '🧵', permission: 'filament:read' as const },
     { key: 'production', label: 'Produktionsqueue', href: '/admin/production', icon: '⚙️', permission: 'print-jobs:read' as const },
     { key: 'calendar', label: 'Produktionskalender', href: '/admin/production/calendar', icon: '📅', permission: 'print-jobs:read' as const },
-    { key: 'qc', label: 'Qualitätsprüfung', href: '/admin/qc', icon: '✅', permission: 'qc:read' as const },
     { key: 'vouchers', label: 'Gutscheine', href: '/admin/vouchers', icon: '🎟️', permission: 'vouchers:read' as const },
     { key: 'sales-channels', label: 'Verkaufskanäle', href: '/admin/sales-channels', icon: '🔗', permission: 'sales-channels:read' as const },
     { key: 'payments', label: 'Zahlungen', href: '/admin/payments', icon: '💶', permission: 'payments:read' as const },

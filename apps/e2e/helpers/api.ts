@@ -19,40 +19,6 @@ export async function adminApiContext(): Promise<APIRequestContext> {
   return ctx
 }
 
-/**
- * Pass quality control for the job behind an order number (via API): open a QC
- * record, tick all six checklist items, mark it passed. Requires the job to be
- * in quality_check. Returns the QC record id.
- */
-export async function passQcForOrder(
-  admin: APIRequestContext,
-  orderNumber: string,
-): Promise<string> {
-  const overview = (await (await admin.get('/api/admin/qc')).json()) as {
-    jobsInQc: { id: string; order: { orderNumber: string } }[]
-  }
-  const job = overview.jobsInQc.find((j) => j.order.orderNumber === orderNumber)
-  if (!job) throw new Error(`No QC job for order ${orderNumber}`)
-  const created = await admin.post('/api/admin/qc', { data: { printerJobId: job.id } })
-  if (!created.ok()) throw new Error(`qc open failed: ${created.status()}`)
-  const { record } = (await created.json()) as { record: { id: string } }
-  await admin.patch(`/api/admin/qc/${record.id}`, {
-    data: {
-      colorOk: true,
-      surfaceOk: true,
-      dimensionsOk: true,
-      stabilityOk: true,
-      completenessOk: true,
-      packagingOk: true,
-    },
-  })
-  const passed = await admin.post(`/api/admin/qc/${record.id}/status`, {
-    data: { status: 'passed' },
-  })
-  if (!passed.ok()) throw new Error(`qc pass failed: ${passed.status()}`)
-  return record.id
-}
-
 export interface SeedProduct {
   id: string
   slug: string
@@ -195,47 +161,28 @@ export async function getAdminOrder(
   return detail.order
 }
 
-/**
- * Walk every print job of an order to QC-cleared: waiting → assigned → printing
- * → printed → quality_check, then open + pass a QC record. Needed to satisfy the
- * QC shipping gate in flows that start from a fresh paid order.
- */
-export async function clearOrderJobsQc(
+/** Drive every waiting print job of an order through production to ready_to_ship. */
+export async function finishOrderJobs(
   admin: APIRequestContext,
   orderNumber: string,
-): Promise<void> {
+): Promise<AdminOrderDetail> {
   const printers = (await (await admin.get('/api/admin/printers')).json()) as {
     printers: { id: string }[]
   }
   const printerId = printers.printers[0]?.id
   if (!printerId) throw new Error('no printer to assign')
   const order = await getAdminOrder(admin, orderNumber)
-  for (const job of order.printerJobs) {
-    if (job.status === 'waiting') {
-      await admin.post(`/api/admin/production/${job.id}/assign`, {
-        data: { printerId, printDurationMinutes: 30 },
-      })
-      await admin.post(`/api/admin/production/${job.id}/status`, { data: { status: 'printing' } })
-      await admin.post(`/api/admin/production/${job.id}/status`, { data: { status: 'printed' } })
-      await admin.post(`/api/admin/production/${job.id}/status`, {
-        data: { status: 'quality_check' },
-      })
-    }
-    const opened = await admin.post('/api/admin/qc', { data: { printerJobId: job.id } })
-    if (!opened.ok()) continue
-    const { record } = (await opened.json()) as { record: { id: string } }
-    await admin.patch(`/api/admin/qc/${record.id}`, {
-      data: {
-        colorOk: true,
-        surfaceOk: true,
-        dimensionsOk: true,
-        stabilityOk: true,
-        completenessOk: true,
-        packagingOk: true,
-      },
+  for (const job of order.printerJobs.filter((j) => j.status === 'waiting')) {
+    const assigned = await admin.post(`/api/admin/production/${job.id}/assign`, {
+      data: { printerId, printDurationMinutes: 30 },
     })
-    await admin.post(`/api/admin/qc/${record.id}/status`, { data: { status: 'passed' } })
+    if (!assigned.ok()) throw new Error(`assign failed: ${assigned.status()}`)
+    for (const status of ['printing', 'printed', 'quality_check', 'ready_to_ship']) {
+      const res = await admin.post(`/api/admin/production/${job.id}/status`, { data: { status } })
+      if (!res.ok()) throw new Error(`job → ${status} failed: ${res.status()}`)
+    }
   }
+  return getAdminOrder(admin, orderNumber)
 }
 
 /** Log in to the API as a specific seeded role account. */

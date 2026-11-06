@@ -8,19 +8,10 @@ vi.mock('../src/lib/prisma.js', () => ({
     printerJob: { findMany: vi.fn() },
     maintenanceWindow: { findMany: vi.fn() },
     printer: { findMany: vi.fn() },
-    qcRecord: { findMany: vi.fn() },
     shipment: { findUnique: vi.fn() },
     color: { findMany: vi.fn() },
     productColorSlot: { findMany: vi.fn() },
   },
-}))
-vi.mock('../src/services/qc.js', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  jobsQcClearance: vi.fn().mockResolvedValue([]),
-}))
-vi.mock('../src/services/shipment-flow.js', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  shipmentJobIds: vi.fn().mockResolvedValue([]),
 }))
 
 const { createApp } = await import('../src/app.js')
@@ -126,21 +117,6 @@ it('production calendar: resolves colors for scheduled and unscheduled jobs', as
   )
   expect(body.jobs[0]?.orderItem.colors).toEqual(expectedColors)
   expect(body.unscheduledJobs[0]?.orderItem.colors).toEqual(expectedColors)
-})
-
-it('qc: resolves colors for records and jobs in QC', async () => {
-  vi.mocked(prisma.qcRecord.findMany).mockResolvedValue([
-    { id: 'qc_1', printerJob: { id: 'job_1', orderItem: coloredItem } },
-  ] as never)
-  vi.mocked(prisma.printerJob.findMany).mockResolvedValue([
-    { id: 'job_2', orderItem: coloredItem, qcRecords: [] },
-  ] as never)
-  const body = await getJson<{
-    records: { printerJob: { orderItem: WithColors } }[]
-    jobsInQc: { orderItem: WithColors }[]
-  }>('/api/admin/qc')
-  expect(body.records[0]?.printerJob.orderItem.colors).toEqual(expectedColors)
-  expect(body.jobsInQc[0]?.orderItem.colors).toEqual(expectedColors)
 })
 
 it('shipment detail: resolves colors on items', async () => {

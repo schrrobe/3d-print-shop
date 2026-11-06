@@ -55,9 +55,6 @@ Status/Grund, optionale Ticket-Verknüpfung), `ComplaintItem`, `ComplaintAttachm
 (privat), `ComplaintDecision` (Ersatzdruck/Erstattung/Gutschein/Ablehnung). Details:
 [complaints.md](./complaints.md).
 
-**Qualitätskontrolle**: `QcRecord` (6-Punkte-Checkliste je Prüfversuch = Historie),
-`QcAttachment` (privat). Details: [quality-control.md](./quality-control.md).
-
 **Filament/AMS**: `FilamentSpool` (erweitert: Mindestbestand, Nachbestell-Flag),
 `AmsUnit` + `AmsSlot` (Bambu-Lab-AMS-Zuordnung); `Color` erweitert um `minStockGrams`/
 `outOfStock`. Details: [filament-ams.md](./filament-ams.md).

@@ -2,7 +2,7 @@ import { USER_ROLES } from '@print-shop/types'
 import { describe, expect, it } from 'vitest'
 import { hasPermission } from '../src/rbac.js'
 
-describe('RBAC for complaints / QC / filament / shipments / reviews', () => {
+describe('RBAC for complaints / filament / shipments / reviews', () => {
   it('complaints: support handles communication, only admin decides', () => {
     expect(hasPermission('support', 'complaints:read')).toBe(true)
     expect(hasPermission('support', 'complaints:write')).toBe(true)
@@ -10,16 +10,6 @@ describe('RBAC for complaints / QC / filament / shipments / reviews', () => {
     expect(hasPermission('production', 'complaints:write')).toBe(false)
     for (const role of USER_ROLES) {
       expect(hasPermission(role, 'complaints:decide')).toBe(role === 'admin')
-    }
-  })
-
-  it('QC: production performs checks, shipping reads, only admin overrides', () => {
-    expect(hasPermission('production', 'qc:read')).toBe(true)
-    expect(hasPermission('production', 'qc:write')).toBe(true)
-    expect(hasPermission('shipping', 'qc:read')).toBe(true)
-    expect(hasPermission('shipping', 'qc:write')).toBe(false)
-    for (const role of USER_ROLES) {
-      expect(hasPermission(role, 'qc:override')).toBe(role === 'admin')
     }
   })
 

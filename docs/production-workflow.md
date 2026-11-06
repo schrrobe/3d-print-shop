@@ -11,20 +11,18 @@ Admin/Produktion (Rolle production):
   assigned ──> printing                                              [Drucker → printing]
   printing ──> printed                                               [Drucker → idle]
   printed ──> quality_check
-  quality_check ──> [QC-Gate] ──> ready_to_ship  oder  reprint_needed (→ waiting, Drucker frei)
+  quality_check ──> ready_to_ship  oder  reprint_needed (→ waiting, Drucker frei)
   printing ──> failed (→ reprint_needed)
 
 Admin/Versand (Rolle shipping): Sendung (Shipment) statt Order-Direktversand
-  waiting_for_qc ──[QC-Gate]──> ready_for_shipping ──> packed ──> shipped ──> delivered
+  waiting_for_qc ──> ready_for_shipping ──> packed ──> shipped ──> delivered
   ──> shipShipment(): Order shipped + Carrier (DHL/Hermes) + Tracking, Versand-E-Mail
 ```
 
 Der Kunde wählt den Versanddienstleister **nicht** selbst; DHL/Hermes wird intern gesetzt.
 
-## QC-Gate & Versand
+## Versand
 
-Vor `ready_to_ship` (Job) bzw. `ready_for_shipping` (Sendung) erzwingt das System eine
-bestandene Qualitätsprüfung — sonst `409`. Details: [quality-control.md](./quality-control.md).
 Der eigentliche Versand läuft über das Sendungsmodell mit Historie und PDF-Dokumenten
 (Packliste/Lieferschein); `shipShipment()` ist der einzige Schreiber für
 `Order.carrier/trackingNumber/shippedAt`. Details: [shipping.md](./shipping.md).
