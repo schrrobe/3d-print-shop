@@ -6,7 +6,7 @@ import {
   assertShipmentTransition,
   canTransitionProduction,
 } from '@print-shop/utils'
-import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
+import type { Carrier, Order, OrderItem, Prisma, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -114,6 +114,25 @@ export async function transitionShipment(
 }
 
 /**
+ * The order ships as a whole: 409 while any print job is still in production
+ * (it would otherwise stay active and assignable in the production queue).
+ * Returns the not-yet-shipped job ids, all ready_to_ship.
+ */
+export async function openJobIdsReadyToShip(
+  orderId: string,
+  db: Prisma.TransactionClient = prisma,
+): Promise<string[]> {
+  const jobs = await db.printerJob.findMany({
+    where: { orderId, status: { not: 'shipped' } },
+    select: { id: true, status: true },
+  })
+  if (jobs.some((job) => !canTransitionProduction(job.status, 'shipped'))) {
+    throw conflict('All print jobs of this order must be ready to ship before shipping')
+  }
+  return jobs.map((job) => job.id)
+}
+
+/**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
  * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
  * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped
@@ -137,14 +156,7 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
-    // The order ships as a whole: no print job may still be in production,
-    // otherwise it would stay active (and assignable) in the production queue.
-    const jobs = await tx.printerJob.findMany({
-      where: { orderId: shipment.orderId, status: { not: 'shipped' } },
-    })
-    if (jobs.some((job) => !canTransitionProduction(job.status, 'shipped'))) {
-      throw conflict('All print jobs of this order must be ready to ship before shipping')
-    }
+    const jobIds = await openJobIdsReadyToShip(shipment.orderId, tx)
     const result = await tx.shipment.update({
       where: { id: shipment.id },
       data: {
@@ -164,7 +176,7 @@ export async function shipShipment(input: {
       },
     })
     await tx.printerJob.updateMany({
-      where: { id: { in: jobs.map((job) => job.id) } },
+      where: { id: { in: jobIds } },
       data: { status: 'shipped' },
     })
     await tx.shipmentStatusEvent.create({

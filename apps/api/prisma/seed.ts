@@ -765,12 +765,12 @@ async function seedShipments() {
       finishedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000),
     },
   })
-  // Job in der Qualitätsprüfung
+  // Zweiter Job der versendeten Bestellung — ebenfalls versendet (Bestellung geht als Ganzes raus)
   await prisma.printerJob.create({
     data: {
       orderId: order4.id,
       orderItemId: order4.items[1]?.id,
-      status: 'quality_check',
+      status: 'shipped',
       printDurationMinutes: 90,
     },
   })

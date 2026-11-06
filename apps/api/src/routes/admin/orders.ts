@@ -33,7 +33,11 @@ import {
 } from '../../services/payments/stripe.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
-import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
+import {
+  nextShipmentNumber,
+  openJobIdsReadyToShip,
+  shipShipment,
+} from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
 
@@ -327,6 +331,9 @@ adminOrdersRouter.post(
       })
       if (!order) throw notFound('Order not found')
       assertOrderTransition(order.status, 'shipped')
+      // Fail before creating the implicit shipment, so a 409 leaves no stray
+      // packed shipment that blocks later shipments of the same items.
+      await openJobIdsReadyToShip(order.id)
 
       let shipment = order.shipments.find((s) => s.status === 'packed')
       if (!shipment) {
