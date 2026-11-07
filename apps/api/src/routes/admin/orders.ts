@@ -332,6 +332,13 @@ adminOrdersRouter.post(
 
       let shipment = order.shipments.find((s) => s.status === 'packed')
       if (!shipment) {
+        // An open shipment already holds items; an implicit one for all items
+        // would count them twice and leave the open one behind.
+        if (
+          order.shipments.some((s) => ['waiting_for_qc', 'ready_for_shipping'].includes(s.status))
+        ) {
+          throw conflict('Offene Sendung zuerst packen, dann versenden')
+        }
         const shipmentNumber = await nextShipmentNumber()
         shipment = await prisma.$transaction(async (tx) => {
           const created = await tx.shipment.create({
