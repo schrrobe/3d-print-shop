@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.16.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.15.0...api-v0.16.0) (2026-11-07)
+
+
+### Features
+
+* **admin:** Sendungsnummer direkt ab bezahlt hinterlegen ([#110](https://github.com/schrrobe/3d-print-shop/issues/110)) ([d759947](https://github.com/schrrobe/3d-print-shop/commit/d7599472545b26b1b434ff126c388113830b2c51))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.3.2
+    * @print-shop/utils bumped to 0.7.0
+    * @print-shop/validators bumped to 0.8.1
+
 ## [0.15.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.14.0...api-v0.15.0) (2026-11-06)
 
 
