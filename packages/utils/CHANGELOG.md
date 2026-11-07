@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.6.0...utils-v0.7.0) (2026-11-07)
+
+
+### Features
+
+* **admin:** Sendungsnummer direkt ab bezahlt hinterlegen ([#110](https://github.com/schrrobe/3d-print-shop/issues/110)) ([d759947](https://github.com/schrrobe/3d-print-shop/commit/d7599472545b26b1b434ff126c388113830b2c51))
+
 ## [0.6.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.5.0...utils-v0.6.0) (2026-11-06)
 
 
