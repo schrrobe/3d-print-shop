@@ -5,9 +5,10 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ['awaiting_payment', 'awaiting_bank_transfer', 'cancelled'],
   awaiting_payment: ['paid', 'cancelled'],
   awaiting_bank_transfer: ['paid', 'cancelled'],
-  paid: ['in_production', 'refunded', 'cancelled'],
-  in_production: ['quality_check', 'ready_to_ship'],
-  quality_check: ['ready_to_ship', 'in_production'],
+  // `shipped` straight from any paid state: entering the tracking number is enough.
+  paid: ['in_production', 'shipped', 'refunded', 'cancelled'],
+  in_production: ['quality_check', 'ready_to_ship', 'shipped'],
+  quality_check: ['ready_to_ship', 'in_production', 'shipped'],
   ready_to_ship: ['shipped'],
   shipped: ['completed', 'refunded'],
   completed: ['refunded'],

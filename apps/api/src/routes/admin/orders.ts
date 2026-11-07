@@ -33,11 +33,7 @@ import {
 } from '../../services/payments/stripe.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
-import {
-  nextShipmentNumber,
-  openJobIdsReadyToShip,
-  shipShipment,
-} from '../../services/shipment-flow.js'
+import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
 
@@ -237,6 +233,8 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       include: { payments: true },
     })
     if (!order) throw notFound('Order not found')
+    // `shipped` goes through the shipping action (tracking number, jobs, email).
+    if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
     if (status === 'cancelled') {
       // An open payment link must stop taking money before the order is cancelled.
@@ -331,12 +329,16 @@ adminOrdersRouter.post(
       })
       if (!order) throw notFound('Order not found')
       assertOrderTransition(order.status, 'shipped')
-      // Fail before creating the implicit shipment, so a 409 leaves no stray
-      // packed shipment that blocks later shipments of the same items.
-      await openJobIdsReadyToShip(order.id)
 
       let shipment = order.shipments.find((s) => s.status === 'packed')
       if (!shipment) {
+        // An open shipment already holds items; an implicit one for all items
+        // would count them twice and leave the open one behind.
+        if (
+          order.shipments.some((s) => ['waiting_for_qc', 'ready_for_shipping'].includes(s.status))
+        ) {
+          throw conflict('Offene Sendung zuerst packen, dann versenden')
+        }
         const shipmentNumber = await nextShipmentNumber()
         shipment = await prisma.$transaction(async (tx) => {
           const created = await tx.shipment.create({
@@ -373,6 +375,7 @@ adminOrdersRouter.post(
         trackingNumber: input.trackingNumber,
         byUserId: req.user?.id,
         eventNote: 'legacy-route',
+        closeAllJobs: true,
       })
       const updated = await prisma.order.findUniqueOrThrow({
         where: { id: order.id },

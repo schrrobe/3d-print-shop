@@ -1,12 +1,8 @@
 import { createWriteStream } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import {
-  assertOrderTransition,
-  assertShipmentTransition,
-  canTransitionProduction,
-} from '@print-shop/utils'
-import type { Carrier, Order, OrderItem, Prisma, Shipment, ShipmentItem } from '@prisma/client'
+import { assertOrderTransition, assertShipmentTransition } from '@print-shop/utils'
+import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
@@ -114,29 +110,12 @@ export async function transitionShipment(
 }
 
 /**
- * The order ships as a whole: 409 while any print job is still in production
- * (it would otherwise stay active and assignable in the production queue).
- * Returns the not-yet-shipped job ids, all ready_to_ship.
- */
-export async function openJobIdsReadyToShip(
-  orderId: string,
-  db: Prisma.TransactionClient = prisma,
-): Promise<string[]> {
-  const jobs = await db.printerJob.findMany({
-    where: { orderId, status: { not: 'shipped' } },
-    select: { id: true, status: true },
-  })
-  if (jobs.some((job) => !canTransitionProduction(job.status, 'shipped'))) {
-    throw conflict('All print jobs of this order must be ready to ship before shipping')
-  }
-  return jobs.map((job) => job.id)
-}
-
-/**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
  * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
- * Transaction: shipment → shipped, order → shipped, ready_to_ship jobs → shipped
- * (409 while any job of the order is not yet ready_to_ship).
+ * Transaction: shipment → shipped, order → shipped, open print jobs → shipped.
+ * By default 409 while any job is not yet ready_to_ship, so a partial shipment
+ * can't close jobs of items still in production. `closeAllJobs` (whole order
+ * shipped from the order page) closes them whatever their production status.
  * The shipping confirmation email goes out after the transaction commits.
  */
 export async function shipShipment(input: {
@@ -145,6 +124,7 @@ export async function shipShipment(input: {
   trackingNumber: string
   byUserId?: string
   eventNote?: string
+  closeAllJobs?: boolean
 }): Promise<Shipment> {
   const shipment = await prisma.shipment.findUnique({
     where: { id: input.shipmentId },
@@ -156,7 +136,15 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
-    const jobIds = await openJobIdsReadyToShip(shipment.orderId, tx)
+    if (!input.closeAllJobs) {
+      const open = await tx.printerJob.findMany({
+        where: { orderId: shipment.orderId, status: { not: 'shipped' } },
+        select: { status: true },
+      })
+      if (open.some((job) => job.status !== 'ready_to_ship')) {
+        throw conflict('All print jobs of the order must be ready to ship before shipping')
+      }
+    }
     const result = await tx.shipment.update({
       where: { id: shipment.id },
       data: {
@@ -175,8 +163,20 @@ export async function shipShipment(input: {
         shippedAt: now,
       },
     })
+    // A job closed mid-print would leave its printer stuck in `printing`
+    // (shipped is terminal, so the production route can never free it).
+    const printing = await tx.printerJob.findMany({
+      where: { orderId: shipment.orderId, status: 'printing', printerId: { not: null } },
+      select: { printerId: true },
+    })
+    if (printing.length > 0) {
+      await tx.printer.updateMany({
+        where: { id: { in: printing.map((j) => j.printerId!) } },
+        data: { status: 'idle' },
+      })
+    }
     await tx.printerJob.updateMany({
-      where: { id: { in: jobIds } },
+      where: { orderId: shipment.orderId, status: { not: 'shipped' } },
       data: { status: 'shipped' },
     })
     await tx.shipmentStatusEvent.create({
