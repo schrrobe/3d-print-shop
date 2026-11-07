@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { AdminPage } from '../pages/admin.js'
-import { adminApiContext, createPaidOrderViaApi, finishOrderJobs } from '../helpers/api.js'
+import { adminApiContext, createPaidOrderViaApi, getAdminOrder } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
 
 test.describe('admin orders', () => {
@@ -29,7 +29,7 @@ test.describe('admin orders', () => {
   })
 
   test('shipping with tracking number marks order as shipped', async ({ page }) => {
-    // Fresh order with finished print jobs — shipping is rejected while jobs are in production
+    // Fresh paid order, print jobs still open — the tracking number alone ships it
     const api = await adminApiContext()
     const products = (await (await api.get('/api/products')).json()) as {
       products: { id: string }[]
@@ -38,19 +38,12 @@ test.describe('admin orders', () => {
       products.products[0]!.id,
       'admin-ship@example.com',
     )
-    const order = await finishOrderJobs(api, orderNumber)
+    const order = await getAdminOrder(api, orderNumber)
     await api.dispose()
 
     const admin = new AdminPage(page)
     await admin.login()
     await gotoHydrated(page, `/admin/orders/${order.id}`)
-
-    await page.getByTestId('status-in_production').click()
-    await expect(page.getByTestId('admin-order-status')).toContainText('in_production')
-    await page.getByTestId('status-quality_check').click()
-    await expect(page.getByTestId('admin-order-status')).toContainText('quality_check')
-    await page.getByTestId('status-ready_to_ship').click()
-    await expect(page.getByTestId('admin-order-status')).toContainText('ready_to_ship')
 
     await page.locator('input[name="trackingNumber"]').fill('DHL-E2E-424242')
     await page.getByTestId('ship-order').click()

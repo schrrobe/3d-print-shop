@@ -161,30 +161,6 @@ export async function getAdminOrder(
   return detail.order
 }
 
-/** Drive every waiting print job of an order through production to ready_to_ship. */
-export async function finishOrderJobs(
-  admin: APIRequestContext,
-  orderNumber: string,
-): Promise<AdminOrderDetail> {
-  const printers = (await (await admin.get('/api/admin/printers')).json()) as {
-    printers: { id: string }[]
-  }
-  const printerId = printers.printers[0]?.id
-  if (!printerId) throw new Error('no printer to assign')
-  const order = await getAdminOrder(admin, orderNumber)
-  for (const job of order.printerJobs.filter((j) => j.status === 'waiting')) {
-    const assigned = await admin.post(`/api/admin/production/${job.id}/assign`, {
-      data: { printerId, printDurationMinutes: 30 },
-    })
-    if (!assigned.ok()) throw new Error(`assign failed: ${assigned.status()}`)
-    for (const status of ['printing', 'printed', 'quality_check', 'ready_to_ship']) {
-      const res = await admin.post(`/api/admin/production/${job.id}/status`, { data: { status } })
-      if (!res.ok()) throw new Error(`job → ${status} failed: ${res.status()}`)
-    }
-  }
-  return getAdminOrder(admin, orderNumber)
-}
-
 /** Log in to the API as a specific seeded role account. */
 export async function roleApiContext(
   email: string,

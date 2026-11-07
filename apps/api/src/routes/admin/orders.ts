@@ -33,11 +33,7 @@ import {
 } from '../../services/payments/stripe.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
-import {
-  nextShipmentNumber,
-  openJobIdsReadyToShip,
-  shipShipment,
-} from '../../services/shipment-flow.js'
+import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
 
@@ -237,6 +233,8 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       include: { payments: true },
     })
     if (!order) throw notFound('Order not found')
+    // `shipped` goes through the shipping action (tracking number, jobs, email).
+    if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
     if (status === 'cancelled') {
       // An open payment link must stop taking money before the order is cancelled.
@@ -331,9 +329,6 @@ adminOrdersRouter.post(
       })
       if (!order) throw notFound('Order not found')
       assertOrderTransition(order.status, 'shipped')
-      // Fail before creating the implicit shipment, so a 409 leaves no stray
-      // packed shipment that blocks later shipments of the same items.
-      await openJobIdsReadyToShip(order.id)
 
       let shipment = order.shipments.find((s) => s.status === 'packed')
       if (!shipment) {

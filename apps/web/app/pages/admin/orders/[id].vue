@@ -215,7 +215,10 @@ function ship() {
           Bestellbestätigung erneut senden
         </PsButton>
         <PsButton
-          v-if="auth.can('orders:write') && ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)"
+          v-if="
+            auth.can('orders:write') &&
+            ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)
+          "
           class="mt-md ml-md"
           variant="secondary"
           :disabled="pending"
@@ -298,10 +301,7 @@ function ship() {
       </div>
 
       <div
-        v-if="
-          auth.can('orders:ship') &&
-          ['ready_to_ship', 'quality_check', 'in_production', 'paid'].includes(order.status)
-        "
+        v-if="auth.can('orders:ship') && nextStatuses.includes('shipped')"
         class="mt-lg flex flex-wrap items-end gap-md border-t border-subtle pt-lg"
         data-testid="shipping-form"
       >
@@ -314,11 +314,7 @@ function ship() {
           ]"
         />
         <PsInput v-model="trackingNumber" label="Trackingnummer" name="trackingNumber" />
-        <PsButton
-          :disabled="trackingNumber.length < 4 || order.status !== 'ready_to_ship'"
-          data-testid="ship-order"
-          @click="ship"
-        >
+        <PsButton :disabled="trackingNumber.length < 4" data-testid="ship-order" @click="ship">
           Versand bestätigen
         </PsButton>
       </div>

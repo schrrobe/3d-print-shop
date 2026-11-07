@@ -25,6 +25,13 @@ describe('order status transitions', () => {
     expect(canTransitionOrder('shipped', 'completed')).toBe(true)
   })
 
+  it('allows shipping straight from any paid state', () => {
+    for (const from of ['paid', 'in_production', 'quality_check', 'ready_to_ship'] as const) {
+      expect(canTransitionOrder(from, 'shipped')).toBe(true)
+    }
+    expect(canTransitionOrder('awaiting_payment', 'shipped')).toBe(false)
+  })
+
   it('allows the bank transfer flow', () => {
     expect(canTransitionOrder('pending', 'awaiting_bank_transfer')).toBe(true)
     expect(canTransitionOrder('awaiting_bank_transfer', 'paid')).toBe(true)
