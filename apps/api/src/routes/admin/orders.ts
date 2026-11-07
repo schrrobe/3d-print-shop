@@ -368,6 +368,7 @@ adminOrdersRouter.post(
         trackingNumber: input.trackingNumber,
         byUserId: req.user?.id,
         eventNote: 'legacy-route',
+        closeAllJobs: true,
       })
       const updated = await prisma.order.findUniqueOrThrow({
         where: { id: order.id },

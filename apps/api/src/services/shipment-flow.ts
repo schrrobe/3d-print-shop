@@ -112,8 +112,10 @@ export async function transitionShipment(
 /**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
  * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
- * Transaction: shipment → shipped, order → shipped, all open print jobs → shipped
- * (whatever their production status — entering the tracking number is enough).
+ * Transaction: shipment → shipped, order → shipped, open print jobs → shipped.
+ * By default 409 while any job is not yet ready_to_ship, so a partial shipment
+ * can't close jobs of items still in production. `closeAllJobs` (whole order
+ * shipped from the order page) closes them whatever their production status.
  * The shipping confirmation email goes out after the transaction commits.
  */
 export async function shipShipment(input: {
@@ -122,6 +124,7 @@ export async function shipShipment(input: {
   trackingNumber: string
   byUserId?: string
   eventNote?: string
+  closeAllJobs?: boolean
 }): Promise<Shipment> {
   const shipment = await prisma.shipment.findUnique({
     where: { id: input.shipmentId },
@@ -133,6 +136,15 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
+    if (!input.closeAllJobs) {
+      const open = await tx.printerJob.findMany({
+        where: { orderId: shipment.orderId, status: { not: 'shipped' } },
+        select: { status: true },
+      })
+      if (open.some((job) => job.status !== 'ready_to_ship')) {
+        throw conflict('All print jobs of the order must be ready to ship before shipping')
+      }
+    }
     const result = await tx.shipment.update({
       where: { id: shipment.id },
       data: {
@@ -151,6 +163,18 @@ export async function shipShipment(input: {
         shippedAt: now,
       },
     })
+    // A job closed mid-print would leave its printer stuck in `printing`
+    // (shipped is terminal, so the production route can never free it).
+    const printing = await tx.printerJob.findMany({
+      where: { orderId: shipment.orderId, status: 'printing', printerId: { not: null } },
+      select: { printerId: true },
+    })
+    if (printing.length > 0) {
+      await tx.printer.updateMany({
+        where: { id: { in: printing.map((j) => j.printerId!) } },
+        data: { status: 'idle' },
+      })
+    }
     await tx.printerJob.updateMany({
       where: { orderId: shipment.orderId, status: { not: 'shipped' } },
       data: { status: 'shipped' },

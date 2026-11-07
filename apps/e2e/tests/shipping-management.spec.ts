@@ -4,6 +4,7 @@ import {
   adminApiContext,
   apiContext,
   createPaidOrderViaApi,
+  finishOrderJobs,
   getAdminOrder,
 } from '../helpers/api.js'
 import { gotoHydrated } from '../helpers/hydration.js'
@@ -43,6 +44,12 @@ test.describe('shipping management', () => {
     }
     const { orderNumber } = await createPaidOrderViaApi(products.products[0]!.id, email)
 
+    const order = await getAdminOrder(admin, orderNumber)
+    // Drive the order status machine to ready_to_ship
+    for (const status of ['in_production', 'quality_check', 'ready_to_ship']) {
+      await admin.post(`/api/admin/orders/${order.id}/status`, { data: { status } })
+    }
+
     const { shipmentId } = await createShipmentForOrder(admin, orderNumber)
     const toReady = await admin.post(`/api/admin/shipments/${shipmentId}/status`, {
       data: { status: 'ready_for_shipping' },
@@ -50,9 +57,15 @@ test.describe('shipping management', () => {
     expect(toReady.ok()).toBe(true)
     await admin.post(`/api/admin/shipments/${shipmentId}/status`, { data: { status: 'packed' } })
 
-    // Order still paid, print jobs still open — shipping closes them
-    const before = await getAdminOrder(admin, orderNumber)
-    expect(before.printerJobs.length).toBeGreaterThan(0)
+    // Print jobs still in production → shipping is rejected
+    const blocked = await admin.post(`/api/admin/shipments/${shipmentId}/ship`, {
+      data: { carrier: 'dhl', trackingNumber: 'DHL-E2E-777001' },
+    })
+    expect(blocked.status()).toBe(409)
+
+    const ready = await finishOrderJobs(admin, orderNumber)
+    expect(ready.printerJobs.length).toBeGreaterThan(0)
+    expect(ready.printerJobs.every((j) => j.status === 'ready_to_ship')).toBe(true)
 
     const shipped = await admin.post(`/api/admin/shipments/${shipmentId}/ship`, {
       data: { carrier: 'dhl', trackingNumber: 'DHL-E2E-777001' },
