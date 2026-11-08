@@ -528,7 +528,8 @@
         "label": "Ráže",
         "none": "Bez krabičky zdarma",
         "free": "Zdarma"
-      }
+      },
+      "deliveryDelay": "Dodací lhůta je aktuálně cca 4 týdny."
     },
     "wishlist": {
       "lead": "Uložené konfigurace zůstávají v tomto zařízení.",

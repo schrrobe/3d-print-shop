@@ -936,6 +936,8 @@ model ShopSettings {
   /// Hinweis-Leiste oben im Shop. Public via /api/info-banner, so text only: Record<Locale, string>.
   infoBannerEnabled Boolean @default(false)
   infoBanner Json?
+  /// Roter Hinweis im Checkout „Lieferzeit aktuell ca. 4 Wochen". Public via /api/delivery-notice.
+  deliveryDelayNotice Boolean @default(false)
   /// Shop-wide default color per zone: Record<ColorZoneSlot, colorId>. Saving copies it
   /// onto every product's ProductColorSlot; new products start with it.
   defaultColors      Json?

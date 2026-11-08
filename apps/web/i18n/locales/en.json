@@ -528,7 +528,8 @@
         "label": "Caliber",
         "none": "No free box",
         "free": "Free"
-      }
+      },
+      "deliveryDelay": "Delivery currently takes about 4 weeks."
     },
     "wishlist": {
       "lead": "Saved configurations stay on this device.",

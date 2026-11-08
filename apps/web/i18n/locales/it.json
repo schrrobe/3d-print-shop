@@ -528,7 +528,8 @@
         "label": "Calibro",
         "none": "Nessuna scatola in omaggio",
         "free": "Omaggio"
-      }
+      },
+      "deliveryDelay": "I tempi di consegna sono attualmente di circa 4 settimane."
     },
     "wishlist": {
       "lead": "Le configurazioni salvate restano memorizzate su questo dispositivo.",

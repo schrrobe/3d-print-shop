@@ -506,6 +506,9 @@ export const infoBannerSchema = z
   })
 export type InfoBannerInput = z.infer<typeof infoBannerSchema>
 
+/** Checkout notice "delivery currently ~4 weeks"; text is fixed in i18n. */
+export const deliveryNoticeSchema = z.object({ enabled: z.boolean() })
+
 // ---------- Payments ----------
 
 export const markPaidSchema = z.object({
