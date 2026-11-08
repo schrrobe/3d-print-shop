@@ -78,6 +78,24 @@ describe('admin dashboard returning visitors', () => {
   })
 })
 
+describe('admin dashboard live visitors', () => {
+  it('counts visitors active in the last 5 minutes', async () => {
+    asRole('admin')
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([{ n: 4n }] as never)
+    const res = await fetch(`${baseUrl}/api/admin/dashboard/live`, { headers: { cookie } })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ visitors: 4, minutes: 5 })
+    const since = vi.mocked(prisma.$queryRaw).mock.calls.at(-1)![1] as Date
+    expect(Date.now() - since.getTime()).toBeCloseTo(5 * 60 * 1000, -3)
+  })
+
+  it('is forbidden without tracking:read', async () => {
+    asRole('support')
+    const res = await fetch(`${baseUrl}/api/admin/dashboard/live`, { headers: { cookie } })
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('admin dashboard top products', () => {
   it('returns the five best sellers with their share of all units sold', async () => {
     asRole('admin')

@@ -32,6 +32,24 @@ const { data } = await useFetch<Dashboard>('/api/admin/dashboard', {
   server: false,
 })
 
+// Live count needs tracking:read (signalled by returningVisitors); polled while the page is open.
+const { data: live, execute: loadLive } = await useFetch<{ visitors: number; minutes: number }>('/api/admin/dashboard/live', {
+  credentials: 'include',
+  server: false,
+  immediate: false,
+})
+let liveTimer: ReturnType<typeof setInterval> | undefined
+watch(
+  () => data.value?.returningVisitors,
+  (rv) => {
+    if (!rv || liveTimer) return
+    loadLive()
+    liveTimer = setInterval(loadLive, 30_000)
+  },
+  { immediate: true },
+)
+onUnmounted(() => clearInterval(liveTimer))
+
 const TOP_PRODUCT_PERIODS = [
   { days: 7, label: 'Letzte 7 Tage' },
   { days: 30, label: 'Letzte 30 Tage' },
@@ -56,6 +74,7 @@ const GAP_PX = 16
 /** Fixed size per widget; `rows` must match the row-span class (Unovis needs a pixel height). */
 const WIDGETS = {
   revenue: { title: 'Umsatz (bezahlt)', rows: 1, class: 'row-span-1' },
+  liveVisitors: { title: 'Gerade im Shop', rows: 1, class: 'row-span-1' },
   quoteRequests: { title: 'Offene Upload-Anfragen', rows: 1, class: 'row-span-1' },
   productionWaiting: { title: 'Produktionsqueue (wartet)', rows: 1, class: 'row-span-1' },
   openTickets: { title: 'Offene Support-Tickets', rows: 1, class: 'row-span-1' },
@@ -101,8 +120,9 @@ function swap(a: WidgetId, b: WidgetId) {
 }
 
 const announcement = ref('')
-// Tracking widget only for roles with tracking:read (API sends null otherwise).
-const visible = computed(() => order.value.filter((id) => id !== 'returningVisitors' || data.value?.returningVisitors))
+// Tracking widgets only for roles with tracking:read (API sends null otherwise).
+const TRACKING_WIDGETS: WidgetId[] = ['returningVisitors', 'liveVisitors']
+const visible = computed(() => order.value.filter((id) => !TRACKING_WIDGETS.includes(id) || data.value?.returningVisitors))
 
 function move(id: WidgetId, delta: -1 | 1) {
   const target = visible.value[visible.value.indexOf(id) + delta]
@@ -200,6 +220,10 @@ const mapHeight = WIDGETS.buyerMap.rows * ROW_PX + (WIDGETS.buyerMap.rows - 1) *
               </template>
               · letzte {{ data.returningVisitors.days }} Tage
             </p>
+          </template>
+          <template v-else-if="id === 'liveVisitors'">
+            <p class="text-heading-small" data-testid="dashboard-live-visitors">{{ live?.visitors ?? '–' }}</p>
+            <p class="text-caption text-secondary">Besucher · letzte {{ live?.minutes ?? 5 }} Minuten</p>
           </template>
           <p v-else-if="id === 'productionWaiting'" class="text-heading-small">{{ data.productionWaiting }}</p>
           <ul v-else-if="id === 'ordersByStatus'" class="text-body-regular">

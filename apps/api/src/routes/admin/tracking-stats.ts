@@ -304,6 +304,16 @@ adminTrackingRouter.get('/events', requirePermission('tracking:read'), async (re
         },
       }),
     ])
+    // Sessions per visitor on this page: > 1 marks a returning visitor in the UI.
+    const visitorIds = [...new Set(rows.map((r) => r.visitorId).filter((v): v is string => v != null))]
+    const visitCounts = visitorIds.length
+      ? await prisma.trackingSession.groupBy({
+          by: ['visitorId'],
+          where: { visitorId: { in: visitorIds } },
+          _count: { _all: true },
+        })
+      : []
+    const visits = new Map(visitCounts.map((v) => [v.visitorId, v._count._all]))
     res.json({
       page,
       pageSize: PAGE_SIZE,
@@ -311,6 +321,7 @@ adminTrackingRouter.get('/events', requirePermission('tracking:read'), async (re
       items: rows.map(({ visitorId, session, ...e }) => ({
         ...e,
         visitor: visitorId?.slice(0, 8) ?? null,
+        visits: visitorId ? (visits.get(visitorId) ?? null) : null,
         channel: session?.channel ?? null,
         origin: session?.utmSource ?? session?.referrer ?? null,
       })),

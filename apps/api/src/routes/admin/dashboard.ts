@@ -59,6 +59,22 @@ adminDashboardRouter.get('/', requirePermission('dashboard:read'), async (req, r
   }
 })
 
+const LIVE_WINDOW_MINUTES = 5
+
+/** Distinct visitors (or anonymous sessions) with an event received in the last 5 minutes. */
+adminDashboardRouter.get('/live', requirePermission('tracking:read'), async (_req, res, next) => {
+  try {
+    const since = new Date(Date.now() - LIVE_WINDOW_MINUTES * 60 * 1000)
+    const [row] = await prisma.$queryRaw<{ n: bigint }[]>`
+      SELECT COUNT(DISTINCT COALESCE("visitorId", "sessionId"))::bigint AS n
+      FROM "TrackingEvent"
+      WHERE "receivedAt" >= ${since} AND source = 'client'`
+    res.json({ visitors: Number(row?.n ?? 0), minutes: LIVE_WINDOW_MINUTES })
+  } catch (err) {
+    next(err)
+  }
+})
+
 const topProductsQuery = z.object({ days: z.coerce.number().pipe(z.union([z.literal(7), z.literal(30), z.literal(90), z.literal(365)])) })
 
 /** Best-selling shop products (units) among paid orders placed in the last `days` days. */
