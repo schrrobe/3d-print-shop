@@ -33,6 +33,8 @@ const include = {
   colorSlots: true,
   calibers: { orderBy: { sortOrder: 'asc' as const } },
 }
+// internalNote is globally omitted (lib/prisma.ts); admin detail/write responses opt back in.
+const withNote = { internalNote: false } as const
 
 /** Resolve caliber slugs to ids; unknown slugs are a 400, not a silent drop. */
 async function caliberIdsForSlugs(slugs: string[]): Promise<{ id: string }[]> {
@@ -110,6 +112,7 @@ adminProductsRouter.get('/:id', requirePermission('products:read'), async (req, 
     const product = await prisma.product.findUnique({
       where: { id: String(req.params.id) },
       include,
+      omit: withNote,
     })
     if (!product) throw notFound('Product not found')
     res.json({ product })
@@ -132,11 +135,13 @@ adminProductsRouter.post('/', requirePermission('products:write'), async (req, r
           active: input.active,
           capacity: input.capacity ?? null,
           familyKey: input.familyKey ?? null,
+          internalNote: input.internalNote || null,
           calibers: { connect: caliberIds },
           translations: { create: input.translations },
           colorSlots: { create: withDefaultColors(input.colorSlots, await loadDefaultColors(tx)) },
         },
         include,
+        omit: withNote,
       })
     })
     await audit(req, 'product.create', { type: 'product', id: product.id }, { slug: input.slug })
@@ -173,9 +178,11 @@ adminProductsRouter.patch('/:id', requirePermission('products:write'), async (re
           active: input.active,
           capacity: input.capacity,
           familyKey: input.familyKey,
+          internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
           calibers: caliberIds ? { set: caliberIds } : undefined,
         },
         include,
+        omit: withNote,
       })
     })
     await audit(req, 'product.update', { type: 'product', id: product.id }, input)

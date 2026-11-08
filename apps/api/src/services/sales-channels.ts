@@ -1,6 +1,7 @@
 import type { CommissionType, Prisma, SalesChannel, Voucher } from '@prisma/client'
 import type { VoucherDto } from '@print-shop/types'
 import { checkVoucher } from '@print-shop/utils'
+import type { prisma } from '../lib/prisma.js'
 
 /**
  * First-party ref cookie "<code>.<click unix seconds>". Set without consent: it
@@ -43,7 +44,7 @@ export function refCode(cookie: string | undefined, now: Date): string | null {
  * clicked link within the window.
  */
 export async function attributeSalesChannel(
-  db: Prisma.TransactionClient,
+  db: Prisma.TransactionClient | typeof prisma,
   voucherId: string | null,
   refCookie: string | undefined,
   now: Date,

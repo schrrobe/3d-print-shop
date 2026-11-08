@@ -292,6 +292,7 @@ export interface AdminProductDetailDto {
   active: boolean
   capacity: number | null
   familyKey: string | null
+  internalNote: string | null
   calibers: AdminCaliberDto[]
   translations: ProductTranslationDto[]
   assets: ProductAssetDto[]

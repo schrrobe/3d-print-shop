@@ -305,19 +305,21 @@ model PasswordResetToken {
 // ---------- Catalog ----------
 
 model Product {
-  id         String   @id @default(cuid())
-  slug       String   @unique
-  priceCents Int
-  active     Boolean  @default(false)
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  priceCents   Int
+  active       Boolean  @default(false)
   /// Sonderanfertigung (made-to-order / farblich personalisiert): kein Widerruf,
   /// nur Reklamation/Kulanz. Steuert den Hinweis im Reklamations-Formular.
-  customMade Boolean  @default(true)
+  customMade   Boolean  @default(true)
   /// Patronen pro Box (50 / 100); null bei Produkten ohne Kapazität
-  capacity   Int?
+  capacity     Int?
   /// Produkte mit gleichem familyKey sind Größenvarianten (50/100) derselben Kaliberbox
-  familyKey  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  familyKey    String?
+  /// Staff-only — global per Prisma-omit ausgeblendet (lib/prisma.ts), nie in Public-Responses
+  internalNote String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   calibers            Caliber[]
   translations        ProductTranslation[]
