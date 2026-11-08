@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.3](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.3.2...emails-v0.3.3) (2026-11-08)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.3.0
+    * @print-shop/utils bumped to 0.8.0
+
 ## [0.3.2](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.3.1...emails-v0.3.2) (2026-11-07)
 
 

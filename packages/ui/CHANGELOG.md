@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.2](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.6.1...ui-v0.6.2) (2026-11-08)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.3.0
+    * @print-shop/utils bumped to 0.8.0
+
 ## [0.6.1](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.6.0...ui-v0.6.1) (2026-11-07)
 
 

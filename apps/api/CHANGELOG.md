@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.17.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.16.0...api-v0.17.0) (2026-11-08)
+
+
+### Features
+
+* **admin:** interne Notiz an Produkten ([#112](https://github.com/schrrobe/3d-print-shop/issues/112)) ([98c7a3b](https://github.com/schrrobe/3d-print-shop/commit/98c7a3b55abf8c94dc584f19171c61641c002590))
+* **checkout:** Gratis-50er-Box erst ab 150 € statt 100 € ([#115](https://github.com/schrrobe/3d-print-shop/issues/115)) ([9c6d3b1](https://github.com/schrrobe/3d-print-shop/commit/9c6d3b1e332a598c3164b60a307e10d7fe164e85))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.3.3
+    * @print-shop/types bumped to 0.3.0
+    * @print-shop/utils bumped to 0.8.0
+    * @print-shop/validators bumped to 0.9.0
+
 ## [0.16.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.15.0...api-v0.16.0) (2026-11-07)
 
 

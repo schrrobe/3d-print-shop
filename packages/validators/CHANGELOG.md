@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.8.1...validators-v0.9.0) (2026-11-08)
+
+
+### Features
+
+* **admin:** interne Notiz an Produkten ([#112](https://github.com/schrrobe/3d-print-shop/issues/112)) ([98c7a3b](https://github.com/schrrobe/3d-print-shop/commit/98c7a3b55abf8c94dc584f19171c61641c002590))
+* **checkout:** Auslandsversand nach DHL-Zonen, Lieferung in ganz EU, Schweiz und Island ([#113](https://github.com/schrrobe/3d-print-shop/issues/113)) ([bef6ee3](https://github.com/schrrobe/3d-print-shop/commit/bef6ee33a11b22e0f38024985e867de3decb15a2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.3.0
+    * @print-shop/utils bumped to 0.8.0
+
 ## [0.8.1](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.8.0...validators-v0.8.1) (2026-11-07)
 
 
