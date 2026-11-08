@@ -5,6 +5,7 @@ import { prisma } from '../../lib/prisma.js'
 import { hasPermission } from '@print-shop/utils'
 import { requirePermission } from '../../middleware/auth.js'
 import { buyerCountries, buyerLocations } from '../../services/buyer-locations.js'
+import { notHeldExternally } from '../../services/providers.js'
 
 export const adminDashboardRouter = Router()
 
@@ -34,7 +35,7 @@ adminDashboardRouter.get('/', requirePermission('dashboard:read'), async (req, r
       prisma.order.aggregate({ _sum: { totalCents: true }, where: { status: { in: PAID } } }),
       prisma.quoteRequest.count({ where: { status: { in: ['new', 'in_review'] } } }),
       prisma.printer.findMany({ select: { id: true, name: true, status: true } }),
-      prisma.printerJob.count({ where: { status: 'waiting' } }),
+      prisma.printerJob.count({ where: { status: 'waiting', ...notHeldExternally } }),
       prisma.order.findMany({ where: { status: { in: PAID } }, select: { country: true, zip: true } }),
       prisma.payment.groupBy({ by: ['method'], _count: true, _sum: { amountCents: true }, where: { status: 'paid' } }),
       prisma.ticket.count({ where: { status: { in: ['open', 'in_progress', 'waiting_customer'] } } }),

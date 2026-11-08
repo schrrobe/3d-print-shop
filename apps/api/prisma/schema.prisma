@@ -552,10 +552,67 @@ model Order {
   commissionBaseCents Int?
   commissionCents     Int?
 
+  providerAssignments ProviderAssignment[]
+
   @@index([voucherId])
   @@index([trackingSessionId])
   @@index([salesChannelId])
   @@index([source])
+}
+
+// ---------- External print providers ----------
+
+/// beauftragt → fertig gemeldet → eingegangen (entfällt bei Direktversand); storniert
+enum ProviderAssignmentStatus {
+  assigned
+  completed
+  received
+  cancelled
+}
+
+/// External manufacturer receiving whole orders by email (no login).
+model PrintProvider {
+  id            String   @id @default(cuid())
+  name          String
+  contactName   String?
+  email         String
+  /// Default share of goods value in basis points (1500 = 15 %)
+  defaultRateBp Int
+  notes         String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  assignments ProviderAssignment[]
+}
+
+/// One order handed to a provider. Rate and amounts are frozen at assignment;
+/// at most one non-cancelled assignment per order (partial unique index in SQL).
+model ProviderAssignment {
+  id                String                   @id @default(cuid())
+  orderId           String
+  order             Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  providerId        String
+  provider          PrintProvider            @relation(fields: [providerId], references: [id])
+  status            ProviderAssignmentStatus @default(assigned)
+  rateBp            Int
+  /// Goods value: subtotal − voucher − Vorkasse discount, no shipping
+  baseCents         Int
+  /// Provider's share; manually correctable (audited)
+  payoutCents       Int
+  /// Direct shipping: name + address went to the provider
+  shareCustomerData Boolean                  @default(false)
+  note              String?
+  emailSentAt       DateTime?
+  completedAt       DateTime?
+  receivedAt        DateTime?
+  cancelledAt       DateTime?
+  paidOutAt         DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([orderId])
+  @@index([providerId, createdAt])
 }
 
 model OrderItem {

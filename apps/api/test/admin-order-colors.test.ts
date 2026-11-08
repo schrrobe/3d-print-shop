@@ -84,6 +84,7 @@ it('order detail: resolves colors per item', async () => {
   vi.mocked(prisma.order.findUnique).mockResolvedValue({
     id: 'order_1',
     payments: [],
+    providerAssignments: [],
     items: [coloredItem, plainItem],
   } as never)
   const { order } = await getJson<{ order: { items: WithColors[] } }>('/api/admin/orders/order_1')

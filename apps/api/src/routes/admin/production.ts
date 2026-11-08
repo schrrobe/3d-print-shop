@@ -8,6 +8,7 @@ import { prisma } from '../../lib/prisma.js'
 import { requirePermission } from '../../middleware/auth.js'
 import { badRequest, conflict, notFound } from '../../middleware/error.js'
 import { itemColorResolver } from '../../services/item-colors.js'
+import { isHeldExternally, notHeldExternally } from '../../services/providers.js'
 
 export const adminProductionRouter = Router()
 
@@ -23,7 +24,7 @@ const calendarItemSelect = {
 adminProductionRouter.get('/queue', requirePermission('print-jobs:read'), async (_req, res, next) => {
   try {
     const jobs = await prisma.printerJob.findMany({
-      where: { status: { notIn: ['shipped'] } },
+      where: { status: { notIn: ['shipped'] }, ...notHeldExternally },
       include: {
         order: { select: { orderNumber: true, status: true } },
         orderItem: true,
@@ -63,6 +64,7 @@ adminProductionRouter.post('/:jobId/assign', requirePermission('print-jobs:write
     if (!job) throw notFound('Print job not found')
     const printer = await prisma.printer.findUnique({ where: { id: input.printerId } })
     if (!printer) throw notFound('Printer not found')
+    if (await isHeldExternally(job.orderId)) throw conflict('Bestellung ist extern vergeben')
     assertProductionTransition(job.status, 'assigned')
     const updated = await prisma.$transaction(async (tx) => {
       await tx.printer.update({ where: { id: printer.id }, data: { status: 'prepared' } })
@@ -92,6 +94,7 @@ adminProductionRouter.post('/:jobId/status', requirePermission('print-jobs:write
     const { status } = statusSchema.parse(req.body)
     const job = await prisma.printerJob.findUnique({ where: { id: String(req.params.jobId) } })
     if (!job) throw notFound('Print job not found')
+    if (await isHeldExternally(job.orderId)) throw conflict('Bestellung ist extern vergeben')
     assertProductionTransition(job.status, status)
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -156,7 +159,11 @@ adminProductionRouter.get('/calendar', requirePermission('print-jobs:read'), asy
         orderBy: { plannedStartAt: 'asc' },
       }),
       prisma.printerJob.findMany({
-        where: { plannedStartAt: null, status: { notIn: ['shipped', 'ready_to_ship'] } },
+        where: {
+          plannedStartAt: null,
+          status: { notIn: ['shipped', 'ready_to_ship'] },
+          ...notHeldExternally,
+        },
         include: {
           order: { select: { orderNumber: true, status: true } },
           orderItem: { select: calendarItemSelect },
@@ -199,6 +206,7 @@ adminProductionRouter.post('/:jobId/schedule', requirePermission('print-jobs:wri
     const input = jobScheduleSchema.parse(req.body)
     const job = await prisma.printerJob.findUnique({ where: { id: String(req.params.jobId) } })
     if (!job) throw notFound('Print job not found')
+    if (await isHeldExternally(job.orderId)) throw conflict('Bestellung ist extern vergeben')
 
     const printerId = input.printerId !== undefined ? input.printerId : job.printerId
     if (!printerId) throw badRequest('A printer is required to schedule a job')

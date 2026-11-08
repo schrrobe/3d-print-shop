@@ -1,6 +1,11 @@
 import { renderPaymentLink } from '@print-shop/emails'
 import { ORDER_STATUSES } from '@print-shop/types'
-import { assertOrderTransition, REVENUE_ORDER_STATUSES, TERMS_PATH } from '@print-shop/utils'
+import {
+  assertOrderTransition,
+  hasPermission,
+  REVENUE_ORDER_STATUSES,
+  TERMS_PATH,
+} from '@print-shop/utils'
 import {
   adminOrderCreateSchema,
   markPaidSchema,
@@ -53,12 +58,28 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
   try {
     const status = req.query.status ? String(req.query.status) : undefined
     const source = req.query.source ? String(req.query.source) : undefined
+    // fulfillment: internal | external | <providerId>
+    const fulfillment = req.query.fulfillment ? String(req.query.fulfillment) : undefined
+    const live = { status: { not: 'cancelled' as const } }
     const orders = await prisma.order.findMany({
       where: {
         ...(status ? { status: status as never } : {}),
         ...(source ? { source: source as never } : {}),
+        ...(fulfillment === 'internal' ? { providerAssignments: { none: live } } : {}),
+        ...(fulfillment === 'external' ? { providerAssignments: { some: live } } : {}),
+        ...(fulfillment && !['internal', 'external'].includes(fulfillment)
+          ? { providerAssignments: { some: { ...live, providerId: fulfillment } } }
+          : {}),
       },
-      include: { items: true, payments: true, invoice: { select: { number: true } } },
+      include: {
+        items: true,
+        payments: true,
+        invoice: { select: { number: true } },
+        providerAssignments: {
+          where: live,
+          select: { status: true, provider: { select: { id: true, name: true } } },
+        },
+      },
       omit: ORDER_OMIT,
       orderBy: { createdAt: 'desc' },
       take: 200,
@@ -80,13 +101,23 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
         invoice: true,
         printerJobs: { include: { printer: true } },
         tickets: { select: { id: true, ticketNumber: true, status: true, subject: true } },
+        providerAssignments: {
+          include: { provider: { select: { id: true, name: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     })
     if (!order) throw notFound('Order not found')
     const colorsOf = await itemColorResolver(order.items)
+    // Rates and payouts are admin-only (providers:read); production sees provider + status.
+    const showAmounts = hasPermission(req.user!.role, 'providers:read')
     res.json({
       order: {
         ...order,
+        providerAssignments: order.providerAssignments.map(
+          ({ rateBp, baseCents, payoutCents, paidOutAt, ...a }) =>
+            showAmounts ? { ...a, rateBp, baseCents, payoutCents, paidOutAt } : a,
+        ),
         items: order.items.map((item) => ({ ...item, colors: colorsOf(item) })),
         payments: order.payments.map((p) => ({
           ...p,

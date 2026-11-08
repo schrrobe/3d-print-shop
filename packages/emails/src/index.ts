@@ -33,6 +33,8 @@ export type EmailTemplateName =
   | 'review_submitted'
   | 'review_approved'
   | 'withdrawal_received'
+  | 'provider_order'
+  | 'provider_order_cancelled'
 
 /**
  * i18n: customer emails exist in every shop locale; a missing translation is a
@@ -1519,4 +1521,58 @@ export function renderWithdrawalReceived(
   )
   const text = [title, declaration, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n')
   return { subject, html, text }
+}
+
+// ---------- External print providers (internal B2B, always German) ----------
+
+export interface ProviderOrderData {
+  providerName: string
+  contactName: string | null
+  orderNumber: string
+  payoutCents: number
+  directShipping: boolean
+  note: string | null
+}
+
+/** Production order to an external provider; the PDF carries the details. */
+export function renderProviderOrder(data: ProviderOrderData): RenderedEmail {
+  const subject = `Fertigungsauftrag ${data.orderNumber}`
+  const hello = `Hallo ${escapeHtml(data.contactName ?? data.providerName)},`
+  const lines = [
+    `anbei der Fertigungsauftrag <strong>${data.orderNumber}</strong> mit allen Positionen.`,
+    `Vergütung: <strong>${formatCents(data.payoutCents)}</strong>.`,
+    data.directShipping
+      ? 'Bitte direkt an die Lieferadresse im Auftrag versenden und uns die Sendungsnummer mitteilen.'
+      : 'Bitte nach Fertigstellung an uns liefern.',
+    ...(data.note ? [`Hinweis: ${escapeHtml(data.note)}`] : []),
+    'Bitte kurz per Antwort bestätigen und Bescheid geben, sobald der Auftrag fertig ist.',
+  ]
+  const html = emailLayout(subject, [hello, ...lines].map(paragraph).join(''))
+  return { subject, html, text: htmlToText([hello, ...lines]) }
+}
+
+export function renderProviderOrderCancelled(
+  data: Pick<ProviderOrderData, 'providerName' | 'contactName' | 'orderNumber'>,
+): RenderedEmail {
+  const subject = `Storno Fertigungsauftrag ${data.orderNumber}`
+  const lines = [
+    `Hallo ${escapeHtml(data.contactName ?? data.providerName)},`,
+    `der Fertigungsauftrag <strong>${data.orderNumber}</strong> ist storniert. Bitte nicht (weiter) fertigen.`,
+  ]
+  return {
+    subject,
+    html: emailLayout(subject, lines.map(paragraph).join('')),
+    text: htmlToText(lines),
+  }
+}
+
+/** Plain-text twin of escaped HTML lines: strip tags, undo escapeHtml entities. */
+function htmlToText(lines: string[]): string {
+  return lines
+    .join('\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
 }

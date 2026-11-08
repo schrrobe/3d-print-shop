@@ -30,6 +30,7 @@ import { adminTrackingRouter } from './routes/admin/tracking-stats.js'
 import { adminUsersRouter } from './routes/admin/users.js'
 import { adminVouchersRouter } from './routes/admin/vouchers.js'
 import { adminSalesChannelsRouter } from './routes/admin/sales-channels.js'
+import { adminProvidersRouter } from './routes/admin/providers.js'
 import { checkoutRouter } from './routes/public/checkout.js'
 import { infoBannerRouter } from './routes/public/info-banner.js'
 import { promoBannerRouter } from './routes/public/promo-banner.js'
@@ -135,6 +136,7 @@ export function createApp(): Express {
   app.use('/api/admin/reviews', requireAuth, adminReviewsRouter)
   app.use('/api/admin/vouchers', requireAuth, adminVouchersRouter)
   app.use('/api/admin/sales-channels', requireAuth, adminSalesChannelsRouter)
+  app.use('/api/admin/providers', requireAuth, adminProvidersRouter)
   app.use('/api/admin/audit-log', requireAuth, adminAuditRouter)
   app.use('/api/admin/errors', requireAuth, adminErrorsRouter)
   app.use('/api/admin/tracking', requireAuth, adminTrackingRouter)

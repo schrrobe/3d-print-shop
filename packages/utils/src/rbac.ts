@@ -42,6 +42,9 @@ export const PERMISSIONS = [
   'vouchers:write',
   'sales-channels:read',
   'sales-channels:write',
+  'providers:read',
+  'providers:write',
+  'provider-orders:write',
   'settings:read',
   'settings:write',
   'tracking:read',
@@ -61,6 +64,8 @@ export type Permission = (typeof PERMISSIONS)[number]
  * Reviews: product_manager & support moderate.
  * Vouchers: only admin manages (vouchers:write), support reads for order questions.
  * Sales channels (influencer links + commission): admin only.
+ * External providers: admin manages providers/rates/payouts (providers:*);
+ * production may hand orders out and track them (provider-orders:write), without amounts.
  * Settings: shop-wide config incl. tracking IDs (GDPR-relevant) — admin only.
  * Conversion analytics: admin & product_manager read the tracking dashboard (tracking:read).
  */
@@ -94,6 +99,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'filament:write',
     'complaints:read',
     'shipments:read',
+    'provider-orders:write',
   ],
   shipping: ['dashboard:read', 'orders:read', 'orders:ship', 'shipments:read', 'shipments:write'],
   support: [

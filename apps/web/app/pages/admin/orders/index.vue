@@ -14,7 +14,12 @@ interface AdminOrder {
   createdAt: string
   invoice: { number: string } | null
   items: { personalization: string | null }[]
+  /** Live (non-cancelled) provider assignment, at most one */
+  providerAssignments: { status: string; provider: { id: string; name: string } }[]
 }
+
+const externalProvider = (row: unknown) =>
+  (row as AdminOrder).providerAssignments[0]?.provider.name ?? null
 
 const personalizations = (row: unknown) =>
   (row as AdminOrder).items
@@ -25,15 +30,21 @@ const personalizations = (row: unknown) =>
 const auth = useAdminAuthStore()
 const statusFilter = ref('')
 const sourceFilter = ref('')
+const fulfillmentFilter = ref('')
+const { data: providerOptions } = await useFetch<{ providers: { id: string; name: string }[] }>(
+  '/api/admin/providers/options',
+  { credentials: 'include', server: false, immediate: auth.can('provider-orders:write') },
+)
 const { data, refresh } = await useFetch<{ orders: AdminOrder[] }>('/api/admin/orders', {
   credentials: 'include',
   server: false,
   query: computed(() => ({
     ...(statusFilter.value ? { status: statusFilter.value } : {}),
     ...(sourceFilter.value ? { source: sourceFilter.value } : {}),
+    ...(fulfillmentFilter.value ? { fulfillment: fulfillmentFilter.value } : {}),
   })),
 })
-watch([statusFilter, sourceFilter], () => refresh())
+watch([statusFilter, sourceFilter, fulfillmentFilter], () => refresh())
 
 const columns = [
   { key: 'orderNumber', label: 'Bestellnummer' },
@@ -81,18 +92,44 @@ const columns = [
         <option value="admin">Paylink</option>
         <option value="quote">Angebot</option>
       </select>
+      <select
+        v-model="fulfillmentFilter"
+        class="rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular"
+        aria-label="Fertigung"
+        data-testid="order-fulfillment-filter"
+      >
+        <option value="">Alle Fertigungen</option>
+        <option value="internal">Intern</option>
+        <option value="external">Extern</option>
+        <option v-for="p in providerOptions?.providers ?? []" :key="p.id" :value="p.id">
+          Extern: {{ p.name }}
+        </option>
+      </select>
       <NuxtLink v-if="auth.can('orders:write')" to="/admin/orders/new" class="ml-auto">
         <PsButton data-testid="create-paylink">Paylink erstellen</PsButton>
       </NuxtLink>
     </div>
 
-    <PsAdminTable :columns="columns" :rows="data?.orders ?? []" empty="Keine Bestellungen">
+    <PsAdminTable
+      :columns="columns"
+      :rows="data?.orders ?? []"
+      :row-class="
+        (row) =>
+          externalProvider(row)
+            ? 'bg-violet-500/5 shadow-[inset_3px_0_0_var(--color-violet-500)]'
+            : undefined
+      "
+      empty="Keine Bestellungen"
+    >
       <template #cell-status="{ row }">
         <span class="inline-flex flex-wrap items-center gap-xs">
           <PsOrderStatusBadge :status="(row as unknown as AdminOrder).status" />
           <PsBadge v-if="(row as unknown as AdminOrder).source === 'admin'" variant="info"
             >Paylink</PsBadge
           >
+          <PsBadge v-if="externalProvider(row)" variant="external" data-testid="order-external">
+            Extern: {{ externalProvider(row) }}
+          </PsBadge>
         </span>
       </template>
       <template #cell-personalization="{ row }">
