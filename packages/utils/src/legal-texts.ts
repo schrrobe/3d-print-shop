@@ -69,8 +69,8 @@ const de: Partial<Record<LegalDocumentKey, LegalDocumentTranslation>> = {
         heading: '5. Preise und Versandkosten',
         paragraphs: [
           'Alle angegebenen Preise sind Endpreise in Euro. Als Kleinunternehmer im Sinne von § 19 UStG weisen wir keine Umsatzsteuer aus.',
-          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in alle anderen Lieferländer 15,00 € (ab 100,00 € Bestellwert 10,00 €, versandkostenfrei ab 200,00 €). Ab einem Bestellwert von 100,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
-          'Bei Lieferungen in die Schweiz können bei der Einfuhr Zölle, Einfuhrumsatzsteuer und Gebühren des Versanddienstleisters anfallen. Diese sind nicht im Preis enthalten und von dir zu tragen.',
+          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in die übrigen EU-Mitgliedstaaten 17,49 €, in die Schweiz 26,99 € und nach Island 29,99 € (außerhalb Deutschlands versandkostenfrei ab 200,00 € Bestellwert). Ab einem Bestellwert von 100,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
+          'Bei Lieferungen in die Schweiz und nach Island können bei der Einfuhr Zölle, Einfuhrumsatzsteuer und Gebühren des Versanddienstleisters anfallen. Diese sind nicht im Preis enthalten und von dir zu tragen.',
         ],
       },
       {
@@ -82,7 +82,7 @@ const de: Partial<Record<LegalDocumentKey, LegalDocumentTranslation>> = {
       {
         heading: '7. Lieferung',
         paragraphs: [
-          'Wir liefern nach Deutschland, Österreich, in die Schweiz, die Niederlande, Belgien, Luxemburg, Frankreich, Dänemark, Polen, Tschechien, Italien und Spanien. Die Lieferzeit beträgt innerhalb Deutschlands 3 bis 8 Werktage und in die übrigen Lieferländer 7 bis 14 Werktage, jeweils ab vollständigem Zahlungseingang. Bei individuell angefragten Druckaufträgen nennen wir die voraussichtliche Lieferzeit im Angebot. Der Versand erfolgt mit DHL oder Hermes.',
+          'Wir liefern nach Deutschland, in alle übrigen Mitgliedstaaten der Europäischen Union, in die Schweiz und nach Island. Die Lieferzeit beträgt innerhalb Deutschlands 3 bis 8 Werktage und in die übrigen Lieferländer 7 bis 14 Werktage, jeweils ab vollständigem Zahlungseingang. Bei individuell angefragten Druckaufträgen nennen wir die voraussichtliche Lieferzeit im Angebot. Der Versand erfolgt mit DHL oder Hermes.',
         ],
       },
       {
@@ -316,8 +316,8 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
         heading: '5. Prices and shipping costs',
         paragraphs: [
           'All prices stated are final prices in euros. As a small business within the meaning of section 19 UStG, we do not charge VAT.',
-          'Shipping costs are added: €6.99 within Germany (free shipping from an order value of €80.00) and €15.00 to all other delivery countries (€10.00 from an order value of €100.00, free shipping from €200.00). From an order value of €100.00 you also receive one 50-round cartridge box of your choice free of charge.',
-          'For deliveries to Switzerland, customs duties, import VAT and fees of the shipping carrier may be charged on import. These are not included in the price and are borne by you.',
+          'Shipping costs are added: €6.99 within Germany (free shipping from an order value of €80.00) €17.49 to the other EU member states, €26.99 to Switzerland and €29.99 to Iceland (free shipping outside Germany from an order value of €200.00). From an order value of €100.00 you also receive one 50-round cartridge box of your choice free of charge.',
+          'For deliveries to Switzerland and Iceland, customs duties, import VAT and fees of the shipping carrier may be charged on import. These are not included in the price and are borne by you.',
         ],
       },
       {
@@ -329,7 +329,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
       {
         heading: '7. Delivery',
         paragraphs: [
-          'We deliver to Germany, Austria, Switzerland, the Netherlands, Belgium, Luxembourg, France, Denmark, Poland, the Czech Republic, Italy and Spain. Delivery takes 3 to 8 business days within Germany and 7 to 14 business days to the other delivery countries, in each case from receipt of full payment. For individually requested print orders, we state the expected delivery time in the quote. Shipping is by DHL or Hermes.',
+          'We deliver to Germany, all other member states of the European Union, Switzerland and Iceland. Delivery takes 3 to 8 business days within Germany and 7 to 14 business days to the other delivery countries, in each case from receipt of full payment. For individually requested print orders, we state the expected delivery time in the quote. Shipping is by DHL or Hermes.',
         ],
       },
       {

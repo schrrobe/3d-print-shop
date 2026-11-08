@@ -69,6 +69,16 @@ describe('checkoutSchema', () => {
     ).toBe(false)
   })
 
+  it('rejects delivery countries we do not ship to', () => {
+    const base = { items: [item], paymentMethod: 'stripe' }
+    expect(
+      checkoutSchema.safeParse({ ...base, address: { ...validAddress, country: 'IS' } }).success,
+    ).toBe(true)
+    expect(
+      checkoutSchema.safeParse({ ...base, address: { ...validAddress, country: 'US' } }).success,
+    ).toBe(false)
+  })
+
   it('rejects empty carts, bad payment methods and bad zone slots', () => {
     expect(
       checkoutSchema.safeParse({ items: [], address: validAddress, paymentMethod: 'stripe' })

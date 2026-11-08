@@ -21,6 +21,7 @@ import {
 } from '@print-shop/types'
 import {
   ALLOWED_UPLOAD_EXTENSIONS,
+  isShippingCountry,
   MAX_UPLOAD_BYTES,
   UPLOAD_TERMS_VERSION,
 } from '@print-shop/utils'
@@ -85,7 +86,10 @@ export const voucherCodeInputSchema = z.string().trim().min(1).max(40)
 
 export const checkoutSchema = z.object({
   items: z.array(cartItemInputSchema).min(1).max(50),
-  address: addressSchema,
+  address: addressSchema.refine((a) => isShippingCountry(a.country), {
+    message: 'Not a delivery country',
+    path: ['country'],
+  }),
   paymentMethod: z.enum(PAYMENT_METHODS),
   locale: localeSchema.default('de'),
   note: z.string().trim().max(1000).optional(),
