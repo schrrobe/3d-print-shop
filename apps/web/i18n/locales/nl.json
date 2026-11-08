@@ -528,7 +528,8 @@
         "label": "Kaliber",
         "none": "Geen gratis doos",
         "free": "Gratis"
-      }
+      },
+      "deliveryDelay": "De levertijd bedraagt momenteel ca. 4 weken."
     },
     "wishlist": {
       "lead": "Bewaarde configuraties blijven op dit apparaat.",

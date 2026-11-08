@@ -1,6 +1,7 @@
 import type { ShopSettings } from '@prisma/client'
 import {
   companySettingsSchema,
+  deliveryNoticeSchema,
   infoBannerSchema,
   promoBannerSchema,
   trackingSettingsSchema,
@@ -225,6 +226,46 @@ adminSettingsRouter.put(
         { enabled },
       )
       res.json(infoDto(row))
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// ---------- Delivery delay notice ----------
+
+adminSettingsRouter.get(
+  '/delivery-notice',
+  requirePermission('settings:read'),
+  async (_req, res, next) => {
+    try {
+      const row = await prisma.shopSettings.findUnique({ where: { id: SINGLETON_ID } })
+      res.json({ enabled: row?.deliveryDelayNotice ?? false })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+adminSettingsRouter.put(
+  '/delivery-notice',
+  requirePermission('settings:write'),
+  async (req, res, next) => {
+    try {
+      const { enabled } = deliveryNoticeSchema.parse(req.body)
+      const data = { deliveryDelayNotice: enabled }
+      await prisma.shopSettings.upsert({
+        where: { id: SINGLETON_ID },
+        create: { id: SINGLETON_ID, ...data },
+        update: data,
+      })
+      await audit(
+        req,
+        'settings.delivery_notice.update',
+        { type: 'settings', id: SINGLETON_ID },
+        { enabled },
+      )
+      res.json({ enabled })
     } catch (err) {
       next(err)
     }

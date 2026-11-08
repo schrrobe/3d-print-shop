@@ -528,7 +528,8 @@
         "label": "Calibre",
         "none": "Pas de boîte offerte",
         "free": "Offert"
-      }
+      },
+      "deliveryDelay": "Le délai de livraison est actuellement d’environ 4 semaines."
     },
     "wishlist": {
       "lead": "Les configurations enregistrées restent sur cet appareil.",

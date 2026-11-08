@@ -528,7 +528,8 @@
         "label": "Kaliber",
         "none": "Keine Gratis-Box",
         "free": "Gratis"
-      }
+      },
+      "deliveryDelay": "Die Lieferzeit beträgt aktuell ca. 4 Wochen."
     },
     "wishlist": {
       "lead": "Gemerkte Konfigurationen bleiben auf diesem Gerät gespeichert.",

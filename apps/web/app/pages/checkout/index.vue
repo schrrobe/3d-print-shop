@@ -23,6 +23,11 @@ const consentStore = useConsentStore()
 const router = useRouter()
 type CheckoutPaymentMethod = 'stripe' | 'bank_transfer' | 'bitcoin'
 const paymentMethods = ref<CheckoutPaymentMethod[]>(['stripe', 'bank_transfer'])
+// Admin switch: red "delivery currently ~4 weeks" replaces the regular delivery time line.
+const { data: deliveryNotice } = useFetch<{ enabled: boolean }>('/api/delivery-notice', {
+  key: 'delivery-notice',
+  lazy: true,
+})
 
 useSeo({
   title: () => t('seo.checkout.title'),
@@ -610,7 +615,15 @@ const summaryOpen = ref(false)
           {{ t('shop.product.personalization.withdrawal') }}
         </p>
 
-        <p class="text-sm text-ink-2" data-testid="checkout-delivery-time">
+        <p
+          v-if="deliveryNotice?.enabled"
+          class="kb-error flex gap-2"
+          data-testid="checkout-delivery-delay"
+        >
+          <ShopIcon name="alert" :size="18" class="mt-0.5" />
+          {{ t('shop.checkout.deliveryDelay') }}
+        </p>
+        <p v-else class="text-sm text-ink-2" data-testid="checkout-delivery-time">
           {{ t('shop.product.deliveryTime') }}
         </p>
 
