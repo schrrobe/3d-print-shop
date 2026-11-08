@@ -42,8 +42,8 @@ test.describe('cart', () => {
     await expect(page.getByTestId('free-shipping-hint')).toBeHidden()
     await expect(page.getByTestId('free-box-hint')).toBeVisible()
 
-    // 4 × 27,90 = 111,60 → free 50 box unlocked
-    await page.getByTestId('cart-quantity').fill('4')
+    // 6 × 27,90 = 167,40 → free 50 box unlocked
+    await page.getByTestId('cart-quantity').fill('6')
     await page.getByTestId('cart-quantity').dispatchEvent('change')
     await expect(page.getByTestId('free-box-hint')).toBeHidden()
   })

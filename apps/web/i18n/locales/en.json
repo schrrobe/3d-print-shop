@@ -524,7 +524,7 @@
       },
       "freeBox": {
         "title": "Your free 50 box",
-        "hint": "Orders from €100 get a 50-round box on us. Pick the caliber and colours.",
+        "hint": "Orders from €150 get a 50-round box on us. Pick the caliber and colours.",
         "label": "Caliber",
         "none": "No free box",
         "free": "Free"

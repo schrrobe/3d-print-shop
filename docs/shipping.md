@@ -55,7 +55,7 @@ Packliste listet die Farbkonfiguration je Position.
 
 ## Versandkosten
 
-Deutschland 6,99 €, frei ab 80 €; Ausland 15,00 €, frei ab 100 €; ab 100 € wählt der Kunde im Checkout eine 50er Box gratis (0-€-Position, `packages/utils/src/shipping.ts`).
+Deutschland 6,99 €, frei ab 80 €; Ausland 15,00 €, frei ab 100 €; ab 150 € wählt der Kunde im Checkout eine 50er Box gratis (0-€-Position, `packages/utils/src/shipping.ts`).
 
 ## RBAC
 

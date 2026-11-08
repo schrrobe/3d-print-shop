@@ -69,7 +69,7 @@ const de: Partial<Record<LegalDocumentKey, LegalDocumentTranslation>> = {
         heading: '5. Preise und Versandkosten',
         paragraphs: [
           'Alle angegebenen Preise sind Endpreise in Euro. Als Kleinunternehmer im Sinne von § 19 UStG weisen wir keine Umsatzsteuer aus.',
-          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in die übrigen EU-Mitgliedstaaten 17,49 €, in die Schweiz 26,99 € und nach Island 29,99 € (außerhalb Deutschlands versandkostenfrei ab 200,00 € Bestellwert). Ab einem Bestellwert von 100,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
+          'Zusätzlich fallen Versandkosten an: innerhalb Deutschlands 6,99 € (versandkostenfrei ab 80,00 € Bestellwert), in die übrigen EU-Mitgliedstaaten 17,49 €, in die Schweiz 26,99 € und nach Island 29,99 € (außerhalb Deutschlands versandkostenfrei ab 200,00 € Bestellwert). Ab einem Bestellwert von 150,00 € erhältst du zusätzlich eine 50er Patronenbox nach Wahl kostenlos.',
           'Bei Lieferungen in die Schweiz und nach Island können bei der Einfuhr Zölle, Einfuhrumsatzsteuer und Gebühren des Versanddienstleisters anfallen. Diese sind nicht im Preis enthalten und von dir zu tragen.',
         ],
       },

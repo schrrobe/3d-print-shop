@@ -74,7 +74,7 @@ watch(
   { immediate: true },
 )
 
-// Free 50 box from 100 € — optional, picked here, revalidated by the API.
+// Free 50 box from 150 € — optional, picked here, revalidated by the API.
 const { data: productData } = useProducts()
 const { data: colorData } = useColors()
 const colors = computed(() => colorData.value?.colors ?? [])
