@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.9.0...validators-v0.10.0) (2026-11-08)
+
+
+### Features
+
+* **checkout:** Hinweis „Lieferzeit aktuell ca. 4 Wochen“, im Admin schaltbar ([#117](https://github.com/schrrobe/3d-print-shop/issues/117)) ([3b5ee9f](https://github.com/schrrobe/3d-print-shop/commit/3b5ee9faaf4e3abb1c48834929622df5d0963f1c))
+
 ## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.8.1...validators-v0.9.0) (2026-11-08)
 
 

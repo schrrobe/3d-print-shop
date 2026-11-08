@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.17.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.16.0...web-v0.17.0) (2026-11-08)
+
+
+### Features
+
+* **admin:** Live-Besucher im Dashboard, wiederkehrende Besucher im Event-Log markiert ([#116](https://github.com/schrrobe/3d-print-shop/issues/116)) ([0630da1](https://github.com/schrrobe/3d-print-shop/commit/0630da1ce5678f4dc3fbe604dc4eb12e801d1855))
+* **checkout:** Hinweis „Lieferzeit aktuell ca. 4 Wochen“, im Admin schaltbar ([#117](https://github.com/schrrobe/3d-print-shop/issues/117)) ([3b5ee9f](https://github.com/schrrobe/3d-print-shop/commit/3b5ee9faaf4e3abb1c48834929622df5d0963f1c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/validators bumped to 0.10.0
+
 ## [0.16.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.15.0...web-v0.16.0) (2026-11-08)
 
 
