@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.2.0...types-v0.3.0) (2026-11-08)
+
+
+### Features
+
+* **admin:** interne Notiz an Produkten ([#112](https://github.com/schrrobe/3d-print-shop/issues/112)) ([98c7a3b](https://github.com/schrrobe/3d-print-shop/commit/98c7a3b55abf8c94dc584f19171c61641c002590))
+
 ## [0.2.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.1.0...types-v0.2.0) (2026-11-06)
 
 

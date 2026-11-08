@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.7.0...utils-v0.8.0) (2026-11-08)
+
+
+### Features
+
+* **checkout:** Auslandsversand nach DHL-Zonen, Lieferung in ganz EU, Schweiz und Island ([#113](https://github.com/schrrobe/3d-print-shop/issues/113)) ([bef6ee3](https://github.com/schrrobe/3d-print-shop/commit/bef6ee33a11b22e0f38024985e867de3decb15a2))
+* **checkout:** Gratis-50er-Box erst ab 150 € statt 100 € ([#115](https://github.com/schrrobe/3d-print-shop/issues/115)) ([9c6d3b1](https://github.com/schrrobe/3d-print-shop/commit/9c6d3b1e332a598c3164b60a307e10d7fe164e85))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.3.0
+
 ## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.6.0...utils-v0.7.0) (2026-11-07)
 
 
