@@ -186,6 +186,9 @@ describe('admin tracking reach', () => {
         session: { channel: 'meta_ads', utmSource: 'facebook', referrer: null },
       },
     ] as never)
+    vi.mocked(prisma.trackingSession.groupBy).mockResolvedValue([
+      { visitorId: '0192abcd-ef01-7000-8000-000000000000', _count: { _all: 3 } },
+    ] as never)
 
     const res = await get(`/api/admin/tracking/events?${range}&name=add_to_cart&page=2`)
     expect(res.status).toBe(200)
@@ -193,6 +196,7 @@ describe('admin tracking reach', () => {
     expect(body.total).toBe(51)
     expect(body.items[0]).toMatchObject({
       visitor: '0192abcd',
+      visits: 3,
       channel: 'meta_ads',
       origin: 'facebook',
     })

@@ -29,6 +29,8 @@ interface EventRow {
   path: string | null
   valueCents: number | null
   visitor: string | null
+  /** sessions of this visitor overall; > 1 = returning */
+  visits: number | null
   channel: string | null
   origin: string | null
 }
@@ -475,7 +477,13 @@ function exportCsv() {
 
     <PsCard>
       <div class="flex flex-wrap items-center justify-between gap-md">
-        <p class="text-caption text-secondary">Einzelne Events</p>
+        <div class="flex flex-wrap items-center gap-md">
+          <p class="text-caption text-secondary">Einzelne Events</p>
+          <span class="flex items-center gap-xs text-caption text-secondary">
+            <span class="inline-block size-3 rounded-sm bg-brand/15" aria-hidden="true"></span>
+            Wiederkehrender Besucher
+          </span>
+        </div>
         <select
           v-model="eventName"
           class="rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular"
@@ -498,7 +506,12 @@ function exportCsv() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="e in events?.items ?? []" :key="e.id" class="border-t border-subtle">
+            <tr
+              v-for="e in events?.items ?? []"
+              :key="e.id"
+              class="border-t border-subtle"
+              :class="(e.visits ?? 0) > 1 && 'bg-brand/15'"
+            >
               <td class="whitespace-nowrap py-xs pr-md tabular-nums">
                 {{ new Date(e.occurredAt).toLocaleString('de-DE') }}
               </td>
@@ -514,6 +527,7 @@ function exportCsv() {
               </td>
               <td class="py-xs font-mono text-secondary">
                 {{ e.visitor ?? (e.source === 'server' ? 'Server' : 'anonym') }}
+                <span v-if="(e.visits ?? 0) > 1" class="font-sans">· {{ e.visits }} Besuche</span>
               </td>
             </tr>
             <tr v-if="events && !events.items.length">
