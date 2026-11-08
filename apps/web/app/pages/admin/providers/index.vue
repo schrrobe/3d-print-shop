@@ -100,7 +100,8 @@ async function save() {
       error: 'Speichern fehlgeschlagen',
     },
   )
-  if (ok) form.value = null
+  // Only close the form that was submitted; another provider may have been opened meanwhile.
+  if (ok && form.value === f) form.value = null
 }
 
 const columns = [

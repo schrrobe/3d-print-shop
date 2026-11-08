@@ -11,6 +11,7 @@ import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { company } from './company.js'
 import { itemColorResolver } from './item-colors.js'
 import { notifyShipped } from './order-flow.js'
+import { isHeldExternally } from './providers.js'
 
 /** Per-year shipment number (VER-2026-7Q3K9X). */
 export async function nextShipmentNumber(): Promise<string> {
@@ -133,6 +134,9 @@ export async function shipShipment(input: {
   if (!shipment) throw notFound('Shipment not found')
   assertShipmentTransition(shipment.status, 'shipped')
   assertOrderTransition(shipment.order.status, 'shipped')
+  // closeAllJobs would otherwise ship goods still with (or not yet back from) a provider.
+  if (await isHeldExternally(shipment.orderId))
+    throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {

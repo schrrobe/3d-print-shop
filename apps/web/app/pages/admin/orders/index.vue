@@ -32,7 +32,8 @@ const statusFilter = ref('')
 const sourceFilter = ref('')
 const fulfillmentFilter = ref('')
 const { data: providerOptions } = await useFetch<{ providers: { id: string; name: string }[] }>(
-  '/api/admin/providers/options',
+  // all=1: deactivated providers stay filterable
+  '/api/admin/providers/options?all=1',
   { credentials: 'include', server: false, immediate: auth.can('provider-orders:write') },
 )
 const { data, refresh } = await useFetch<{ orders: AdminOrder[] }>('/api/admin/orders', {

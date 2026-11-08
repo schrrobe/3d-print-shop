@@ -67,20 +67,35 @@ function correctPayout(a: Assignment) {
     'Vergütung in € (Korrektur wird protokolliert)',
     String(a.payoutCents / 100),
   )
-  if (input === null) return
+  // Blank input would become 0 and silently wipe the payout; an explicit "0" is allowed.
+  if (input === null || input.trim() === '') return
   const cents = Math.round(Number(input.replace(',', '.')) * 100)
   if (!Number.isFinite(cents) || cents < 0) return
   return patch(a.id, { payoutCents: cents }, 'Vergütung korrigiert')
 }
 
+/** Paid-out checkbox; on failure the box is reset to the stored value and the data reloaded. */
+async function togglePaid(a: Assignment, el: HTMLInputElement) {
+  const ok = await patch(a.id, { paidOut: el.checked }, 'Auszahlung gespeichert')
+  if (!ok) {
+    el.checked = Boolean(a.paidOutAt)
+    await refresh()
+  }
+}
+
+/** Same scope as the "Offen" card: the selected period. */
 function payoutAll() {
   return run(
     () =>
       $fetch(`/api/admin/providers/${providerId}/payout`, {
         method: 'POST',
         credentials: 'include',
+        body: range.value,
       }),
-    { success: 'Alle offenen Aufträge als ausgezahlt markiert', error: 'Aktion fehlgeschlagen' },
+    {
+      success: 'Offene Aufträge im Zeitraum als ausgezahlt markiert',
+      error: 'Aktion fehlgeschlagen',
+    },
   )
 }
 
@@ -127,7 +142,7 @@ const columns = [
         :disabled="pending"
         data-testid="payout-all"
         @click="payoutAll"
-        >Alle offenen als ausgezahlt markieren</PsButton
+        >Offene im Zeitraum als ausgezahlt markieren</PsButton
       >
     </div>
 
@@ -199,13 +214,7 @@ const columns = [
             type="checkbox"
             :checked="Boolean((row as Assignment).paidOutAt)"
             :disabled="!auth.can('providers:write') || pending"
-            @change="
-              patch(
-                (row as Assignment).id,
-                { paidOut: ($event.target as HTMLInputElement).checked },
-                'Auszahlung gespeichert',
-              )
-            "
+            @change="togglePaid(row as Assignment, $event.target as HTMLInputElement)"
           />
           {{
             (row as Assignment).paidOutAt

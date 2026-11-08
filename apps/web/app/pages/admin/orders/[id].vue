@@ -146,16 +146,19 @@ function resendPaymentLink() {
   )
 }
 
-function setStatus(status: OrderStatus) {
-  return run(
-    () =>
-      $fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'POST',
-        body: { status },
-        credentials: 'include',
-      }),
+async function setStatus(status: OrderStatus) {
+  let providerCancelEmailSent: boolean | null = null
+  await run(
+    async () => {
+      const res = await $fetch<{ providerCancelEmailSent: boolean | null }>(
+        `/api/admin/orders/${orderId}/status`,
+        { method: 'POST', body: { status }, credentials: 'include' },
+      )
+      providerCancelEmailSent = res.providerCancelEmailSent
+    },
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
+  warnCancelEmail(providerCancelEmailSent)
 }
 
 function markPaid() {
@@ -200,24 +203,37 @@ watch(
   },
 )
 
+/** Warns when the previous provider could not be told about a cancellation. */
+function warnCancelEmail(sent: boolean | null | undefined) {
+  if (sent === false)
+    toast.show('Storno-Mail an den bisherigen Anbieter fehlgeschlagen – bitte direkt informieren', {
+      variant: 'error',
+    })
+}
+
 async function assignProvider() {
-  const p = providerOptions.value?.providers.find((x) => x.id === assignForm.providerId)
-  const rateBp = Math.round(Number(assignForm.ratePercent) * 100)
   let emailSent = true
+  let cancelEmailSent: boolean | null = null
   const ok = await run(
     async () => {
-      const res = await $fetch<{ emailSent: boolean }>(`/api/admin/providers/assign/${orderId}`, {
-        method: 'POST',
-        credentials: 'include',
-        body: {
-          providerId: assignForm.providerId,
-          // Only send an override when it differs from the provider default (admin only).
-          ...(auth.can('providers:write') && p?.defaultRateBp !== rateBp ? { rateBp } : {}),
-          shareCustomerData: assignForm.shareCustomerData,
-          note: assignForm.note.trim() || null,
+      const res = await $fetch<{ emailSent: boolean; cancelEmailSent: boolean | null }>(
+        `/api/admin/providers/assign/${orderId}`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: {
+            providerId: assignForm.providerId,
+            // Admins freeze exactly the displayed rate (a concurrent default change must not slip in).
+            ...(auth.can('providers:write')
+              ? { rateBp: Math.round(Number(assignForm.ratePercent) * 100) }
+              : {}),
+            shareCustomerData: assignForm.shareCustomerData,
+            note: assignForm.note.trim() || null,
+          },
         },
-      })
+      )
       emailSent = res.emailSent
+      cancelEmailSent = res.cancelEmailSent
     },
     { error: 'Vergabe fehlgeschlagen' },
   )
@@ -230,18 +246,22 @@ async function assignProvider() {
       : 'Auftrag vergeben, E-Mail-Versand fehlgeschlagen – bitte erneut senden',
     { variant: emailSent ? 'success' : 'error' },
   )
+  warnCancelEmail(cancelEmailSent)
 }
 
-function setAssignmentStatus(id: string, status: 'completed' | 'received' | 'cancelled') {
-  return run(
-    () =>
-      $fetch(`/api/admin/providers/assignments/${id}/status`, {
-        method: 'POST',
-        credentials: 'include',
-        body: { status },
-      }),
+async function setAssignmentStatus(id: string, status: 'completed' | 'received' | 'cancelled') {
+  let cancelEmailSent: boolean | null = null
+  await run(
+    async () => {
+      const res = await $fetch<{ cancelEmailSent: boolean | null }>(
+        `/api/admin/providers/assignments/${id}/status`,
+        { method: 'POST', credentials: 'include', body: { status } },
+      )
+      cancelEmailSent = res.cancelEmailSent
+    },
     { success: `Externer Auftrag: ${ASSIGNMENT_LABELS[status]}`, error: 'Aktion fehlgeschlagen' },
   )
+  warnCancelEmail(cancelEmailSent)
 }
 
 function resendAssignment(id: string) {

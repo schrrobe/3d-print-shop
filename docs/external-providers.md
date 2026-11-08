@@ -26,9 +26,15 @@ paid | in_production, kein Job ab printing
 assigned ──> completed       Direktversand: Jobs + Bestellung → ready_to_ship
 completed ──> received       (nur Lieferung an uns) Jobs + Bestellung → quality_check
 assigned ──> cancelled       Storno-Mail, Jobs erscheinen wieder in der internen Queue
+                             (auch automatisch, wenn die Bestellung storniert/erstattet wird)
 ```
 
-Neu vergeben (solange `assigned`) storniert den alten Auftrag automatisch.
+Neu vergeben (solange `assigned`) storniert den alten Auftrag automatisch. Schlägt
+eine Storno-Mail fehl, warnt das Admin (Anbieter direkt informieren); im Audit-Log
+steht `cancelEmailSent: false`.
+
+Solange der Auftrag offen ist (bzw. bei Lieferung an uns noch nicht eingegangen),
+lehnen Bestellstatus `quality_check`/`ready_to_ship` und der Versand mit 409 ab.
 Versand läuft unverändert über `shipShipment()` — bei Direktversand trägt das
 Team die Sendungsnummer des Anbieters im normalen Versandformular ein.
 
@@ -49,7 +55,7 @@ Antwortadresse und BCC: Firmen-E-Mail. „Auftrag erneut senden“ im Bestelldet
 
 - Vergütung zählt ab `completed` (auch wenn die Bestellung später erstattet wird).
 - `payoutCents` manuell korrigierbar, `paidOutAt` je Auftrag oder gesammelt
-  („Alle offenen als ausgezahlt“) — jeweils auditiert.
+  („Offene im Zeitraum als ausgezahlt“, gleicher Zeitraum wie die Anzeige) — jeweils auditiert.
 - Übersicht `/admin/providers`: Zeitraum (nach Vergabedatum), Warenwert extern,
   Vergütung, eigener Anteil, offene Auszahlungen, Anteil am Shop-Umsatz.
 

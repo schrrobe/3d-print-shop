@@ -36,6 +36,7 @@ import {
   createStripePaymentLink,
   deactivateStripePaymentLink,
 } from '../../services/payments/stripe.js'
+import { cancelOpenAssignment, isHeldExternally } from '../../services/providers.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
@@ -267,6 +268,9 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     // `shipped` goes through the shipping action (tracking number, jobs, email).
     if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
+    // Production progress of an externally held order follows the provider lifecycle.
+    if (['quality_check', 'ready_to_ship'].includes(status) && (await isHeldExternally(order.id)))
+      throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
     if (status === 'cancelled') {
       // An open payment link must stop taking money before the order is cancelled.
       for (const p of order.payments) {
@@ -290,6 +294,10 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       omit: ORDER_OMIT,
     })
     if (status === 'in_production') await notifyProductionStarted(order.id)
+    // An open external assignment stops with the order (provider gets a cancellation mail).
+    let providerCancel: Awaited<ReturnType<typeof cancelOpenAssignment>> = null
+    if (status === 'cancelled' || status === 'refunded')
+      providerCancel = await cancelOpenAssignment(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
     // Conversion tracking — best-effort, must never break the status change.
@@ -307,9 +315,18 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       req,
       'order.status',
       { type: 'order', id: order.id },
-      { from: order.status, to: status },
+      {
+        from: order.status,
+        to: status,
+        ...(providerCancel
+          ? {
+              cancelledAssignmentId: providerCancel.assignment.id,
+              cancelEmailSent: providerCancel.cancelEmailSent,
+            }
+          : {}),
+      },
     )
-    res.json({ order: updated })
+    res.json({ order: updated, providerCancelEmailSent: providerCancel?.cancelEmailSent ?? null })
   } catch (err) {
     next(err)
   }

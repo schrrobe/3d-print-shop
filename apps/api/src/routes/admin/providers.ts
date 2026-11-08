@@ -90,8 +90,9 @@ adminProvidersRouter.get(
   requirePermission('provider-orders:write'),
   async (req, res, next) => {
     try {
+      // ?all=1: include inactive providers (order list filter keeps working after deactivation)
       const providers = await prisma.printProvider.findMany({
-        where: { active: true },
+        where: req.query.all === '1' ? {} : { active: true },
         orderBy: { name: 'asc' },
         select: { id: true, name: true, defaultRateBp: canSeeAmounts(req) },
       })
@@ -143,22 +144,23 @@ adminProvidersRouter.put('/:id', requirePermission('providers:write'), async (re
   }
 })
 
-/** Marks every billable, not yet paid assignment of a provider as paid out. */
+/** Marks billable, not yet paid assignments created in [from, to) as paid out — same scope the page shows. */
 adminProvidersRouter.post(
   '/:id/payout',
   requirePermission('providers:write'),
   async (req, res, next) => {
     try {
       const providerId = String(req.params.id)
+      const range = parseRange(req.body)
       const result = await prisma.providerAssignment.updateMany({
-        where: { providerId, status: { in: [...BILLABLE] }, paidOutAt: null },
+        where: { providerId, status: { in: [...BILLABLE] }, paidOutAt: null, createdAt: range },
         data: { paidOutAt: new Date() },
       })
       await audit(
         req,
         'provider.payout_all',
         { type: 'print_provider', id: providerId },
-        { count: result.count },
+        { count: result.count, from: range.gte, to: range.lt },
       )
       res.json({ count: result.count })
     } catch (err) {
@@ -190,9 +192,14 @@ adminProvidersRouter.post(
           shareCustomerData: input.shareCustomerData,
           replacedAssignmentId: result.cancelledId,
           emailSent: result.emailSent,
+          cancelEmailSent: result.cancelEmailSent,
         },
       )
-      res.status(201).json({ assignmentId: result.assignment.id, emailSent: result.emailSent })
+      res.status(201).json({
+        assignmentId: result.assignment.id,
+        emailSent: result.emailSent,
+        cancelEmailSent: result.cancelEmailSent,
+      })
     } catch (err) {
       next(err)
     }
@@ -205,14 +212,17 @@ adminProvidersRouter.post(
   async (req, res, next) => {
     try {
       const { status } = providerAssignmentStatusSchema.parse(req.body)
-      const updated = await setAssignmentStatus(String(req.params.id), status)
+      const { assignment, cancelEmailSent } = await setAssignmentStatus(
+        String(req.params.id),
+        status,
+      )
       await audit(
         req,
         'provider.assignment_status',
-        { type: 'provider_assignment', id: updated.id },
-        { to: status, orderId: updated.orderId },
+        { type: 'provider_assignment', id: assignment.id },
+        { to: status, orderId: assignment.orderId, cancelEmailSent },
       )
-      res.json({ ok: true })
+      res.json({ ok: true, cancelEmailSent })
     } catch (err) {
       next(err)
     }

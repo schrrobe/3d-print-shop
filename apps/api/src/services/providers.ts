@@ -62,6 +62,27 @@ const assignmentInclude = {
 } as const
 type FullAssignment = Prisma.ProviderAssignmentGetPayload<{ include: typeof assignmentInclude }>
 
+/** Delivery block: customer name + address only for direct shipping, else the shop. */
+export function deliveryLines(
+  a: { shareCustomerData: boolean },
+  order: Pick<
+    FullAssignment['order'],
+    'firstName' | 'lastName' | 'company' | 'street' | 'zip' | 'city' | 'country'
+  >,
+  shop: { name: string; street: string; zip: string; city: string },
+): string[] {
+  if (!a.shareCustomerData)
+    return [`Lieferung an: ${shop.name}, ${shop.street}, ${shop.zip} ${shop.city}`]
+  return [
+    'Direktversand an:',
+    `${order.firstName} ${order.lastName}`,
+    ...(order.company ? [order.company] : []),
+    order.street,
+    `${order.zip} ${order.city}, ${order.country}`,
+  ]
+}
+
+// ponytail: standard Helvetica (WinAnsi) like invoices; names outside Latin-1 (e.g. Ł) need an embedded TTF.
 /** A4 production order; rendered on demand, never stored (may contain customer address). */
 export async function renderProviderPdf(a: FullAssignment): Promise<Buffer> {
   const { order } = a
@@ -86,15 +107,7 @@ export async function renderProviderPdf(a: FullAssignment): Promise<Buffer> {
   doc.text(`Auftragnehmer: ${a.provider.name}`)
   doc.text(`Datum: ${a.createdAt.toLocaleDateString('de-DE')}`)
   doc.moveDown()
-  if (a.shareCustomerData) {
-    doc.text('Direktversand an:')
-    doc.text(`${order.firstName} ${order.lastName}`)
-    if (order.company) doc.text(order.company)
-    doc.text(order.street)
-    doc.text(`${order.zip} ${order.city}, ${order.country}`)
-  } else {
-    doc.text(`Lieferung an: ${c.name}, ${c.street}, ${c.zip} ${c.city}`)
-  }
+  for (const line of deliveryLines(a, order, c)) doc.text(line)
   doc.moveDown(2)
 
   doc.fontSize(11).text('Positionen', { underline: true })
@@ -131,19 +144,27 @@ export async function renderProviderPdf(a: FullAssignment): Promise<Buffer> {
   return done
 }
 
-/** Mails the order PDF to the provider; never throws, returns delivery. */
+/**
+ * Mails the order PDF to the provider; never throws, returns delivery.
+ * Re-reads the assignment right before sending so a cancellation that won the
+ * race suppresses the (now stale) production order.
+ */
 export async function sendProviderOrder(assignmentId: string): Promise<boolean> {
+  try {
+    return await sendProviderOrderUnsafe(assignmentId)
+  } catch (err) {
+    console.error(`[providers] order email failed for assignment ${assignmentId}:`, err)
+    return false
+  }
+}
+
+async function sendProviderOrderUnsafe(assignmentId: string): Promise<boolean> {
   const a = await prisma.providerAssignment.findUniqueOrThrow({
     where: { id: assignmentId },
     include: assignmentInclude,
   })
-  let pdf: Buffer
-  try {
-    pdf = await renderProviderPdf(a)
-  } catch (err) {
-    console.error(`[providers] PDF failed for ${a.order.orderNumber}:`, err)
-    return false
-  }
+  if (a.status === 'cancelled') return false
+  const pdf = await renderProviderPdf(a)
   const c = company()
   const delivered = await sendEmail(
     a.provider.email,
@@ -210,8 +231,13 @@ export async function assignOrder(orderId: string, input: ProviderAssignInput) {
         j.status === 'assigned' && j.printerId ? [j.printerId] : [],
       )
       if (printerIds.length) {
+        // A printer shared with another order's assigned job stays prepared.
         await tx.printer.updateMany({
-          where: { id: { in: printerIds }, status: 'prepared' },
+          where: {
+            id: { in: printerIds },
+            status: 'prepared',
+            jobs: { none: { status: 'assigned', orderId: { not: order.id } } },
+          },
           data: { status: 'idle' },
         })
       }
@@ -219,12 +245,12 @@ export async function assignOrder(orderId: string, input: ProviderAssignInput) {
         where: { orderId: order.id, status: { notIn: IN_HOUSE_STARTED } },
         data: { status: 'waiting', printerId: null, plannedStartAt: null, plannedEndAt: null },
       })
-      if (order.status === 'paid') {
-        await tx.order.updateMany({
-          where: { id: order.id, status: 'paid' },
-          data: { status: 'in_production' },
-        })
-      }
+      // Conditional: a concurrent cancel/refund since the read rolls everything back.
+      const moved = await tx.order.updateMany({
+        where: { id: order.id, status: { in: ['paid', 'in_production'] } },
+        data: { status: 'in_production' },
+      })
+      if (moved.count !== 1) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
       return tx.providerAssignment.create({
         data: {
           orderId: order.id,
@@ -243,12 +269,22 @@ export async function assignOrder(orderId: string, input: ProviderAssignInput) {
       throw err
     })
 
-  if (previous) await sendProviderCancellation(previous.provider, order.orderNumber)
-  if (order.status === 'paid') await notifyProductionStarted(order.id)
+  // Post-commit side effects must not turn a committed assignment into an error response.
+  const cancelEmailSent = previous
+    ? await sendProviderCancellation(previous.provider, order.orderNumber)
+    : null
+  if (order.status === 'paid') {
+    try {
+      await notifyProductionStarted(order.id)
+    } catch (err) {
+      console.error(`[providers] production_started mail failed for ${order.orderNumber}:`, err)
+    }
+  }
   const emailSent = await sendProviderOrder(assignment.id)
-  return { assignment, emailSent, cancelledId: previous?.id ?? null }
+  return { assignment, emailSent, cancelEmailSent, cancelledId: previous?.id ?? null }
 }
 
+/** Never throws; false = provider not notified (surfaced to the admin, audited). */
 async function sendProviderCancellation(
   provider: { email: string; name: string; contactName: string | null },
   orderNumber: string,
@@ -326,6 +362,16 @@ export async function setAssignmentStatus(
     return tx.providerAssignment.findUniqueOrThrow({ where: { id: a.id } })
   })
 
-  if (status === 'cancelled') await sendProviderCancellation(a.provider, a.order.orderNumber)
-  return updated
+  const cancelEmailSent =
+    status === 'cancelled' ? await sendProviderCancellation(a.provider, a.order.orderNumber) : null
+  return { assignment: updated, cancelEmailSent }
+}
+
+/** Order cancelled/refunded: an open provider assignment is cancelled and the provider told. */
+export async function cancelOpenAssignment(orderId: string) {
+  const open = await prisma.providerAssignment.findFirst({
+    where: { orderId, status: 'assigned' },
+    select: { id: true },
+  })
+  return open ? setAssignmentStatus(open.id, 'cancelled') : null
 }

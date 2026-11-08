@@ -11,6 +11,7 @@ const tx = {
 vi.mock('../src/lib/prisma.js', () => ({
   prisma: {
     shipment: { findUnique: vi.fn() },
+    providerAssignment: { count: vi.fn().mockResolvedValue(0) },
     $transaction: vi.fn((fn: (t: typeof tx) => unknown) => fn(tx)),
   },
 }))
@@ -50,4 +51,20 @@ it('closeAllJobs frees the printer of a job closed mid-print and ships every ope
     where: { orderId: 'o1', status: { not: 'shipped' } },
     data: { status: 'shipped' },
   })
+})
+
+it('rejects a shipment with 409 while the order is still with an external provider', async () => {
+  tx.shipment.update.mockClear()
+  vi.mocked(prisma.shipment.findUnique).mockResolvedValue(packedShipment as never)
+  vi.mocked(prisma.providerAssignment.count).mockResolvedValueOnce(1)
+
+  await expect(
+    shipShipment({
+      shipmentId: 's1',
+      carrier: 'dhl',
+      trackingNumber: 'DHL-1234',
+      closeAllJobs: true,
+    }),
+  ).rejects.toMatchObject({ status: 409 })
+  expect(tx.shipment.update).not.toHaveBeenCalled()
 })

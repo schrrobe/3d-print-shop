@@ -30,7 +30,8 @@ vi.mock('../src/services/company.js', () => ({
 
 const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
-const { assignOrder, setAssignmentStatus } = await import('../src/services/providers.js')
+const { assignOrder, deliveryLines, setAssignmentStatus } =
+  await import('../src/services/providers.js')
 const { createApp } = await import('../src/app.js')
 const { signSession, SESSION_COOKIE } = await import('../src/middleware/auth.js')
 
@@ -92,6 +93,7 @@ beforeEach(() => {
       }) as never,
   )
   vi.mocked(prisma.providerAssignment.updateMany).mockResolvedValue({ count: 1 } as never)
+  vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 } as never)
 })
 
 describe('assignOrder', () => {
@@ -108,18 +110,48 @@ describe('assignOrder', () => {
         data: expect.objectContaining({ status: 'waiting', printerId: null }),
       }),
     )
+    // Printer shared with another order's assigned job stays prepared.
     expect(prisma.printer.updateMany).toHaveBeenCalledWith({
-      where: { id: { in: ['pr_1'] }, status: 'prepared' },
+      where: {
+        id: { in: ['pr_1'] },
+        status: 'prepared',
+        jobs: { none: { status: 'assigned', orderId: { not: 'ord_1' } } },
+      },
       data: { status: 'idle' },
     })
     expect(prisma.order.updateMany).toHaveBeenCalledWith({
-      where: { id: 'ord_1', status: 'paid' },
+      where: { id: 'ord_1', status: { in: ['paid', 'in_production'] } },
       data: { status: 'in_production' },
     })
     expect(emailSent).toBe(true)
     const call = vi.mocked(sendEmail).mock.calls.find((c) => c[1] === 'provider_order')!
     expect(call[0]).toBe('p@x.de')
     expect(call[3]?.[0]?.content.subarray(0, 4).toString()).toBe('%PDF')
+  })
+
+  it('rolls back when the order was cancelled after the read', async () => {
+    vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 0 } as never)
+    await expect(
+      assignOrder('ord_1', { providerId: 'prov_1', shareCustomerData: false, note: null }),
+    ).rejects.toMatchObject({ status: 409 })
+    expect(prisma.providerAssignment.create).not.toHaveBeenCalled()
+    expect(sendEmail).not.toHaveBeenCalled()
+  })
+
+  it('does not send a production order for an assignment cancelled meanwhile', async () => {
+    vi.mocked(prisma.providerAssignment.findUniqueOrThrow).mockResolvedValue({
+      id: 'as_1',
+      status: 'cancelled',
+      provider,
+      order,
+    } as never)
+    const { emailSent } = await assignOrder('ord_1', {
+      providerId: 'prov_1',
+      shareCustomerData: false,
+      note: null,
+    })
+    expect(emailSent).toBe(false)
+    expect(vi.mocked(sendEmail).mock.calls.map((c) => c[1])).not.toContain('provider_order')
   })
 
   it('uses an explicit rate override', async () => {
@@ -157,6 +189,26 @@ describe('assignOrder', () => {
     expect(vi.mocked(sendEmail).mock.calls.map((c) => [c[0], c[1]])).toContainEqual([
       'old@x.de',
       'provider_order_cancelled',
+    ])
+  })
+})
+
+describe('deliveryLines', () => {
+  const shop = { name: 'Shop', street: 'Weg 1', zip: '12345', city: 'Ort' }
+
+  it('without direct shipping names only the shop, never the customer', () => {
+    const text = deliveryLines({ shareCustomerData: false }, order, shop).join('\n')
+    expect(text).toContain('Shop, Weg 1, 12345 Ort')
+    for (const pii of ['Erika', 'Muster', 'Str 1', '10115', 'Berlin'])
+      expect(text).not.toContain(pii)
+  })
+
+  it('with direct shipping carries name and address', () => {
+    expect(deliveryLines({ shareCustomerData: true }, order, shop)).toEqual([
+      'Direktversand an:',
+      'Erika Muster',
+      'Str 1',
+      '10115 Berlin, DE',
     ])
   })
 })
