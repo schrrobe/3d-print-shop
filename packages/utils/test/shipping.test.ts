@@ -63,8 +63,8 @@ describe('shipping', () => {
     expect(centsUntilFreeShipping(20000, 'PL')).toBe(0)
   })
 
-  it('grants the free 50 box from exactly 100 €', () => {
-    expect(qualifiesForFreeBox(9999)).toBe(false)
-    expect(qualifiesForFreeBox(10000)).toBe(true)
+  it('grants the free 50 box from exactly 150 €', () => {
+    expect(qualifiesForFreeBox(14999)).toBe(false)
+    expect(qualifiesForFreeBox(15000)).toBe(true)
   })
 })

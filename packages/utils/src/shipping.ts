@@ -57,8 +57,8 @@ export const SHIPPING_COUNTRIES = Object.keys(SHIPPING_CENTS_BY_COUNTRY)
 export const isShippingCountry = (country: string) =>
   Object.hasOwn(SHIPPING_CENTS_BY_COUNTRY, country.toUpperCase())
 
-/** From 100 € order subtotal the customer picks one 50-round box for free (any country). */
-export const FREE_BOX_THRESHOLD_CENTS = 10000
+/** From 150 € order subtotal the customer picks one 50-round box for free (any country). */
+export const FREE_BOX_THRESHOLD_CENTS = 15000
 export const FREE_BOX_CAPACITY = 50
 
 const isDomestic = (country: string) => country.toUpperCase() === DOMESTIC_COUNTRY

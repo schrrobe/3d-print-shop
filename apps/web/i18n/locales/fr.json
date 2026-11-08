@@ -524,7 +524,7 @@
       },
       "freeBox": {
         "title": "Votre boîte de 50 offerte",
-        "hint": "Dès 100 € de commande, nous vous offrons une boîte de 50. Choisissez le calibre et les couleurs.",
+        "hint": "Dès 150 € de commande, nous vous offrons une boîte de 50. Choisissez le calibre et les couleurs.",
         "label": "Calibre",
         "none": "Pas de boîte offerte",
         "free": "Offert"
