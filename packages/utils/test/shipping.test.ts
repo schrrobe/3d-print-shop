@@ -3,7 +3,9 @@ import {
   calcShippingCents,
   centsUntilFreeShipping,
   isFreeShipping,
+  isShippingCountry,
   qualifiesForFreeBox,
+  SHIPPING_COUNTRIES,
 } from '../src/shipping.js'
 
 describe('shipping', () => {
@@ -18,14 +20,27 @@ describe('shipping', () => {
     expect(calcShippingCents(999999, 'DE')).toBe(0)
   })
 
-  it('charges 15 € abroad below 100 €, 10 € from 100 €, free from 200 €', () => {
-    expect(calcShippingCents(1, 'AT')).toBe(1500)
-    expect(calcShippingCents(8000, 'AT')).toBe(1500)
-    expect(calcShippingCents(9999, 'CH')).toBe(1500)
-    expect(calcShippingCents(10000, 'FR')).toBe(1000)
-    expect(calcShippingCents(19999, 'ch')).toBe(1000)
+  it('charges DHL zone prices abroad below 200 €, free from 200 €', () => {
+    expect(calcShippingCents(1, 'AT')).toBe(1749)
+    expect(calcShippingCents(19999, 'SE')).toBe(1749)
+    expect(calcShippingCents(9999, 'CH')).toBe(2699)
+    expect(calcShippingCents(19999, 'ch')).toBe(2699)
+    expect(calcShippingCents(5000, 'IS')).toBe(2999)
     expect(calcShippingCents(20000, 'ch')).toBe(0)
+    expect(calcShippingCents(20000, 'IS')).toBe(0)
     expect(calcShippingCents(999999, 'NL')).toBe(0)
+  })
+
+  it('falls back to the highest European rate for unlisted countries', () => {
+    expect(calcShippingCents(5000, 'NO')).toBe(2999)
+  })
+
+  it('ships to all EU countries, Switzerland and Iceland only', () => {
+    expect(SHIPPING_COUNTRIES[0]).toBe('DE')
+    expect(SHIPPING_COUNTRIES).toHaveLength(29)
+    expect(isShippingCountry('is')).toBe(true)
+    expect(isShippingCountry('NO')).toBe(false)
+    expect(isShippingCountry('toString')).toBe(false)
   })
 
   it('costs nothing for an empty cart', () => {

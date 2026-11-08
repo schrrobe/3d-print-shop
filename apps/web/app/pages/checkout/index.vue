@@ -6,6 +6,7 @@ import {
   formatCents,
   PREPAYMENT_DISCOUNT_PERCENT,
   qualifiesForFreeBox,
+  SHIPPING_COUNTRIES,
 } from '@print-shop/utils'
 import type { ColorSelection, Locale } from '@print-shop/types'
 import { adPlatformCookies } from '~/utils/tracking/queue'
@@ -42,11 +43,14 @@ onMounted(() => {
     })
 })
 
-// ponytail: fixed delivery-country list; move to config/API when shipping rates differ per country
-const COUNTRIES = ['DE', 'AT', 'CH', 'NL', 'BE', 'LU', 'FR', 'DK', 'PL', 'CZ', 'IT', 'ES'] as const
+// Germany first, the rest alphabetically by localized name.
 const countryOptions = computed(() => {
   const names = new Intl.DisplayNames([locale.value], { type: 'region' })
-  return COUNTRIES.map((code) => ({ code, name: names.of(code) ?? code }))
+  const [home, ...abroad] = SHIPPING_COUNTRIES.map((code) => ({
+    code,
+    name: names.of(code) ?? code,
+  }))
+  return [home!, ...abroad.sort((a, b) => a.name.localeCompare(b.name, locale.value))]
 })
 
 const form = reactive({
