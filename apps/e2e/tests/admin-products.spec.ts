@@ -112,6 +112,27 @@ test.describe('admin products', () => {
     await expect(page.getByTestId('product-detail')).toContainText('€12.50')
   })
 
+  test('keeps the internal note admin-only', async ({ page }) => {
+    const admin = new AdminPage(page)
+    await admin.login()
+    await createAndOpenProduct(page, 'E2E Notiz Produkt', 'e2e-notiz-produkt')
+
+    await page.getByTestId('product-active').check()
+    await page.locator('textarea[name="internalNote"]').fill('Nur intern: Lieferant wechselt')
+    await page.getByTestId('save-product-detail').click()
+    await expect(page.getByTestId('toast').filter({ hasText: 'Gespeichert' })).toBeVisible()
+
+    await page.waitForURL(/\/admin\/products$/)
+    await page.locator('tr', { hasText: 'e2e-notiz-produkt' }).getByTestId('open-product').click()
+    await expect(page.locator('textarea[name="internalNote"]')).toHaveValue(
+      'Nur intern: Lieferant wechselt',
+    )
+
+    const publicDetail = await page.request.get('/api/products/e2e-notiz-produkt')
+    expect(publicDetail.ok()).toBe(true)
+    expect(await publicDetail.text()).not.toContain('Lieferant wechselt')
+  })
+
   test('configures a second color zone that shows up in the public configurator', async ({ page }) => {
     const admin = new AdminPage(page)
     await admin.login()

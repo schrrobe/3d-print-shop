@@ -58,6 +58,7 @@ const form = reactive({
   active: false,
   capacity: NO_CAPACITY,
   familyKey: '',
+  internalNote: '',
   caliberSlugs: [] as string[],
 })
 
@@ -125,6 +126,7 @@ watch(
     form.active = p.active
     form.capacity = p.capacity === null ? NO_CAPACITY : String(p.capacity)
     form.familyKey = p.familyKey ?? ''
+    form.internalNote = p.internalNote ?? ''
     form.caliberSlugs = p.calibers.map((c) => c.slug)
     for (const locale of LOCALES) {
       const t = p.translations.find((x) => x.locale === locale)
@@ -191,6 +193,7 @@ async function save() {
     active: form.active,
     capacity: form.capacity === NO_CAPACITY ? null : Number(form.capacity),
     familyKey: form.familyKey.trim() || null,
+    internalNote: form.internalNote.trim() || null,
     caliberSlugs: form.caliberSlugs,
     translations: LOCALES.filter((l) => translations[l].name.trim() !== '').map((l) => ({
       locale: l,
@@ -415,6 +418,20 @@ async function deleteProduct() {
         />
         Im Shop sichtbar
       </label>
+    </PsCard>
+
+    <PsCard>
+      <h3 class="text-label-medium">Interne Notiz</h3>
+      <p class="mt-xs text-caption text-secondary">Nur im Admin sichtbar, nie im Shop.</p>
+      <PsTextarea
+        v-model="form.internalNote"
+        label="Notiz"
+        name="internalNote"
+        :rows="4"
+        class="mt-sm"
+        data-testid="product-internal-note"
+        :disabled="!auth.can('products:write')"
+      />
     </PsCard>
 
     <PsCard>

@@ -307,6 +307,8 @@ export const productCreateSchema = z.object({
   capacity: boxCapacitySchema.nullable().optional(),
   /** Gruppiert 50/100-Varianten einer Kaliberbox; leer = keine Familie */
   familyKey: slugSchema.nullable().optional(),
+  /** Staff-only Notiz, nie öffentlich */
+  internalNote: z.string().trim().max(4000).nullable().optional(),
   caliberSlugs: z.array(slugSchema).max(20).optional(),
   translations: z.array(productTranslationSchema).min(1),
   colorSlots: z.array(productColorSlotInputSchema).max(4),

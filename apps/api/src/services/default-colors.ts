@@ -7,7 +7,7 @@ import { badRequest } from '../middleware/error.js'
 const SINGLETON_ID = 'singleton'
 
 export async function loadDefaultColors(
-  db: Prisma.TransactionClient = prisma,
+  db: Prisma.TransactionClient | typeof prisma = prisma,
 ): Promise<ColorSelection> {
   const row = await db.shopSettings.findUnique({
     where: { id: SINGLETON_ID },
