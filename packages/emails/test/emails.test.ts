@@ -130,6 +130,17 @@ describe('email templates', () => {
         .html,
     ).toBeTruthy()
     expect(
+      renderShippingConfirmation(
+        {
+          ...orderData,
+          carrier: 'dhl',
+          trackingNumber: 'T123',
+          trackingUrl: 'https://dhl.de/t?a=1&b=2',
+        },
+        'de',
+      ).html,
+    ).toContain('href="https://dhl.de/t?a=1&amp;b=2"')
+    expect(
       renderInvoice(
         {
           orderNumber: 'PS-1',

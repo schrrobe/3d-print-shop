@@ -625,12 +625,16 @@ export function renderProductionStarted(data: OrderEmailData, locale: Locale): R
 export interface ShippingEmailData extends OrderEmailData {
   carrier: string
   trackingNumber: string
+  trackingUrl?: string | null
 }
 
 export function renderShippingConfirmation(data: ShippingEmailData, locale: Locale): RenderedEmail {
   const n = data.orderNumber
   const carrier = data.carrier.toUpperCase()
-  const tracking = `<strong>${escapeHtml(data.trackingNumber)}</strong>`
+  const number = `<strong>${escapeHtml(data.trackingNumber)}</strong>`
+  const tracking = data.trackingUrl
+    ? `<a href="${escapeHtml(data.trackingUrl)}">${number}</a>`
+    : number
   const subject = pick(locale, {
     de: `Deine Bestellung ${n} ist unterwegs`,
     en: `Your order ${n} has shipped`,
@@ -663,7 +667,8 @@ export function renderShippingConfirmation(data: ShippingEmailData, locale: Loca
       }),
     ) + button(data.orderUrl, pick(locale, viewOrder)),
   )
-  return { subject, html, text: `${title}: ${data.trackingNumber}` }
+  const text = `${title}: ${data.trackingNumber}${data.trackingUrl ? ` (${data.trackingUrl})` : ''}`
+  return { subject, html, text }
 }
 
 export interface InvoiceEmailData {

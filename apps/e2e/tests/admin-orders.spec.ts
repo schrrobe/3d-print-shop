@@ -50,6 +50,69 @@ test.describe('admin orders', () => {
     await expect(page.getByTestId('admin-order-status')).toContainText('shipped')
   })
 
+  test('internal note stays admin-only, tracking link reaches the customer', async ({
+    page,
+    request,
+  }) => {
+    const api = await adminApiContext()
+    const products = (await (await api.get('/api/products')).json()) as {
+      products: { id: string }[]
+    }
+    const { orderNumber, accessToken } = await createPaidOrderViaApi(
+      products.products[0]!.id,
+      'admin-note@example.com',
+    )
+    const order = await getAdminOrder(api, orderNumber)
+    await api.dispose()
+
+    const admin = new AdminPage(page)
+    await admin.login()
+    await gotoHydrated(page, `/admin/orders/${order.id}`)
+
+    await page.locator('textarea[name="internalNote"]').fill('Nur intern: Kunde ruft zurück')
+    await page.getByTestId('save-internal-note').click()
+    await expect(page.getByTestId('toast').filter({ hasText: 'Gespeichert' })).toBeVisible()
+
+    await page.locator('input[name="trackingNumber"]').fill('DHL-E2E-NOTE-1')
+    await page
+      .locator('input[name="trackingUrl"]')
+      .fill('https://www.dhl.de/track?id=DHL-E2E-NOTE-1')
+    await page.getByTestId('ship-order').click()
+    await expect(page.getByTestId('admin-order-status')).toContainText('shipped')
+    await expect(page.getByTestId('order-tracking').getByRole('link')).toHaveAttribute(
+      'href',
+      'https://www.dhl.de/track?id=DHL-E2E-NOTE-1',
+    )
+
+    await page.reload()
+    await expect(page.locator('textarea[name="internalNote"]')).toHaveValue(
+      'Nur intern: Kunde ruft zurück',
+    )
+
+    const publicOrder = await request.get(
+      `http://localhost:3001/api/orders/${orderNumber}?token=${accessToken}`,
+    )
+    expect(publicOrder.ok()).toBe(true)
+    const body = await publicOrder.text()
+    expect(body).not.toContain('Kunde ruft zurück')
+    expect(body).toContain('https://www.dhl.de/track?id=DHL-E2E-NOTE-1')
+  })
+
+  test('tracking link only accepts http(s) urls', async ({ request }) => {
+    const login = await request.post('http://localhost:3001/api/admin/auth/login', {
+      data: { email: 'admin@example.com', password: 'admin-dev-password' },
+    })
+    expect(login.ok()).toBe(true)
+    const orders = (await (
+      await request.get('http://localhost:3001/api/admin/orders?status=shipped')
+    ).json()) as { orders: { id: string }[] }
+    const response = await request.patch(
+      `http://localhost:3001/api/admin/orders/${orders.orders[0]!.id}`,
+      { data: { trackingUrl: 'javascript:alert(1)' } },
+    )
+    expect(response.status()).toBe(400)
+  })
+
   test('invalid status transitions are rejected by the api', async ({ request }) => {
     const login = await request.post('http://localhost:3001/api/admin/auth/login', {
       data: { email: 'admin@example.com', password: 'admin-dev-password' },

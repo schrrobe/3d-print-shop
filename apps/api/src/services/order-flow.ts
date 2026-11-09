@@ -232,7 +232,12 @@ export async function notifyShipped(orderId: string): Promise<void> {
     order.email,
     'shipping_confirmation',
     renderShippingConfirmation(
-      { ...orderEmailData(order), carrier: order.carrier, trackingNumber: order.trackingNumber },
+      {
+        ...orderEmailData(order),
+        carrier: order.carrier,
+        trackingNumber: order.trackingNumber,
+        trackingUrl: order.trackingUrl,
+      },
       order.locale,
     ),
   )

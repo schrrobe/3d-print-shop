@@ -128,7 +128,15 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                 data-testid="portal-order-tracking"
               >
                 📦 {{ order.carrier?.toUpperCase() }} ·
-                <span class="font-mono">{{ order.trackingNumber }}</span>
+                <a
+                  v-if="order.trackingUrl"
+                  :href="order.trackingUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-mono underline"
+                  >{{ order.trackingNumber }}</a
+                >
+                <span v-else class="font-mono">{{ order.trackingNumber }}</span>
               </p>
               <div class="mt-md flex flex-wrap gap-sm">
                 <a

@@ -9,6 +9,7 @@ import {
 import {
   adminOrderCreateSchema,
   markPaidSchema,
+  orderUpdateSchema,
   shippingUpdateSchema,
 } from '@print-shop/validators'
 import { Router } from 'express'
@@ -18,7 +19,7 @@ import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/prisma.js'
 import { generateOrderNumber, randomToken } from '../../lib/tokens.js'
 import { requirePermission } from '../../middleware/auth.js'
-import { ApiError, badRequest, conflict, notFound } from '../../middleware/error.js'
+import { ApiError, badRequest, conflict, forbidden, notFound } from '../../middleware/error.js'
 import { assertCompanyComplete } from '../../services/company.js'
 import { sendEmail } from '../../services/email.js'
 import {
@@ -53,6 +54,8 @@ const ORDER_OMIT = {
   salesChannelId: true,
   commissionBaseCents: true,
   commissionCents: true,
+  // Globally omitted (lib/prisma.ts) — admin responses opt back in.
+  internalNote: false,
 } as const
 
 adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, next) => {
@@ -332,6 +335,41 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
   }
 })
 
+/**
+ * Order detail edits: staff-only note (orders:write) and tracking link
+ * (orders:ship — may be added after shipping, no new shipping email).
+ */
+adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, res, next) => {
+  try {
+    const input = orderUpdateSchema.parse(req.body)
+    if (input.internalNote !== undefined && !hasPermission(req.user!.role, 'orders:write'))
+      throw forbidden()
+    if (input.trackingUrl !== undefined && !hasPermission(req.user!.role, 'orders:ship'))
+      throw forbidden()
+    const existing = await prisma.order.findUnique({
+      where: { id: String(req.params.id) },
+      select: { trackingNumber: true },
+    })
+    if (!existing) throw notFound('Order not found')
+    if (input.trackingUrl && !existing.trackingNumber)
+      throw badRequest('Tracking-Link erst nach dem Versand mit Sendungsnummer')
+    const order = await prisma.order.update({
+      where: { id: String(req.params.id) },
+      data: {
+        internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
+        trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
+      },
+      omit: ORDER_OMIT,
+    })
+    // Field names only — the note may hold personal data, the audit log must not.
+    const fields = Object.keys(input)
+    await audit(req, 'order.update', { type: 'order', id: order.id }, { fields })
+    res.json({ order })
+  } catch (err) {
+    next(err)
+  }
+})
+
 /** Bank transfer: manually mark as paid (payments:write). */
 adminOrdersRouter.post(
   '/:id/mark-paid',
@@ -421,6 +459,7 @@ adminOrdersRouter.post(
         shipmentId: shipment.id,
         carrier: input.carrier,
         trackingNumber: input.trackingNumber,
+        trackingUrl: input.trackingUrl,
         byUserId: req.user?.id,
         eventNote: 'legacy-route',
         closeAllJobs: true,

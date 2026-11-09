@@ -6,6 +6,7 @@ import {
   PsOrderStatusBadge,
   PsPrice,
   PsSelect,
+  PsTextarea,
   PsBadge,
   useToast,
 } from '@print-shop/ui'
@@ -36,6 +37,8 @@ interface AdminOrderDetail {
   totalCents: number
   carrier: string | null
   trackingNumber: string | null
+  trackingUrl: string | null
+  internalNote: string | null
   items: {
     id: string
     name: string
@@ -89,6 +92,34 @@ const nextStatuses = computed(() =>
 
 const carrier = ref('dhl')
 const trackingNumber = ref('')
+const trackingUrl = ref('')
+
+// Drafts follow the saved value only when it changes, so a refresh after
+// another action never wipes unsaved input.
+const internalNote = ref('')
+const trackingUrlDraft = ref('')
+watch(
+  () => order.value?.internalNote,
+  (v) => (internalNote.value = v ?? ''),
+  { immediate: true },
+)
+watch(
+  () => order.value?.trackingUrl,
+  (v) => (trackingUrlDraft.value = v ?? ''),
+  { immediate: true },
+)
+
+function updateOrder(body: { internalNote?: string | null; trackingUrl?: string | null }) {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        body,
+        credentials: 'include',
+      }),
+    { success: 'Gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
+}
 
 const { run, pending } = useAdminAction({ refresh })
 const toast = useToast()
@@ -280,7 +311,11 @@ function ship() {
     () =>
       $fetch(`/api/admin/orders/${orderId}/shipping`, {
         method: 'POST',
-        body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
+        body: {
+          carrier: carrier.value,
+          trackingNumber: trackingNumber.value,
+          trackingUrl: trackingUrl.value.trim() || null,
+        },
         credentials: 'include',
       }),
     { success: 'Versand bestätigt', error: 'Versand fehlgeschlagen' },
@@ -406,6 +441,62 @@ function ship() {
         </template>
       </PsCard>
     </div>
+
+    <PsCard v-if="order.trackingNumber" data-testid="order-tracking">
+      <h3 class="text-label-medium">Versand</h3>
+      <p class="mt-sm text-body-regular">
+        {{ order.carrier?.toUpperCase() }} ·
+        <a
+          v-if="order.trackingUrl"
+          :href="order.trackingUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono text-brand hover:underline"
+          >{{ order.trackingNumber }}</a
+        >
+        <span v-else class="font-mono">{{ order.trackingNumber }}</span>
+      </p>
+      <div v-if="auth.can('orders:ship')" class="mt-md flex flex-wrap items-end gap-md">
+        <PsInput
+          v-model="trackingUrlDraft"
+          label="Tracking-Link"
+          name="editTrackingUrl"
+          type="url"
+          placeholder="https://"
+        />
+        <PsButton
+          variant="secondary"
+          :disabled="pending"
+          data-testid="save-tracking-url"
+          @click="updateOrder({ trackingUrl: trackingUrlDraft.trim() || null })"
+        >
+          Link speichern
+        </PsButton>
+      </div>
+    </PsCard>
+
+    <PsCard data-testid="order-internal-note">
+      <h3 class="text-label-medium">Interne Notiz</h3>
+      <p class="mt-xs text-caption text-secondary">Nur im Admin sichtbar, nie für Kunden.</p>
+      <PsTextarea
+        v-model="internalNote"
+        label="Notiz"
+        name="internalNote"
+        :rows="4"
+        class="mt-sm"
+        :disabled="!auth.can('orders:write')"
+      />
+      <PsButton
+        v-if="auth.can('orders:write')"
+        class="mt-md"
+        variant="secondary"
+        :disabled="pending"
+        data-testid="save-internal-note"
+        @click="updateOrder({ internalNote: internalNote.trim() || null })"
+      >
+        Notiz speichern
+      </PsButton>
+    </PsCard>
 
     <PsCard
       v-if="liveAssignment || pastAssignments.length || canAssign"
@@ -591,6 +682,13 @@ function ship() {
           ]"
         />
         <PsInput v-model="trackingNumber" label="Trackingnummer" name="trackingNumber" />
+        <PsInput
+          v-model="trackingUrl"
+          label="Tracking-Link (optional)"
+          name="trackingUrl"
+          type="url"
+          placeholder="https://"
+        />
         <PsButton :disabled="trackingNumber.length < 4" data-testid="ship-order" @click="ship">
           Versand bestätigen
         </PsButton>
