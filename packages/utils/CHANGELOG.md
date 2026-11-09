@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.8.0...utils-v0.9.0) (2026-11-09)
+
+
+### Features
+
+* **admin:** Bestellungen an externe Druckanbieter vergeben ([#119](https://github.com/schrrobe/3d-print-shop/issues/119)) ([0c2b70c](https://github.com/schrrobe/3d-print-shop/commit/0c2b70cf650e599bec76a1897b91dcf751afc045))
+
 ## [0.8.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.7.0...utils-v0.8.0) (2026-11-08)
 
 

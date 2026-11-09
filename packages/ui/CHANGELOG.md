@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.6.2...ui-v0.7.0) (2026-11-09)
+
+
+### Features
+
+* **admin:** Bestellungen an externe Druckanbieter vergeben ([#119](https://github.com/schrrobe/3d-print-shop/issues/119)) ([0c2b70c](https://github.com/schrrobe/3d-print-shop/commit/0c2b70cf650e599bec76a1897b91dcf751afc045))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.9.0
+
 ## [0.6.2](https://github.com/schrrobe/3d-print-shop/compare/ui-v0.6.1...ui-v0.6.2) (2026-11-08)
 
 
