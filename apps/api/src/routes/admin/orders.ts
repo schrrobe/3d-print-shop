@@ -1,6 +1,11 @@
 import { renderPaymentLink } from '@print-shop/emails'
 import { ORDER_STATUSES } from '@print-shop/types'
-import { assertOrderTransition, REVENUE_ORDER_STATUSES, TERMS_PATH } from '@print-shop/utils'
+import {
+  assertOrderTransition,
+  hasPermission,
+  REVENUE_ORDER_STATUSES,
+  TERMS_PATH,
+} from '@print-shop/utils'
 import {
   adminOrderCreateSchema,
   markPaidSchema,
@@ -31,6 +36,7 @@ import {
   createStripePaymentLink,
   deactivateStripePaymentLink,
 } from '../../services/payments/stripe.js'
+import { cancelOpenAssignment, isHeldExternally } from '../../services/providers.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
@@ -53,12 +59,28 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
   try {
     const status = req.query.status ? String(req.query.status) : undefined
     const source = req.query.source ? String(req.query.source) : undefined
+    // fulfillment: internal | external | <providerId>
+    const fulfillment = req.query.fulfillment ? String(req.query.fulfillment) : undefined
+    const live = { status: { not: 'cancelled' as const } }
     const orders = await prisma.order.findMany({
       where: {
         ...(status ? { status: status as never } : {}),
         ...(source ? { source: source as never } : {}),
+        ...(fulfillment === 'internal' ? { providerAssignments: { none: live } } : {}),
+        ...(fulfillment === 'external' ? { providerAssignments: { some: live } } : {}),
+        ...(fulfillment && !['internal', 'external'].includes(fulfillment)
+          ? { providerAssignments: { some: { ...live, providerId: fulfillment } } }
+          : {}),
       },
-      include: { items: true, payments: true, invoice: { select: { number: true } } },
+      include: {
+        items: true,
+        payments: true,
+        invoice: { select: { number: true } },
+        providerAssignments: {
+          where: live,
+          select: { status: true, provider: { select: { id: true, name: true } } },
+        },
+      },
       omit: ORDER_OMIT,
       orderBy: { createdAt: 'desc' },
       take: 200,
@@ -80,13 +102,23 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
         invoice: true,
         printerJobs: { include: { printer: true } },
         tickets: { select: { id: true, ticketNumber: true, status: true, subject: true } },
+        providerAssignments: {
+          include: { provider: { select: { id: true, name: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     })
     if (!order) throw notFound('Order not found')
     const colorsOf = await itemColorResolver(order.items)
+    // Rates and payouts are admin-only (providers:read); production sees provider + status.
+    const showAmounts = hasPermission(req.user!.role, 'providers:read')
     res.json({
       order: {
         ...order,
+        providerAssignments: order.providerAssignments.map(
+          ({ rateBp, baseCents, payoutCents, paidOutAt, ...a }) =>
+            showAmounts ? { ...a, rateBp, baseCents, payoutCents, paidOutAt } : a,
+        ),
         items: order.items.map((item) => ({ ...item, colors: colorsOf(item) })),
         payments: order.payments.map((p) => ({
           ...p,
@@ -236,6 +268,9 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     // `shipped` goes through the shipping action (tracking number, jobs, email).
     if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
+    // Production progress of an externally held order follows the provider lifecycle.
+    if (['quality_check', 'ready_to_ship'].includes(status) && (await isHeldExternally(order.id)))
+      throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
     if (status === 'cancelled') {
       // An open payment link must stop taking money before the order is cancelled.
       for (const p of order.payments) {
@@ -259,6 +294,10 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       omit: ORDER_OMIT,
     })
     if (status === 'in_production') await notifyProductionStarted(order.id)
+    // An open external assignment stops with the order (provider gets a cancellation mail).
+    let providerCancel: Awaited<ReturnType<typeof cancelOpenAssignment>> = null
+    if (status === 'cancelled' || status === 'refunded')
+      providerCancel = await cancelOpenAssignment(order.id)
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
     // Conversion tracking — best-effort, must never break the status change.
@@ -276,9 +315,18 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       req,
       'order.status',
       { type: 'order', id: order.id },
-      { from: order.status, to: status },
+      {
+        from: order.status,
+        to: status,
+        ...(providerCancel
+          ? {
+              cancelledAssignmentId: providerCancel.assignment.id,
+              cancelEmailSent: providerCancel.cancelEmailSent,
+            }
+          : {}),
+      },
     )
-    res.json({ order: updated })
+    res.json({ order: updated, providerCancelEmailSent: providerCancel?.cancelEmailSent ?? null })
   } catch (err) {
     next(err)
   }

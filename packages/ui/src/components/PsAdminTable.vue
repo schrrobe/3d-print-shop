@@ -18,6 +18,8 @@ const props = withDefaults(
     rows: T[]
     rowKey?: string
     empty?: string
+    /** Extra classes per row, e.g. to mark externally produced orders. */
+    rowClass?: (row: T) => string | undefined
   }>(),
   { rowKey: 'id', empty: 'Keine Einträge vorhanden.' },
 )
@@ -103,6 +105,7 @@ function ariaSort(key: string) {
           v-for="row in sortedRows"
           :key="String(cell(row, rowKey))"
           class="border-b border-subtle transition-colors hover:bg-surface"
+          :class="rowClass?.(row)"
         >
           <td
             v-for="column in columns"

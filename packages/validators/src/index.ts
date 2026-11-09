@@ -181,6 +181,39 @@ export const salesChannelSchema = z
   })
 export type SalesChannelInput = z.infer<typeof salesChannelSchema>
 
+// ---------- External print providers ----------
+
+/** Rates in basis points (1500 = 15 %). */
+const rateBpSchema = z.number().int().min(0).max(10_000)
+
+export const printProviderSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  contactName: z.string().trim().max(120).nullable().default(null),
+  email: z.string().trim().email().max(254),
+  defaultRateBp: rateBpSchema,
+  notes: z.string().trim().max(2000).nullable().default(null),
+  active: z.boolean().default(true),
+})
+export type PrintProviderInput = z.infer<typeof printProviderSchema>
+
+export const providerAssignSchema = z.object({
+  providerId: z.string().min(1),
+  /** Omitted: provider's default rate */
+  rateBp: rateBpSchema.optional(),
+  shareCustomerData: z.boolean().default(false),
+  note: z.string().trim().max(2000).nullable().default(null),
+})
+export type ProviderAssignInput = z.infer<typeof providerAssignSchema>
+
+export const providerAssignmentStatusSchema = z.object({
+  status: z.enum(['completed', 'received', 'cancelled']),
+})
+
+export const providerPayoutSchema = z.object({
+  payoutCents: z.number().int().min(0).max(100_000_000).optional(),
+  paidOut: z.boolean().optional(),
+})
+
 // ---------- Upload / quote request ----------
 
 export const uploadRequestSchema = z.object({

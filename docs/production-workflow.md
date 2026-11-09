@@ -27,6 +27,11 @@ Der eigentliche Versand läuft über das Sendungsmodell mit Historie und PDF-Dok
 (Packliste/Lieferschein); `shipShipment()` ist der einzige Schreiber für
 `Order.carrier/trackingNumber/shippedAt`. Details: [shipping.md](./shipping.md).
 
+## Externe Fertigung
+
+Bestellungen können komplett an externe Druckanbieter vergeben werden; ihre Jobs
+verlassen dann die interne Queue. Details: [external-providers.md](./external-providers.md).
+
 ## Produktionskalender
 
 `PrinterJob.plannedStartAt/plannedEndAt` (UTC) planen Jobs je Drucker; `MaintenanceWindow`

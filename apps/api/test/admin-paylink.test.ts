@@ -13,6 +13,7 @@ vi.mock('../src/lib/prisma.js', () => ({
       updateMany: vi.fn(),
     },
     payment: { updateMany: vi.fn() },
+    providerAssignment: { findFirst: vi.fn().mockResolvedValue(null) },
   },
 }))
 vi.mock('../src/services/email.js', () => ({ sendEmail: vi.fn().mockResolvedValue(true) }))

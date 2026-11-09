@@ -9,7 +9,7 @@ import {
   PsBadge,
   useToast,
 } from '@print-shop/ui'
-import { ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
+import { formatCents, ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
 import type { OrderStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -53,6 +53,28 @@ interface AdminOrderDetail {
   }[]
   invoice: { id: string; number: string; sentAt: string | null } | null
   tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
+  providerAssignments: ProviderAssignment[]
+}
+
+interface ProviderAssignment {
+  id: string
+  status: 'assigned' | 'completed' | 'received' | 'cancelled'
+  provider: { id: string; name: string }
+  shareCustomerData: boolean
+  note: string | null
+  emailSentAt: string | null
+  createdAt: string
+  /** Only with providers:read */
+  rateBp?: number
+  baseCents?: number
+  payoutCents?: number
+}
+
+const ASSIGNMENT_LABELS: Record<ProviderAssignment['status'], string> = {
+  assigned: 'beauftragt',
+  completed: 'fertig gemeldet',
+  received: 'eingegangen',
+  cancelled: 'storniert',
 }
 
 const { data, refresh } = await useFetch<{ order: AdminOrderDetail }>(
@@ -124,16 +146,19 @@ function resendPaymentLink() {
   )
 }
 
-function setStatus(status: OrderStatus) {
-  return run(
-    () =>
-      $fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'POST',
-        body: { status },
-        credentials: 'include',
-      }),
+async function setStatus(status: OrderStatus) {
+  let providerCancelEmailSent: boolean | null = null
+  await run(
+    async () => {
+      const res = await $fetch<{ providerCancelEmailSent: boolean | null }>(
+        `/api/admin/orders/${orderId}/status`,
+        { method: 'POST', body: { status }, credentials: 'include' },
+      )
+      providerCancelEmailSent = res.providerCancelEmailSent
+    },
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
+  warnCancelEmail(providerCancelEmailSent)
 }
 
 function markPaid() {
@@ -145,6 +170,108 @@ function markPaid() {
         credentials: 'include',
       }),
     { success: 'Als bezahlt markiert', error: 'Aktion fehlgeschlagen' },
+  )
+}
+
+// ---------- External production ----------
+const liveAssignment = computed(
+  () => order.value?.providerAssignments.find((a) => a.status !== 'cancelled') ?? null,
+)
+const pastAssignments = computed(
+  () => order.value?.providerAssignments.filter((a) => a.status === 'cancelled') ?? [],
+)
+const canAssign = computed(
+  () =>
+    auth.can('provider-orders:write') &&
+    !!order.value &&
+    ['paid', 'in_production'].includes(order.value.status) &&
+    (!liveAssignment.value || liveAssignment.value.status === 'assigned'),
+)
+const { data: providerOptions } = await useFetch<{
+  providers: { id: string; name: string; defaultRateBp?: number }[]
+}>('/api/admin/providers/options', {
+  credentials: 'include',
+  server: false,
+  immediate: auth.can('provider-orders:write'),
+})
+const assignForm = reactive({ providerId: '', ratePercent: '', shareCustomerData: false, note: '' })
+watch(
+  () => assignForm.providerId,
+  (id) => {
+    const p = providerOptions.value?.providers.find((x) => x.id === id)
+    assignForm.ratePercent = p?.defaultRateBp !== undefined ? String(p.defaultRateBp / 100) : ''
+  },
+)
+
+/** Warns when the previous provider could not be told about a cancellation. */
+function warnCancelEmail(sent: boolean | null | undefined) {
+  if (sent === false)
+    toast.show('Storno-Mail an den bisherigen Anbieter fehlgeschlagen – bitte direkt informieren', {
+      variant: 'error',
+    })
+}
+
+async function assignProvider() {
+  let emailSent = true
+  let cancelEmailSent: boolean | null = null
+  const ok = await run(
+    async () => {
+      const res = await $fetch<{ emailSent: boolean; cancelEmailSent: boolean | null }>(
+        `/api/admin/providers/assign/${orderId}`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: {
+            providerId: assignForm.providerId,
+            // Admins freeze exactly the displayed rate (a concurrent default change must not slip in).
+            ...(auth.can('providers:write')
+              ? { rateBp: Math.round(Number(assignForm.ratePercent) * 100) }
+              : {}),
+            shareCustomerData: assignForm.shareCustomerData,
+            note: assignForm.note.trim() || null,
+          },
+        },
+      )
+      emailSent = res.emailSent
+      cancelEmailSent = res.cancelEmailSent
+    },
+    { error: 'Vergabe fehlgeschlagen' },
+  )
+  if (!ok) return
+  // The new provider is filtered out of the select; a stale id would re-assign it.
+  Object.assign(assignForm, { providerId: '', ratePercent: '', shareCustomerData: false, note: '' })
+  toast.show(
+    emailSent
+      ? 'Auftrag vergeben und per E-Mail versendet'
+      : 'Auftrag vergeben, E-Mail-Versand fehlgeschlagen – bitte erneut senden',
+    { variant: emailSent ? 'success' : 'error' },
+  )
+  warnCancelEmail(cancelEmailSent)
+}
+
+async function setAssignmentStatus(id: string, status: 'completed' | 'received' | 'cancelled') {
+  let cancelEmailSent: boolean | null = null
+  await run(
+    async () => {
+      const res = await $fetch<{ cancelEmailSent: boolean | null }>(
+        `/api/admin/providers/assignments/${id}/status`,
+        { method: 'POST', credentials: 'include', body: { status } },
+      )
+      cancelEmailSent = res.cancelEmailSent
+    },
+    { success: `Externer Auftrag: ${ASSIGNMENT_LABELS[status]}`, error: 'Aktion fehlgeschlagen' },
+  )
+  warnCancelEmail(cancelEmailSent)
+}
+
+function resendAssignment(id: string) {
+  return run(
+    () =>
+      $fetch(`/api/admin/providers/assignments/${id}/resend`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Auftrag erneut gesendet', error: 'E-Mail-Versand fehlgeschlagen' },
   )
 }
 
@@ -167,6 +294,9 @@ function ship() {
       <h2 class="text-heading-small">{{ order.orderNumber }}</h2>
       <PsOrderStatusBadge :status="order.status" data-testid="admin-order-status" />
       <PsBadge v-if="order.source === 'admin'" variant="info">Paylink</PsBadge>
+      <PsBadge v-if="liveAssignment" variant="external" data-testid="order-external">
+        Extern: {{ liveAssignment.provider.name }}
+      </PsBadge>
     </div>
 
     <div class="grid gap-lg lg:grid-cols-2">
@@ -276,6 +406,153 @@ function ship() {
         </template>
       </PsCard>
     </div>
+
+    <PsCard
+      v-if="liveAssignment || pastAssignments.length || canAssign"
+      data-testid="external-production"
+    >
+      <h3 class="text-label-medium">Externe Fertigung</h3>
+      <div v-if="liveAssignment" class="mt-md flex flex-col gap-sm text-body-regular">
+        <div class="flex flex-wrap items-center gap-sm">
+          <PsBadge variant="external">{{ liveAssignment.provider.name }}</PsBadge>
+          <span data-testid="assignment-status">{{
+            ASSIGNMENT_LABELS[liveAssignment.status]
+          }}</span>
+          <span v-if="liveAssignment.shareCustomerData" class="text-caption text-secondary"
+            >· Direktversand (Kundendaten übermittelt)</span
+          >
+        </div>
+        <p class="text-caption text-secondary">
+          Vergeben am {{ new Date(liveAssignment.createdAt).toLocaleString('de-DE') }} —
+          {{
+            liveAssignment.emailSentAt
+              ? `E-Mail versendet am ${new Date(liveAssignment.emailSentAt).toLocaleString('de-DE')}`
+              : 'E-Mail noch nicht versendet'
+          }}
+        </p>
+        <p v-if="liveAssignment.payoutCents !== undefined" class="text-caption text-secondary">
+          Warenwert {{ formatCents(liveAssignment.baseCents ?? 0) }} ·
+          {{ ((liveAssignment.rateBp ?? 0) / 100).toLocaleString('de-DE') }} % · Vergütung
+          {{ formatCents(liveAssignment.payoutCents) }}
+        </p>
+        <p v-if="liveAssignment.note" class="whitespace-pre-line text-caption text-secondary">
+          Hinweis: {{ liveAssignment.note }}
+        </p>
+        <div v-if="auth.can('provider-orders:write')" class="flex flex-wrap gap-sm">
+          <PsButton
+            v-if="liveAssignment.status === 'assigned'"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="assignment-completed"
+            @click="setAssignmentStatus(liveAssignment.id, 'completed')"
+            >Fertig gemeldet</PsButton
+          >
+          <PsButton
+            v-if="liveAssignment.status === 'completed' && !liveAssignment.shareCustomerData"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="assignment-received"
+            @click="setAssignmentStatus(liveAssignment.id, 'received')"
+            >Ware eingegangen</PsButton
+          >
+          <PsButton
+            variant="secondary"
+            :disabled="pending"
+            data-testid="assignment-resend"
+            @click="resendAssignment(liveAssignment.id)"
+            >Auftrag erneut senden</PsButton
+          >
+          <PsButton
+            v-if="liveAssignment.status === 'assigned'"
+            variant="ghost"
+            :disabled="pending"
+            data-testid="assignment-cancel"
+            @click="setAssignmentStatus(liveAssignment.id, 'cancelled')"
+            >Stornieren</PsButton
+          >
+        </div>
+      </div>
+
+      <form
+        v-if="canAssign"
+        class="mt-lg flex max-w-[36rem] flex-col gap-md border-t border-subtle pt-lg"
+        data-testid="assign-provider-form"
+        @submit.prevent="assignProvider"
+      >
+        <p class="text-label-medium">
+          {{
+            liveAssignment
+              ? 'Neu vergeben (storniert den bisherigen Auftrag)'
+              : 'An Anbieter vergeben'
+          }}
+        </p>
+        <label class="flex flex-col gap-xs text-caption text-secondary">
+          Anbieter
+          <select
+            v-model="assignForm.providerId"
+            required
+            class="rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular"
+            data-testid="assign-provider"
+          >
+            <option value="" disabled>Bitte wählen</option>
+            <option
+              v-for="p in (providerOptions?.providers ?? []).filter(
+                (x) => x.id !== liveAssignment?.provider.id,
+              )"
+              :key="p.id"
+              :value="p.id"
+            >
+              {{ p.name }}
+            </option>
+          </select>
+        </label>
+        <PsInput
+          v-if="auth.can('providers:write')"
+          v-model="assignForm.ratePercent"
+          label="Anteil vom Warenwert (%)"
+          type="number"
+          min="0"
+          max="100"
+          step="0.01"
+          required
+          data-testid="assign-rate"
+        />
+        <label class="flex cursor-pointer items-center gap-sm text-body-regular">
+          <input
+            v-model="assignForm.shareCustomerData"
+            type="checkbox"
+            data-testid="assign-share-customer"
+          />
+          Direktversand: Name und Lieferadresse des Kunden mitsenden
+        </label>
+        <label class="flex flex-col gap-xs text-caption text-secondary">
+          Hinweis an den Anbieter (optional)
+          <textarea
+            v-model="assignForm.note"
+            rows="2"
+            maxlength="2000"
+            class="rounded-card border border-subtle bg-surface-elevated px-md py-sm text-body-regular"
+            data-testid="assign-note"
+          />
+        </label>
+        <div>
+          <PsButton
+            type="submit"
+            :disabled="pending || !assignForm.providerId"
+            data-testid="assign-submit"
+          >
+            Vergeben und PDF senden
+          </PsButton>
+        </div>
+      </form>
+
+      <ul v-if="pastAssignments.length" class="mt-lg text-caption text-secondary">
+        <li v-for="a in pastAssignments" :key="a.id">
+          {{ a.provider.name }} — storniert (vergeben
+          {{ new Date(a.createdAt).toLocaleDateString('de-DE') }})
+        </li>
+      </ul>
+    </PsCard>
 
     <PsCard
       v-if="auth.can('orders:write') || auth.can('payments:write') || auth.can('orders:ship')"
