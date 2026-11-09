@@ -398,9 +398,24 @@ export const printJobAssignSchema = z.object({
   spoolNotes: z.string().trim().max(2000).optional(),
 })
 
+/** Carrier tracking page — http(s) only, it ends up in customer-facing hrefs. */
+const trackingUrlSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .url()
+  .refine((u) => /^https?:\/\//i.test(u), 'Tracking link must start with http(s)://')
+
 export const shippingUpdateSchema = z.object({
   carrier: z.enum(CARRIERS),
   trackingNumber: z.string().trim().min(4).max(64),
+  trackingUrl: trackingUrlSchema.nullable().optional(),
+})
+
+/** Admin order detail: staff-only note and tracking link (also after shipping). */
+export const orderUpdateSchema = z.object({
+  internalNote: z.string().trim().max(4000).nullable().optional(),
+  trackingUrl: trackingUrlSchema.nullable().optional(),
 })
 
 // ---------- Consent ----------
@@ -792,6 +807,7 @@ export const shipmentStatusSchema = z.object({
 export const shipmentShipSchema = z.object({
   carrier: z.enum(CARRIERS),
   trackingNumber: z.string().trim().min(4).max(64),
+  trackingUrl: trackingUrlSchema.nullable().optional(),
 })
 
 // ---------- Customer portal (magic link) ----------

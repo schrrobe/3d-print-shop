@@ -11,6 +11,7 @@ export interface PortalOrder {
   totalCents: number
   carrier: string | null
   trackingNumber: string | null
+  trackingUrl: string | null
   shippedAt: string | null
   items: { name: string; quantity: number; unitPriceCents: number }[]
   orderUrl: string

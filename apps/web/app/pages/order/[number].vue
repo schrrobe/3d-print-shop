@@ -29,6 +29,7 @@ interface OrderView {
   totalCents: number
   carrier: string | null
   trackingNumber: string | null
+  trackingUrl: string | null
   items: { name: string; quantity: number; unitPriceCents: number }[]
   invoice: { number: string } | null
   payments: {
@@ -255,7 +256,16 @@ async function payNow() {
 
       <p v-if="order.trackingNumber" class="mt-2xl text-body-regular" data-testid="tracking">
         📦 {{ order.carrier?.toUpperCase() }} ·
-        <span class="font-mono">{{ order.trackingNumber }}</span>
+        <a
+          v-if="order.trackingUrl"
+          :href="order.trackingUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono underline"
+          data-testid="tracking-link"
+          >{{ order.trackingNumber }}</a
+        >
+        <span v-else class="font-mono">{{ order.trackingNumber }}</span>
       </p>
 
       <NuxtLink

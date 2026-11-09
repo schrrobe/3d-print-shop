@@ -27,6 +27,7 @@ export function publicOrderDto(order: OrderForDto) {
     totalCents: order.totalCents,
     carrier: order.carrier,
     trackingNumber: order.trackingNumber,
+    trackingUrl: order.trackingUrl,
     items: order.items.map((i) => ({
       id: i.id,
       name: i.name,

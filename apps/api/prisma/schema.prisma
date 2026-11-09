@@ -523,6 +523,10 @@ model Order {
   voucher                 Voucher?    @relation(fields: [voucherId], references: [id])
   carrier                 Carrier?
   trackingNumber          String?
+  /// Carrier tracking page (http/https only — rendered as href for customers)
+  trackingUrl             String?
+  /// Staff-only — globally omitted via Prisma omit (lib/prisma.ts)
+  internalNote            String?
   shippedAt               DateTime?
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt

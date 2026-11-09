@@ -122,6 +122,7 @@ adminShipmentsRouter.post('/:id/ship', requirePermission('orders:ship'), async (
       shipmentId: String(req.params.id),
       carrier: input.carrier,
       trackingNumber: input.trackingNumber,
+      trackingUrl: input.trackingUrl,
       byUserId: req.user?.id,
     })
     await audit(req, 'shipment.shipped', { type: 'shipment', id: shipment.id }, input)
