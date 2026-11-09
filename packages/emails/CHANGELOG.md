@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.3.3...emails-v0.4.0) (2026-11-09)
+
+
+### Features
+
+* **admin:** Bestellungen an externe Druckanbieter vergeben ([#119](https://github.com/schrrobe/3d-print-shop/issues/119)) ([0c2b70c](https://github.com/schrrobe/3d-print-shop/commit/0c2b70cf650e599bec76a1897b91dcf751afc045))
+* **admin:** interne Notiz und Tracking-Link an Bestellungen ([#121](https://github.com/schrrobe/3d-print-shop/issues/121)) ([112ed75](https://github.com/schrrobe/3d-print-shop/commit/112ed755c1b1765a0f861aeaeb0e5016d4d025f5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.9.0
+
 ## [0.3.3](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.3.2...emails-v0.3.3) (2026-11-08)
 
 
