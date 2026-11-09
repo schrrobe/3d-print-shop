@@ -112,7 +112,9 @@ export async function transitionShipment(
 
 /**
  * The ONLY place that marks orders as shipped and writes Order.carrier/
- * trackingNumber/trackingUrl/shippedAt (single-writer rule — avoids Order↔Shipment drift).
+ * trackingNumber/shippedAt (single-writer rule — avoids Order↔Shipment drift).
+ * It also resets Order.trackingUrl with each new number; PATCH /admin/orders/:id
+ * may add or fix the link afterwards (Shipment has no trackingUrl to drift from).
  * Transaction: shipment → shipped, order → shipped, open print jobs → shipped.
  * By default 409 while any job is not yet ready_to_ship, so a partial shipment
  * can't close jobs of items still in production. `closeAllJobs` (whole order

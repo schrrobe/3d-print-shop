@@ -110,12 +110,17 @@ function setStatus(status: ShipmentStatus) {
 const shipOpen = ref(false)
 const carrier = ref<'dhl' | 'hermes'>('dhl')
 const trackingNumber = ref('')
+const trackingUrl = ref('')
 async function submitShip() {
   const ok = await run(
     () =>
       $fetch(`/api/admin/shipments/${id}/ship`, {
         method: 'POST',
-        body: { carrier: carrier.value, trackingNumber: trackingNumber.value },
+        body: {
+          carrier: carrier.value,
+          trackingNumber: trackingNumber.value,
+          trackingUrl: trackingUrl.value.trim() || null,
+        },
         credentials: 'include',
       }),
     { success: 'Sendung versendet', error: 'Fehler' },
@@ -238,6 +243,13 @@ const pdfBase = `${config.public.apiBase}/admin/shipments/${id}`
           label="Sendungsnummer"
           name="tracking"
           data-testid="shipment-tracking"
+        />
+        <PsInput
+          v-model="trackingUrl"
+          label="Tracking-Link (optional)"
+          name="trackingUrl"
+          type="url"
+          placeholder="https://"
         />
         <PsButton
           :disabled="pending || trackingNumber.trim().length < 4"

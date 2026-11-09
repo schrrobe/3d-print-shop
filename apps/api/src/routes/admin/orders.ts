@@ -84,7 +84,8 @@ adminOrdersRouter.get('/', requirePermission('orders:read'), async (req, res, ne
           select: { status: true, provider: { select: { id: true, name: true } } },
         },
       },
-      omit: ORDER_OMIT,
+      // List never shows the note — keep up to 200 × 4000 chars off the wire.
+      omit: { ...ORDER_OMIT, internalNote: true },
       orderBy: { createdAt: 'desc' },
       take: 200,
     })
@@ -342,6 +343,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
 adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, res, next) => {
   try {
     const input = orderUpdateSchema.parse(req.body)
+    if (Object.keys(input).length === 0) throw badRequest('Nothing to update')
     if (input.internalNote !== undefined && !hasPermission(req.user!.role, 'orders:write'))
       throw forbidden()
     if (input.trackingUrl !== undefined && !hasPermission(req.user!.role, 'orders:ship'))
