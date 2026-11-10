@@ -349,6 +349,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             city: input.address.city,
             country: input.address.country,
             phone: input.address.phone,
+            carrierEmailConsentAt: input.carrierEmailConsent ? new Date() : null,
             note: input.note,
             subtotalCents: totals.subtotalCents,
             shippingCents: totals.shippingCents,

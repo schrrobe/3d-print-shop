@@ -68,3 +68,17 @@ it('rejects a shipment with 409 while the order is still with an external provid
   ).rejects.toMatchObject({ status: 409 })
   expect(tx.shipment.update).not.toHaveBeenCalled()
 })
+
+it('rejects shipping a labelled shipment with a number other than the active DHL label', async () => {
+  tx.shipment.update.mockClear()
+  vi.mocked(prisma.shipment.findUnique).mockResolvedValue({
+    ...packedShipment,
+    labelPdfPath: '/tmp/label.pdf',
+    trackingNumber: '00340434161094042557',
+  } as never)
+
+  await expect(
+    shipShipment({ shipmentId: 's1', carrier: 'hermes', trackingNumber: '00340434161094042557' }),
+  ).rejects.toMatchObject({ status: 409 })
+  expect(tx.shipment.update).not.toHaveBeenCalled()
+})

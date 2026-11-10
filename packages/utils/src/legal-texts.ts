@@ -196,7 +196,7 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
     ],
   },
   privacy: {
-    updatedAt: 'Last updated: 31 October 2026',
+    updatedAt: 'Last updated: 9 November 2026',
     sections: [
       {
         heading: '1. Controller',
@@ -223,7 +223,9 @@ const en: Record<LegalDocumentKey, LegalDocumentTranslation> = {
         paragraphs: [
           'For orders we process title or name, billing and delivery address, email address, optional telephone number, order, product, payment and shipping data to perform the contract, allocate payments, issue invoices and dispatch goods (Article 6(1)(b) GDPR). Statutory commercial and tax obligations are processed under Article 6(1)(c) GDPR.',
           'If you choose to pay via Stripe, after you submit the order we embed Stripe’s payment form (Stripe.js) directly in the checkout or order status page. You enter your payment, device and transaction data directly with Stripe; we do not receive full card details. The provider is Stripe Payments Europe, Ltd., Dublin, Ireland, which acts as payment service provider under its own responsibility. Processing by Stripe, Inc. in the USA is possible and is based on the EU-US Data Privacy Framework or EU standard contractual clauses. Privacy information: https://stripe.com/privacy. For bank transfers we process the payment data reported to us with the incoming payment.',
-          'For Bitcoin, we derive a payment address from our own wallet and check receipt of payment using public blockchain data [OPEN: name the blockchain query service used, if any]. Blockchain transactions are publicly visible and cannot be deleted retrospectively. We do not use private keys on the web server. For delivery, we pass your name, delivery address and the order and contact data required for shipping to DHL or Hermes.',
+          'For Bitcoin, we derive a payment address from our own wallet and check receipt of payment using public blockchain data [OPEN: name the blockchain query service used, if any]. Blockchain transactions are publicly visible and cannot be deleted retrospectively. We do not use private keys on the web server.',
+          'For delivery, we pass your name, company (if any) and delivery address together with the parcel weight and order number to the carrier chosen for the order, DHL (DHL Paket GmbH, Bonn) or Hermes (Article 6(1)(b) GDPR). For deliveries to Switzerland this includes the customs declaration (description, quantity, value and weight of the goods).',
+          'Only if you expressly consent at checkout do we also pass your email address to DHL so that DHL can notify you about the delivery of your parcel (Article 6(1)(a) GDPR). Consent is voluntary and not required for the order; without it we do not pass your email address to the carrier. We store the time of your consent with the order as proof. You can withdraw consent at any time with effect for the future by emailing us.',
         ],
       },
       {

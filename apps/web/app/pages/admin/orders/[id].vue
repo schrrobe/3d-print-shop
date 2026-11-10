@@ -28,6 +28,7 @@ interface AdminOrderDetail {
   source: 'shop' | 'admin' | 'quote'
   note: string | null
   email: string
+  carrierEmailConsentAt: string | null
   firstName: string
   lastName: string
   street: string
@@ -39,6 +40,9 @@ interface AdminOrderDetail {
   trackingNumber: string | null
   trackingUrl: string | null
   internalNote: string | null
+  /** Latest DHL label; active = not yet shipped, can be cancelled */
+  dhlLabel: { trackingNumber: string | null; active: boolean } | null
+  packedWeightGrams: number | null
   items: {
     id: string
     name: string
@@ -120,6 +124,21 @@ function updateOrder(body: { internalNote?: string | null; trackingUrl?: string 
     { success: 'Gespeichert', error: 'Speichern fehlgeschlagen' },
   )
 }
+
+const weightGrams = ref('')
+const labelUrl = `/api/admin/orders/${orderId}/dhl-label.pdf`
+// Ship form follows the active label: carrier DHL + its shipment number.
+watch(
+  order,
+  (o) => {
+    if (o?.dhlLabel?.active) {
+      carrier.value = 'dhl'
+      trackingNumber.value = o.dhlLabel.trackingNumber ?? ''
+    }
+    if (!weightGrams.value && o?.packedWeightGrams) weightGrams.value = String(o.packedWeightGrams)
+  },
+  { immediate: true },
+)
 
 const { run, pending } = useAdminAction({ refresh })
 const toast = useToast()
@@ -306,6 +325,56 @@ function resendAssignment(id: string) {
   )
 }
 
+async function createDhlLabel() {
+  // Open the tab inside the click — popup blockers drop window.open after an await.
+  const tab = window.open('', '_blank')
+  let warnings: string[] = []
+  const ok = await run(
+    async () => {
+      const res = await $fetch<{ trackingNumber: string; warnings: string[] }>(
+        `/api/admin/orders/${orderId}/dhl-label`,
+        {
+          method: 'POST',
+          body: { weightGrams: Number(weightGrams.value) },
+          credentials: 'include',
+        },
+      )
+      warnings = res.warnings
+    },
+    { success: 'DHL-Label erstellt', error: 'DHL-Label fehlgeschlagen' },
+  )
+  if (!ok) return tab?.close()
+  if (tab) tab.location.href = labelUrl
+  if (warnings.length) toast.show(`DHL-Hinweis: ${warnings.join(' · ')}`, { variant: 'error' })
+}
+
+function withdrawCarrierEmailConsent() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/carrier-email-consent/withdraw`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Einwilligung widerrufen', error: 'Aktion fehlgeschlagen' },
+  )
+}
+
+function printDhlLabel() {
+  window.open(labelUrl, '_blank')
+}
+
+async function cancelDhlLabel() {
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/dhl-label`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    { success: 'DHL-Label storniert', error: 'DHL-Storno fehlgeschlagen' },
+  )
+  if (ok) trackingNumber.value = ''
+}
+
 function ship() {
   return run(
     () =>
@@ -402,6 +471,25 @@ function ship() {
           {{ order.zip }} {{ order.city }}, {{ order.country }}<br />
           {{ order.email }}
         </address>
+        <p class="mt-sm flex flex-wrap items-center gap-sm text-caption text-secondary">
+          <span data-testid="carrier-email-consent">
+            E-Mail an DHL:
+            {{
+              order.carrierEmailConsentAt
+                ? `eingewilligt am ${new Date(order.carrierEmailConsentAt).toLocaleString('de-DE')}`
+                : 'keine Einwilligung'
+            }}
+          </span>
+          <PsButton
+            v-if="order.carrierEmailConsentAt && auth.can('orders:write')"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="carrier-email-consent-withdraw"
+            @click="withdrawCarrierEmailConsent"
+          >
+            Widerruf eintragen
+          </PsButton>
+        </p>
         <h3 class="mt-lg text-label-medium">Zahlungen</h3>
         <ul class="mt-sm text-body-regular text-secondary">
           <li v-for="p in order.payments" :key="p.id">{{ p.method }} — {{ p.status }}</li>
@@ -681,7 +769,7 @@ function ship() {
             { value: 'hermes', label: 'Hermes' },
           ]"
         />
-        <PsInput v-model="trackingNumber" label="Trackingnummer" name="trackingNumber" />
+        <PsInput v-model="trackingNumber" label="Sendungsnummer" name="trackingNumber" />
         <PsInput
           v-model="trackingUrl"
           label="Tracking-Link (optional)"
@@ -692,6 +780,43 @@ function ship() {
         <PsButton :disabled="trackingNumber.length < 4" data-testid="ship-order" @click="ship">
           Versand bestätigen
         </PsButton>
+      </div>
+
+      <div
+        v-if="
+          auth.can('orders:ship') &&
+          (order.dhlLabel || (carrier === 'dhl' && nextStatuses.includes('shipped')))
+        "
+        class="mt-lg flex flex-wrap items-end gap-md border-t border-subtle pt-lg"
+        data-testid="dhl-label"
+      >
+        <template v-if="order.dhlLabel?.active || !nextStatuses.includes('shipped')">
+          <p class="text-body-regular">
+            DHL-Label <span class="font-mono">{{ order.dhlLabel?.trackingNumber }}</span>
+          </p>
+          <PsButton variant="secondary" data-testid="dhl-label-print" @click="printDhlLabel">
+            Label drucken
+          </PsButton>
+          <PsButton
+            v-if="order.dhlLabel?.active"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="dhl-label-cancel"
+            @click="cancelDhlLabel"
+          >
+            Label stornieren
+          </PsButton>
+        </template>
+        <template v-else>
+          <PsInput v-model="weightGrams" label="Gewicht (g)" name="weightGrams" type="number" />
+          <PsButton
+            :disabled="pending || !(Number(weightGrams) >= 1 && Number(weightGrams) <= 31500)"
+            data-testid="dhl-label-create"
+            @click="createDhlLabel"
+          >
+            DHL-Label erstellen
+          </PsButton>
+        </template>
       </div>
     </PsCard>
   </div>

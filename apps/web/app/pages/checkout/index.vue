@@ -69,6 +69,8 @@ const form = reactive({
   city: '',
   country: 'DE',
   note: '',
+  // Opt-in, unchecked by default (GDPR consent) — email to the carrier for delivery notices.
+  carrierEmailConsent: false,
 })
 // Shipping depends on the delivery country; the shared totals follow the select.
 watch(
@@ -200,6 +202,7 @@ async function submit() {
           phone: form.phone || undefined,
         },
         note: note || undefined,
+        carrierEmailConsent: form.carrierEmailConsent,
         paymentMethod: paymentMethod.value,
         locale: locale.value,
         voucherCode: cart.voucher?.code,
@@ -401,6 +404,18 @@ const summaryOpen = ref(false)
               autocomplete="tel"
               inputmode="tel"
             />
+            <label
+              class="flex cursor-pointer items-start gap-3 text-sm text-ink-2 sm:col-span-2"
+              data-testid="carrier-email-consent"
+            >
+              <input
+                v-model="form.carrierEmailConsent"
+                type="checkbox"
+                name="carrierEmailConsent"
+                class="mt-0.5 size-5 shrink-0"
+              />
+              <span>{{ t('shop.checkout.carrierEmailConsent') }}</span>
+            </label>
           </div>
         </fieldset>
 

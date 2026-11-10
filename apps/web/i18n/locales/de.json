@@ -497,6 +497,7 @@
       "contactTitle": "Kontakt",
       "addressTitle": "Lieferadresse",
       "emailHint": "Für Bestellbestätigung und Versandinfo.",
+      "carrierEmailConsent": "Optional: Meine E-Mail-Adresse darf an den Versanddienstleister (DHL) übermittelt werden, damit er mich über die Zustellung informiert. Widerruf jederzeit per E-Mail an uns.",
       "phone": "Telefon",
       "company": "Firma",
       "note": "Anmerkung zur Bestellung",

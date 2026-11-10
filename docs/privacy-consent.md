@@ -95,6 +95,11 @@ Checkout an der Bestellung festgeschrieben.
 
 - Gastbestellung: nur vertragsnotwendige Daten, kein Konto.
 - E-Mails transaktional (kein Marketing).
+- E-Mail an den Versanddienstleister (DHL-Paketankündigung) nur mit Opt-in im
+  Checkout (standardmäßig aus): `Order.carrierEmailConsentAt`, Widerruf per E-Mail
+  wird im Admin („Widerruf eintragen“, auditiert) erfasst. Der Wortlaut zum
+  Zeitpunkt der Einwilligung ergibt sich aus der Git-Historie der Locale-Dateien.
+  Begründung: [ADR 0001](adr/0001-carrier-email-opt-in.md).
 - Die finalen Rechtstexte (Impressum/Datenschutz/AGB) müssen vor Livegang von
   der verantwortlichen Person bzw. Rechtsberatung freigegeben und mit den
   tatsächlichen Unternehmensdaten veröffentlicht werden.
