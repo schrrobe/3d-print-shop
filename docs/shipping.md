@@ -75,9 +75,9 @@ antwortet die Route mit `503`.
   (`Shipment.labelPdfPath`); das Versandformular wird vorbefüllt. Versendet wird
   weiterhin erst mit „Versand bestätigen“ (`shipShipment()`, Versand-Mail).
 - **Format:** PDF 103×150 mm (`910-300-410`, Thermo-Rolle), Druck über den
-  Browser-Druckdialog. Bei CH ist die Zollinhaltserklärung (CN23) im selben PDF.
-- **Produkte:** `V01PAK` für DE, `V53WPAK` für alle anderen Lieferländer.
-  CH: CN23 automatisch aus den Positionen, HS-Code `39269097`, Ursprung DE,
+  Browser-Druckdialog. Bei CH und IS ist die Zollinhaltserklärung (CN23) im selben PDF.
+- **Produkte:** `V01PAK` für DE, `V53WPAK` für alle anderen Lieferländer (`SHIPPING_COUNTRIES`).
+  CH/IS (außerhalb der EU-Zollunion): CN23 automatisch aus den Positionen, HS-Code `39269097`, Ursprung DE,
   `COMMERCIAL_GOODS`; Gratis-Box mit 0,01 € deklariert.
 - **Daten an DHL:** Name, Firma, Lieferadresse (`street` unverändert), Gewicht,
   Bestellnummer. Die E-Mail nur mit Checkout-Opt-in (`Order.carrierEmailConsentAt`,
@@ -85,6 +85,9 @@ antwortet die Route mit `503`.
 - **Storno:** solange die Sendung `packed` ist (`DELETE …/dhl-label`, bei DHL bis
   zum Tagesabschluss). Danach kann neu erstellt werden. Versenden mit einer anderen
   Sendungsnummer als der des aktiven Labels lehnt die Alt-Route mit `409` ab.
+- **Timeout:** 30 s je DHL-Aufruf, dann `504`. Das Label kann bei DHL trotzdem
+  entstanden sein — vor erneutem Versuch im Geschäftskundenportal prüfen
+  (Referenz = Bestellnummer).
 - **Erneut drucken:** `GET …/dhl-label.pdf` liefert das letzte Label (auch nach Versand).
 - Fehler/Warnungen von DHL (z. B. nicht kodierbare Adresse) erscheinen als Toast;
   ein Label mit Warnung ist gültig.

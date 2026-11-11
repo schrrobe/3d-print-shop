@@ -45,6 +45,7 @@ import { emitCancel, emitRefund } from '../../services/tracking/events.js'
 import {
   cancelOrderDhlLabel,
   createOrderDhlLabel,
+  hasActiveLabel,
   packedShipmentFor,
   shipShipment,
 } from '../../services/shipment-flow.js'
@@ -118,7 +119,13 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
           orderBy: { createdAt: 'desc' },
         },
         shipments: {
-          select: { status: true, trackingNumber: true, weightGrams: true, labelPdfPath: true },
+          select: {
+            status: true,
+            trackingNumber: true,
+            weightGrams: true,
+            labelPdfPath: true,
+            shippedAt: true,
+          },
           orderBy: { updatedAt: 'desc' },
         },
       },
@@ -135,7 +142,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
         ...orderFields,
         // Latest DHL label (server path stays server-side); active = cancellable.
         dhlLabel: labelled
-          ? { trackingNumber: labelled.trackingNumber, active: labelled.status === 'packed' }
+          ? { trackingNumber: labelled.trackingNumber, active: hasActiveLabel(labelled) }
           : null,
         packedWeightGrams: packed?.weightGrams ?? null,
         providerAssignments: order.providerAssignments.map(
@@ -285,12 +292,15 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     const { status } = statusSchema.parse(req.body)
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
-      include: { payments: true },
+      include: { payments: true, shipments: true },
     })
     if (!order) throw notFound('Order not found')
     // `shipped` goes through the shipping action (tracking number, jobs, email).
     if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
+    // A paid, unused DHL label would otherwise stay active at DHL.
+    if ((status === 'cancelled' || status === 'refunded') && order.shipments.some(hasActiveLabel))
+      throw conflict('DHL-Label zuerst stornieren')
     // Production progress of an externally held order follows the provider lifecycle.
     if (['quality_check', 'ready_to_ship'].includes(status) && (await isHeldExternally(order.id)))
       throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')

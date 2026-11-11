@@ -181,6 +181,7 @@ describe('POST /api/admin/orders/:id/status cancelled', () => {
     vi.mocked(prisma.order.findUnique).mockResolvedValue({
       id: 'order_1',
       status: 'awaiting_payment',
+      shipments: [],
       payments: [
         {
           id: 'pay_1',
@@ -207,6 +208,7 @@ describe('POST /api/admin/orders/:id/status cancelled', () => {
     vi.mocked(prisma.order.findUnique).mockResolvedValue({
       id: 'order_1',
       status: 'awaiting_payment',
+      shipments: [],
       payments: [],
     } as never)
     vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 0 })

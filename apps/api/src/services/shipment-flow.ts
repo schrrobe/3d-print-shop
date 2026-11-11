@@ -74,6 +74,13 @@ export async function createShipment(input: {
 }
 
 /**
+ * A DHL label still cancellable at DHL: packed and never shipped. (A shipment
+ * shipped → problem → packed keeps its used label's PDF for reprints only.)
+ */
+export const hasActiveLabel = (s: Pick<Shipment, 'status' | 'labelPdfPath' | 'shippedAt'>) =>
+  s.status === 'packed' && !!s.labelPdfPath && !s.shippedAt
+
+/**
  * The packed shipment that ships the whole order from the order page: the
  * existing packed one, else an implicit one covering all items. 409 while an
  * earlier (unpacked) shipment holds items — an implicit one would count them twice.
@@ -89,6 +96,10 @@ export async function packedShipmentFor(
   }
   const shipmentNumber = await nextShipmentNumber()
   return prisma.$transaction(async (tx) => {
+    // Concurrent callers (two tabs, double click) must share one implicit shipment.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${order.id}))`
+    const raced = await tx.shipment.findFirst({ where: { orderId: order.id, status: 'packed' } })
+    if (raced) return raced
     const created = await tx.shipment.create({
       data: {
         shipmentNumber,
@@ -132,7 +143,7 @@ export async function createOrderDhlLabel(input: {
   assertOrderTransition(order.status, 'shipped')
   if (await isHeldExternally(order.id))
     throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
-  if (order.shipments.some((s) => s.status === 'packed' && s.labelPdfPath)) {
+  if (order.shipments.some(hasActiveLabel)) {
     throw conflict('Es gibt bereits ein DHL-Label — zuerst stornieren')
   }
 
@@ -188,12 +199,13 @@ export async function createOrderDhlLabel(input: {
 /** Cancels the order's active DHL label at DHL, then forgets it locally. Returns the shipment as it was. */
 export async function cancelOrderDhlLabel(orderId: string): Promise<Shipment> {
   const shipment = await prisma.shipment.findFirst({
-    where: { orderId, status: 'packed', labelPdfPath: { not: null } },
+    where: { orderId, status: 'packed', labelPdfPath: { not: null }, shippedAt: null },
   })
   if (!shipment?.trackingNumber) throw notFound('Kein stornierbares DHL-Label')
   await cancelDhlLabel(shipment.trackingNumber)
-  await prisma.shipment.update({
-    where: { id: shipment.id },
+  // Conditional: a concurrent ship with this number must keep its carrier/tracking.
+  await prisma.shipment.updateMany({
+    where: { id: shipment.id, status: 'packed' },
     data: { carrier: null, trackingNumber: null, labelPdfPath: null },
   })
   // Cancelled at DHL already; a leftover file only needs a manual cleanup.
@@ -220,7 +232,7 @@ export async function transitionShipment(
   assertShipmentTransition(shipment.status, toStatus)
   // Leaving `packed` would strand the paid label (cancel only works on packed shipments).
   // (The PDF stays for reprints after shipping — only a packed one is still active.)
-  if (shipment.status === 'packed' && shipment.labelPdfPath) {
+  if (hasActiveLabel(shipment)) {
     throw conflict('DHL-Label zuerst stornieren')
   }
 
@@ -274,8 +286,7 @@ export async function shipShipment(input: {
   assertShipmentTransition(shipment.status, 'shipped')
   // An unused paid label would otherwise stay active at DHL.
   if (
-    shipment.status === 'packed' &&
-    shipment.labelPdfPath &&
+    hasActiveLabel(shipment) &&
     (input.carrier !== 'dhl' || input.trackingNumber !== shipment.trackingNumber)
   ) {
     throw conflict('DHL-Label zuerst stornieren oder dessen Sendungsnummer verwenden')

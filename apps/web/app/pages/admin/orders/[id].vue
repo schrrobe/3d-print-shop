@@ -810,7 +810,14 @@ function ship() {
         <template v-else>
           <PsInput v-model="weightGrams" label="Gewicht (g)" name="weightGrams" type="number" />
           <PsButton
-            :disabled="pending || !(Number(weightGrams) >= 1 && Number(weightGrams) <= 31500)"
+            :disabled="
+              pending ||
+              !(
+                Number.isInteger(Number(weightGrams)) &&
+                Number(weightGrams) >= 1 &&
+                Number(weightGrams) <= 31500
+              )
+            "
             data-testid="dhl-label-create"
             @click="createDhlLabel"
           >

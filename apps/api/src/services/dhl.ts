@@ -7,23 +7,42 @@ import type { Company } from './company.js'
  * https://developer.dhl.com/api-reference/parcel-de-shipping-post-parcel-germany-v2
  */
 
-/** Shop delivery countries (checkout) → ISO alpha-3, which DHL expects. */
-const ALPHA3: Record<string, string> = {
+/** Shop delivery countries (SHIPPING_COUNTRIES) → ISO alpha-3, which DHL expects. */
+export const ALPHA3: Record<string, string> = {
   DE: 'DEU',
   AT: 'AUT',
-  CH: 'CHE',
-  NL: 'NLD',
   BE: 'BEL',
-  LU: 'LUX',
-  FR: 'FRA',
-  DK: 'DNK',
-  PL: 'POL',
+  BG: 'BGR',
+  HR: 'HRV',
+  CY: 'CYP',
   CZ: 'CZE',
+  DK: 'DNK',
+  EE: 'EST',
+  FI: 'FIN',
+  FR: 'FRA',
+  GR: 'GRC',
+  HU: 'HUN',
+  IE: 'IRL',
   IT: 'ITA',
+  LV: 'LVA',
+  LT: 'LTU',
+  LU: 'LUX',
+  MT: 'MLT',
+  NL: 'NLD',
+  PL: 'POL',
+  PT: 'PRT',
+  RO: 'ROU',
+  SK: 'SVK',
+  SI: 'SVN',
   ES: 'ESP',
+  SE: 'SWE',
+  CH: 'CHE',
+  IS: 'ISL',
 }
-/** Non-EU delivery countries need a customs declaration (CN23). */
-const CUSTOMS_COUNTRIES = new Set(['CH'])
+/** Delivery countries outside the EU customs union need a customs declaration (CN23). */
+const CUSTOMS_COUNTRIES = new Set(['CH', 'IS'])
+/** Bounds every DHL call; label creation usually answers within a few seconds. */
+const TIMEOUT_MS = 30_000
 /** Every product is a 3D-printed plastic article. */
 const HS_CODE = '39269097'
 /** Neutral goods description: item names may carry personalization (names) — data minimisation. */
@@ -175,6 +194,14 @@ function assertConfigured() {
   }
 }
 
+/** Turns a fetch timeout into a 504 that tells the admin what to check. */
+const rethrowTimeout = (hint: string) => (err: unknown) => {
+  if (err instanceof DOMException && err.name === 'TimeoutError') {
+    throw new ApiError(504, `DHL antwortet nicht – ${hint}`, 'dhl_timeout')
+  }
+  throw err
+}
+
 let cachedToken: { value: string; expiresAt: number } | null = null
 
 async function accessToken(): Promise<string> {
@@ -189,7 +216,8 @@ async function accessToken(): Promise<string> {
       client_id: env.DHL_API_KEY,
       client_secret: env.DHL_API_SECRET,
     }),
-  })
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  }).catch(rethrowTimeout('bitte später erneut versuchen'))
   const body = (await res.json().catch(() => ({}))) as {
     access_token?: string
     expires_in?: number
@@ -204,7 +232,11 @@ async function accessToken(): Promise<string> {
   return cachedToken.value
 }
 
-async function dhlFetch(pathAndQuery: string, init: RequestInit): Promise<[number, DhlResponse]> {
+async function dhlFetch(
+  pathAndQuery: string,
+  init: RequestInit,
+  retried = false,
+): Promise<[number, DhlResponse]> {
   assertConfigured()
   const res = await fetch(`${env.DHL_API_URL}/parcel/de/shipping/v2${pathAndQuery}`, {
     ...init,
@@ -214,8 +246,18 @@ async function dhlFetch(pathAndQuery: string, init: RequestInit): Promise<[numbe
       'accept-language': 'de-DE',
       ...(init.body ? { 'content-type': 'application/json' } : {}),
     },
-  })
-  if (res.status === 401) cachedToken = null
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+    // DHL may still have processed it (a paid label!) — the admin checks before retrying.
+  }).catch(
+    rethrowTimeout(
+      'vor erneutem Versuch im DHL-Geschäftskundenportal prüfen, ob die Sendung angelegt bzw. storniert wurde',
+    ),
+  )
+  // Token revoked/expired early: 401 means nothing was processed, so one retry is safe.
+  if (res.status === 401 && !retried) {
+    cachedToken = null
+    return dhlFetch(pathAndQuery, init, true)
+  }
   return [res.status, (await res.json().catch(() => ({}))) as DhlResponse]
 }
 

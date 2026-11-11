@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseCreateResponse, toDhlShipment, type LabelOrder } from '../src/services/dhl.js'
+import { SHIPPING_COUNTRIES } from '@print-shop/utils'
+import { ALPHA3, parseCreateResponse, toDhlShipment, type LabelOrder } from '../src/services/dhl.js'
 
 const shipper = {
   name: 'Print Shop GmbH',
@@ -82,6 +83,15 @@ describe('toDhlShipment', () => {
       0,
     )
     expect(declared).toBeLessThanOrEqual(1000)
+  })
+
+  it('maps every checkout delivery country to DHL alpha-3', () => {
+    expect(SHIPPING_COUNTRIES.filter((c) => !ALPHA3[c])).toEqual([])
+  })
+
+  it('adds a CN23 for Iceland (outside the EU customs union) but not for EU countries', () => {
+    expect(toDhlShipment(order({ country: 'IS' }), items, 900, shipper).customs).toBeDefined()
+    expect('customs' in toDhlShipment(order({ country: 'SE' }), items, 900, shipper)).toBe(false)
   })
 
   it('rejects countries the shop does not deliver to', () => {
