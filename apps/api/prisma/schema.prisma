@@ -510,6 +510,9 @@ model Order {
   city                    String
   country                 String
   phone                   String?
+  /// Abweichende Lieferadresse ({ firstName, lastName, company?, street, zip,
+  /// city, country }); null = an die Rechnungsadresse (Felder oben) liefern.
+  deliveryAddress         Json?
   note                    String?
   subtotalCents           Int
   shippingCents           Int

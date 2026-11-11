@@ -1,7 +1,7 @@
 import { createWriteStream } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { assertOrderTransition, assertShipmentTransition } from '@print-shop/utils'
+import { assertOrderTransition, assertShipmentTransition, recipientOf } from '@print-shop/utils'
 import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import { env } from '../env.js'
@@ -249,11 +249,12 @@ async function renderShipmentPdf(
   if (shipment.trackingNumber) doc.text(`Sendungsnummer: ${shipment.trackingNumber}`)
   doc.moveDown()
 
+  const to = recipientOf(shipment.order)
   doc.text('Lieferadresse:')
-  doc.text(`${shipment.order.firstName} ${shipment.order.lastName}`)
-  if (shipment.order.company) doc.text(shipment.order.company)
-  doc.text(shipment.order.street)
-  doc.text(`${shipment.order.zip} ${shipment.order.city}, ${shipment.order.country}`)
+  doc.text(`${to.firstName} ${to.lastName}`)
+  if (to.company) doc.text(to.company)
+  doc.text(to.street)
+  doc.text(`${to.zip} ${to.city}, ${to.country}`)
   doc.moveDown(2)
 
   doc.fontSize(11).text('Positionen', { underline: true })

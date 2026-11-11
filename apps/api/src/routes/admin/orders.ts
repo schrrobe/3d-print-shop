@@ -12,6 +12,7 @@ import {
   orderUpdateSchema,
   shippingUpdateSchema,
 } from '@print-shop/validators'
+import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
 import { env } from '../../env.js'
@@ -348,21 +349,37 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
       throw forbidden()
     if (input.trackingUrl !== undefined && !hasPermission(req.user!.role, 'orders:ship'))
       throw forbidden()
+    if (input.deliveryAddress !== undefined && !hasPermission(req.user!.role, 'orders:write'))
+      throw forbidden()
     const existing = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
-      select: { trackingNumber: true },
+      select: { trackingNumber: true, shippedAt: true },
     })
     if (!existing) throw notFound('Order not found')
     if (input.trackingUrl && !existing.trackingNumber)
       throw badRequest('Tracking-Link erst nach dem Versand mit Sendungsnummer')
+    if (input.deliveryAddress !== undefined && existing.shippedAt)
+      throw conflict('Lieferadresse nach dem Versand nicht mehr änderbar')
     const order = await prisma.order.update({
       where: { id: String(req.params.id) },
       data: {
         internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
         trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
+        deliveryAddress:
+          input.deliveryAddress === undefined
+            ? undefined
+            : input.deliveryAddress === null
+              ? Prisma.DbNull
+              : { ...input.deliveryAddress, company: input.deliveryAddress.company || null },
       },
       omit: ORDER_OMIT,
     })
+    // Cached packing list / delivery note still print the old recipient — regenerate on next download.
+    if (input.deliveryAddress !== undefined)
+      await prisma.shipment.updateMany({
+        where: { orderId: order.id },
+        data: { packingListPdfPath: null, deliveryNotePdfPath: null },
+      })
     // Field names only — the note may hold personal data, the audit log must not.
     const fields = Object.keys(input)
     await audit(req, 'order.update', { type: 'order', id: order.id }, { fields })

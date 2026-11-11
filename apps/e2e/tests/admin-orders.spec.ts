@@ -98,6 +98,47 @@ test.describe('admin orders', () => {
     expect(body).toContain('https://www.dhl.de/track?id=DHL-E2E-NOTE-1')
   })
 
+  test('delivery address can be redirected until the order ships', async ({ page }) => {
+    const api = await adminApiContext()
+    const products = (await (await api.get('/api/products')).json()) as {
+      products: { id: string }[]
+    }
+    const { orderNumber } = await createPaidOrderViaApi(
+      products.products[0]!.id,
+      'admin-delivery@example.com',
+    )
+    const order = await getAdminOrder(api, orderNumber)
+
+    const admin = new AdminPage(page)
+    await admin.login()
+    await gotoHydrated(page, `/admin/orders/${order.id}`)
+
+    await page.getByTestId('edit-delivery-address').click()
+    const form = page.getByTestId('delivery-address-form')
+    await form.locator('input[name="deliveryFirstName"]').fill('Max')
+    await form.locator('input[name="deliveryLastName"]').fill('Nachbar')
+    await form.locator('input[name="deliveryStreet"]').fill('Andere Straße 9')
+    await form.locator('input[name="deliveryZip"]').fill('20095')
+    await form.locator('input[name="deliveryCity"]').fill('Hamburg')
+    await page.getByTestId('save-delivery-address').click()
+    await expect(page.getByTestId('delivery-address')).toContainText('Max Nachbar')
+    await expect(page.getByTestId('delivery-address')).toContainText('20095 Hamburg')
+
+    // Billing address (invoice) stays as ordered.
+    expect((await getAdminOrder(api, orderNumber)).street).toBe('Flowweg 1')
+
+    await page.locator('input[name="trackingNumber"]').fill('DHL-E2E-DELIVERY-1')
+    await page.getByTestId('ship-order').click()
+    await expect(page.getByTestId('admin-order-status')).toContainText('shipped')
+    await expect(page.getByTestId('edit-delivery-address')).toHaveCount(0)
+
+    const late = await api.patch(`/api/admin/orders/${order.id}`, {
+      data: { deliveryAddress: null },
+    })
+    expect(late.status()).toBe(409)
+    await api.dispose()
+  })
+
   test('tracking link only accepts http(s) urls', async ({ request }) => {
     const login = await request.post('http://localhost:3001/api/admin/auth/login', {
       data: { email: 'admin@example.com', password: 'admin-dev-password' },
