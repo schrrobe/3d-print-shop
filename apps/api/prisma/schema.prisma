@@ -1161,8 +1161,6 @@ model Shipment {
   deliveredAt         DateTime?
   weightGrams         Int?
   notes               String?
-  packingListPdfPath  String?
-  deliveryNotePdfPath String?
   createdById         String?
   createdBy           User?          @relation("ShipmentAuthor", fields: [createdById], references: [id])
   createdAt           DateTime       @default(now())

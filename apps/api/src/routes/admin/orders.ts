@@ -358,10 +358,14 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
     if (!existing) throw notFound('Order not found')
     if (input.trackingUrl && !existing.trackingNumber)
       throw badRequest('Tracking-Link erst nach dem Versand mit Sendungsnummer')
-    if (input.deliveryAddress !== undefined && existing.shippedAt)
-      throw conflict('Lieferadresse nach dem Versand nicht mehr änderbar')
-    const order = await prisma.order.update({
-      where: { id: String(req.params.id) },
+    const shippedConflict = conflict('Lieferadresse nach dem Versand nicht mehr änderbar')
+    if (input.deliveryAddress !== undefined && existing.shippedAt) throw shippedConflict
+    // shippedAt: null in the write itself — shipShipment() may commit between the read and here.
+    const { count } = await prisma.order.updateMany({
+      where: {
+        id: String(req.params.id),
+        ...(input.deliveryAddress !== undefined ? { shippedAt: null } : {}),
+      },
       data: {
         internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
         trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
@@ -372,14 +376,12 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
               ? Prisma.DbNull
               : { ...input.deliveryAddress, company: input.deliveryAddress.company || null },
       },
+    })
+    if (count === 0) throw shippedConflict
+    const order = await prisma.order.findUniqueOrThrow({
+      where: { id: String(req.params.id) },
       omit: ORDER_OMIT,
     })
-    // Cached packing list / delivery note still print the old recipient — regenerate on next download.
-    if (input.deliveryAddress !== undefined)
-      await prisma.shipment.updateMany({
-        where: { orderId: order.id },
-        data: { packingListPdfPath: null, deliveryNotePdfPath: null },
-      })
     // Field names only — the note may hold personal data, the audit log must not.
     const fields = Object.keys(input)
     await audit(req, 'order.update', { type: 'order', id: order.id }, { fields })

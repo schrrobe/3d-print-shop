@@ -1,23 +1,17 @@
-import { mkdtemp } from 'node:fs/promises'
-import os from 'node:os'
-import path from 'node:path'
 import PDFDocument from 'pdfkit'
 import { expect, it, vi } from 'vitest'
 
-process.env.INVOICE_DIR = await mkdtemp(path.join(os.tmpdir(), 'packing-list-'))
-
 vi.mock('../src/lib/prisma.js', () => ({
   prisma: {
-    shipment: { findUnique: vi.fn(), update: vi.fn() },
+    shipment: { findUnique: vi.fn() },
     color: { findMany: vi.fn() },
     productColorSlot: { findMany: vi.fn() },
   },
 }))
 
 const { prisma } = await import('../src/lib/prisma.js')
-const { generatePackingListPdf, generateDeliveryNotePdf } = await import(
-  '../src/services/shipment-flow.js'
-)
+const { generatePackingListPdf, generateDeliveryNotePdf } =
+  await import('../src/services/shipment-flow.js')
 
 const shipment = {
   id: 'ship_1',
@@ -67,4 +61,30 @@ it('packing list prints readable colors and the print name; delivery note does n
   await generateDeliveryNotePdf('ship_1')
   expect(printed().join('\n')).not.toContain('Korpus')
   expect(printed().join('\n')).not.toContain('Aufdruck')
+})
+
+it('delivery note goes to the delivery address once support set one', async () => {
+  vi.mocked(prisma.shipment.findUnique).mockResolvedValue({
+    ...shipment,
+    order: {
+      ...shipment.order,
+      deliveryAddress: {
+        firstName: 'Erika',
+        lastName: 'Nachbar',
+        street: 'Andere Str. 9',
+        zip: '20095',
+        city: 'Hamburg',
+        country: 'DE',
+      },
+    },
+  } as never)
+  const text = vi.spyOn(PDFDocument.prototype, 'text')
+  text.mockClear()
+
+  const pdf = await generateDeliveryNotePdf('ship_1')
+  const printed = text.mock.calls.map((c) => String(c[0])).join('\n')
+  expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
+  expect(printed).toContain('Erika Nachbar')
+  expect(printed).toContain('20095 Hamburg, DE')
+  expect(printed).not.toContain('Hauptstr. 1')
 })
