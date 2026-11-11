@@ -132,6 +132,7 @@ interface AdminOrderDetail {
   id: string
   orderNumber: string
   status: string
+  street: string
   items: { id: string; name: string; quantity: number }[]
   printerJobs: { id: string; status: string }[]
 }

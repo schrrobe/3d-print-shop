@@ -8,7 +8,7 @@ intern gewählt (DHL / Hermes).
 
 - **Shipment** — `shipmentNumber` (`VER-2026-00001`, `ShipmentCounter`), `orderId`,
   `status`, `carrier?`, `trackingNumber?`, `packedAt?`/`shippedAt?`/`deliveredAt?`,
-  `weightGrams?`, `packingListPdfPath?`, `deliveryNotePdfPath?`.
+  `weightGrams?`.
 - **ShipmentItem** — `@@unique([shipmentId, orderItemId])`; Teillieferungen erlaubt (Σ
   Menge über alle nicht-`problem`-Sendungen ≤ bestellte Menge, sonst `409`).
 - **ShipmentStatusEvent** — die Versandhistorie (`fromStatus`, `toStatus`, `byUserId`,
@@ -41,8 +41,9 @@ und ruft denselben `shipShipment()`-Service — identisches Außenverhalten.
 
 ## PDFs
 
-Packliste und Lieferschein werden mit PDFKit erzeugt (`INVOICE_DIR/shipping`,
-regenerate-if-missing). Der Lieferschein trägt den Hinweis „kein Rechnungsdokument"; die
+Packliste und Lieferschein werden mit PDFKit bei jedem Download neu erzeugt und nicht
+gespeichert, damit eine geänderte Lieferadresse (`Order.deliveryAddress`) sofort drauf
+steht. Empfänger ist die Lieferadresse, sonst die Rechnungsadresse. Der Lieferschein trägt den Hinweis „kein Rechnungsdokument"; die
 Packliste listet die Farbkonfiguration je Position.
 
 ## Endpunkte (Admin, RBAC + Audit)
