@@ -14,6 +14,7 @@ import {
   shippingUpdateSchema,
 } from '@print-shop/validators'
 import path from 'node:path'
+import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
 import { env } from '../../env.js'
@@ -377,19 +378,44 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
       throw forbidden()
     if (input.trackingUrl !== undefined && !hasPermission(req.user!.role, 'orders:ship'))
       throw forbidden()
+    if (input.deliveryAddress !== undefined && !hasPermission(req.user!.role, 'orders:write'))
+      throw forbidden()
     const existing = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
-      select: { trackingNumber: true },
+      select: {
+        trackingNumber: true,
+        shippedAt: true,
+        shipments: { select: { status: true, labelPdfPath: true, shippedAt: true } },
+      },
     })
     if (!existing) throw notFound('Order not found')
+    // The active DHL label is printed with the old address.
+    if (input.deliveryAddress !== undefined && existing.shipments.some(hasActiveLabel))
+      throw conflict('DHL-Label zuerst stornieren, dann die Lieferadresse ändern')
     if (input.trackingUrl && !existing.trackingNumber)
       throw badRequest('Tracking-Link erst nach dem Versand mit Sendungsnummer')
-    const order = await prisma.order.update({
-      where: { id: String(req.params.id) },
+    const shippedConflict = conflict('Lieferadresse nach dem Versand nicht mehr änderbar')
+    if (input.deliveryAddress !== undefined && existing.shippedAt) throw shippedConflict
+    // shippedAt: null in the write itself — shipShipment() may commit between the read and here.
+    const { count } = await prisma.order.updateMany({
+      where: {
+        id: String(req.params.id),
+        ...(input.deliveryAddress !== undefined ? { shippedAt: null } : {}),
+      },
       data: {
         internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
         trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
+        deliveryAddress:
+          input.deliveryAddress === undefined
+            ? undefined
+            : input.deliveryAddress === null
+              ? Prisma.DbNull
+              : { ...input.deliveryAddress, company: input.deliveryAddress.company || null },
       },
+    })
+    if (count === 0) throw shippedConflict
+    const order = await prisma.order.findUniqueOrThrow({
+      where: { id: String(req.params.id) },
       omit: ORDER_OMIT,
     })
     // Field names only — the note may hold personal data, the audit log must not.

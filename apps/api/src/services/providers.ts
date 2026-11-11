@@ -1,5 +1,5 @@
 import { renderProviderOrder, renderProviderOrderCancelled } from '@print-shop/emails'
-import { formatCents } from '@print-shop/utils'
+import { formatCents, recipientOf } from '@print-shop/utils'
 import type { ProviderAssignInput } from '@print-shop/validators'
 import { Prisma, type ProductionStatus } from '@prisma/client'
 import PDFDocument from 'pdfkit'
@@ -67,18 +67,19 @@ export function deliveryLines(
   a: { shareCustomerData: boolean },
   order: Pick<
     FullAssignment['order'],
-    'firstName' | 'lastName' | 'company' | 'street' | 'zip' | 'city' | 'country'
+    'firstName' | 'lastName' | 'company' | 'street' | 'zip' | 'city' | 'country' | 'deliveryAddress'
   >,
   shop: { name: string; street: string; zip: string; city: string },
 ): string[] {
   if (!a.shareCustomerData)
     return [`Lieferung an: ${shop.name}, ${shop.street}, ${shop.zip} ${shop.city}`]
+  const to = recipientOf(order)
   return [
     'Direktversand an:',
-    `${order.firstName} ${order.lastName}`,
-    ...(order.company ? [order.company] : []),
-    order.street,
-    `${order.zip} ${order.city}, ${order.country}`,
+    `${to.firstName} ${to.lastName}`,
+    ...(to.company ? [to.company] : []),
+    to.street,
+    `${to.zip} ${to.city}, ${to.country}`,
   ]
 }
 

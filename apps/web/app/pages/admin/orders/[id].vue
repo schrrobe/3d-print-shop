@@ -2,6 +2,7 @@
 import {
   PsButton,
   PsCard,
+  PsDialog,
   PsInput,
   PsOrderStatusBadge,
   PsPrice,
@@ -10,7 +11,13 @@ import {
   PsBadge,
   useToast,
 } from '@print-shop/ui'
-import { formatCents, ORDER_STATUS_TRANSITIONS } from '@print-shop/utils'
+import {
+  calcShippingCents,
+  formatCents,
+  ORDER_STATUS_TRANSITIONS,
+  SHIPPING_COUNTRIES,
+} from '@print-shop/utils'
+import type { DeliveryAddress } from '@print-shop/validators'
 import type { OrderStatus } from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -31,11 +38,16 @@ interface AdminOrderDetail {
   carrierEmailConsentAt: string | null
   firstName: string
   lastName: string
+  company: string | null
   street: string
   zip: string
   city: string
   country: string
+  deliveryAddress: DeliveryAddress | null
+  subtotalCents: number
+  shippingCents: number
   totalCents: number
+  shippedAt: string | null
   carrier: string | null
   trackingNumber: string | null
   trackingUrl: string | null
@@ -113,7 +125,11 @@ watch(
   { immediate: true },
 )
 
-function updateOrder(body: { internalNote?: string | null; trackingUrl?: string | null }) {
+function updateOrder(body: {
+  internalNote?: string | null
+  trackingUrl?: string | null
+  deliveryAddress?: DeliveryAddress | null
+}) {
   return run(
     () =>
       $fetch(`/api/admin/orders/${orderId}`, {
@@ -221,6 +237,40 @@ function markPaid() {
       }),
     { success: 'Als bezahlt markiert', error: 'Aktion fehlgeschlagen' },
   )
+}
+
+// ---------- Delivery address ----------
+const deliveryOpen = ref(false)
+const deliveryForm = reactive({
+  firstName: '',
+  lastName: '',
+  company: '',
+  street: '',
+  zip: '',
+  city: '',
+  country: 'DE',
+})
+const countryNames = new Intl.DisplayNames(['de'], { type: 'region' })
+const countryOptions = SHIPPING_COUNTRIES.map((code) => ({
+  value: code,
+  label: countryNames.of(code) ?? code,
+}))
+function openDelivery() {
+  // Start from the current recipient so support only edits what changed.
+  const to = order.value!.deliveryAddress ?? order.value!
+  for (const key of Object.keys(deliveryForm) as (keyof typeof deliveryForm)[])
+    deliveryForm[key] = to[key] ?? ''
+  deliveryOpen.value = true
+}
+/** Shipping is not recalculated — just flag when the new country would have cost a different rate. */
+const deliveryShippingDiffers = computed(
+  () =>
+    !!order.value &&
+    calcShippingCents(order.value.subtotalCents, deliveryForm.country) !==
+      order.value.shippingCents,
+)
+async function saveDelivery(deliveryAddress: DeliveryAddress | null) {
+  if (await updateOrder({ deliveryAddress })) deliveryOpen.value = false
 }
 
 // ---------- External production ----------
@@ -464,13 +514,41 @@ function ship() {
       </PsCard>
 
       <PsCard>
-        <h3 class="text-label-medium">Kunde</h3>
+        <h3 class="text-label-medium">
+          Kunde<span v-if="order.deliveryAddress"> · Rechnungsadresse</span>
+        </h3>
         <address class="mt-md text-body-regular not-italic text-secondary">
           {{ order.firstName }} {{ order.lastName }}<br />
+          <template v-if="order.company">{{ order.company }}<br /></template>
           {{ order.street }}<br />
           {{ order.zip }} {{ order.city }}, {{ order.country }}<br />
           {{ order.email }}
         </address>
+        <template v-if="order.deliveryAddress">
+          <h3 class="mt-lg text-label-medium">Lieferadresse</h3>
+          <address
+            class="mt-sm text-body-regular not-italic text-secondary"
+            data-testid="delivery-address"
+          >
+            {{ order.deliveryAddress.firstName }} {{ order.deliveryAddress.lastName }}<br />
+            <template v-if="order.deliveryAddress.company"
+              >{{ order.deliveryAddress.company }}<br
+            /></template>
+            {{ order.deliveryAddress.street }}<br />
+            {{ order.deliveryAddress.zip }} {{ order.deliveryAddress.city }},
+            {{ order.deliveryAddress.country }}
+          </address>
+        </template>
+        <PsButton
+          v-if="auth.can('orders:write') && !order.shippedAt"
+          class="mt-md"
+          variant="secondary"
+          :disabled="pending"
+          data-testid="edit-delivery-address"
+          @click="openDelivery"
+        >
+          Lieferadresse ändern
+        </PsButton>
         <p class="mt-sm flex flex-wrap items-center gap-sm text-caption text-secondary">
           <span data-testid="carrier-email-consent">
             E-Mail an DHL:
@@ -562,6 +640,78 @@ function ship() {
         </PsButton>
       </div>
     </PsCard>
+
+    <PsDialog v-model:open="deliveryOpen" title="Lieferadresse ändern">
+      <form
+        class="flex flex-col gap-md"
+        data-testid="delivery-address-form"
+        @submit.prevent="
+          saveDelivery({ ...deliveryForm, company: deliveryForm.company.trim() || undefined })
+        "
+      >
+        <p class="text-caption text-secondary">
+          Die Rechnungsadresse bleibt unverändert. Packliste und Lieferschein werden neu erzeugt.
+        </p>
+        <div class="grid gap-md sm:grid-cols-2">
+          <PsInput
+            v-model="deliveryForm.firstName"
+            label="Vorname"
+            name="deliveryFirstName"
+            required
+          />
+          <PsInput
+            v-model="deliveryForm.lastName"
+            label="Nachname"
+            name="deliveryLastName"
+            required
+          />
+        </div>
+        <PsInput v-model="deliveryForm.company" label="Firma (optional)" name="deliveryCompany" />
+        <PsInput
+          v-model="deliveryForm.street"
+          label="Straße und Hausnummer"
+          name="deliveryStreet"
+          required
+        />
+        <div class="grid gap-md sm:grid-cols-[8rem_1fr]">
+          <PsInput v-model="deliveryForm.zip" label="PLZ" name="deliveryZip" required />
+          <PsInput v-model="deliveryForm.city" label="Ort" name="deliveryCity" required />
+        </div>
+        <PsSelect v-model="deliveryForm.country" label="Land" :options="countryOptions" />
+        <p
+          v-if="deliveryShippingDiffers"
+          class="text-caption text-primary"
+          data-testid="delivery-shipping-hint"
+        >
+          Für dieses Land gelten andere Versandkosten ({{
+            formatCents(calcShippingCents(order.subtotalCents, deliveryForm.country))
+          }}
+          statt bezahlter {{ formatCents(order.shippingCents) }}). Es wird nichts neu berechnet.
+        </p>
+        <p
+          v-if="liveAssignment?.shareCustomerData"
+          class="text-caption text-primary"
+          data-testid="delivery-provider-hint"
+        >
+          {{ liveAssignment.provider.name }} versendet direkt und hat die alte Adresse bereits
+          erhalten – bitte Auftrag erneut senden oder Anbieter informieren.
+        </p>
+        <div class="flex flex-wrap gap-md">
+          <PsButton type="submit" :disabled="pending" data-testid="save-delivery-address">
+            Speichern
+          </PsButton>
+          <PsButton
+            v-if="order.deliveryAddress"
+            variant="secondary"
+            :disabled="pending"
+            data-testid="remove-delivery-address"
+            @click="saveDelivery(null)"
+          >
+            An Rechnungsadresse liefern
+          </PsButton>
+        </div>
+      </form>
+    </PsDialog>
 
     <PsCard data-testid="order-internal-note">
       <h3 class="text-label-medium">Interne Notiz</h3>

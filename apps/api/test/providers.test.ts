@@ -58,6 +58,7 @@ const order = {
   zip: '10115',
   city: 'Berlin',
   country: 'DE',
+  deliveryAddress: null,
   items: [item],
   printerJobs: [{ id: 'job_1', status: 'assigned', printerId: 'pr_1' }],
   providerAssignments: [],
@@ -210,6 +211,21 @@ describe('deliveryLines', () => {
       'Str 1',
       '10115 Berlin, DE',
     ])
+  })
+
+  it('direct shipping goes to the delivery address when support set one', () => {
+    const deliveryAddress = {
+      firstName: 'Max',
+      lastName: 'Nachbar',
+      company: 'Büro GmbH',
+      street: 'Andere Str 9',
+      zip: '1010',
+      city: 'Wien',
+      country: 'AT',
+    }
+    expect(deliveryLines({ shareCustomerData: true }, { ...order, deliveryAddress }, shop)).toEqual(
+      ['Direktversand an:', 'Max Nachbar', 'Büro GmbH', 'Andere Str 9', '1010 Wien, AT'],
+    )
   })
 })
 

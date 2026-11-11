@@ -414,10 +414,22 @@ export const shippingUpdateSchema = z.object({
   trackingUrl: trackingUrlSchema.nullable().optional(),
 })
 
-/** Admin order detail: staff-only note and tracking link (also after shipping). */
+/** Different recipient for the goods; the billing address on the order stays as is. */
+export const deliveryAddressSchema = addressSchema
+  .pick({ firstName: true, lastName: true, company: true, street: true, zip: true, city: true })
+  .extend({
+    country: addressSchema.shape.country
+      .toUpperCase()
+      .refine(isShippingCountry, 'Not a delivery country'),
+  })
+export type DeliveryAddress = z.infer<typeof deliveryAddressSchema>
+
+/** Admin order detail: staff-only note, tracking link (also after shipping), delivery address. */
 export const orderUpdateSchema = z.object({
   internalNote: z.string().trim().max(4000).nullable().optional(),
   trackingUrl: trackingUrlSchema.nullable().optional(),
+  /** null removes it — goods go to the billing address again. */
+  deliveryAddress: deliveryAddressSchema.nullable().optional(),
 })
 
 /** DHL label: parcel weight in grams (DHL Paket max. 31,5 kg). */

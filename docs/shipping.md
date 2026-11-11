@@ -8,7 +8,7 @@ intern gewählt (DHL / Hermes).
 
 - **Shipment** — `shipmentNumber` (`VER-2026-00001`, `ShipmentCounter`), `orderId`,
   `status`, `carrier?`, `trackingNumber?`, `packedAt?`/`shippedAt?`/`deliveredAt?`,
-  `weightGrams?`, `packingListPdfPath?`, `deliveryNotePdfPath?`.
+  `weightGrams?`.
 - **ShipmentItem** — `@@unique([shipmentId, orderItemId])`; Teillieferungen erlaubt (Σ
   Menge über alle nicht-`problem`-Sendungen ≤ bestellte Menge, sonst `409`).
 - **ShipmentStatusEvent** — die Versandhistorie (`fromStatus`, `toStatus`, `byUserId`,
@@ -41,8 +41,9 @@ und ruft denselben `shipShipment()`-Service — identisches Außenverhalten.
 
 ## PDFs
 
-Packliste und Lieferschein werden mit PDFKit erzeugt (`INVOICE_DIR/shipping`,
-regenerate-if-missing). Der Lieferschein trägt den Hinweis „kein Rechnungsdokument"; die
+Packliste und Lieferschein werden mit PDFKit bei jedem Download neu erzeugt und nicht
+gespeichert, damit eine geänderte Lieferadresse (`Order.deliveryAddress`) sofort drauf
+steht. Empfänger ist die Lieferadresse, sonst die Rechnungsadresse. Der Lieferschein trägt den Hinweis „kein Rechnungsdokument"; die
 Packliste listet die Farbkonfiguration je Position.
 
 ## Endpunkte (Admin, RBAC + Audit)
@@ -79,12 +80,15 @@ antwortet die Route mit `503`.
 - **Produkte:** `V01PAK` für DE, `V53WPAK` für alle anderen Lieferländer (`SHIPPING_COUNTRIES`).
   CH/IS (außerhalb der EU-Zollunion): CN23 automatisch aus den Positionen, HS-Code `39269097`, Ursprung DE,
   `COMMERCIAL_GOODS`; Gratis-Box mit 0,01 € deklariert.
-- **Daten an DHL:** Name, Firma, Lieferadresse (`street` unverändert), Gewicht,
+- **Daten an DHL:** Name, Firma, Anschrift der Lieferadresse (`recipientOf()`, sonst
+  Rechnungsadresse; `street` unverändert), Gewicht,
   Bestellnummer. Die E-Mail nur mit Checkout-Opt-in (`Order.carrierEmailConsentAt`,
   ADR 0001). Kein Telefon.
 - **Storno:** solange die Sendung `packed` ist (`DELETE …/dhl-label`, bei DHL bis
   zum Tagesabschluss). Danach kann neu erstellt werden. Versenden mit einer anderen
   Sendungsnummer als der des aktiven Labels lehnt die Alt-Route mit `409` ab.
+- **Lieferadresse ändern:** bei aktivem Label `409` — erst stornieren, dann ändern,
+  dann neues Label.
 - **Timeout:** 30 s je DHL-Aufruf, dann `504`. Das Label kann bei DHL trotzdem
   entstanden sein — vor erneutem Versuch im Geschäftskundenportal prüfen
   (Referenz = Bestellnummer).

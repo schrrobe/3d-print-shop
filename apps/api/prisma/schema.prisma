@@ -513,6 +513,9 @@ model Order {
   /// Opt-in at checkout: email may go to the carrier for delivery notifications
   /// (Art. 6(1)(a) GDPR). Null = no consent — never send the email to DHL/Hermes.
   carrierEmailConsentAt   DateTime?
+  /// Abweichende Lieferadresse ({ firstName, lastName, company?, street, zip,
+  /// city, country }); null = an die Rechnungsadresse (Felder oben) liefern.
+  deliveryAddress         Json?
   note                    String?
   subtotalCents           Int
   shippingCents           Int
@@ -1161,8 +1164,6 @@ model Shipment {
   deliveredAt         DateTime?
   weightGrams         Int?
   notes               String?
-  packingListPdfPath  String?
-  deliveryNotePdfPath String?
   /// Active carrier label (DHL); trackingNumber holds its shipment number. Null after cancellation.
   labelPdfPath        String?
   createdById         String?

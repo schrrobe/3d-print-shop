@@ -1,7 +1,6 @@
-import { createWriteStream } from 'node:fs'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { assertOrderTransition, assertShipmentTransition } from '@print-shop/utils'
+import { assertOrderTransition, assertShipmentTransition, recipientOf } from '@print-shop/utils'
 import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
 import { env } from '../env.js'
@@ -77,6 +76,9 @@ export async function createShipment(input: {
  * A DHL label still cancellable at DHL: packed and never shipped. (A shipment
  * shipped → problem → packed keeps its used label's PDF for reprints only.)
  */
+/** DHL label PDFs (packing lists/delivery notes are rendered on demand). */
+const labelDir = () => path.join(env.INVOICE_DIR, 'shipping')
+
 export const hasActiveLabel = (s: Pick<Shipment, 'status' | 'labelPdfPath' | 'shippedAt'>) =>
   s.status === 'packed' && !!s.labelPdfPath && !s.shippedAt
 
@@ -152,9 +154,11 @@ export async function createOrderDhlLabel(input: {
     where: { shipmentId: shipment.id },
     include: { orderItem: true },
   })
+  // The label carries the delivery address (if support set one), not the billing address.
+  const to = recipientOf(order)
   const label = await createDhlLabel(
     toDhlShipment(
-      order,
+      { ...order, ...to, company: to.company ?? null },
       shipmentItems.map((si) => ({
         quantity: si.quantity,
         unitPriceCents: si.orderItem.unitPriceCents,
@@ -164,12 +168,9 @@ export async function createOrderDhlLabel(input: {
     ),
   )
 
-  const filePath = path.join(
-    shipmentPdfDir(),
-    `${shipment.shipmentNumber}-dhl-${label.shipmentNo}.pdf`,
-  )
+  const filePath = path.join(labelDir(), `${shipment.shipmentNumber}-dhl-${label.shipmentNo}.pdf`)
   try {
-    await mkdir(shipmentPdfDir(), { recursive: true })
+    await mkdir(labelDir(), { recursive: true })
     await writeFile(filePath, label.pdf)
     // Atomic claim: a concurrent request (double click) that labelled first wins.
     const claimed = await prisma.shipment.updateMany({
@@ -371,21 +372,19 @@ function companyAddress(): string {
   return [c.name, c.street, `${c.zip} ${c.city}`].join(' · ')
 }
 
-function shipmentPdfDir(): string {
-  return path.join(env.INVOICE_DIR, 'shipping')
-}
-
 async function renderShipmentPdf(
   shipment: ShipmentWithRefs,
   variant: 'packing-list' | 'delivery-note',
-): Promise<string> {
-  await mkdir(shipmentPdfDir(), { recursive: true })
-  const filePath = path.join(shipmentPdfDir(), `${shipment.shipmentNumber}-${variant}.pdf`)
+): Promise<Buffer> {
   const isPackingList = variant === 'packing-list'
 
   const doc = new PDFDocument({ size: 'A4', margin: 50 })
-  const stream = createWriteStream(filePath)
-  doc.pipe(stream)
+  const chunks: Buffer[] = []
+  doc.on('data', (c: Buffer) => chunks.push(c))
+  const done = new Promise<Buffer>((resolve, reject) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+    doc.on('error', reject)
+  })
 
   doc.fontSize(18).text(company().name)
   doc.fontSize(9).fillColor('#5e5e5e').text(companyAddress())
@@ -404,11 +403,12 @@ async function renderShipmentPdf(
   if (shipment.trackingNumber) doc.text(`Sendungsnummer: ${shipment.trackingNumber}`)
   doc.moveDown()
 
+  const to = recipientOf(shipment.order)
   doc.text('Lieferadresse:')
-  doc.text(`${shipment.order.firstName} ${shipment.order.lastName}`)
-  if (shipment.order.company) doc.text(shipment.order.company)
-  doc.text(shipment.order.street)
-  doc.text(`${shipment.order.zip} ${shipment.order.city}, ${shipment.order.country}`)
+  doc.text(`${to.firstName} ${to.lastName}`)
+  if (to.company) doc.text(to.company)
+  doc.text(to.street)
+  doc.text(`${to.zip} ${to.city}, ${to.country}`)
   doc.moveDown(2)
 
   doc.fontSize(11).text('Positionen', { underline: true })
@@ -445,33 +445,19 @@ async function renderShipmentPdf(
   }
 
   doc.end()
-  await new Promise<void>((resolve, reject) => {
-    stream.on('finish', () => resolve())
-    stream.on('error', reject)
-  })
-  return filePath
+  return done
 }
 
-/** Renders (or re-renders) the packing list PDF and stores its path. */
-export async function generatePackingListPdf(shipmentId: string): Promise<string> {
-  const shipment = await loadShipmentForPdf(shipmentId)
-  const filePath = await renderShipmentPdf(shipment, 'packing-list')
-  await prisma.shipment.update({
-    where: { id: shipmentId },
-    data: { packingListPdfPath: filePath },
-  })
-  return filePath
+// Rendered on every download, never stored: a support change to the delivery
+// address must show up at once, and a cache would race with it.
+/** Packing list PDF (with colour configuration per item). */
+export async function generatePackingListPdf(shipmentId: string): Promise<Buffer> {
+  return renderShipmentPdf(await loadShipmentForPdf(shipmentId), 'packing-list')
 }
 
-/** Renders (or re-renders) the delivery note PDF and stores its path. */
-export async function generateDeliveryNotePdf(shipmentId: string): Promise<string> {
-  const shipment = await loadShipmentForPdf(shipmentId)
-  const filePath = await renderShipmentPdf(shipment, 'delivery-note')
-  await prisma.shipment.update({
-    where: { id: shipmentId },
-    data: { deliveryNotePdfPath: filePath },
-  })
-  return filePath
+/** Delivery note PDF for the parcel. */
+export async function generateDeliveryNotePdf(shipmentId: string): Promise<Buffer> {
+  return renderShipmentPdf(await loadShipmentForPdf(shipmentId), 'delivery-note')
 }
 
 async function loadShipmentForPdf(shipmentId: string): Promise<ShipmentWithRefs> {
