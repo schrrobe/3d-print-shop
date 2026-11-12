@@ -43,6 +43,8 @@ export const ALPHA3: Record<string, string> = {
 const CUSTOMS_COUNTRIES = new Set(['CH', 'IS'])
 /** Bounds every DHL call; label creation usually answers within a few seconds. */
 const TIMEOUT_MS = 30_000
+/** Worst case of one dhlFetch: token + call, once more after a 401. */
+export const DHL_MAX_MS = 4 * TIMEOUT_MS
 /** Every product is a 3D-printed plastic article. */
 const HS_CODE = '39269097'
 /** Neutral goods description: item names may carry personalization (names) — data minimisation. */
@@ -88,9 +90,15 @@ export function toDhlShipment(
 
   const customs = CUSTOMS_COUNTRIES.has(country)
     ? (() => {
-        const totalQty = items.reduce((sum, i) => sum + i.quantity, 0)
-        // Item weights must not exceed the parcel weight: floor the even split.
-        const unitWeight = Math.max(1, Math.floor(weightGrams / Math.max(1, totalQty)))
+        const totalQty = Math.max(
+          1,
+          items.reduce((sum, i) => sum + i.quantity, 0),
+        )
+        // Item weights (whole grams, ≥ 1) must not exceed the parcel weight: floor the even split.
+        if (weightGrams < totalQty) {
+          throw badRequest(`Gewicht zu gering für die Zollinhaltserklärung (mind. ${totalQty} g)`)
+        }
+        const unitWeight = Math.floor(weightGrams / totalQty)
         return {
           exportType: 'COMMERCIAL_GOODS',
           postalCharges: { currency: 'EUR', value: euros(order.shippingCents) },
@@ -279,7 +287,20 @@ export async function createDhlLabel(shipment: ReturnType<typeof toDhlShipment>)
     method: 'POST',
     body: JSON.stringify({ profile: PROFILE, shipments: [shipment] }),
   })
-  return parseCreateResponse(status, body)
+  const label = parseCreateResponse(status, body)
+  if (!label.pdf.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+    // DHL issued (and bills) the number, but there is nothing to print — take it back.
+    const cancelled = await cancelDhlLabel(label.shipmentNo).then(
+      () => true,
+      (err) => (console.error(`[dhl] orphaned label ${label.shipmentNo}:`, err), false),
+    )
+    throw new ApiError(
+      502,
+      `DHL lieferte kein lesbares Label-PDF (${label.shipmentNo} ${cancelled ? 'storniert' : 'NICHT storniert – im Geschäftskundenportal stornieren'})`,
+      'dhl_response',
+    )
+  }
+  return label
 }
 
 /** Cancels a label (possible until DHL's end-of-day manifest). */

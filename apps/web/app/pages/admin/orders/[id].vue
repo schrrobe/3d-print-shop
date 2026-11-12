@@ -927,7 +927,11 @@ function ship() {
           type="url"
           placeholder="https://"
         />
-        <PsButton :disabled="trackingNumber.length < 4" data-testid="ship-order" @click="ship">
+        <PsButton
+          :disabled="pending || trackingNumber.length < 4"
+          data-testid="ship-order"
+          @click="ship"
+        >
           Versand bestätigen
         </PsButton>
       </div>

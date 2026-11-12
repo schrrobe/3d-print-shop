@@ -89,6 +89,12 @@ antwortet die Route mit `503`.
   Sendungsnummer als der des aktiven Labels lehnt die Alt-Route mit `409` ab.
 - **Lieferadresse ändern:** bei aktivem Label `409` — erst stornieren, dann ändern,
   dann neues Label.
+- **Gleichzeitigkeit:** Label erstellen/stornieren, Versand, Bestellung
+  stornieren/erstatten und Lieferadresse ändern laufen unter einer Sperre pro
+  Bestellung (`lockOrder()`, Postgres-Advisory-Lock). Erstellen und Stornieren
+  halten sie über den DHL-Aufruf; parallele Aktionen bekommen sofort `409`.
+- **Teilsendung:** ist bereits eine Teilsendung gepackt, verweigern Label und
+  Versand auf der Bestelldetailseite (`409`) — Versand dann über den Versandbereich.
 - **Timeout:** 30 s je DHL-Aufruf, dann `504`. Das Label kann bei DHL trotzdem
   entstanden sein — vor erneutem Versuch im Geschäftskundenportal prüfen
   (Referenz = Bestellnummer).

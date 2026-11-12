@@ -102,6 +102,10 @@ describe('toDhlShipment', () => {
     expect('customs' in toDhlShipment(order({ country: 'SE' }), items, 900, shipper)).toBe(false)
   })
 
+  it('refuses a CH parcel lighter than 1 g per declared piece', () => {
+    expect(() => toDhlShipment(order({ country: 'CH' }), items, 2, shipper)).toThrow(/mind\. 3 g/)
+  })
+
   it('rejects countries the shop does not deliver to', () => {
     expect(() => toDhlShipment(order({ country: 'US' }), items, 900, shipper)).toThrow(/US/)
   })
@@ -193,5 +197,39 @@ describe('DHL timeouts', () => {
 
   it('a timeout while reading the cancel response never counts as cancelled', async () => {
     await expect(cancelDhlLabel('00340434161094042557')).rejects.toMatchObject({ status: 504 })
+  })
+})
+
+describe('createDhlLabel PDF check', () => {
+  beforeEach(() => {
+    Object.assign(env, {
+      DHL_API_KEY: 'k',
+      DHL_API_SECRET: 's',
+      DHL_USERNAME: 'u',
+      DHL_PASSWORD: 'p',
+    })
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('cancels a label whose PDF is unreadable instead of keeping a paid, unprintable label', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes('/token')) return Response.json({ access_token: 't', expires_in: 1800 })
+      if (init?.method === 'DELETE') return Response.json({ items: [{ sstatus: { status: 200 } }] })
+      return Response.json({
+        items: [{ shipmentNo: '00340434161094042557', label: { b64: '!!!!' } }],
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(createDhlLabel(toDhlShipment(order(), items, 900, shipper))).rejects.toMatchObject(
+      {
+        status: 502,
+        message: expect.stringContaining('storniert'),
+      },
+    )
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('shipment=00340434161094042557'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
   })
 })

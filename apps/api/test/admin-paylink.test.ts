@@ -1,8 +1,8 @@
 import type { Server } from 'node:http'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../src/lib/prisma.js', () => ({
-  prisma: {
+vi.mock('../src/lib/prisma.js', () => {
+  const prisma = {
     user: { findUnique: vi.fn() },
     adminAuditLog: { create: vi.fn().mockResolvedValue({}) },
     product: { count: vi.fn() },
@@ -14,8 +14,13 @@ vi.mock('../src/lib/prisma.js', () => ({
     },
     payment: { updateMany: vi.fn() },
     providerAssignment: { findFirst: vi.fn().mockResolvedValue(null) },
-  },
-}))
+    shipment: { findMany: vi.fn().mockResolvedValue([]) },
+    $queryRaw: vi.fn().mockResolvedValue([{ locked: true }]),
+    $transaction: vi.fn(),
+  }
+  prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn(prisma))
+  return { prisma }
+})
 vi.mock('../src/services/email.js', () => ({ sendEmail: vi.fn().mockResolvedValue(true) }))
 vi.mock('../src/services/company.js', async (importOriginal) => ({
   ...(await importOriginal<object>()),
