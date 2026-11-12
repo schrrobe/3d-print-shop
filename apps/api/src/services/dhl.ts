@@ -194,6 +194,10 @@ function assertConfigured() {
   }
 }
 
+const LOGIN_HINT = 'bitte später erneut versuchen'
+const PORTAL_HINT =
+  'vor erneutem Versuch im DHL-Geschäftskundenportal prüfen, ob die Sendung angelegt bzw. storniert wurde'
+
 /** Turns a fetch timeout into a 504 that tells the admin what to check. */
 const rethrowTimeout = (hint: string) => (err: unknown) => {
   if (err instanceof DOMException && err.name === 'TimeoutError') {
@@ -201,6 +205,13 @@ const rethrowTimeout = (hint: string) => (err: unknown) => {
   }
   throw err
 }
+
+/**
+ * Reads a JSON body. Only a non-JSON body becomes `{}`; a timeout or broken
+ * connection while reading must not pass as success (e.g. a cancel with 2xx).
+ */
+const readJson = (res: Response, hint: string) =>
+  res.json().catch((err: unknown) => (err instanceof SyntaxError ? {} : rethrowTimeout(hint)(err)))
 
 let cachedToken: { value: string; expiresAt: number } | null = null
 
@@ -217,8 +228,8 @@ async function accessToken(): Promise<string> {
       client_secret: env.DHL_API_SECRET,
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
-  }).catch(rethrowTimeout('bitte später erneut versuchen'))
-  const body = (await res.json().catch(() => ({}))) as {
+  }).catch(rethrowTimeout(LOGIN_HINT))
+  const body = (await readJson(res, LOGIN_HINT)) as {
     access_token?: string
     expires_in?: number
   }
@@ -248,17 +259,13 @@ async function dhlFetch(
     },
     signal: AbortSignal.timeout(TIMEOUT_MS),
     // DHL may still have processed it (a paid label!) — the admin checks before retrying.
-  }).catch(
-    rethrowTimeout(
-      'vor erneutem Versuch im DHL-Geschäftskundenportal prüfen, ob die Sendung angelegt bzw. storniert wurde',
-    ),
-  )
+  }).catch(rethrowTimeout(PORTAL_HINT))
   // Token revoked/expired early: 401 means nothing was processed, so one retry is safe.
   if (res.status === 401 && !retried) {
     cachedToken = null
     return dhlFetch(pathAndQuery, init, true)
   }
-  return [res.status, (await res.json().catch(() => ({}))) as DhlResponse]
+  return [res.status, (await readJson(res, PORTAL_HINT)) as DhlResponse]
 }
 
 /** Creates a label (PDF, 103×150 mm; CN23 for customs countries is combined into the PDF). */

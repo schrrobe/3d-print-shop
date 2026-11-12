@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { env } from '../src/env.js'
 import { SHIPPING_COUNTRIES } from '@print-shop/utils'
-import { ALPHA3, parseCreateResponse, toDhlShipment, type LabelOrder } from '../src/services/dhl.js'
+import {
+  ALPHA3,
+  cancelDhlLabel,
+  createDhlLabel,
+  parseCreateResponse,
+  toDhlShipment,
+  type LabelOrder,
+} from '../src/services/dhl.js'
 
 const shipper = {
   name: 'Print Shop GmbH',
@@ -152,5 +160,38 @@ describe('parseCreateResponse', () => {
         items: [{ shipmentNo: '../../x', label: { b64: 'JVBERg==' } }],
       }),
     ).toThrow(expect.objectContaining({ status: 502 }))
+  })
+})
+
+describe('DHL timeouts', () => {
+  const timeout = () => new DOMException('The operation was aborted due to timeout', 'TimeoutError')
+
+  beforeEach(() => {
+    Object.assign(env, {
+      DHL_API_KEY: 'k',
+      DHL_API_SECRET: 's',
+      DHL_USERNAME: 'u',
+      DHL_PASSWORD: 'p',
+    })
+    // Token request answers; the shipping call's body times out while being read.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        url.includes('/token')
+          ? Response.json({ access_token: 't', expires_in: 1800 })
+          : ({ status: 200, ok: true, json: () => Promise.reject(timeout()) } as Response),
+      ),
+    )
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('a timeout while reading the create response is a 504, not a DHL error', async () => {
+    await expect(createDhlLabel(toDhlShipment(order(), items, 900, shipper))).rejects.toMatchObject(
+      { status: 504 },
+    )
+  })
+
+  it('a timeout while reading the cancel response never counts as cancelled', async () => {
+    await expect(cancelDhlLabel('00340434161094042557')).rejects.toMatchObject({ status: 504 })
   })
 })
