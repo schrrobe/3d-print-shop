@@ -497,6 +497,7 @@
       "contactTitle": "Kontakt",
       "addressTitle": "Adres dostawy",
       "emailHint": "Do potwierdzenia zamówienia i informacji o wysyłce.",
+      "carrierEmailConsent": "Opcjonalnie: mój adres e-mail może zostać przekazany przewoźnikowi (DHL), aby mógł mnie informować o doręczeniu. Zgodę mogę w każdej chwili wycofać e-mailem.",
       "phone": "Telefon",
       "company": "Firma",
       "note": "Uwagi do zamówienia",

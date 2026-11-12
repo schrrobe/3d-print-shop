@@ -1,7 +1,14 @@
 import { expect, it, vi } from 'vitest'
 
 const tx = {
-  shipment: { update: vi.fn().mockResolvedValue({ id: 's1' }) },
+  $queryRaw: vi.fn().mockResolvedValue([{ locked: true }]),
+  shipment: {
+    update: vi.fn().mockResolvedValue({ id: 's1' }),
+    // Re-read under the order lock: same row the test put into prisma.shipment.findUnique.
+    findUniqueOrThrow: vi.fn(
+      async () => vi.mocked(prisma.shipment.findUnique).mock.results.at(-1)?.value,
+    ),
+  },
   order: { update: vi.fn() },
   printerJob: { findMany: vi.fn(), updateMany: vi.fn() },
   printer: { updateMany: vi.fn() },
@@ -57,6 +64,36 @@ it('rejects a shipment with 409 while the order is still with an external provid
   tx.shipment.update.mockClear()
   vi.mocked(prisma.shipment.findUnique).mockResolvedValue(packedShipment as never)
   vi.mocked(prisma.providerAssignment.count).mockResolvedValueOnce(1)
+
+  await expect(
+    shipShipment({
+      shipmentId: 's1',
+      carrier: 'dhl',
+      trackingNumber: 'DHL-1234',
+      closeAllJobs: true,
+    }),
+  ).rejects.toMatchObject({ status: 409 })
+  expect(tx.shipment.update).not.toHaveBeenCalled()
+})
+
+it('rejects shipping a labelled shipment with a number other than the active DHL label', async () => {
+  tx.shipment.update.mockClear()
+  vi.mocked(prisma.shipment.findUnique).mockResolvedValue({
+    ...packedShipment,
+    labelPdfPath: '/tmp/label.pdf',
+    trackingNumber: '00340434161094042557',
+  } as never)
+
+  await expect(
+    shipShipment({ shipmentId: 's1', carrier: 'hermes', trackingNumber: '00340434161094042557' }),
+  ).rejects.toMatchObject({ status: 409 })
+  expect(tx.shipment.update).not.toHaveBeenCalled()
+})
+
+it('rejects with 409 while a DHL label is being created or cancelled for the order', async () => {
+  tx.shipment.update.mockClear()
+  vi.mocked(prisma.shipment.findUnique).mockResolvedValue(packedShipment as never)
+  tx.$queryRaw.mockResolvedValueOnce([{ locked: false }])
 
   await expect(
     shipShipment({

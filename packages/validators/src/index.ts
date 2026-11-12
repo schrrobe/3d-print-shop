@@ -104,6 +104,8 @@ export const checkoutSchema = z.object({
   consent: z.object({ statistics: z.boolean(), marketing: z.boolean() }).optional(),
   /** Ad-platform cookies for the server-side purchase event; ignored without marketing consent. */
   attribution: trackingAttributionSchema.optional(),
+  /** Opt-in: email may go to the carrier for delivery notifications. Missing = no. */
+  carrierEmailConsent: z.boolean().optional(),
 })
 export type CheckoutInput = z.infer<typeof checkoutSchema>
 
@@ -428,6 +430,11 @@ export const orderUpdateSchema = z.object({
   trackingUrl: trackingUrlSchema.nullable().optional(),
   /** null removes it — goods go to the billing address again. */
   deliveryAddress: deliveryAddressSchema.nullable().optional(),
+})
+
+/** DHL label: parcel weight in grams (DHL Paket max. 31,5 kg). */
+export const dhlLabelSchema = z.object({
+  weightGrams: z.number().int().min(1).max(31_500),
 })
 
 // ---------- Consent ----------

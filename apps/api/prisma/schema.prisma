@@ -510,6 +510,9 @@ model Order {
   city                    String
   country                 String
   phone                   String?
+  /// Opt-in at checkout: email may go to the carrier for delivery notifications
+  /// (Art. 6(1)(a) GDPR). Null = no consent — never send the email to DHL/Hermes.
+  carrierEmailConsentAt   DateTime?
   /// Abweichende Lieferadresse ({ firstName, lastName, company?, street, zip,
   /// city, country }); null = an die Rechnungsadresse (Felder oben) liefern.
   deliveryAddress         Json?
@@ -1161,6 +1164,8 @@ model Shipment {
   deliveredAt         DateTime?
   weightGrams         Int?
   notes               String?
+  /// Active carrier label (DHL); trackingNumber holds its shipment number. Null after cancellation.
+  labelPdfPath        String?
   createdById         String?
   createdBy           User?          @relation("ShipmentAuthor", fields: [createdById], references: [id])
   createdAt           DateTime       @default(now())

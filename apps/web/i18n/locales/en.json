@@ -497,6 +497,7 @@
       "contactTitle": "Contact",
       "addressTitle": "Delivery address",
       "emailHint": "For your order confirmation and shipping updates.",
+      "carrierEmailConsent": "Optional: my email address may be passed to the carrier (DHL) so it can notify me about the delivery. I can withdraw this at any time by emailing you.",
       "phone": "Phone",
       "company": "Company",
       "note": "Order note",

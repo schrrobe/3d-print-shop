@@ -497,6 +497,7 @@
       "contactTitle": "Contact",
       "addressTitle": "Bezorgadres",
       "emailHint": "Voor je orderbevestiging en verzendinformatie.",
+      "carrierEmailConsent": "Optioneel: mijn e-mailadres mag aan de vervoerder (DHL) worden doorgegeven, zodat die mij over de bezorging kan informeren. Ik kan dit altijd per e-mail intrekken.",
       "phone": "Telefoon",
       "company": "Bedrijf",
       "note": "Opmerking bij de bestelling",

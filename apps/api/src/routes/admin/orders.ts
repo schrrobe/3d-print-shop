@@ -8,10 +8,12 @@ import {
 } from '@print-shop/utils'
 import {
   adminOrderCreateSchema,
+  dhlLabelSchema,
   markPaidSchema,
   orderUpdateSchema,
   shippingUpdateSchema,
 } from '@print-shop/validators'
+import path from 'node:path'
 import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -41,7 +43,14 @@ import {
 import { cancelOpenAssignment, isHeldExternally } from '../../services/providers.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
 import { emitCancel, emitRefund } from '../../services/tracking/events.js'
-import { nextShipmentNumber, shipShipment } from '../../services/shipment-flow.js'
+import {
+  cancelOrderDhlLabel,
+  createOrderDhlLabel,
+  hasActiveLabel,
+  packedShipmentFor,
+  shipShipment,
+  withoutActiveLabel,
+} from '../../services/shipment-flow.js'
 
 export const adminOrdersRouter = Router()
 
@@ -111,15 +120,33 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
           include: { provider: { select: { id: true, name: true } } },
           orderBy: { createdAt: 'desc' },
         },
+        shipments: {
+          select: {
+            status: true,
+            trackingNumber: true,
+            weightGrams: true,
+            labelPdfPath: true,
+            shippedAt: true,
+          },
+          orderBy: { updatedAt: 'desc' },
+        },
       },
     })
     if (!order) throw notFound('Order not found')
+    const { shipments, ...orderFields } = order
+    const labelled = shipments.find((s) => s.labelPdfPath)
+    const packed = shipments.find((s) => s.status === 'packed')
     const colorsOf = await itemColorResolver(order.items)
     // Rates and payouts are admin-only (providers:read); production sees provider + status.
     const showAmounts = hasPermission(req.user!.role, 'providers:read')
     res.json({
       order: {
-        ...order,
+        ...orderFields,
+        // Latest DHL label (server path stays server-side); active = cancellable.
+        dhlLabel: labelled
+          ? { trackingNumber: labelled.trackingNumber, active: hasActiveLabel(labelled) }
+          : null,
+        packedWeightGrams: packed?.weightGrams ?? null,
         providerAssignments: order.providerAssignments.map(
           ({ rateBp, baseCents, payoutCents, paidOutAt, ...a }) =>
             showAmounts ? { ...a, rateBp, baseCents, payoutCents, paidOutAt } : a,
@@ -267,12 +294,16 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     const { status } = statusSchema.parse(req.body)
     const order = await prisma.order.findUnique({
       where: { id: String(req.params.id) },
-      include: { payments: true },
+      include: { payments: true, shipments: true },
     })
     if (!order) throw notFound('Order not found')
     // `shipped` goes through the shipping action (tracking number, jobs, email).
     if (status === 'shipped') throw conflict('Versand nur über die Sendungsnummer')
     assertOrderTransition(order.status, status)
+    // A paid, unused DHL label would otherwise stay active at DHL (re-checked under the lock below).
+    const endsOrder = status === 'cancelled' || status === 'refunded'
+    const labelConflict = 'DHL-Label zuerst stornieren'
+    if (endsOrder && order.shipments.some(hasActiveLabel)) throw conflict(labelConflict)
     // Production progress of an externally held order follows the provider lifecycle.
     if (['quality_check', 'ready_to_ship'].includes(status) && (await isHeldExternally(order.id)))
       throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
@@ -289,10 +320,11 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       }
     }
     // Conditional write: a webhook may have marked the order paid meanwhile.
-    const changed = await prisma.order.updateMany({
-      where: { id: order.id, status: order.status },
-      data: { status },
-    })
+    const write = (db: Prisma.TransactionClient) =>
+      db.order.updateMany({ where: { id: order.id, status: order.status }, data: { status } })
+    const changed = endsOrder
+      ? await withoutActiveLabel(order.id, labelConflict, write)
+      : await write(prisma)
     if (changed.count !== 1) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
     const updated = await prisma.order.findUniqueOrThrow({
       where: { id: order.id },
@@ -361,22 +393,32 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
     const shippedConflict = conflict('Lieferadresse nach dem Versand nicht mehr änderbar')
     if (input.deliveryAddress !== undefined && existing.shippedAt) throw shippedConflict
     // shippedAt: null in the write itself — shipShipment() may commit between the read and here.
-    const { count } = await prisma.order.updateMany({
-      where: {
-        id: String(req.params.id),
-        ...(input.deliveryAddress !== undefined ? { shippedAt: null } : {}),
-      },
-      data: {
-        internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
-        trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
-        deliveryAddress:
-          input.deliveryAddress === undefined
-            ? undefined
-            : input.deliveryAddress === null
-              ? Prisma.DbNull
-              : { ...input.deliveryAddress, company: input.deliveryAddress.company || null },
-      },
-    })
+    const write = (db: Prisma.TransactionClient) =>
+      db.order.updateMany({
+        where: {
+          id: String(req.params.id),
+          ...(input.deliveryAddress !== undefined ? { shippedAt: null } : {}),
+        },
+        data: {
+          internalNote: input.internalNote === undefined ? undefined : input.internalNote || null,
+          trackingUrl: input.trackingUrl === undefined ? undefined : input.trackingUrl || null,
+          deliveryAddress:
+            input.deliveryAddress === undefined
+              ? undefined
+              : input.deliveryAddress === null
+                ? Prisma.DbNull
+                : { ...input.deliveryAddress, company: input.deliveryAddress.company || null },
+        },
+      })
+    // The active DHL label is printed with the old address.
+    const { count } =
+      input.deliveryAddress !== undefined
+        ? await withoutActiveLabel(
+            String(req.params.id),
+            'DHL-Label zuerst stornieren, dann die Lieferadresse ändern',
+            write,
+          )
+        : await write(prisma)
     if (count === 0) throw shippedConflict
     const order = await prisma.order.findUniqueOrThrow({
       where: { id: String(req.params.id) },
@@ -437,44 +479,10 @@ adminOrdersRouter.post(
       if (!order) throw notFound('Order not found')
       assertOrderTransition(order.status, 'shipped')
 
-      let shipment = order.shipments.find((s) => s.status === 'packed')
-      if (!shipment) {
-        // An open shipment already holds items; an implicit one for all items
-        // would count them twice and leave the open one behind.
-        if (
-          order.shipments.some((s) => ['waiting_for_qc', 'ready_for_shipping'].includes(s.status))
-        ) {
-          throw conflict('Offene Sendung zuerst packen, dann versenden')
-        }
-        const shipmentNumber = await nextShipmentNumber()
-        shipment = await prisma.$transaction(async (tx) => {
-          const created = await tx.shipment.create({
-            data: {
-              shipmentNumber,
-              orderId: order.id,
-              status: 'packed',
-              packedAt: new Date(),
-              createdById: req.user?.id ?? null,
-              items: {
-                create: order.items.map((item) => ({
-                  orderItemId: item.id,
-                  quantity: item.quantity,
-                })),
-              },
-            },
-          })
-          await tx.shipmentStatusEvent.create({
-            data: {
-              shipmentId: created.id,
-              fromStatus: null,
-              toStatus: 'packed',
-              byUserId: req.user?.id ?? null,
-              note: 'legacy-route',
-            },
-          })
-          return created
-        })
-      }
+      const shipment = await packedShipmentFor(order, {
+        byUserId: req.user?.id,
+        note: 'legacy-route',
+      })
 
       await shipShipment({
         shipmentId: shipment.id,
@@ -491,6 +499,76 @@ adminOrdersRouter.post(
       })
       await audit(req, 'order.shipped', { type: 'order', id: order.id }, input)
       res.json({ order: updated })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** DHL label for the whole order; the ship form then confirms with its shipment number. */
+adminOrdersRouter.post(
+  '/:id/dhl-label',
+  requirePermission('orders:ship'),
+  async (req, res, next) => {
+    try {
+      const input = dhlLabelSchema.parse(req.body)
+      const { shipment, warnings } = await createOrderDhlLabel({
+        orderId: String(req.params.id),
+        weightGrams: input.weightGrams,
+        byUserId: req.user?.id,
+      })
+      await audit(
+        req,
+        'order.dhl_label_created',
+        { type: 'order', id: shipment.orderId },
+        {
+          shipmentId: shipment.id,
+          trackingNumber: shipment.trackingNumber,
+          weightGrams: input.weightGrams,
+        },
+      )
+      res.json({ trackingNumber: shipment.trackingNumber, warnings })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** The order's most recent DHL label PDF, inline so the browser print dialog can open it. */
+adminOrdersRouter.get(
+  '/:id/dhl-label.pdf',
+  requirePermission('orders:ship'),
+  async (req, res, next) => {
+    try {
+      const shipment = await prisma.shipment.findFirst({
+        where: { orderId: String(req.params.id), labelPdfPath: { not: null } },
+        orderBy: { updatedAt: 'desc' },
+      })
+      if (!shipment?.labelPdfPath) throw notFound('Kein DHL-Label vorhanden')
+      res.type('application/pdf').sendFile(path.resolve(shipment.labelPdfPath))
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Cancels the active DHL label at DHL (until the shipment is shipped). */
+adminOrdersRouter.delete(
+  '/:id/dhl-label',
+  requirePermission('orders:ship'),
+  async (req, res, next) => {
+    try {
+      const shipment = await cancelOrderDhlLabel(String(req.params.id))
+      await audit(
+        req,
+        'order.dhl_label_cancelled',
+        { type: 'order', id: shipment.orderId },
+        {
+          shipmentId: shipment.id,
+          trackingNumber: shipment.trackingNumber,
+        },
+      )
+      res.json({ ok: true })
     } catch (err) {
       next(err)
     }
@@ -555,6 +633,26 @@ adminOrdersRouter.post(
       if (result === 'failed') {
         throw new ApiError(502, 'E-Mail-Versand fehlgeschlagen (siehe E-Mail-Log)', 'email_failed')
       }
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+/** Customer withdrew the carrier-email opt-in (by email) — later DHL labels go without email. */
+adminOrdersRouter.post(
+  '/:id/carrier-email-consent/withdraw',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const id = String(req.params.id)
+      const { count } = await prisma.order.updateMany({
+        where: { id },
+        data: { carrierEmailConsentAt: null },
+      })
+      if (count === 0) throw notFound('Order not found')
+      await audit(req, 'order.carrier_email_consent_withdrawn', { type: 'order', id })
       res.json({ ok: true })
     } catch (err) {
       next(err)

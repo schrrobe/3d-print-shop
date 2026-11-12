@@ -497,6 +497,7 @@
       "contactTitle": "Kontakt",
       "addressTitle": "Dodací adresa",
       "emailHint": "Pro potvrzení objednávky a informace o odeslání.",
+      "carrierEmailConsent": "Volitelné: Moje e-mailová adresa smí být předána přepravci (DHL), aby mě informoval o doručení. Souhlas mohu kdykoli odvolat e-mailem.",
       "phone": "Telefon",
       "company": "Firma",
       "note": "Poznámka k objednávce",

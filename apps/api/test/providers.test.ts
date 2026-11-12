@@ -336,6 +336,7 @@ describe('permissions', () => {
       invoice: null,
       tickets: [],
       printerJobs: [],
+      shipments: [],
       providerAssignments: [
         {
           id: 'as_1',

@@ -1,10 +1,14 @@
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { assertOrderTransition, assertShipmentTransition, recipientOf } from '@print-shop/utils'
-import type { Carrier, Order, OrderItem, Shipment, ShipmentItem } from '@prisma/client'
+import type { Carrier, Order, OrderItem, Prisma, Shipment, ShipmentItem } from '@prisma/client'
 import PDFDocument from 'pdfkit'
+import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { badRequest, conflict, notFound } from '../middleware/error.js'
 import { company } from './company.js'
+import { cancelDhlLabel, createDhlLabel, DHL_MAX_MS, toDhlShipment } from './dhl.js'
 import { itemColorResolver } from './item-colors.js'
 import { notifyShipped } from './order-flow.js'
 import { isHeldExternally } from './providers.js'
@@ -68,6 +72,219 @@ export async function createShipment(input: {
   })
 }
 
+/**
+ * A DHL label still cancellable at DHL: packed and never shipped. (A shipment
+ * shipped → problem → packed keeps its used label's PDF for reprints only.)
+ */
+/**
+ * Per-order lock (transaction-scoped, re-entrant) for everything that decides on
+ * the DHL label: create/cancel label, ship, cancel/refund order, change address.
+ * Label create and cancel hold it across the DHL call, so the others get a 409
+ * instead of acting on a label that is just changing. Works across API instances.
+ */
+export async function lockOrder(tx: Prisma.TransactionClient, orderId: string): Promise<void> {
+  const [row] = await tx.$queryRaw<{ locked: boolean }[]>`
+    SELECT pg_try_advisory_xact_lock(hashtext(${orderId})) AS locked`
+  if (!row?.locked) {
+    throw conflict('Bestellung wird gerade bearbeitet (DHL-Label) – bitte gleich erneut versuchen')
+  }
+}
+
+/**
+ * Runs `write` under lockOrder() once no DHL label is active — for changes that
+ * would strand a printed label (cancel/refund order, change delivery address).
+ */
+export function withoutActiveLabel<T>(
+  orderId: string,
+  message: string,
+  write: (tx: Prisma.TransactionClient) => Promise<T>,
+): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    await lockOrder(tx, orderId)
+    const shipments = await tx.shipment.findMany({ where: { orderId } })
+    if (shipments.some(hasActiveLabel)) throw conflict(message)
+    return write(tx)
+  })
+}
+
+/** Interactive transaction that may wait for DHL (create/cancel label). */
+const DHL_TX = { maxWait: 5_000, timeout: DHL_MAX_MS + 30_000 }
+
+/** DHL label PDFs (packing lists/delivery notes are rendered on demand). */
+const labelDir = () => path.join(env.INVOICE_DIR, 'shipping')
+
+export const hasActiveLabel = (s: Pick<Shipment, 'status' | 'labelPdfPath' | 'shippedAt'>) =>
+  s.status === 'packed' && !!s.labelPdfPath && !s.shippedAt
+
+/**
+ * The packed shipment that ships the whole order from the order page: the
+ * existing packed one, else an implicit one covering all items. 409 while an
+ * earlier (unpacked) shipment holds items — an implicit one would count them
+ * twice — and while the packed one plus earlier shipments miss items.
+ * Runs under lockOrder(); pass `tx` to stay inside the caller's lock.
+ */
+export async function packedShipmentFor(
+  order: Order & { items: OrderItem[] },
+  options: { byUserId?: string | null; note: string },
+  tx?: Prisma.TransactionClient,
+): Promise<Shipment> {
+  if (!tx) return prisma.$transaction((t) => packedShipmentFor(order, options, t))
+  await lockOrder(tx, order.id)
+  const shipments = await tx.shipment.findMany({
+    where: { orderId: order.id },
+    include: { items: true },
+  })
+  const packed = shipments.find((s) => s.status === 'packed')
+  if (packed) {
+    // Shipping the "whole order" with a partial packed shipment would leave items behind.
+    const covered = new Map<string, number>()
+    for (const i of shipments.flatMap((s) => s.items)) {
+      covered.set(i.orderItemId, (covered.get(i.orderItemId) ?? 0) + i.quantity)
+    }
+    if (order.items.some((i) => (covered.get(i.id) ?? 0) < i.quantity)) {
+      throw conflict('Gepackte Teilsendung – bitte im Versandbereich versenden')
+    }
+    return packed
+  }
+  if (shipments.some((s) => ['waiting_for_qc', 'ready_for_shipping'].includes(s.status))) {
+    throw conflict('Offene Sendung zuerst packen, dann versenden')
+  }
+  const created = await tx.shipment.create({
+    data: {
+      shipmentNumber: await nextShipmentNumber(),
+      orderId: order.id,
+      status: 'packed',
+      packedAt: new Date(),
+      createdById: options.byUserId ?? null,
+      items: {
+        create: order.items.map((item) => ({ orderItemId: item.id, quantity: item.quantity })),
+      },
+    },
+  })
+  await tx.shipmentStatusEvent.create({
+    data: {
+      shipmentId: created.id,
+      fromStatus: null,
+      toStatus: 'packed',
+      byUserId: options.byUserId ?? null,
+      note: options.note,
+    },
+  })
+  return created
+}
+
+/**
+ * DHL label for the whole order (order page). The label's shipment number goes
+ * to Shipment.carrier/trackingNumber so the ship form can prefill it; Order
+ * fields stay untouched until shipShipment(). Holds lockOrder() across the DHL call.
+ */
+export async function createOrderDhlLabel(input: {
+  orderId: string
+  weightGrams: number
+  byUserId?: string
+}): Promise<{ shipment: Shipment; warnings: string[] }> {
+  let issued: { shipmentNo: string; filePath: string } | undefined
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await lockOrder(tx, input.orderId)
+      const order = await tx.order.findUnique({
+        where: { id: input.orderId },
+        include: { items: true, shipments: true },
+      })
+      if (!order) throw notFound('Order not found')
+      assertOrderTransition(order.status, 'shipped')
+      if (await isHeldExternally(order.id))
+        throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
+      if (order.shipments.some(hasActiveLabel)) {
+        throw conflict('Es gibt bereits ein DHL-Label — zuerst stornieren')
+      }
+
+      const shipment = await packedShipmentFor(
+        order,
+        { byUserId: input.byUserId, note: 'dhl-label' },
+        tx,
+      )
+      const shipmentItems = await tx.shipmentItem.findMany({
+        where: { shipmentId: shipment.id },
+        include: { orderItem: true },
+      })
+      // The label carries the delivery address (if support set one), not the billing address.
+      const to = recipientOf(order)
+      const label = await createDhlLabel(
+        toDhlShipment(
+          { ...order, ...to, company: to.company ?? null },
+          shipmentItems.map((si) => ({
+            quantity: si.quantity,
+            unitPriceCents: si.orderItem.unitPriceCents,
+          })),
+          input.weightGrams,
+          company(),
+        ),
+      )
+      const filePath = path.join(
+        labelDir(),
+        `${shipment.shipmentNumber}-dhl-${label.shipmentNo}.pdf`,
+      )
+      issued = { shipmentNo: label.shipmentNo, filePath }
+      await mkdir(labelDir(), { recursive: true })
+      await writeFile(filePath, label.pdf)
+      // Conditional: transitionShipment() doesn't take the order lock.
+      const claimed = await tx.shipment.updateMany({
+        where: { id: shipment.id, status: 'packed', labelPdfPath: null },
+        data: {
+          carrier: 'dhl',
+          trackingNumber: label.shipmentNo,
+          weightGrams: input.weightGrams,
+          labelPdfPath: filePath,
+        },
+      })
+      if (claimed.count === 0) throw conflict('Sendung wurde zwischenzeitlich geändert')
+      return {
+        shipment: await tx.shipment.findUniqueOrThrow({ where: { id: shipment.id } }),
+        warnings: label.warnings,
+      }
+    }, DHL_TX)
+  } catch (err) {
+    // The label is paid once DHL issued it — never leave one we don't track
+    // (covers errors after the DHL call and a failed commit alike).
+    if (issued) {
+      const { shipmentNo, filePath } = issued
+      await cancelDhlLabel(shipmentNo).catch((cancelErr) =>
+        console.error(`[dhl] orphaned label ${shipmentNo}, cancel failed:`, cancelErr),
+      )
+      await rm(filePath, { force: true })
+    }
+    throw err
+  }
+}
+
+/**
+ * Cancels the order's active DHL label at DHL, then forgets it locally. Holds
+ * lockOrder() across the DHL call so nobody ships with the number meanwhile.
+ * Returns the shipment as it was.
+ */
+export async function cancelOrderDhlLabel(orderId: string): Promise<Shipment> {
+  const shipment = await prisma.$transaction(async (tx) => {
+    await lockOrder(tx, orderId)
+    const active = await tx.shipment.findFirst({
+      where: { orderId, status: 'packed', labelPdfPath: { not: null }, shippedAt: null },
+    })
+    if (!active?.trackingNumber) throw notFound('Kein stornierbares DHL-Label')
+    await cancelDhlLabel(active.trackingNumber)
+    // ponytail: a failed commit after DHL cancelled leaves the label listed; the next cancel shows DHL's error.
+    await tx.shipment.update({
+      where: { id: active.id },
+      data: { carrier: null, trackingNumber: null, labelPdfPath: null },
+    })
+    return active
+  }, DHL_TX)
+  // Cancelled at DHL already; a leftover file only needs a manual cleanup.
+  await rm(shipment.labelPdfPath!, { force: true }).catch((err) =>
+    console.error(`[dhl] could not delete label ${shipment.labelPdfPath}:`, err),
+  )
+  return shipment
+}
+
 /** Shipment status transition via the shipment status machine. */
 export async function transitionShipment(
   shipmentId: string,
@@ -83,6 +300,11 @@ export async function transitionShipment(
     throw conflict('Use the ship action (carrier + tracking) to mark a shipment as shipped')
   }
   assertShipmentTransition(shipment.status, toStatus)
+  // Leaving `packed` would strand the paid label (cancel only works on packed shipments).
+  // (The PDF stays for reprints after shipping — only a packed one is still active.)
+  if (hasActiveLabel(shipment)) {
+    throw conflict('DHL-Label zuerst stornieren')
+  }
 
   return prisma.$transaction(async (tx) => {
     const updated = await tx.shipment.update({
@@ -139,6 +361,17 @@ export async function shipShipment(input: {
 
   const now = new Date()
   const updated = await prisma.$transaction(async (tx) => {
+    // Under the order lock: a DHL label may have been created or cancelled since the read above.
+    await lockOrder(tx, shipment.orderId)
+    const current = await tx.shipment.findUniqueOrThrow({ where: { id: shipment.id } })
+    assertShipmentTransition(current.status, 'shipped')
+    // An unused paid label would otherwise stay active at DHL.
+    if (
+      hasActiveLabel(current) &&
+      (input.carrier !== 'dhl' || input.trackingNumber !== current.trackingNumber)
+    ) {
+      throw conflict('DHL-Label zuerst stornieren oder dessen Sendungsnummer verwenden')
+    }
     if (!input.closeAllJobs) {
       const open = await tx.printerJob.findMany({
         where: { orderId: shipment.orderId, status: { not: 'shipped' } },
@@ -187,7 +420,7 @@ export async function shipShipment(input: {
     await tx.shipmentStatusEvent.create({
       data: {
         shipmentId: shipment.id,
-        fromStatus: shipment.status,
+        fromStatus: current.status,
         toStatus: 'shipped',
         byUserId: input.byUserId ?? null,
         note: input.eventNote ?? null,

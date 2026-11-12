@@ -117,9 +117,33 @@ const envSchema = z
     TIKTOK_PIXEL_CODE: z.string().optional().default(''),
     /// TikTok Events Manager test-events verification; empty = real delivery.
     TIKTOK_TEST_EVENT_CODE: z.string().optional().default(''),
+
+    // DHL Parcel DE Shipping API v2 (labels). Empty DHL_API_KEY → label button refuses.
+    DHL_API_URL: z.string().url().default('https://api-sandbox.dhl.com'),
+    DHL_API_KEY: z.string().optional().default(''),
+    DHL_API_SECRET: z.string().optional().default(''),
+    /// Geschäftskundenportal login
+    DHL_USERNAME: z.string().optional().default(''),
+    DHL_PASSWORD: z.string().optional().default(''),
+    /// Abrechnungsnummern (EKP + Verfahren + Teilnahme), defaults = sandbox
+    DHL_BILLING_NUMBER_NATIONAL: z.string().default('33333333330102'),
+    DHL_BILLING_NUMBER_INTERNATIONAL: z.string().default('33333333335301'),
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV === 'production') {
+      // Real DHL login must never go to the sandbox or bill the sandbox EKP.
+      if (
+        val.DHL_API_KEY &&
+        (val.DHL_API_URL.includes('sandbox') ||
+          val.DHL_BILLING_NUMBER_NATIONAL.startsWith('3333333333') ||
+          val.DHL_BILLING_NUMBER_INTERNATIONAL.startsWith('3333333333'))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DHL_API_URL'],
+          message: 'DHL in production needs the production DHL_API_URL and real billing numbers',
+        })
+      }
       if (
         val.JWT_SECRET.length < 32 ||
         ['dev-only-secret-change-me', 'change-me-in-production'].includes(val.JWT_SECRET)

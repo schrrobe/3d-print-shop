@@ -34,7 +34,13 @@ const coloredItem = {
   personalization: 'Max',
   colorSelection: { zone_2_accent: 'c_red', zone_1_main: 'c_black', zone_3_detail: 'c_gone' },
 }
-const plainItem = { id: 'item_2', name: 'Sonderbox', quantity: 1, productId: null, colorSelection: null }
+const plainItem = {
+  id: 'item_2',
+  name: 'Sonderbox',
+  quantity: 1,
+  productId: null,
+  colorSelection: null,
+}
 const expectedColors = [
   { slot: 'zone_1_main', label: 'Korpus', name: 'Schwarz', hex: '#000000' },
   { slot: 'zone_2_accent', label: 'zone_2_accent', name: 'Rot', hex: '#ff0000' },
@@ -85,6 +91,7 @@ it('order detail: resolves colors per item', async () => {
     id: 'order_1',
     payments: [],
     providerAssignments: [],
+    shipments: [],
     items: [coloredItem, plainItem],
   } as never)
   const { order } = await getJson<{ order: { items: WithColors[] } }>('/api/admin/orders/order_1')
@@ -113,9 +120,7 @@ it('production calendar: resolves colors for scheduled and unscheduled jobs', as
   const body = await getJson<{
     jobs: { orderItem: WithColors }[]
     unscheduledJobs: { orderItem: WithColors }[]
-  }>(
-    '/api/admin/production/calendar?from=2026-11-02T00:00:00.000Z&to=2026-11-09T00:00:00.000Z',
-  )
+  }>('/api/admin/production/calendar?from=2026-11-02T00:00:00.000Z&to=2026-11-09T00:00:00.000Z')
   expect(body.jobs[0]?.orderItem.colors).toEqual(expectedColors)
   expect(body.unscheduledJobs[0]?.orderItem.colors).toEqual(expectedColors)
 })

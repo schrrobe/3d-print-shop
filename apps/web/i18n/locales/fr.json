@@ -497,6 +497,7 @@
       "contactTitle": "Contact",
       "addressTitle": "Adresse de livraison",
       "emailHint": "Pour la confirmation de commande et le suivi d’expédition.",
+      "carrierEmailConsent": "Facultatif : mon adresse e-mail peut être transmise au transporteur (DHL) afin qu’il m’informe de la livraison. Je peux retirer ce consentement à tout moment par e-mail.",
       "phone": "Téléphone",
       "company": "Société",
       "note": "Remarque sur la commande",

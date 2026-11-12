@@ -22,7 +22,7 @@ useSeo({
       class="max-w-[42rem] space-y-xl text-body-regular text-secondary"
       data-testid="legal-privacy"
     >
-      <p>Stand: 31.10.2026</p>
+      <p>Stand: 09.11.2026</p>
 
       <section>
         <h2 class="text-heading-small text-primary">1. Verantwortlicher</h2>
@@ -114,9 +114,20 @@ useSeo({
           Webserver.
         </p>
         <p class="mt-sm">
-          Für die Zustellung übermitteln wir Name und Lieferadresse sowie die zur Versandabwicklung
-          erforderlichen Bestell- und Kontaktdaten an den von dir bzw. für die Bestellung
-          ausgewählten Versanddienstleister DHL oder Hermes.
+          Für die Zustellung übermitteln wir Name, ggf. Firma und Lieferadresse sowie Gewicht und
+          Bestellnummer an den für die Bestellung ausgewählten Versanddienstleister DHL (DHL Paket
+          GmbH, Bonn) oder Hermes (Art. 6 Abs. 1 lit. b DSGVO). Bei Lieferungen in die Schweiz
+          gehören dazu auch die Angaben der Zollinhaltserklärung (Warenbezeichnung, Menge, Wert und
+          Gewicht).
+        </p>
+        <p class="mt-sm" data-testid="privacy-carrier-email">
+          Nur wenn du im Checkout ausdrücklich eingewilligt hast, übermitteln wir zusätzlich deine
+          E-Mail-Adresse an DHL, damit DHL dich über die Zustellung deines Pakets informieren kann
+          (Art. 6 Abs. 1 lit. a DSGVO). Die Einwilligung ist freiwillig und für die Bestellung nicht
+          erforderlich; ohne sie geben wir deine E-Mail-Adresse nicht an den Versanddienstleister
+          weiter. Den Zeitpunkt der Einwilligung speichern wir mit der Bestellung als Nachweis. Du
+          kannst die Einwilligung jederzeit mit Wirkung für die Zukunft per E-Mail an uns
+          widerrufen.
         </p>
       </section>
 
