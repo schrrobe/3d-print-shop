@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.20.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.19.0...api-v0.20.0) (2026-11-12)
+
+
+### Features
+
+* **admin:** DHL-Versandlabel direkt aus der Bestellung erstellen ([#122](https://github.com/schrrobe/3d-print-shop/issues/122)) ([a53aead](https://github.com/schrrobe/3d-print-shop/commit/a53aead9f5d2a111e18d29b7af24c9be10d8bd22))
+* **admin:** Lieferadresse nachträglich ändern ([#123](https://github.com/schrrobe/3d-print-shop/issues/123)) ([5dc25f4](https://github.com/schrrobe/3d-print-shop/commit/5dc25f417f2b94dee1d3b84f2c2da6f84f26135d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.4.1
+    * @print-shop/utils bumped to 0.10.0
+    * @print-shop/validators bumped to 0.12.0
+
 ## [0.19.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.18.0...api-v0.19.0) (2026-11-09)
 
 

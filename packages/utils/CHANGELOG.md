@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.9.0...utils-v0.10.0) (2026-11-12)
+
+
+### Features
+
+* **admin:** DHL-Versandlabel direkt aus der Bestellung erstellen ([#122](https://github.com/schrrobe/3d-print-shop/issues/122)) ([a53aead](https://github.com/schrrobe/3d-print-shop/commit/a53aead9f5d2a111e18d29b7af24c9be10d8bd22))
+* **admin:** Lieferadresse nachträglich ändern ([#123](https://github.com/schrrobe/3d-print-shop/issues/123)) ([5dc25f4](https://github.com/schrrobe/3d-print-shop/commit/5dc25f417f2b94dee1d3b84f2c2da6f84f26135d))
+
 ## [0.9.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.8.0...utils-v0.9.0) (2026-11-09)
 
 
