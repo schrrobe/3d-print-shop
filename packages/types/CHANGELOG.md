@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.3.0...types-v0.4.0) (2026-11-13)
+
+
+### Features
+
+* **admin:** Fertigungsstand der Bauteile je Position ([#125](https://github.com/schrrobe/3d-print-shop/issues/125)) ([f5f8ad1](https://github.com/schrrobe/3d-print-shop/commit/f5f8ad1dd076a3295db4cd036c8747d06213c640))
+
 ## [0.3.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.2.0...types-v0.3.0) (2026-11-08)
 
 

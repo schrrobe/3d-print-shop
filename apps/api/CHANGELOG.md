@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.21.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.20.0...api-v0.21.0) (2026-11-13)
+
+
+### Features
+
+* **admin:** Fertigungsstand der Bauteile je Position ([#125](https://github.com/schrrobe/3d-print-shop/issues/125)) ([f5f8ad1](https://github.com/schrrobe/3d-print-shop/commit/f5f8ad1dd076a3295db4cd036c8747d06213c640))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.4.2
+    * @print-shop/types bumped to 0.4.0
+    * @print-shop/utils bumped to 0.10.1
+    * @print-shop/validators bumped to 0.12.1
+
 ## [0.20.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.19.0...api-v0.20.0) (2026-11-12)
 
 

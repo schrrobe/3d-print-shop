@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.1](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.12.0...validators-v0.12.1) (2026-11-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.4.0
+    * @print-shop/utils bumped to 0.10.1
+
 ## [0.12.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.11.0...validators-v0.12.0) (2026-11-12)
 
 
