@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.1](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.10.0...utils-v0.10.1) (2026-11-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.4.0
+
 ## [0.10.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.9.0...utils-v0.10.0) (2026-11-12)
 
 
