@@ -117,6 +117,16 @@
       "title": "Paiement en attente",
       "hint": "Votre paiement n'a pas encore été finalisé.",
       "payNow": "Payer maintenant"
+    },
+    "parts": {
+      "title": "Avancement de la fabrication",
+      "housing": "Boîtier",
+      "insert": "Insert",
+      "lid": "Couvercle et fermeture",
+      "open": "en attente",
+      "in_progress": "en fabrication",
+      "done": "terminé",
+      "percentDone": "{percent} % terminé"
     }
   },
   "quote": {

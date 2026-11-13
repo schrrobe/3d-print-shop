@@ -117,6 +117,16 @@
       "title": "Platba čeká",
       "hint": "Vaše platba ještě nebyla dokončena.",
       "payNow": "Zaplatit nyní"
+    },
+    "parts": {
+      "title": "Stav výroby",
+      "housing": "Pouzdro",
+      "insert": "Vložka",
+      "lid": "Víko a zámek",
+      "open": "čeká",
+      "in_progress": "ve výrobě",
+      "done": "hotovo",
+      "percentDone": "{percent} % hotovo"
     }
   },
   "quote": {

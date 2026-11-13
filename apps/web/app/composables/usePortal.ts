@@ -1,4 +1,5 @@
 import { useState } from '#imports'
+import type { Part, PartStatus } from '@print-shop/types'
 
 /**
  * Magic-link customer portal client. The token is only ever sent in the
@@ -13,7 +14,12 @@ export interface PortalOrder {
   trackingNumber: string | null
   trackingUrl: string | null
   shippedAt: string | null
-  items: { name: string; quantity: number; unitPriceCents: number }[]
+  items: {
+    name: string
+    quantity: number
+    unitPriceCents: number
+    parts: Record<Part, PartStatus> | null
+  }[]
   orderUrl: string
   accessToken: string
   invoiceAvailable: boolean

@@ -18,7 +18,12 @@ import {
   SHIPPING_COUNTRIES,
 } from '@print-shop/utils'
 import type { DeliveryAddress } from '@print-shop/validators'
-import type { OrderStatus } from '@print-shop/types'
+import {
+  PART_EDITABLE_STATUSES,
+  type OrderStatus,
+  type Part,
+  type PartStatus,
+} from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -62,6 +67,10 @@ interface AdminOrderDetail {
     unitPriceCents: number
     personalization: string | null
     colors: ItemColor[]
+    productId: string | null
+    housingStatus: PartStatus
+    insertStatus: PartStatus
+    lidStatus: PartStatus
   }[]
   payments: {
     id: string
@@ -225,6 +234,41 @@ async function setStatus(status: OrderStatus) {
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
   warnCancelEmail(providerCancelEmailSent)
+}
+
+const PART_LABELS: Record<Part, string> = {
+  housing: 'Gehäuse',
+  insert: 'Einsatz',
+  lid: 'Deckel & Verschluss',
+}
+const partsEditable = computed(
+  () =>
+    auth.can('print-jobs:write') &&
+    !!order.value &&
+    PART_EDITABLE_STATUSES.includes(order.value.status),
+)
+const partStatusOf = (item: AdminOrderDetail['items'][number], part: Part) => item[`${part}Status`]
+
+/** "fertig" implies "in Fertigung"; unticking "in Fertigung" resets to open. */
+async function setPart(
+  itemId: string,
+  part: Part,
+  step: 'in_progress' | 'done',
+  box: HTMLInputElement,
+) {
+  const checked = box.checked
+  const status: PartStatus = checked ? step : step === 'done' ? 'in_progress' : 'open'
+  const ok = await run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/items/${itemId}/parts`, {
+        method: 'PATCH',
+        body: { [part]: status },
+        credentials: 'include',
+      }),
+    { success: 'Fertigungsstand gespeichert', error: 'Speichern fehlgeschlagen' },
+  )
+  // The bound :checked did not change, so Vue would leave the box toggled.
+  if (!ok) box.checked = !checked
 }
 
 function markPaid() {
@@ -463,6 +507,46 @@ function ship() {
               <PsPrice :cents="item.unitPriceCents * item.quantity" size="sm" />
             </div>
             <AdminItemColors :colors="item.colors" :personalization="item.personalization" />
+            <table
+              v-if="item.productId"
+              class="mt-sm text-caption"
+              :data-testid="`item-parts-${item.id}`"
+            >
+              <thead>
+                <tr class="text-secondary">
+                  <th class="pr-md text-left font-normal">Bauteil</th>
+                  <th class="pr-md font-normal">in Fertigung</th>
+                  <th class="font-normal">fertig</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(label, part) in PART_LABELS" :key="part">
+                  <td class="pr-md">{{ label }}</td>
+                  <td class="pr-md text-center">
+                    <input
+                      type="checkbox"
+                      :aria-label="`${label} in Fertigung`"
+                      :checked="partStatusOf(item, part) !== 'open'"
+                      :disabled="!partsEditable || pending"
+                      :data-testid="`part-${item.id}-${part}-in_progress`"
+                      @change="
+                        setPart(item.id, part, 'in_progress', $event.target as HTMLInputElement)
+                      "
+                    />
+                  </td>
+                  <td class="text-center">
+                    <input
+                      type="checkbox"
+                      :aria-label="`${label} fertig`"
+                      :checked="partStatusOf(item, part) === 'done'"
+                      :disabled="!partsEditable || pending"
+                      :data-testid="`part-${item.id}-${part}-done`"
+                      @change="setPart(item.id, part, 'done', $event.target as HTMLInputElement)"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </li>
         </ul>
         <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">

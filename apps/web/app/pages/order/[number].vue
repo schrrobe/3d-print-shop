@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PsButton, PsOrderStatusBadge, PsPrice, PsSection } from '@print-shop/ui'
 import { PREPAYMENT_DISCOUNT_PERCENT } from '@print-shop/utils'
-import type { Locale, OrderStatus } from '@print-shop/types'
+import type { Locale, OrderStatus, Part, PartStatus } from '@print-shop/types'
 
 /** Guest order status page (order number + access token from email/confirmation). */
 const { t, locale } = useI18n()
@@ -30,7 +30,12 @@ interface OrderView {
   carrier: string | null
   trackingNumber: string | null
   trackingUrl: string | null
-  items: { name: string; quantity: number; unitPriceCents: number }[]
+  items: {
+    name: string
+    quantity: number
+    unitPriceCents: number
+    parts: Record<Part, PartStatus> | null
+  }[]
   invoice: { number: string } | null
   payments: {
     id: string
@@ -121,15 +126,20 @@ async function payNow() {
         <PsOrderStatusBadge :status="order.status" :label="t(`order.statuses.${order.status}`)" />
       </div>
 
+      <ShopPartsProgress :items="order.items" class="mt-xl" />
+
       <h2 class="mt-2xl text-label-medium">{{ t('order.items') }}</h2>
       <ul class="mt-md flex flex-col gap-sm">
         <li
           v-for="(item, index) in order.items"
           :key="index"
-          class="flex justify-between rounded-card border border-subtle bg-surface-elevated p-md text-body-regular"
+          class="rounded-card border border-subtle bg-surface-elevated p-md text-body-regular"
         >
-          <span>{{ item.quantity }}× {{ item.name }}</span>
-          <PsPrice :cents="item.unitPriceCents * item.quantity" :locale="locale as Locale" />
+          <div class="flex justify-between">
+            <span>{{ item.quantity }}× {{ item.name }}</span>
+            <PsPrice :cents="item.unitPriceCents * item.quantity" :locale="locale as Locale" />
+          </div>
+          <ShopItemParts v-if="item.parts" :parts="item.parts" />
         </li>
       </ul>
       <div

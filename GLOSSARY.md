@@ -38,3 +38,16 @@ _Vermeiden_: Carrier, Paketdienst
 Das beim Versanddienstleister erzeugte Etikett mit Sendungsnummer, das auf das
 Paket geklebt wird. Es trägt die Lieferadresse.
 _Vermeiden_: Paketschein, Etikett, Label
+
+## Fertigung
+
+**Bauteil**
+Eines der drei getrennt gedruckten Teile einer Munitionsbox: Gehäuse, Einsatz
+oder Deckel & Verschluss. Deckel und Verschluss gelten als ein Bauteil.
+_Vermeiden_: Bestandteil, Komponente, Teil (ohne Zusatz)
+
+**Fertigungsstand**
+Der Zustand eines Bauteils einer Position: offen, in Fertigung oder fertig.
+Gilt für die ganze Position, nicht für jedes einzelne Stück. Der Kunde sieht
+ihn, sobald die Bestellung in Produktion ist.
+_Vermeiden_: Druckstatus, Produktionsstatus (das ist der Druckauftrag)

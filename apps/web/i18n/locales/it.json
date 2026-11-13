@@ -117,6 +117,16 @@
       "title": "Pagamento in sospeso",
       "hint": "Il tuo pagamento non è ancora stato completato.",
       "payNow": "Paga ora"
+    },
+    "parts": {
+      "title": "Avanzamento produzione",
+      "housing": "Scatola",
+      "insert": "Inserto",
+      "lid": "Coperchio e chiusura",
+      "open": "in attesa",
+      "in_progress": "in produzione",
+      "done": "pronto",
+      "percentDone": "{percent}% pronto"
     }
   },
   "quote": {

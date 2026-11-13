@@ -21,6 +21,21 @@ Admin/Versand (Rolle shipping): Sendung (Shipment) statt Order-Direktversand
 
 Der Kunde wählt den Versanddienstleister **nicht** selbst; DHL/Hermes wird intern gesetzt.
 
+## Bauteile (Fertigungsstand)
+
+Jede Position eines Shop-Produkts hat drei Bauteile: Gehäuse, Einsatz und Deckel & Verschluss
+(`OrderItem.housingStatus/insertStatus/lidStatus`: `open` → `in_progress` → `done`, zurücksetzbar).
+Admin/Produktion (`print-jobs:write`) haken sie in den Bestelldetails ab, von `paid` bis
+`ready_to_ship` (`PATCH /api/admin/orders/:id/items/:itemId/parts`, auditiert). Das erste Bauteil
+in Fertigung setzt eine `paid`-Bestellung auf `in_production` und verschickt einmalig die Mail
+„Produktion gestartet“. Unabhängig vom PrinterJob-Status; Positionen ohne Produkt (Angebote,
+Uploads) haben keine Bauteile.
+
+Kunden sehen den Fertigungsstand ab `in_production`, sobald mindestens ein Bauteil abgehakt ist, auf der Bestellseite (Link aus der Mail) und
+im Kundenportal (`items[].parts` im öffentlichen DTO). Oben steht ein Prozentbalken
+(`ShopPartsProgress`, nuxt-charts `BarChart`): Anteil fertiger Bauteile, gestapelt fertig / in
+Fertigung / offen.
+
 ## Versand
 
 Der eigentliche Versand läuft über das Sendungsmodell mit Historie und PDF-Dokumenten

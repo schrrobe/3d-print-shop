@@ -122,6 +122,13 @@ function productionLabel(order: (typeof orders.value)[number]): string {
                 <span class="text-secondary">{{ productionLabel(order) }}</span>
                 <PsPrice :cents="order.totalCents" :locale="locale as Locale" size="sm" />
               </div>
+              <ShopPartsProgress :items="order.items" class="mt-md" />
+              <template v-for="(item, i) in order.items" :key="i">
+                <div v-if="item.parts" class="mt-sm text-body-regular">
+                  {{ item.quantity }}× {{ item.name }}
+                  <ShopItemParts :parts="item.parts" />
+                </div>
+              </template>
               <p
                 v-if="order.trackingNumber"
                 class="mt-sm text-body-regular"

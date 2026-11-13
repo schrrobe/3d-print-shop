@@ -34,6 +34,7 @@ export function publicOrderDto(order: OrderForDto) {
       quantity: i.quantity,
       unitPriceCents: i.unitPriceCents,
       colorSelection: i.colorSelection,
+      parts: partsVisible(order.status) && i.productId && partsTouched(i) ? itemParts(i) : null,
     })),
     invoice: order.invoice,
     payments: order.payments.map((p) => ({
@@ -63,6 +64,22 @@ export function publicOrderDto(order: OrderForDto) {
         : undefined,
     })),
   }
+}
+
+/** Fertigungsstand je Bauteil; Kunden sehen ihn ab in_production. */
+export function itemParts(i: Pick<OrderItem, 'housingStatus' | 'insertStatus' | 'lidStatus'>) {
+  return { housing: i.housingStatus, insert: i.insertStatus, lid: i.lidStatus }
+}
+
+/** Never-ticked parts (e.g. orders before the feature) would read "offen" on a delivered box. */
+function partsTouched(i: Pick<OrderItem, 'housingStatus' | 'insertStatus' | 'lidStatus'>) {
+  return [i.housingStatus, i.insertStatus, i.lidStatus].some((s) => s !== 'open')
+}
+
+function partsVisible(status: Order['status']): boolean {
+  return ['in_production', 'quality_check', 'ready_to_ship', 'shipped', 'completed'].includes(
+    status,
+  )
 }
 
 /** Coarse production summary for the portal (no printer/internal details). */
