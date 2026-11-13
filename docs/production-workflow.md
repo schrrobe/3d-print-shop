@@ -31,7 +31,7 @@ in Fertigung setzt eine `paid`-Bestellung auf `in_production` und verschickt ein
 „Produktion gestartet“. Unabhängig vom PrinterJob-Status; Positionen ohne Produkt (Angebote,
 Uploads) haben keine Bauteile.
 
-Kunden sehen den Fertigungsstand ab `in_production` auf der Bestellseite (Link aus der Mail) und
+Kunden sehen den Fertigungsstand ab `in_production`, sobald mindestens ein Bauteil abgehakt ist, auf der Bestellseite (Link aus der Mail) und
 im Kundenportal (`items[].parts` im öffentlichen DTO).
 
 ## Versand

@@ -91,6 +91,13 @@ export const PARTS = ['housing', 'insert', 'lid'] as const
 export type Part = (typeof PARTS)[number]
 export const PART_STATUSES = ['open', 'in_progress', 'done'] as const
 export type PartStatus = (typeof PART_STATUSES)[number]
+/** Bauteile sind zwischen Zahlung und Versand änderbar. */
+export const PART_EDITABLE_STATUSES: readonly OrderStatus[] = [
+  'paid',
+  'in_production',
+  'quality_check',
+  'ready_to_ship',
+]
 
 export const USER_ROLES = ['admin', 'product_manager', 'production', 'shipping', 'support'] as const
 export type UserRole = (typeof USER_ROLES)[number]

@@ -18,7 +18,12 @@ import {
   SHIPPING_COUNTRIES,
 } from '@print-shop/utils'
 import type { DeliveryAddress } from '@print-shop/validators'
-import type { OrderStatus, Part, PartStatus } from '@print-shop/types'
+import {
+  PART_EDITABLE_STATUSES,
+  type OrderStatus,
+  type Part,
+  type PartStatus,
+} from '@print-shop/types'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
@@ -239,14 +244,21 @@ const PART_LABELS: Record<Part, string> = {
 const partsEditable = computed(
   () =>
     auth.can('print-jobs:write') &&
-    ['paid', 'in_production', 'quality_check', 'ready_to_ship'].includes(order.value?.status ?? ''),
+    !!order.value &&
+    PART_EDITABLE_STATUSES.includes(order.value.status),
 )
 const partStatusOf = (item: AdminOrderDetail['items'][number], part: Part) => item[`${part}Status`]
 
 /** "fertig" implies "in Fertigung"; unticking "in Fertigung" resets to open. */
-function setPart(itemId: string, part: Part, step: 'in_progress' | 'done', checked: boolean) {
+async function setPart(
+  itemId: string,
+  part: Part,
+  step: 'in_progress' | 'done',
+  box: HTMLInputElement,
+) {
+  const checked = box.checked
   const status: PartStatus = checked ? step : step === 'done' ? 'in_progress' : 'open'
-  return run(
+  const ok = await run(
     () =>
       $fetch(`/api/admin/orders/${orderId}/items/${itemId}/parts`, {
         method: 'PATCH',
@@ -255,6 +267,8 @@ function setPart(itemId: string, part: Part, step: 'in_progress' | 'done', check
       }),
     { success: 'Fertigungsstand gespeichert', error: 'Speichern fehlgeschlagen' },
   )
+  // The bound :checked did not change, so Vue would leave the box toggled.
+  if (!ok) box.checked = !checked
 }
 
 function markPaid() {
@@ -516,12 +530,7 @@ function ship() {
                       :disabled="!partsEditable || pending"
                       :data-testid="`part-${item.id}-${part}-in_progress`"
                       @change="
-                        setPart(
-                          item.id,
-                          part,
-                          'in_progress',
-                          ($event.target as HTMLInputElement).checked,
-                        )
+                        setPart(item.id, part, 'in_progress', $event.target as HTMLInputElement)
                       "
                     />
                   </td>
@@ -532,9 +541,7 @@ function ship() {
                       :checked="partStatusOf(item, part) === 'done'"
                       :disabled="!partsEditable || pending"
                       :data-testid="`part-${item.id}-${part}-done`"
-                      @change="
-                        setPart(item.id, part, 'done', ($event.target as HTMLInputElement).checked)
-                      "
+                      @change="setPart(item.id, part, 'done', $event.target as HTMLInputElement)"
                     />
                   </td>
                 </tr>

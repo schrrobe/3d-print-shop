@@ -34,7 +34,7 @@ export function publicOrderDto(order: OrderForDto) {
       quantity: i.quantity,
       unitPriceCents: i.unitPriceCents,
       colorSelection: i.colorSelection,
-      parts: partsVisible(order.status) && i.productId ? itemParts(i) : null,
+      parts: partsVisible(order.status) && i.productId && partsTouched(i) ? itemParts(i) : null,
     })),
     invoice: order.invoice,
     payments: order.payments.map((p) => ({
@@ -66,10 +66,14 @@ export function publicOrderDto(order: OrderForDto) {
   }
 }
 
-/** Coarse production summary for the portal (no printer/internal details). */
 /** Fertigungsstand je Bauteil; Kunden sehen ihn ab in_production. */
 export function itemParts(i: Pick<OrderItem, 'housingStatus' | 'insertStatus' | 'lidStatus'>) {
   return { housing: i.housingStatus, insert: i.insertStatus, lid: i.lidStatus }
+}
+
+/** Never-ticked parts (e.g. orders before the feature) would read "offen" on a delivered box. */
+function partsTouched(i: Pick<OrderItem, 'housingStatus' | 'insertStatus' | 'lidStatus'>) {
+  return [i.housingStatus, i.insertStatus, i.lidStatus].some((s) => s !== 'open')
 }
 
 function partsVisible(status: Order['status']): boolean {
@@ -78,6 +82,7 @@ function partsVisible(status: Order['status']): boolean {
   )
 }
 
+/** Coarse production summary for the portal (no printer/internal details). */
 export function productionSummary(jobs: Pick<PrinterJob, 'status'>[]) {
   const byStatus: Record<string, number> = {}
   for (const job of jobs) byStatus[job.status] = (byStatus[job.status] ?? 0) + 1

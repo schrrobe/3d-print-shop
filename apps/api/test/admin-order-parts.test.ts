@@ -18,6 +18,7 @@ const { createApp } = await import('../src/app.js')
 const { prisma } = await import('../src/lib/prisma.js')
 const { notifyProductionStarted } = await import('../src/services/order-flow.js')
 const { signSession, SESSION_COOKIE } = await import('../src/middleware/auth.js')
+const { publicOrderDto } = await import('../src/services/order-dto.js')
 
 let server: Server
 let baseUrl: string
@@ -116,4 +117,17 @@ it('rejects items without product, orders outside production, and support role',
   expect((await patch({ housing: 'done' }, 'support')).status).toBe(403)
   expect((await patch({})).status).toBe(400)
   expect(prisma.orderItem.update).not.toHaveBeenCalled()
+})
+
+it('customers see parts only from in_production and once at least one was ticked', () => {
+  const parts = (status: string, housingStatus: string) =>
+    publicOrderDto({
+      status,
+      items: [{ productId: 'prod_1', housingStatus, insertStatus: 'open', lidStatus: 'open' }],
+      payments: [],
+      invoice: null,
+    } as never).items[0]?.parts
+  expect(parts('paid', 'done')).toBeNull()
+  expect(parts('shipped', 'open')).toBeNull()
+  expect(parts('shipped', 'done')).toEqual({ housing: 'done', insert: 'open', lid: 'open' })
 })

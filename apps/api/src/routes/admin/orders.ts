@@ -1,5 +1,5 @@
 import { renderPaymentLink } from '@print-shop/emails'
-import { ORDER_STATUSES, PART_STATUSES, type OrderStatus } from '@print-shop/types'
+import { ORDER_STATUSES, PART_EDITABLE_STATUSES, PART_STATUSES } from '@print-shop/types'
 import {
   assertOrderTransition,
   hasPermission,
@@ -439,7 +439,6 @@ const partsSchema = z
   .object({ housing: partStatus, insert: partStatus, lid: partStatus })
   .strict()
   .refine((v) => Object.values(v).some(Boolean), 'Nothing to update')
-const PART_EDITABLE: OrderStatus[] = ['paid', 'in_production', 'quality_check', 'ready_to_ship']
 
 /**
  * Fertigungsstand der Bauteile einer Position. The first part leaving `open`
@@ -457,7 +456,7 @@ adminOrdersRouter.patch(
       })
       if (!item) throw notFound('Order item not found')
       if (!item.productId) throw conflict('Bauteile gibt es nur bei Shop-Produkten')
-      if (!PART_EDITABLE.includes(item.order.status))
+      if (!PART_EDITABLE_STATUSES.includes(item.order.status))
         throw conflict('Bauteile nur zwischen Zahlung und Versand änderbar')
       const updated = await prisma.orderItem.update({
         where: { id: item.id },
@@ -471,7 +470,14 @@ adminOrdersRouter.patch(
           data: { status: 'in_production' },
         })
         productionStarted = count === 1
-        if (productionStarted) await notifyProductionStarted(item.order.id)
+        // Post-commit side effect must not turn the committed change into an error response.
+        if (productionStarted) {
+          try {
+            await notifyProductionStarted(item.order.id)
+          } catch (err) {
+            console.error(`[parts] production_started mail failed for ${item.order.id}:`, err)
+          }
+        }
       }
       await audit(
         req,
