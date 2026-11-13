@@ -102,6 +102,13 @@ enum PrinterStatus {
   maintenance
 }
 
+/// Fertigungsstand eines Bauteils (Gehäuse, Einsatz, Deckel & Verschluss) einer Position
+enum PartStatus {
+  open
+  in_progress
+  done
+}
+
 /// wartet, zugewiesen, druckt, fertig, qualitätsprüfung, versandbereit, versendet, fehlgeschlagen, reprint_nötig
 enum ProductionStatus {
   waiting
@@ -640,6 +647,10 @@ model OrderItem {
   colorSelection Json?
   /// Name printed on the box; unitPriceCents includes PERSONALIZATION_PRICE_CENTS
   personalization String?
+  /// Fertigungsstand je Bauteil (nur Shop-Produkte); vom Kunden ab in_production sichtbar
+  housingStatus   PartStatus @default(open)
+  insertStatus    PartStatus @default(open)
+  lidStatus       PartStatus @default(open)
 
   printerJobs    PrinterJob[]
   complaintItems ComplaintItem[]

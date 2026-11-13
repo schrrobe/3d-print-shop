@@ -86,6 +86,12 @@ export const PRODUCTION_STATUSES = [
 ] as const
 export type ProductionStatus = (typeof PRODUCTION_STATUSES)[number]
 
+/** Bauteile einer Munitionsbox; Deckel & Verschluss ist ein Bauteil (GLOSSARY.md). */
+export const PARTS = ['housing', 'insert', 'lid'] as const
+export type Part = (typeof PARTS)[number]
+export const PART_STATUSES = ['open', 'in_progress', 'done'] as const
+export type PartStatus = (typeof PART_STATUSES)[number]
+
 export const USER_ROLES = ['admin', 'product_manager', 'production', 'shipping', 'support'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 

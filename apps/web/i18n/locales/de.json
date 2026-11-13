@@ -117,6 +117,15 @@
       "title": "Zahlung ausstehend",
       "hint": "Deine Zahlung wurde noch nicht abgeschlossen.",
       "payNow": "Jetzt bezahlen"
+    },
+    "parts": {
+      "title": "Fertigungsstand",
+      "housing": "Gehäuse",
+      "insert": "Einsatz",
+      "lid": "Deckel & Verschluss",
+      "open": "offen",
+      "in_progress": "in Fertigung",
+      "done": "fertig"
     }
   },
   "quote": {

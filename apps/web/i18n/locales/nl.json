@@ -117,6 +117,15 @@
       "title": "Betaling openstaand",
       "hint": "Je betaling is nog niet afgerond.",
       "payNow": "Nu betalen"
+    },
+    "parts": {
+      "title": "Productievoortgang",
+      "housing": "Behuizing",
+      "insert": "Inzetstuk",
+      "lid": "Deksel en sluiting",
+      "open": "open",
+      "in_progress": "in productie",
+      "done": "klaar"
     }
   },
   "quote": {

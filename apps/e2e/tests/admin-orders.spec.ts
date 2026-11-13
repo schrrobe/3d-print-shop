@@ -98,6 +98,36 @@ test.describe('admin orders', () => {
     expect(body).toContain('https://www.dhl.de/track?id=DHL-E2E-NOTE-1')
   })
 
+  test('production ticks parts, customer sees the Fertigungsstand', async ({ page }) => {
+    const api = await adminApiContext()
+    const products = (await (await api.get('/api/products')).json()) as {
+      products: { id: string }[]
+    }
+    const { orderNumber, accessToken } = await createPaidOrderViaApi(
+      products.products[0]!.id,
+      'admin-parts@example.com',
+    )
+    const order = await getAdminOrder(api, orderNumber)
+    await api.dispose()
+
+    const admin = new AdminPage(page)
+    await admin.login()
+    await gotoHydrated(page, `/admin/orders/${order.id}`)
+
+    const part = (name: string) => page.locator(`[data-testid^="part-"][data-testid$="-${name}"]`)
+    await part('housing-in_progress').check()
+    // First part in progress starts production (and the production-started mail).
+    await expect(page.getByTestId('admin-order-status')).toContainText('in_production')
+    await part('lid-done').check()
+    await expect(part('lid-in_progress')).toBeChecked()
+
+    await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)
+    const parts = page.getByTestId('order-item-parts')
+    await expect(parts.locator('[data-status="in_progress"]')).toContainText('Gehäuse')
+    await expect(parts.locator('[data-status="done"]')).toContainText('Deckel & Verschluss')
+    await expect(parts.locator('[data-status="open"]')).toContainText('Einsatz')
+  })
+
   test('delivery address can be redirected until the order ships', async ({ page }) => {
     const api = await adminApiContext()
     const products = (await (await api.get('/api/products')).json()) as {

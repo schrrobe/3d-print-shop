@@ -117,6 +117,15 @@
       "title": "Płatność oczekująca",
       "hint": "Twoja płatność nie została jeszcze zakończona.",
       "payNow": "Zapłać teraz"
+    },
+    "parts": {
+      "title": "Postęp produkcji",
+      "housing": "Obudowa",
+      "insert": "Wkład",
+      "lid": "Pokrywa i zamknięcie",
+      "open": "oczekuje",
+      "in_progress": "w produkcji",
+      "done": "gotowe"
     }
   },
   "quote": {

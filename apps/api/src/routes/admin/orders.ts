@@ -1,5 +1,5 @@
 import { renderPaymentLink } from '@print-shop/emails'
-import { ORDER_STATUSES } from '@print-shop/types'
+import { ORDER_STATUSES, PART_STATUSES, type OrderStatus } from '@print-shop/types'
 import {
   assertOrderTransition,
   hasPermission,
@@ -36,6 +36,7 @@ import {
   sendPaymentReminder,
 } from '../../services/order-flow.js'
 import { itemColorResolver } from '../../services/item-colors.js'
+import { itemParts } from '../../services/order-dto.js'
 import {
   createStripePaymentLink,
   deactivateStripePaymentLink,
@@ -432,6 +433,58 @@ adminOrdersRouter.patch('/:id', requirePermission('orders:read'), async (req, re
     next(err)
   }
 })
+
+const partStatus = z.enum(PART_STATUSES).optional()
+const partsSchema = z
+  .object({ housing: partStatus, insert: partStatus, lid: partStatus })
+  .strict()
+  .refine((v) => Object.values(v).some(Boolean), 'Nothing to update')
+const PART_EDITABLE: OrderStatus[] = ['paid', 'in_production', 'quality_check', 'ready_to_ship']
+
+/**
+ * Fertigungsstand der Bauteile einer Position. The first part leaving `open`
+ * moves a paid order to in_production, which sends the production-started mail once.
+ */
+adminOrdersRouter.patch(
+  '/:id/items/:itemId/parts',
+  requirePermission('print-jobs:write'),
+  async (req, res, next) => {
+    try {
+      const input = partsSchema.parse(req.body)
+      const item = await prisma.orderItem.findFirst({
+        where: { id: String(req.params.itemId), orderId: String(req.params.id) },
+        include: { order: { select: { id: true, status: true } } },
+      })
+      if (!item) throw notFound('Order item not found')
+      if (!item.productId) throw conflict('Bauteile gibt es nur bei Shop-Produkten')
+      if (!PART_EDITABLE.includes(item.order.status))
+        throw conflict('Bauteile nur zwischen Zahlung und Versand änderbar')
+      const updated = await prisma.orderItem.update({
+        where: { id: item.id },
+        data: { housingStatus: input.housing, insertStatus: input.insert, lidStatus: input.lid },
+      })
+      let productionStarted = false
+      if (item.order.status === 'paid' && Object.values(input).some((s) => s !== 'open')) {
+        // Conditional: the manual status action or a provider handout may win the race.
+        const { count } = await prisma.order.updateMany({
+          where: { id: item.order.id, status: 'paid' },
+          data: { status: 'in_production' },
+        })
+        productionStarted = count === 1
+        if (productionStarted) await notifyProductionStarted(item.order.id)
+      }
+      await audit(
+        req,
+        'order.item_parts',
+        { type: 'order', id: item.order.id },
+        { itemId: item.id, ...input },
+      )
+      res.json({ parts: itemParts(updated), productionStarted })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /** Bank transfer: manually mark as paid (payments:write). */
 adminOrdersRouter.post(

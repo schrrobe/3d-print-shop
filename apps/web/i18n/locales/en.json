@@ -117,6 +117,15 @@
       "title": "Payment pending",
       "hint": "Your payment has not been completed yet.",
       "payNow": "Pay now"
+    },
+    "parts": {
+      "title": "Production progress",
+      "housing": "Case",
+      "insert": "Insert",
+      "lid": "Lid & latch",
+      "open": "pending",
+      "in_progress": "in production",
+      "done": "done"
     }
   },
   "quote": {
