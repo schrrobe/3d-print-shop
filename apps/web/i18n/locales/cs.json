@@ -125,7 +125,8 @@
       "lid": "Víko a zámek",
       "open": "čeká",
       "in_progress": "ve výrobě",
-      "done": "hotovo"
+      "done": "hotovo",
+      "percentDone": "{percent} % hotovo"
     }
   },
   "quote": {

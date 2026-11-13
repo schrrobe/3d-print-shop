@@ -125,7 +125,8 @@
       "lid": "Coperchio e chiusura",
       "open": "in attesa",
       "in_progress": "in produzione",
-      "done": "pronto"
+      "done": "pronto",
+      "percentDone": "{percent}% pronto"
     }
   },
   "quote": {

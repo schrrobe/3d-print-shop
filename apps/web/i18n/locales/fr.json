@@ -125,7 +125,8 @@
       "lid": "Couvercle et fermeture",
       "open": "en attente",
       "in_progress": "en fabrication",
-      "done": "terminé"
+      "done": "terminé",
+      "percentDone": "{percent} % terminé"
     }
   },
   "quote": {

@@ -32,7 +32,9 @@ in Fertigung setzt eine `paid`-Bestellung auf `in_production` und verschickt ein
 Uploads) haben keine Bauteile.
 
 Kunden sehen den Fertigungsstand ab `in_production`, sobald mindestens ein Bauteil abgehakt ist, auf der Bestellseite (Link aus der Mail) und
-im Kundenportal (`items[].parts` im öffentlichen DTO).
+im Kundenportal (`items[].parts` im öffentlichen DTO). Oben steht ein Prozentbalken
+(`ShopPartsProgress`, nuxt-charts `BarChart`): Anteil fertiger Bauteile, gestapelt fertig / in
+Fertigung / offen.
 
 ## Versand
 

@@ -125,7 +125,8 @@
       "lid": "Deckel & Verschluss",
       "open": "offen",
       "in_progress": "in Fertigung",
-      "done": "fertig"
+      "done": "fertig",
+      "percentDone": "{percent} % fertig"
     }
   },
   "quote": {

@@ -125,7 +125,8 @@
       "lid": "Pokrywa i zamknięcie",
       "open": "oczekuje",
       "in_progress": "w produkcji",
-      "done": "gotowe"
+      "done": "gotowe",
+      "percentDone": "{percent}% gotowe"
     }
   },
   "quote": {

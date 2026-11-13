@@ -126,6 +126,9 @@ test.describe('admin orders', () => {
     await expect(parts.locator('[data-status="in_progress"]')).toContainText('Gehäuse')
     await expect(parts.locator('[data-status="done"]')).toContainText('Deckel & Verschluss')
     await expect(parts.locator('[data-status="open"]')).toContainText('Einsatz')
+    // 1 of 3 parts done
+    await expect(page.getByTestId('parts-progress')).toHaveAttribute('data-percent', '33')
+    await expect(page.getByTestId('parts-progress')).toContainText('33 % fertig')
   })
 
   test('delivery address can be redirected until the order ships', async ({ page }) => {

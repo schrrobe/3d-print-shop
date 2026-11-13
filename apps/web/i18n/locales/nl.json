@@ -125,7 +125,8 @@
       "lid": "Deksel en sluiting",
       "open": "open",
       "in_progress": "in productie",
-      "done": "klaar"
+      "done": "klaar",
+      "percentDone": "{percent}% klaar"
     }
   },
   "quote": {

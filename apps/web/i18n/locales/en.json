@@ -125,7 +125,8 @@
       "lid": "Lid & latch",
       "open": "pending",
       "in_progress": "in production",
-      "done": "done"
+      "done": "done",
+      "percentDone": "{percent}% done"
     }
   },
   "quote": {

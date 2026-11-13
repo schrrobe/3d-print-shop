@@ -126,6 +126,8 @@ async function payNow() {
         <PsOrderStatusBadge :status="order.status" :label="t(`order.statuses.${order.status}`)" />
       </div>
 
+      <ShopPartsProgress :items="order.items" class="mt-xl" />
+
       <h2 class="mt-2xl text-label-medium">{{ t('order.items') }}</h2>
       <ul class="mt-md flex flex-col gap-sm">
         <li
