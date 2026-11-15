@@ -1,5 +1,5 @@
 {
-  "apps/api": "0.22.0",
+  "apps/api": "0.22.1",
   "apps/web": "0.21.0",
   "packages/config": "0.0.1",
   "packages/emails": "0.4.3",
