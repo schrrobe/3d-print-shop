@@ -39,6 +39,10 @@ vi.mock('../src/services/payments/stripe.js', async (importOriginal) => ({
   deactivateStripePaymentLink: vi.fn().mockResolvedValue(undefined),
   refundStripeSession: vi.fn().mockResolvedValue(undefined),
 }))
+vi.mock('../src/services/providers.js', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  cancelOpenAssignment: vi.fn().mockResolvedValue(null),
+}))
 
 const { createApp } = await import('../src/app.js')
 const { prisma } = await import('../src/lib/prisma.js')
@@ -47,6 +51,7 @@ const { sendEmail } = await import('../src/services/email.js')
 const { issuePrepaymentInvoice, notifyOrderEnded } = await import('../src/services/order-flow.js')
 const { createStripePaymentLink, deactivateStripePaymentLink, refundStripeSession } =
   await import('../src/services/payments/stripe.js')
+const { cancelOpenAssignment } = await import('../src/services/providers.js')
 
 const orderCreate = vi.mocked(prisma.order.create)
 let server: Server
@@ -333,5 +338,27 @@ describe('POST /api/admin/orders/:id/status refunds paid money', () => {
       manualCents: 4900,
     })
     expect(vi.mocked(refundStripeSession)).not.toHaveBeenCalled()
+  })
+
+  it('refunds an order in production: stripe refund, open link off, provider job cancelled', async () => {
+    paidOrder([
+      { id: 'pay_1', method: 'stripe', status: 'paid', stripeSessionId: 'cs_1', amountCents: 5699 },
+      { id: 'pay_2', method: 'stripe_payment_link', status: 'pending', stripeSessionId: 'plink_2' },
+    ])
+    vi.mocked(prisma.order.findUnique).mockResolvedValue({
+      ...(await prisma.order.findUnique({ where: { id: 'order_1' } }))!,
+      status: 'in_production',
+    } as never)
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'refunded' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(refundStripeSession)).toHaveBeenCalledWith('cs_1', 'pay_1')
+    expect(vi.mocked(deactivateStripePaymentLink)).toHaveBeenCalledWith('plink_2')
+    expect(vi.mocked(cancelOpenAssignment)).toHaveBeenCalledWith('order_1')
+    expect(vi.mocked(prisma.order.updateMany)).toHaveBeenCalledWith({
+      where: { id: 'order_1', status: 'in_production' },
+      data: { status: 'refunded' },
+    })
   })
 })

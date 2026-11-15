@@ -298,7 +298,7 @@ export interface OrderCancelledData {
   orderNumber: string
   firstName: string
   orderUrl: string
-  /** cancelled = before shipping, refunded = after (e.g. returned goods). */
+  /** cancelled = up to paid (before production), refunded = from any paid state (incl. returned goods). */
   status: 'cancelled' | 'refunded'
   /** Already sent back to the original payment method via Stripe. */
   stripeRefundCents: number

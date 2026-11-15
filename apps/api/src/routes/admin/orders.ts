@@ -311,8 +311,8 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     // Production progress of an externally held order follows the provider lifecycle.
     if (['quality_check', 'ready_to_ship'].includes(status) && (await isHeldExternally(order.id)))
       throw conflict('Externer Auftrag zuerst als fertig gemeldet / eingegangen markieren')
-    if (status === 'cancelled') {
-      // An open payment link must stop taking money before the order is cancelled.
+    if (endsOrder) {
+      // An open payment link must stop taking money before the order ends.
       for (const p of order.payments) {
         if (p.method !== 'stripe_payment_link' || p.status !== 'pending' || !p.stripeSessionId)
           continue

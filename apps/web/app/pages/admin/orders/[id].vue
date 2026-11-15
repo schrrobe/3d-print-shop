@@ -876,6 +876,17 @@ function ship() {
           {{ formatCents(refundedCents) }} wurden bereits über Stripe erstattet.
         </p>
         <p v-if="!anyPayment">Es ist keine Zahlung eingegangen.</p>
+        <p
+          v-if="liveAssignment?.status === 'completed'"
+          class="text-error"
+          data-testid="end-order-provider-done"
+        >
+          {{ liveAssignment.provider.name }} hat den Auftrag bereits fertig gemeldet{{
+            liveAssignment.shareCustomerData
+              ? ' und versendet direkt an den Kunden – die Ware ist evtl. schon unterwegs'
+              : ''
+          }}. Der Anbieter wird nicht benachrichtigt.
+        </p>
         <p v-if="order?.invoice">
           Rechnung {{ order.invoice.number }} wird per Stornorechnung aufgehoben.
         </p>
