@@ -228,12 +228,14 @@ function resendPaymentLink() {
 
 async function setStatus(status: OrderStatus) {
   let providerCancelEmailSent: boolean | null = null
+  let providerCancelFailed = false
   let manualRefund = false
   let customerEmailSent: boolean | null = null
   await run(
     async () => {
       const res = await $fetch<{
         providerCancelEmailSent: boolean | null
+        providerCancelFailed: boolean
         manualRefund: boolean
         customerEmailSent: boolean | null
       }>(`/api/admin/orders/${orderId}/status`, {
@@ -242,12 +244,20 @@ async function setStatus(status: OrderStatus) {
         credentials: 'include',
       })
       providerCancelEmailSent = res.providerCancelEmailSent
+      providerCancelFailed = res.providerCancelFailed
       manualRefund = res.manualRefund
       customerEmailSent = res.customerEmailSent
     },
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
   warnCancelEmail(providerCancelEmailSent)
+  if (providerCancelFailed)
+    toast.show(
+      'Externer Auftrag konnte nicht storniert werden – bitte unter „Externe Fertigung“ manuell stornieren',
+      {
+        variant: 'error',
+      },
+    )
   if (manualRefund)
     toast.show('Überweisung/Bitcoin-Zahlung bitte manuell an den Kunden zurückzahlen', {
       variant: 'error',
@@ -876,6 +886,17 @@ function ship() {
           {{ formatCents(refundedCents) }} wurden bereits über Stripe erstattet.
         </p>
         <p v-if="!anyPayment">Es ist keine Zahlung eingegangen.</p>
+        <p
+          v-if="liveAssignment?.status === 'completed'"
+          class="text-error"
+          data-testid="end-order-provider-done"
+        >
+          {{ liveAssignment.provider.name }} hat den Auftrag bereits fertig gemeldet{{
+            liveAssignment.shareCustomerData
+              ? ' und versendet direkt an den Kunden – die Ware ist evtl. schon unterwegs'
+              : ''
+          }}. Der Anbieter wird nicht benachrichtigt.
+        </p>
         <p v-if="order?.invoice">
           Rechnung {{ order.invoice.number }} wird per Stornorechnung aufgehoben.
         </p>

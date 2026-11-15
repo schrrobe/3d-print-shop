@@ -6,6 +6,7 @@ import {
   InvalidStatusTransitionError,
   isTerminalOrderStatus,
   ORDER_STATUS_TRANSITIONS,
+  REVENUE_ORDER_STATUSES,
 } from '../src/order-status.js'
 
 describe('order status transitions', () => {
@@ -30,6 +31,13 @@ describe('order status transitions', () => {
       expect(canTransitionOrder(from, 'shipped')).toBe(true)
     }
     expect(canTransitionOrder('awaiting_payment', 'shipped')).toBe(false)
+  })
+
+  it('allows refunding from every paid state', () => {
+    for (const from of REVENUE_ORDER_STATUSES) {
+      expect(canTransitionOrder(from, 'refunded')).toBe(true)
+    }
+    expect(canTransitionOrder('awaiting_payment', 'refunded')).toBe(false)
   })
 
   it('allows the bank transfer flow', () => {
