@@ -228,12 +228,14 @@ function resendPaymentLink() {
 
 async function setStatus(status: OrderStatus) {
   let providerCancelEmailSent: boolean | null = null
+  let providerCancelFailed = false
   let manualRefund = false
   let customerEmailSent: boolean | null = null
   await run(
     async () => {
       const res = await $fetch<{
         providerCancelEmailSent: boolean | null
+        providerCancelFailed: boolean
         manualRefund: boolean
         customerEmailSent: boolean | null
       }>(`/api/admin/orders/${orderId}/status`, {
@@ -242,12 +244,20 @@ async function setStatus(status: OrderStatus) {
         credentials: 'include',
       })
       providerCancelEmailSent = res.providerCancelEmailSent
+      providerCancelFailed = res.providerCancelFailed
       manualRefund = res.manualRefund
       customerEmailSent = res.customerEmailSent
     },
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
   warnCancelEmail(providerCancelEmailSent)
+  if (providerCancelFailed)
+    toast.show(
+      'Externer Auftrag konnte nicht storniert werden – bitte unter „Externe Fertigung“ manuell stornieren',
+      {
+        variant: 'error',
+      },
+    )
   if (manualRefund)
     toast.show('Überweisung/Bitcoin-Zahlung bitte manuell an den Kunden zurückzahlen', {
       variant: 'error',

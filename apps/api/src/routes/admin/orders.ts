@@ -393,8 +393,16 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     // Stornorechnung + refund mail to the customer; the order has ended either way, so a
     // failure only warns (the Stornorechnung download in the admin catches up).
     let customerEmailSent: boolean | null = null
-    if (status === 'cancelled' || status === 'refunded') {
-      providerCancel = await cancelOpenAssignment(order.id)
+    let providerCancelFailed = false
+    if (endsOrder) {
+      // Best-effort too: the order is terminal now, so a throw would skip the customer mail
+      // with no retry. The admin cancels the job by hand from the order page instead.
+      try {
+        providerCancel = await cancelOpenAssignment(order.id)
+      } catch (err) {
+        console.error(`[order] provider cancel failed for ${order.orderNumber}:`, err)
+        providerCancelFailed = true
+      }
       try {
         customerEmailSent = await notifyOrderEnded(order.id, status, refunds)
       } catch (err) {
@@ -422,7 +430,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       {
         from: order.status,
         to: status,
-        ...(endsOrder ? { refunds, customerEmailSent } : {}),
+        ...(endsOrder ? { refunds, customerEmailSent, providerCancelFailed } : {}),
         ...(providerCancel
           ? {
               cancelledAssignmentId: providerCancel.assignment.id,
@@ -434,6 +442,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     res.json({
       order: updated,
       providerCancelEmailSent: providerCancel?.cancelEmailSent ?? null,
+      providerCancelFailed,
       manualRefund,
       customerEmailSent,
     })

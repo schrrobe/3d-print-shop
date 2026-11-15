@@ -361,4 +361,18 @@ describe('POST /api/admin/orders/:id/status refunds paid money', () => {
       data: { status: 'refunded' },
     })
   })
+
+  it('still mails the customer when cancelling the provider job fails after the status write', async () => {
+    paidOrder([])
+    vi.mocked(cancelOpenAssignment).mockRejectedValueOnce(new Error('db hiccup'))
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'refunded' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ providerCancelFailed: true })
+    expect(vi.mocked(notifyOrderEnded)).toHaveBeenCalledWith('order_1', 'refunded', {
+      stripeCents: 0,
+      manualCents: 0,
+    })
+  })
 })
