@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.21.0...web-v0.22.0) (2026-11-15)
+
+
+### Features
+
+* **admin:** Bauteile in Bestelldetails ein-/ausblendbar ([#134](https://github.com/schrrobe/3d-print-shop/issues/134)) ([4541937](https://github.com/schrrobe/3d-print-shop/commit/4541937c49c6eb50efcb3687149ef8775d16cbc1))
+
 ## [0.21.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.20.0...web-v0.21.0) (2026-11-15)
 
 
