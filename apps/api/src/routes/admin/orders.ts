@@ -317,11 +317,12 @@ adminOrdersRouter.put('/:id/items', requirePermission('orders:write'), async (re
     )
     if (order.source !== 'admin' || order.status !== 'awaiting_payment' || !open)
       throw conflict('Nur offene Stripe-Paylinks sind änderbar')
+    assertCompanyComplete()
     await assertProductsExist(input.items)
 
     const subtotalCents = input.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
     const totalCents = subtotalCents + input.shippingCents
-    await deactivateStripePaymentLink(open.stripeSessionId!)
+    // New link first: a failed create leaves the customer's current link working.
     const link = await createStripePaymentLink({
       orderNumber: order.orderNumber,
       accessToken: order.accessToken,
@@ -330,9 +331,10 @@ adminOrdersRouter.put('/:id/items', requirePermission('orders:write'), async (re
       locale: order.locale,
       description: `Bestellung ${order.orderNumber}`,
     })
-    const paid = conflict('Die Zahlung ist zwischenzeitlich eingegangen')
+    const paid = conflict('Bestellung wurde zwischenzeitlich bezahlt oder geändert')
     let updated
     try {
+      await deactivateStripePaymentLink(open.stripeSessionId!)
       updated = await prisma.$transaction(async (db) => {
         // Conditional: the webhook may have claimed the old link in the meantime.
         const expired = await db.payment.updateMany({
