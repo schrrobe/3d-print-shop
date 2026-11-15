@@ -280,6 +280,16 @@ describe('PUT /api/admin/orders/:id/items (edit paylink)', () => {
     expect(vi.mocked(createStripePaymentLink)).not.toHaveBeenCalled()
   })
 
+  it('leaves the old link working when the new link cannot be created', async () => {
+    openOrder()
+    vi.mocked(createStripePaymentLink).mockRejectedValueOnce(new Error('stripe down'))
+
+    const res = await post('/api/admin/orders/order_1/items', edit, 'PUT')
+
+    expect(res.status).toBe(500)
+    expect(vi.mocked(deactivateStripePaymentLink)).not.toHaveBeenCalled()
+  })
+
   it('keeps the order when the old link was paid meanwhile', async () => {
     openOrder()
     vi.mocked(prisma.payment.updateMany).mockResolvedValue({ count: 0 })
