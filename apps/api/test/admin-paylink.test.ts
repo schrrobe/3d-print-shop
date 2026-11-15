@@ -276,6 +276,43 @@ describe('POST /api/admin/orders/:id/status refunds paid money', () => {
     expect(vi.mocked(notifyOrderEnded)).not.toHaveBeenCalled()
   })
 
+  it('says the money is back when the order changed after the refund, and a retry does not refund twice', async () => {
+    const stripePayment = {
+      id: 'pay_1',
+      method: 'stripe',
+      status: 'paid',
+      stripeSessionId: 'cs_1',
+      amountCents: 5699,
+    }
+    paidOrder([stripePayment])
+    vi.mocked(prisma.order.updateMany).mockResolvedValueOnce({ count: 0 })
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(409)
+    expect(((await res.json()) as { message: string }).message).toMatch(
+      /56,99.*bereits über Stripe erstattet/,
+    )
+    expect(vi.mocked(prisma.adminAuditLog.create)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: 'order.refund_without_status' }),
+      }),
+    )
+    expect(vi.mocked(notifyOrderEnded)).not.toHaveBeenCalled()
+
+    // Retry: the payment is refunded now, so only the status is set.
+    vi.clearAllMocks()
+    paidOrder([{ ...stripePayment, status: 'refunded' }])
+    const retry = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(retry.status).toBe(200)
+    expect(vi.mocked(refundStripeSession)).not.toHaveBeenCalled()
+    expect(vi.mocked(notifyOrderEnded)).toHaveBeenCalledWith('order_1', 'cancelled', {
+      stripeCents: 5699,
+      manualCents: 0,
+    })
+  })
+
   it('flags a bank transfer for manual repayment', async () => {
     paidOrder([
       {

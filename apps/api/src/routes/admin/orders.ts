@@ -2,6 +2,7 @@ import { renderPaymentLink } from '@print-shop/emails'
 import { ORDER_STATUSES, PART_EDITABLE_STATUSES, PART_STATUSES } from '@print-shop/types'
 import {
   assertOrderTransition,
+  formatCents,
   hasPermission,
   REVENUE_ORDER_STATUSES,
   TERMS_PATH,
@@ -355,10 +356,33 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     // Conditional write: a webhook may have marked the order paid meanwhile.
     const write = (db: Prisma.TransactionClient) =>
       db.order.updateMany({ where: { id: order.id, status: order.status }, data: { status } })
-    const changed = endsOrder
-      ? await withoutActiveLabel(order.id, labelConflict, write)
-      : await write(prisma)
-    if (changed.count !== 1) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+    let changed: Prisma.BatchPayload
+    try {
+      changed = endsOrder
+        ? await withoutActiveLabel(order.id, labelConflict, write)
+        : await write(prisma)
+    } catch (err) {
+      // A DHL label appeared after the refund: same handling as a changed order below.
+      if (!(err instanceof ApiError) || refunds.stripeCents === 0) throw err
+      changed = { count: 0 }
+    }
+    if (changed.count !== 1) {
+      // The order changed in the seconds between reading it and writing the status, but the
+      // money is already back with the customer: say so loudly instead of a generic conflict.
+      // A retry skips the refunded payments and only sets the status.
+      if (refunds.stripeCents > 0) {
+        await audit(
+          req,
+          'order.refund_without_status',
+          { type: 'order', id: order.id },
+          { from: order.status, to: status, refunds },
+        )
+        throw conflict(
+          `${formatCents(refunds.stripeCents)} wurden bereits über Stripe erstattet, aber die Bestellung wurde zwischenzeitlich geändert. Bitte Bestellung prüfen und den Status erneut setzen – es wird nicht doppelt erstattet.`,
+        )
+      }
+      throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+    }
     const updated = await prisma.order.findUniqueOrThrow({
       where: { id: order.id },
       omit: ORDER_OMIT,
