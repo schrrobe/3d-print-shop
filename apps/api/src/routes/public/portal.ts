@@ -93,7 +93,7 @@ portalRouter.get('/orders', async (req, res, next) => {
     const orders = await prisma.order.findMany({
       where: { email: { equals: req.portalEmail!, mode: 'insensitive' } },
       include: {
-        items: true,
+        items: { orderBy: { id: 'asc' } }, // stable order; cuid ids follow insertion order
         payments: { include: { bitcoinPayment: true } },
         invoice: { select: { number: true, issuedAt: true } },
         printerJobs: { select: { status: true } },
@@ -122,7 +122,7 @@ async function orderForPortal(req: { portalEmail?: string }, orderNumber: string
   const order = await prisma.order.findUnique({
     where: { orderNumber },
     include: {
-      items: true,
+      items: { orderBy: { id: 'asc' } }, // stable order; cuid ids follow insertion order
       payments: { include: { bitcoinPayment: true } },
       invoice: true,
       printerJobs: { select: { status: true } },
