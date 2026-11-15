@@ -344,7 +344,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
           refunds.manualCents += p.amountCents
           continue
         }
-        await refundStripeSession(sessionId, `refund-${p.id}`)
+        await refundStripeSession(sessionId, p.id)
         await prisma.payment.updateMany({
           where: { id: p.id, status: 'paid' },
           data: { status: 'refunded' },

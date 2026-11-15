@@ -59,7 +59,7 @@ const addressFields = z.object({
 
 /** German postcodes have exactly 5 digits; a 4-digit one usually means the wrong country was picked. */
 export const isValidZip = (zip: string, country: string) =>
-  country.toUpperCase() !== 'DE' || /^\d{5}$/.test(zip.trim())
+  country.trim().toUpperCase() !== 'DE' || /^\d{5}$/.test(zip.trim())
 
 const withValidZip = <T extends z.ZodTypeAny & z.ZodType<{ zip: string; country: string }>>(
   schema: T,

@@ -58,6 +58,7 @@ describe('addressSchema', () => {
     expect(zip('DE', '1011A')).toBe(false)
     expect(zip('DE', '10115')).toBe(true)
     expect(zip('AT', '1010')).toBe(true)
+    expect(zip(' de ', '1010')).toBe(false)
     const delivery = { firstName: 'A', lastName: 'B', street: 'S 1', city: 'X', country: 'de' }
     expect(deliveryAddressSchema.safeParse({ ...delivery, zip: '1000' }).success).toBe(false)
   })

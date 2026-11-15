@@ -9,7 +9,10 @@ import { badRequest } from '../../middleware/error.js'
 import { sendEmail } from '../../services/email.js'
 import { markOrderPaid } from '../../services/order-flow.js'
 import { processInboundTicketEmail } from '../../services/ticket.js'
-import { constructStripeWebhookEvent } from '../../services/payments/stripe.js'
+import {
+  constructStripeWebhookEvent,
+  failedRefundPaymentId,
+} from '../../services/payments/stripe.js'
 
 export const webhooksRouter = Router()
 
@@ -80,6 +83,35 @@ webhooksRouter.post('/stripe', raw({ type: 'application/json' }), async (req, re
             ),
           )
         }
+      }
+    }
+
+    // A card refund can settle as failed days later. The payment counts as paid again
+    // (the conditional write makes event replays harmless) and an admin refunds by hand.
+    const failedPaymentId = failedRefundPaymentId(event)
+    if (failedPaymentId) {
+      const reverted = await prisma.payment.updateMany({
+        where: { id: failedPaymentId, status: 'refunded' },
+        data: { status: 'paid' },
+      })
+      if (reverted.count === 1) {
+        const payment = await prisma.payment.findUniqueOrThrow({
+          where: { id: failedPaymentId },
+          include: { order: { select: { id: true, orderNumber: true } } },
+        })
+        console.error(`[stripe] refund failed for ${payment.order.orderNumber}`)
+        await sendEmail(
+          env.ADMIN_NOTIFICATION_EMAIL,
+          'admin_notification',
+          renderAdminNotification(
+            {
+              event: 'Stripe-Erstattung fehlgeschlagen – bitte manuell erstatten',
+              detail: `${payment.order.orderNumber}: ${formatCents(payment.amountCents)} wurden nicht zurückgebucht`,
+              adminUrl: `${env.WEB_URL}/admin/orders/${payment.order.id}`,
+            },
+            'de',
+          ),
+        )
       }
     }
 

@@ -331,7 +331,10 @@ function drawTitleAndMeta(
       t('Liefer-/Leistungsdatum:', 'Delivery/service date:'),
       order.shippedAt
         ? formatInvoiceDate(order.shippedAt, de)
-        : t('entspricht dem Rechnungsdatum', 'same as invoice date'),
+        : data.cancellation
+          ? // The service date belongs to the cancelled invoice, not to this document.
+            formatInvoiceDate(invoice.issuedAt, de)
+          : t('entspricht dem Rechnungsdatum', 'same as invoice date'),
     ],
     [t('Bestellnummer:', 'Order number:'), order.orderNumber],
     [t('Zahlungsart:', 'Payment method:'), de ? method.de : method.en],

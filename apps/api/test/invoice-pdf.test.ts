@@ -392,6 +392,8 @@ describe('renderInvoicePdf', () => {
     expect(text).toContain('Stornorechnung RE-2026-00002')
     expect(text).toContain('RE-2026-00001 vom 04.07.2026')
     expect(text).toContain('10.07.2026')
+    // Service date stays the original invoice date, not the cancellation date.
+    expect(text).not.toContain('entspricht dem Rechnungsdatum')
     expect(text).toMatch(/-54,90/)
     expect(text).toContain('wird Ihnen erstattet')
     expect(text).not.toContain('Verwendungszweck')

@@ -269,10 +269,14 @@ const endOpen = computed({
     if (!open) endStatus.value = null
   },
 })
-const paidCents = (stripe: boolean) =>
+const sumCents = (status: string, stripe: boolean) =>
   (order.value?.payments ?? [])
-    .filter((p) => p.status === 'paid' && p.method.startsWith('stripe') === stripe)
+    .filter((p) => p.status === status && p.method.startsWith('stripe') === stripe)
     .reduce((sum, p) => sum + p.amountCents, 0)
+const paidCents = (stripe: boolean) => sumCents('paid', stripe)
+// Retry after "already refunded, but the order changed": the money is back already.
+const refundedCents = computed(() => sumCents('refunded', true))
+const anyPayment = computed(() => paidCents(true) + paidCents(false) + refundedCents.value > 0)
 
 function requestStatus(status: OrderStatus) {
   if (status === 'cancelled' || status === 'refunded') endStatus.value = status
@@ -868,11 +872,14 @@ function ship() {
           {{ formatCents(paidCents(false)) }} wurden per Überweisung/Bitcoin bezahlt und müssen
           manuell zurückgezahlt werden.
         </p>
-        <p v-if="!paidCents(true) && !paidCents(false)">Es ist keine Zahlung eingegangen.</p>
+        <p v-if="refundedCents">
+          {{ formatCents(refundedCents) }} wurden bereits über Stripe erstattet.
+        </p>
+        <p v-if="!anyPayment">Es ist keine Zahlung eingegangen.</p>
         <p v-if="order?.invoice">
           Rechnung {{ order.invoice.number }} wird per Stornorechnung aufgehoben.
         </p>
-        <p v-if="order?.invoice || paidCents(true) || paidCents(false)">
+        <p v-if="order?.invoice || anyPayment">
           Der Kunde bekommt eine E-Mail{{ order?.invoice ? ' mit der Stornorechnung' : '' }}.
         </p>
         <PsButton :disabled="pending" data-testid="confirm-end-order" @click="confirmEnd">

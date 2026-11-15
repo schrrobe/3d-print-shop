@@ -1,5 +1,5 @@
 import type { Invoice } from '@prisma/client'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../src/lib/prisma.js', () => {
   const prisma = {
@@ -15,6 +15,15 @@ const { prisma } = await import('../src/lib/prisma.js')
 const { cancelInvoice } = await import('../src/services/invoice.js')
 
 const invoice = { id: 'inv1', number: 'RE-2026-AAAAAA', cancellationNumber: null } as Invoice
+
+// nextSequentialNumber takes the year from the clock; the assertions expect 2026.
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-07-01T12:00:00Z'))
+})
+afterAll(() => {
+  vi.useRealTimers()
+})
 
 beforeEach(() => {
   vi.clearAllMocks()

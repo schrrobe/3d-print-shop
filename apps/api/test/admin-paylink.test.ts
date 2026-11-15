@@ -254,7 +254,7 @@ describe('POST /api/admin/orders/:id/status refunds paid money', () => {
 
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ manualRefund: false, customerEmailSent: true })
-    expect(vi.mocked(refundStripeSession)).toHaveBeenCalledWith('cs_1', 'refund-pay_1')
+    expect(vi.mocked(refundStripeSession)).toHaveBeenCalledWith('cs_1', 'pay_1')
     expect(vi.mocked(notifyOrderEnded)).toHaveBeenCalledWith('order_1', 'cancelled', {
       stripeCents: 5699,
       manualCents: 0,

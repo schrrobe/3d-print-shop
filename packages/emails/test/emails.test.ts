@@ -247,6 +247,11 @@ describe('renderOrderCancelled', () => {
     expect(mail.html).toContain('ursprüngliches Zahlungsmittel')
     expect(mail.html).toContain('10,00')
     expect(mail.html).toContain('Stornorechnung <strong>RE-2026-X</strong>')
+    // Plain text says which amount returns automatically and which one by hand.
+    expect(mail.text).toMatch(/49,98\s€ gehen automatisch/)
+    expect(mail.text).toMatch(/10,00\s€ zahlen wir dir/)
+    expect(mail.text).toContain('https://shop.example/order/PS-1')
+    expect(mail.text).not.toContain('<strong>')
   })
 
   it('leaves out refund lines when nothing was paid, and covers every locale', () => {

@@ -368,65 +368,56 @@ export function renderOrderCancelled(data: OrderCancelledData, locale: Locale): 
         cs: `Peníze za tvoji objednávku <strong>${n}</strong> ti vracíme.`,
         it: `Il tuo ordine <strong>${n}</strong> verrà rimborsato.`,
       })
-  const parts = [greeting(data.firstName, locale), paragraph(intro)]
+  // Sentences shared by the HTML and the plain-text part.
+  const sentences = [intro]
   if (data.stripeRefundCents > 0) {
     const a = `<strong>${formatCents(data.stripeRefundCents, locale)}</strong>`
-    parts.push(
-      paragraph(
-        pick(locale, {
-          de: `${a} gehen automatisch auf dein ursprüngliches Zahlungsmittel zurück. Je nach Bank dauert die Gutschrift 5–10 Werktage.`,
-          en: `${a} is being returned to your original payment method automatically. Depending on your bank, this takes 5–10 business days.`,
-          pl: `${a} wraca automatycznie na Twoją pierwotną metodę płatności. W zależności od banku trwa to 5–10 dni roboczych.`,
-          fr: `${a} vous sont automatiquement remboursés sur votre moyen de paiement d’origine. Selon votre banque, cela prend 5 à 10 jours ouvrés.`,
-          nl: `${a} gaat automatisch terug naar je oorspronkelijke betaalmethode. Afhankelijk van je bank duurt dat 5–10 werkdagen.`,
-          cs: `${a} se automaticky vrátí na tvůj původní platební prostředek. Podle banky to trvá 5–10 pracovních dnů.`,
-          it: `${a} tornano automaticamente sul tuo metodo di pagamento originale. A seconda della banca ci vogliono 5–10 giorni lavorativi.`,
-        }),
-      ),
+    sentences.push(
+      pick(locale, {
+        de: `${a} gehen automatisch auf dein ursprüngliches Zahlungsmittel zurück. Je nach Bank dauert die Gutschrift 5–10 Werktage.`,
+        en: `${a} is being returned to your original payment method automatically. Depending on your bank, this takes 5–10 business days.`,
+        pl: `${a} wraca automatycznie na Twoją pierwotną metodę płatności. W zależności od banku trwa to 5–10 dni roboczych.`,
+        fr: `${a} vous sont automatiquement remboursés sur votre moyen de paiement d’origine. Selon votre banque, cela prend 5 à 10 jours ouvrés.`,
+        nl: `${a} gaat automatisch terug naar je oorspronkelijke betaalmethode. Afhankelijk van je bank duurt dat 5–10 werkdagen.`,
+        cs: `${a} se automaticky vrátí na tvůj původní platební prostředek. Podle banky to trvá 5–10 pracovních dnů.`,
+        it: `${a} tornano automaticamente sul tuo metodo di pagamento originale. A seconda della banca ci vogliono 5–10 giorni lavorativi.`,
+      }),
     )
   }
   if (data.manualRefundCents > 0) {
     const a = `<strong>${formatCents(data.manualRefundCents, locale)}</strong>`
-    parts.push(
-      paragraph(
-        pick(locale, {
-          de: `${a} zahlen wir dir in den nächsten Tagen zurück. Falls wir dafür noch Angaben von dir brauchen, melden wir uns.`,
-          en: `We will pay ${a} back to you within the next few days. If we need any details from you for this, we will get in touch.`,
-          pl: `${a} zwrócimy Ci w ciągu najbliższych dni. Jeśli będziemy potrzebować od Ciebie danych, odezwiemy się.`,
-          fr: `Nous vous rembourserons ${a} dans les prochains jours. Si nous avons besoin d’informations de votre part, nous vous contacterons.`,
-          nl: `${a} betalen we je de komende dagen terug. Als we daarvoor nog gegevens van je nodig hebben, nemen we contact op.`,
-          cs: `${a} ti v příštích dnech vrátíme. Pokud k tomu budeme potřebovat nějaké údaje, ozveme se.`,
-          it: `Ti restituiremo ${a} nei prossimi giorni. Se ci servono dei dati da parte tua, ti contatteremo.`,
-        }),
-      ),
+    sentences.push(
+      pick(locale, {
+        de: `${a} zahlen wir dir in den nächsten Tagen zurück. Falls wir dafür noch Angaben von dir brauchen, melden wir uns.`,
+        en: `We will pay ${a} back to you within the next few days. If we need any details from you for this, we will get in touch.`,
+        pl: `${a} zwrócimy Ci w ciągu najbliższych dni. Jeśli będziemy potrzebować od Ciebie danych, odezwiemy się.`,
+        fr: `Nous vous rembourserons ${a} dans les prochains jours. Si nous avons besoin d’informations de votre part, nous vous contacterons.`,
+        nl: `${a} betalen we je de komende dagen terug. Als we daarvoor nog gegevens van je nodig hebben, nemen we contact op.`,
+        cs: `${a} ti v příštích dnech vrátíme. Pokud k tomu budeme potřebovat nějaké údaje, ozveme se.`,
+        it: `Ti restituiremo ${a} nei prossimi giorni. Se ci servono dei dati da parte tua, ti contatteremo.`,
+      }),
     )
   }
   if (data.cancellationNumber) {
     const c = `<strong>${escapeHtml(data.cancellationNumber)}</strong>`
-    parts.push(
-      paragraph(
-        pick(locale, {
-          de: `Im Anhang findest du die Stornorechnung ${c}.`,
-          en: `Please find attached cancellation invoice ${c}.`,
-          pl: `W załączniku znajdziesz fakturę korygującą ${c}.`,
-          fr: `Vous trouverez ci-joint la facture d’annulation ${c}.`,
-          nl: `In de bijlage vind je de creditfactuur ${c}.`,
-          cs: `V příloze najdeš opravný daňový doklad ${c}.`,
-          it: `In allegato trovi la fattura di storno ${c}.`,
-        }),
-      ),
+    sentences.push(
+      pick(locale, {
+        de: `Im Anhang findest du die Stornorechnung ${c}.`,
+        en: `Please find attached cancellation invoice ${c}.`,
+        pl: `W załączniku znajdziesz fakturę korygującą ${c}.`,
+        fr: `Vous trouverez ci-joint la facture d’annulation ${c}.`,
+        nl: `In de bijlage vind je de creditfactuur ${c}.`,
+        cs: `V příloze najdeš opravný daňový doklad ${c}.`,
+        it: `In allegato trovi la fattura di storno ${c}.`,
+      }),
     )
   }
-  parts.push(button(data.orderUrl, pick(locale, viewOrder)))
-  const text = [
-    `${title}: ${n}`,
-    data.stripeRefundCents > 0 ? formatCents(data.stripeRefundCents, locale) : '',
-    data.manualRefundCents > 0 ? formatCents(data.manualRefundCents, locale) : '',
-    data.cancellationNumber ?? '',
-  ]
-    .filter(Boolean)
-    .join('\n')
-  return { subject, html: emailLayout(title, parts.join('')), text }
+  const html =
+    greeting(data.firstName, locale) +
+    sentences.map(paragraph).join('') +
+    button(data.orderUrl, pick(locale, viewOrder))
+  const text = [...sentences.map((x) => x.replace(/<[^>]+>/g, '')), data.orderUrl].join('\n\n')
+  return { subject, html: emailLayout(title, html), text }
 }
 
 /**
