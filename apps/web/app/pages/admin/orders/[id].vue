@@ -314,6 +314,8 @@ const partsEditable = computed(
     PART_EDITABLE_STATUSES.includes(order.value.status),
 )
 const partStatusOf = (item: AdminOrderDetail['items'][number], part: Part) => item[`${part}Status`]
+/** Bauteil-Tabellen ein-/ausblenden; per Cookie über Bestellungen hinweg gemerkt. */
+const showParts = useCookie('admin-show-parts', { default: () => true, maxAge: 60 * 60 * 24 * 365 })
 
 /** "fertig" implies "in Fertigung"; unticking "in Fertigung" resets to open. */
 async function setPart(
@@ -625,7 +627,19 @@ function ship() {
 
     <div class="grid gap-lg lg:grid-cols-2">
       <PsCard>
-        <h3 class="text-label-medium">Positionen</h3>
+        <div class="flex items-center justify-between gap-md">
+          <h3 class="text-label-medium">Positionen</h3>
+          <PsButton
+            v-if="order.items.some((i) => i.productId)"
+            variant="ghost"
+            size="sm"
+            :aria-pressed="showParts"
+            data-testid="toggle-parts"
+            @click="showParts = !showParts"
+          >
+            {{ showParts ? 'Bauteile ausblenden' : 'Bauteile einblenden' }}
+          </PsButton>
+        </div>
         <ul class="mt-md flex flex-col gap-sm text-body-regular">
           <li v-for="item in order.items" :key="item.id">
             <div class="flex justify-between">
@@ -634,7 +648,7 @@ function ship() {
             </div>
             <AdminItemColors :colors="item.colors" :personalization="item.personalization" />
             <table
-              v-if="item.productId"
+              v-if="item.productId && showParts"
               class="mt-sm text-caption"
               :data-testid="`item-parts-${item.id}`"
             >
