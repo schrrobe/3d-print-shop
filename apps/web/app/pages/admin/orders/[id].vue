@@ -398,12 +398,15 @@ async function saveItems() {
         },
       }))
     },
-    { success: 'Paylink geändert, neuer Link verschickt', error: 'Ändern fehlgeschlagen' },
+    { error: 'Ändern fehlgeschlagen' },
   )
   if (!ok) return
   itemsOpen.value = false
-  if (!emailSent)
-    toast.show('E-Mail mit neuem Link fehlgeschlagen – Link manuell senden', { variant: 'error' })
+  if (emailSent) toast.show('Paylink geändert, neuer Link verschickt', { variant: 'success' })
+  else
+    toast.show('Paylink geändert, E-Mail fehlgeschlagen – Link manuell senden', {
+      variant: 'error',
+    })
 }
 
 // ---------- Delivery address ----------
