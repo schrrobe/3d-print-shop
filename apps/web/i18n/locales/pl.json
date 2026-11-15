@@ -529,6 +529,8 @@
         "street": "Podaj ulicę i numer domu.",
         "zip": "Podaj kod pocztowy.",
         "zipFormat": "Kod pocztowy musi mieć od 3 do 12 znaków.",
+        "zipGermany": "Niemieckie kody pocztowe mają 5 cyfr. Sprawdź też kraj.",
+        "latin": "Używaj tylko liter łacińskich (np. Sofia zamiast София).",
         "city": "Podaj miejscowość.",
         "colors": "Przy jednym z produktów w koszyku brakuje koloru lub kolor jest już niedostępny. Edytuj produkt w koszyku.",
         "freeBoxColors": "Wybierz wszystkie kolory dla darmowego pudełka."

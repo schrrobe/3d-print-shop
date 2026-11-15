@@ -529,6 +529,8 @@
         "street": "Veuillez saisir la rue et le numéro.",
         "zip": "Veuillez saisir votre code postal.",
         "zipFormat": "Le code postal doit comporter 3 à 12 caractères.",
+        "zipGermany": "Les codes postaux allemands comportent 5 chiffres. Veuillez aussi vérifier le pays.",
+        "latin": "Veuillez utiliser uniquement des lettres latines (p. ex. Sofia au lieu de София).",
         "city": "Veuillez saisir votre ville.",
         "colors": "Un article du panier n'a pas de couleur ou sa couleur n'est plus disponible. Veuillez modifier l'article dans le panier.",
         "freeBoxColors": "Veuillez choisir toutes les couleurs de la boîte offerte."

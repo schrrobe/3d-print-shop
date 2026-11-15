@@ -8,6 +8,7 @@ import {
   qualifiesForFreeBox,
   SHIPPING_COUNTRIES,
 } from '@print-shop/utils'
+import { isValidZip, NON_LATIN_LETTER } from '@print-shop/validators'
 import type { ColorSelection, Locale } from '@print-shop/types'
 import { adPlatformCookies } from '~/utils/tracking/queue'
 
@@ -116,9 +117,9 @@ onMounted(() => {
 })
 const errorMessage = ref('')
 
-type Field = 'email' | 'firstName' | 'lastName' | 'street' | 'zip' | 'city'
+type Field = 'email' | 'firstName' | 'lastName' | 'company' | 'street' | 'zip' | 'city'
 const errors = reactive<Partial<Record<Field, string>>>({})
-const FIELD_ORDER: Field[] = ['email', 'firstName', 'lastName', 'street', 'zip', 'city']
+const FIELD_ORDER: Field[] = ['email', 'firstName', 'lastName', 'company', 'street', 'zip', 'city']
 
 function validate(): boolean {
   for (const key of FIELD_ORDER) delete errors[key]
@@ -131,6 +132,12 @@ function validate(): boolean {
   }
   const zip = form.zip.trim()
   if (zip && (zip.length < 3 || zip.length > 12)) errors.zip = t('shop.checkout.errors.zipFormat')
+  else if (zip && !isValidZip(zip, form.country)) errors.zip = t('shop.checkout.errors.zipGermany')
+  // Carriers print labels in Latin script only (same rule as the API).
+  for (const key of ['firstName', 'lastName', 'company', 'street', 'zip', 'city'] as const) {
+    if (!errors[key] && NON_LATIN_LETTER.test(form[key]))
+      errors[key] = t('shop.checkout.errors.latin')
+  }
   const first = FIELD_ORDER.find((key) => errors[key])
   if (first) {
     errorMessage.value = t('shop.checkout.errors.summary', { count: Object.keys(errors).length })
@@ -447,6 +454,7 @@ const summaryOpen = ref(false)
             <ShopField
               v-model="form.company"
               :label="t('shop.checkout.company')"
+              :error="errors.company"
               optional
               name="company"
               autocomplete="organization"

@@ -529,6 +529,8 @@
         "street": "Bitte gib Straße und Hausnummer ein.",
         "zip": "Bitte gib deine Postleitzahl ein.",
         "zipFormat": "Die Postleitzahl muss 3 bis 12 Zeichen lang sein.",
+        "zipGermany": "Deutsche Postleitzahlen haben 5 Ziffern. Bitte prüfe auch das Land.",
+        "latin": "Bitte nur lateinische Buchstaben verwenden (z. B. Sofia statt София).",
         "city": "Bitte gib deinen Ort ein.",
         "colors": "Bei einem Artikel im Warenkorb fehlt eine Farbe oder sie ist nicht mehr verfügbar. Bitte bearbeite den Artikel im Warenkorb.",
         "freeBoxColors": "Bitte wähle alle Farben für die Gratis-Box."

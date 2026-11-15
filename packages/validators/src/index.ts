@@ -38,17 +38,38 @@ export const priceCentsSchema = z.number().int().min(0).max(100_000_000)
 
 // ---------- Address / customer ----------
 
-export const addressSchema = z.object({
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  company: z.string().trim().max(150).optional(),
-  street: z.string().trim().min(1).max(200),
-  zip: z.string().trim().min(3).max(12),
-  city: z.string().trim().min(1).max(100),
+/** A letter outside the Latin script (Cyrillic, Greek, …); umlauts and accents are Latin. */
+export const NON_LATIN_LETTER = /(?!\p{Script=Latin})\p{L}/u
+
+/** Carriers print labels in Latin script only, so addresses must be written in it. */
+const latinText = (s: z.ZodString) =>
+  s.refine((v) => !NON_LATIN_LETTER.test(v), 'Latin characters only')
+
+const addressFields = z.object({
+  firstName: latinText(z.string().trim().min(1).max(100)),
+  lastName: latinText(z.string().trim().min(1).max(100)),
+  company: latinText(z.string().trim().max(150)).optional(),
+  street: latinText(z.string().trim().min(1).max(200)),
+  zip: latinText(z.string().trim().min(3).max(12)),
+  city: latinText(z.string().trim().min(1).max(100)),
   country: z.string().trim().length(2, 'ISO 3166-1 alpha-2'),
   email: z.string().trim().email().max(254),
   phone: z.string().trim().max(30).optional(),
 })
+
+/** German postcodes have exactly 5 digits; a 4-digit one usually means the wrong country was picked. */
+export const isValidZip = (zip: string, country: string) =>
+  country.toUpperCase() !== 'DE' || /^\d{5}$/.test(zip.trim())
+
+const withValidZip = <T extends z.ZodTypeAny & z.ZodType<{ zip: string; country: string }>>(
+  schema: T,
+) =>
+  schema.refine((a) => isValidZip(a.zip, a.country), {
+    message: 'German postcodes have 5 digits',
+    path: ['zip'],
+  })
+
+export const addressSchema = withValidZip(addressFields)
 
 // ---------- Cart / checkout ----------
 
@@ -415,13 +436,15 @@ export const shippingUpdateSchema = z.object({
 })
 
 /** Different recipient for the goods; the billing address on the order stays as is. */
-export const deliveryAddressSchema = addressSchema
-  .pick({ firstName: true, lastName: true, company: true, street: true, zip: true, city: true })
-  .extend({
-    country: addressSchema.shape.country
-      .toUpperCase()
-      .refine(isShippingCountry, 'Not a delivery country'),
-  })
+export const deliveryAddressSchema = withValidZip(
+  addressFields
+    .pick({ firstName: true, lastName: true, company: true, street: true, zip: true, city: true })
+    .extend({
+      country: addressFields.shape.country
+        .toUpperCase()
+        .refine(isShippingCountry, 'Not a delivery country'),
+    }),
+)
 export type DeliveryAddress = z.infer<typeof deliveryAddressSchema>
 
 /** Admin order detail: staff-only note, tracking link (also after shipping), delivery address. */

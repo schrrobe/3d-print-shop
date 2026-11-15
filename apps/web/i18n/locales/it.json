@@ -529,6 +529,8 @@
         "street": "Inserisci via e numero civico.",
         "zip": "Inserisci il tuo CAP.",
         "zipFormat": "Il CAP deve avere da 3 a 12 caratteri.",
+        "zipGermany": "I CAP tedeschi hanno 5 cifre. Controlla anche il paese.",
+        "latin": "Usa solo lettere latine (ad es. Sofia invece di София).",
         "city": "Inserisci la tua città.",
         "colors": "A un articolo nel carrello manca un colore, oppure il colore non è più disponibile. Modifica l'articolo nel carrello.",
         "freeBoxColors": "Scegli tutti i colori della scatola in omaggio."

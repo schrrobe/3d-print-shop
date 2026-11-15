@@ -529,6 +529,8 @@
         "street": "Please enter street and house number.",
         "zip": "Please enter your postcode.",
         "zipFormat": "The postcode must be 3 to 12 characters long.",
+        "zipGermany": "German postcodes have 5 digits. Please also check the country.",
+        "latin": "Please use Latin letters only (e.g. Sofia instead of София).",
         "city": "Please enter your city.",
         "colors": "An item in your cart is missing a colour or the colour is no longer available. Please edit the item in your cart.",
         "freeBoxColors": "Please choose all colours for the free box."

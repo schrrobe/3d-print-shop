@@ -529,6 +529,8 @@
         "street": "Vul straat en huisnummer in.",
         "zip": "Vul je postcode in.",
         "zipFormat": "De postcode moet 3 tot 12 tekens lang zijn.",
+        "zipGermany": "Duitse postcodes hebben 5 cijfers. Controleer ook het land.",
+        "latin": "Gebruik alleen Latijnse letters (bijv. Sofia in plaats van София).",
         "city": "Vul je woonplaats in.",
         "colors": "Bij een artikel in je winkelwagen ontbreekt een kleur of de kleur is niet meer beschikbaar. Pas het artikel aan in je winkelwagen.",
         "freeBoxColors": "Kies alle kleuren voor de gratis box."

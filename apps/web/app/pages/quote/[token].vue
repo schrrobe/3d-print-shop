@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PsBadge, PsInput, PsPillButton, PsPrice, PsSection } from '@print-shop/ui'
+import { isValidZip, NON_LATIN_LETTER } from '@print-shop/validators'
 
 /** Public quote page — customer accepts (→ payment link) or declines. */
 const { t, locale } = useI18n()
@@ -49,7 +50,24 @@ const address = reactive({
   email: '',
 })
 
+type AddressField = 'firstName' | 'lastName' | 'street' | 'zip' | 'city'
+const errors = reactive<Partial<Record<AddressField, string>>>({})
+const submitError = ref('')
+
+// Same rules as the API: Latin script only, 5-digit postcodes for Germany.
+function validate(): boolean {
+  const fields: AddressField[] = ['firstName', 'lastName', 'street', 'zip', 'city']
+  for (const key of fields) {
+    errors[key] = NON_LATIN_LETTER.test(address[key]) ? t('shop.checkout.errors.latin') : undefined
+  }
+  if (!errors.zip && !isValidZip(address.zip, address.country))
+    errors.zip = t('shop.checkout.errors.zipGermany')
+  return fields.every((key) => !errors[key])
+}
+
 async function accept() {
+  submitError.value = ''
+  if (!validate()) return
   submitting.value = true
   try {
     const result = await $fetch<{ paymentUrl: string }>(`/api/quotes/${token}/accept`, {
@@ -63,6 +81,8 @@ async function accept() {
     })
     paymentUrl.value = result.paymentUrl
     await refresh()
+  } catch {
+    submitError.value = t('common.error')
   } finally {
     submitting.value = false
   }
@@ -154,16 +174,49 @@ async function decline() {
         >
           <h2 class="text-heading-small">{{ t('quote.addressTitle') }}</h2>
           <div class="grid gap-md sm:grid-cols-2">
-            <PsInput v-model="address.firstName" :label="t('checkout.firstName')" required />
-            <PsInput v-model="address.lastName" :label="t('checkout.lastName')" required />
+            <PsInput
+              v-model="address.firstName"
+              :label="t('checkout.firstName')"
+              :error="errors.firstName"
+              required
+            />
+            <PsInput
+              v-model="address.lastName"
+              :label="t('checkout.lastName')"
+              :error="errors.lastName"
+              required
+            />
           </div>
-          <PsInput v-model="address.street" :label="t('checkout.street')" required />
+          <PsInput
+            v-model="address.street"
+            :label="t('checkout.street')"
+            :error="errors.street"
+            required
+          />
           <div class="grid gap-md sm:grid-cols-[140px_1fr_120px]">
-            <PsInput v-model="address.zip" :label="t('checkout.zip')" required />
-            <PsInput v-model="address.city" :label="t('checkout.city')" required />
+            <PsInput
+              v-model="address.zip"
+              :label="t('checkout.zip')"
+              :error="errors.zip"
+              required
+            />
+            <PsInput
+              v-model="address.city"
+              :label="t('checkout.city')"
+              :error="errors.city"
+              required
+            />
             <PsInput v-model="address.country" :label="t('checkout.country')" required />
           </div>
           <PsInput v-model="address.email" :label="t('checkout.email')" type="email" required />
+          <p
+            v-if="submitError"
+            class="text-caption text-red-500"
+            role="alert"
+            data-testid="quote-accept-error"
+          >
+            {{ submitError }}
+          </p>
           <PsPillButton
             type="submit"
             size="lg"
