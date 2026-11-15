@@ -529,6 +529,8 @@
         "street": "Zadej ulici a číslo domu.",
         "zip": "Zadej PSČ.",
         "zipFormat": "PSČ musí mít 3 až 12 znaků.",
+        "zipGermany": "Německá PSČ mají 5 číslic. Zkontrolujte také zemi.",
+        "latin": "Používejte pouze latinková písmena (např. Sofia místo София).",
         "city": "Zadej město.",
         "colors": "U položky v košíku chybí barva nebo už není dostupná. Uprav prosím položku v košíku.",
         "freeBoxColors": "Vyber všechny barvy pro krabičku zdarma."

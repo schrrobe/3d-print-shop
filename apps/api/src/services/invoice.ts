@@ -62,6 +62,38 @@ export async function createInvoiceForOrder(orderId: string): Promise<Invoice> {
   }
 }
 
+/**
+ * Stornorechnung for an issued invoice: takes the next number of the invoice range and
+ * records it on the invoice row. Idempotent; the original invoice is never changed.
+ */
+export async function cancelInvoice(invoice: Invoice): Promise<Invoice> {
+  if (invoice.cancellationNumber) return invoice
+  try {
+    await prisma.$transaction(async (tx) => {
+      const { number, year, sequence } = await nextSequentialNumber(
+        tx.invoiceCounter,
+        env.INVOICE_PREFIX,
+      )
+      const updated = await tx.invoice.updateMany({
+        where: { id: invoice.id, cancellationNumber: null },
+        data: {
+          cancellationNumber: number,
+          cancellationYear: year,
+          cancellationSequence: sequence,
+          cancelledAt: new Date(),
+        },
+      })
+      // Lost a race: roll back so the number range keeps no gap.
+      if (updated.count !== 1) throw new CancellationRace()
+    })
+  } catch (err) {
+    if (!(err instanceof CancellationRace)) throw err
+  }
+  return prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } })
+}
+
+class CancellationRace extends Error {}
+
 function invoiceCompany(): CompanyInfo {
   return {
     ...company(),
@@ -69,17 +101,23 @@ function invoiceCompany(): CompanyInfo {
   }
 }
 
-/** Renders the DIN 5008 invoice PDF into INVOICE_DIR and stores the path. */
+/**
+ * Renders the DIN 5008 invoice PDF into INVOICE_DIR and stores the path.
+ * `cancellation` renders the invoice's Stornorechnung (see cancelInvoice) instead.
+ */
 export async function generateInvoicePdf(
   invoice: Invoice,
   order: OrderForInvoice,
+  { cancellation = false } = {},
 ): Promise<string> {
+  const number = cancellation ? invoice.cancellationNumber : invoice.number
+  if (!number) throw new Error(`Invoice ${invoice.number} is not cancelled`)
   await mkdir(env.INVOICE_DIR, { recursive: true })
-  const filePath = path.join(env.INVOICE_DIR, `${invoice.number}.pdf`)
+  const filePath = path.join(env.INVOICE_DIR, `${number}.pdf`)
   const company = invoiceCompany()
 
   let qrPng: Buffer | undefined
-  if (shouldShowGiroCode(invoice, order.payments)) {
+  if (!cancellation && shouldShowGiroCode(invoice, order.payments)) {
     try {
       qrPng = await QRCode.toBuffer(
         buildEpcQrPayload({
@@ -107,7 +145,7 @@ export async function generateInvoicePdf(
   const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true })
   const stream = createWriteStream(tmpPath)
   doc.pipe(stream)
-  renderInvoicePdf(doc, { invoice, order, company, qrPng })
+  renderInvoicePdf(doc, { invoice, order, company, qrPng, cancellation })
   doc.end()
   await new Promise<void>((resolve, reject) => {
     stream.on('finish', () => resolve())
@@ -115,6 +153,9 @@ export async function generateInvoicePdf(
   })
   await rename(tmpPath, filePath)
 
-  await prisma.invoice.update({ where: { id: invoice.id }, data: { pdfPath: filePath } })
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: cancellation ? { cancellationPdfPath: filePath } : { pdfPath: filePath },
+  })
   return filePath
 }

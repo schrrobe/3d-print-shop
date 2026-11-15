@@ -79,7 +79,12 @@ interface AdminOrderDetail {
     amountCents: number
     stripePaymentLinkUrl: string | null
   }[]
-  invoice: { id: string; number: string; sentAt: string | null } | null
+  invoice: {
+    id: string
+    number: string
+    sentAt: string | null
+    cancellationNumber: string | null
+  } | null
   tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
   providerAssignments: ProviderAssignment[]
 }
@@ -223,17 +228,65 @@ function resendPaymentLink() {
 
 async function setStatus(status: OrderStatus) {
   let providerCancelEmailSent: boolean | null = null
+  let manualRefund = false
+  let customerEmailSent: boolean | null = null
   await run(
     async () => {
-      const res = await $fetch<{ providerCancelEmailSent: boolean | null }>(
-        `/api/admin/orders/${orderId}/status`,
-        { method: 'POST', body: { status }, credentials: 'include' },
-      )
+      const res = await $fetch<{
+        providerCancelEmailSent: boolean | null
+        manualRefund: boolean
+        customerEmailSent: boolean | null
+      }>(`/api/admin/orders/${orderId}/status`, {
+        method: 'POST',
+        body: { status },
+        credentials: 'include',
+      })
       providerCancelEmailSent = res.providerCancelEmailSent
+      manualRefund = res.manualRefund
+      customerEmailSent = res.customerEmailSent
     },
     { success: `Status → ${status}`, error: 'Statuswechsel fehlgeschlagen' },
   )
   warnCancelEmail(providerCancelEmailSent)
+  if (manualRefund)
+    toast.show('Überweisung/Bitcoin-Zahlung bitte manuell an den Kunden zurückzahlen', {
+      variant: 'error',
+    })
+  if (customerEmailSent === false)
+    toast.show(
+      'Storno-Mail an den Kunden fehlgeschlagen – Stornorechnung herunterladen und selbst senden',
+      {
+        variant: 'error',
+      },
+    )
+}
+
+// Cancelling or refunding sends paid money back, so it asks first.
+const endStatus = ref<'cancelled' | 'refunded' | null>(null)
+const endOpen = computed({
+  get: () => endStatus.value !== null,
+  set: (open) => {
+    if (!open) endStatus.value = null
+  },
+})
+const sumCents = (status: string, stripe: boolean) =>
+  (order.value?.payments ?? [])
+    .filter((p) => p.status === status && p.method.startsWith('stripe') === stripe)
+    .reduce((sum, p) => sum + p.amountCents, 0)
+const paidCents = (stripe: boolean) => sumCents('paid', stripe)
+// Retry after "already refunded, but the order changed": the money is back already.
+const refundedCents = computed(() => sumCents('refunded', true))
+const anyPayment = computed(() => paidCents(true) + paidCents(false) + refundedCents.value > 0)
+
+function requestStatus(status: OrderStatus) {
+  if (status === 'cancelled' || status === 'refunded') endStatus.value = status
+  else void setStatus(status)
+}
+
+async function confirmEnd() {
+  const status = endStatus.value
+  endStatus.value = null
+  if (status) await setStatus(status)
 }
 
 const PART_LABELS: Record<Part, string> = {
@@ -571,6 +624,15 @@ function ship() {
           >
             Rechnung erneut senden
           </PsButton>
+          <a
+            v-if="order.status === 'cancelled' || order.status === 'refunded'"
+            :href="`/api/admin/invoices/${order.invoice.id}/cancellation.pdf`"
+            class="text-caption text-brand hover:underline"
+            data-testid="cancellation-invoice-pdf"
+            download
+          >
+            Stornorechnung {{ order.invoice.cancellationNumber ?? '' }} (PDF)
+          </a>
         </div>
         <PsButton
           v-if="auth.can('orders:write')"
@@ -797,6 +859,35 @@ function ship() {
       </form>
     </PsDialog>
 
+    <PsDialog
+      v-model:open="endOpen"
+      :title="endStatus === 'refunded' ? 'Bestellung erstatten' : 'Bestellung stornieren'"
+    >
+      <div class="flex flex-col gap-md text-body-regular" data-testid="end-order-dialog">
+        <p v-if="paidCents(true)">
+          {{ formatCents(paidCents(true)) }} werden über Stripe automatisch an den Kunden
+          zurückgebucht.
+        </p>
+        <p v-if="paidCents(false)">
+          {{ formatCents(paidCents(false)) }} wurden per Überweisung/Bitcoin bezahlt und müssen
+          manuell zurückgezahlt werden.
+        </p>
+        <p v-if="refundedCents">
+          {{ formatCents(refundedCents) }} wurden bereits über Stripe erstattet.
+        </p>
+        <p v-if="!anyPayment">Es ist keine Zahlung eingegangen.</p>
+        <p v-if="order?.invoice">
+          Rechnung {{ order.invoice.number }} wird per Stornorechnung aufgehoben.
+        </p>
+        <p v-if="order?.invoice || anyPayment">
+          Der Kunde bekommt eine E-Mail{{ order?.invoice ? ' mit der Stornorechnung' : '' }}.
+        </p>
+        <PsButton :disabled="pending" data-testid="confirm-end-order" @click="confirmEnd">
+          {{ endStatus === 'refunded' ? 'Erstatten' : 'Stornieren' }}
+        </PsButton>
+      </div>
+    </PsDialog>
+
     <PsCard data-testid="order-internal-note">
       <h3 class="text-label-medium">Interne Notiz</h3>
       <p class="mt-xs text-caption text-secondary">Nur im Admin sichtbar, nie für Kunden.</p>
@@ -983,7 +1074,7 @@ function ship() {
             :key="status"
             variant="secondary"
             :data-testid="`status-${status}`"
-            @click="setStatus(status)"
+            @click="requestStatus(status)"
           >
             → {{ status }}
           </PsButton>

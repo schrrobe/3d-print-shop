@@ -2,7 +2,7 @@ import type { Server } from 'node:http'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../src/lib/prisma.js', () => ({
-  prisma: { payment: { findFirst: vi.fn(), updateMany: vi.fn() } },
+  prisma: { payment: { findFirst: vi.fn(), updateMany: vi.fn(), findUniqueOrThrow: vi.fn() } },
 }))
 vi.mock('../src/services/email.js', () => ({ sendEmail: vi.fn().mockResolvedValue(true) }))
 vi.mock('../src/services/order-flow.js', () => ({ markOrderPaid: vi.fn() }))
@@ -106,6 +106,34 @@ describe('POST /api/webhooks/stripe', () => {
 
     expect((await completed('cs_2')).status).toBe(200)
     expect(vi.mocked(markOrderPaid)).not.toHaveBeenCalled()
+    expect(refundAlert()).toHaveLength(1)
+  })
+
+  it('reverts a refund that failed later to paid and alerts an admin once', async () => {
+    vi.mocked(prisma.payment.findUniqueOrThrow).mockResolvedValue(payment('paid', 'cancelled'))
+    const refundEvent = (type: string, status: string) =>
+      fetch(`${baseUrl}/api/webhooks/stripe`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          type,
+          data: { object: { id: 're_1', status, metadata: { paymentId: 'pay_1' } } },
+        }),
+      })
+
+    expect((await refundEvent('refund.updated', 'succeeded')).status).toBe(200)
+    expect(updateMany).not.toHaveBeenCalled()
+
+    expect((await refundEvent('refund.failed', 'failed')).status).toBe(200)
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: 'pay_1', status: 'refunded' },
+      data: { status: 'paid' },
+    })
+    expect(refundAlert()).toHaveLength(1)
+
+    // Replay (or the matching refund.updated): the payment is no longer refunded.
+    updateMany.mockResolvedValue({ count: 0 })
+    expect((await refundEvent('refund.updated', 'failed')).status).toBe(200)
     expect(refundAlert()).toHaveLength(1)
   })
 })

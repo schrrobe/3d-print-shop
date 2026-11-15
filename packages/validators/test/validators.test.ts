@@ -7,6 +7,7 @@ import {
   checkoutSchema,
   colorCreateSchema,
   consentLogSchema,
+  deliveryAddressSchema,
   loginSchema,
   productCreateSchema,
   productUpdateSchema,
@@ -33,6 +34,33 @@ describe('addressSchema', () => {
   it('rejects invalid email and country', () => {
     expect(addressSchema.safeParse({ ...validAddress, email: 'nope' }).success).toBe(false)
     expect(addressSchema.safeParse({ ...validAddress, country: 'DEU' }).success).toBe(false)
+  })
+
+  it('accepts umlauts and accents but rejects non-Latin script', () => {
+    const latin = {
+      firstName: 'Zoë',
+      lastName: 'Müller-Łukasz',
+      street: 'Rue Émile 3',
+      city: 'Brno-Žabovřesky',
+    }
+    expect(addressSchema.safeParse({ ...validAddress, ...latin }).success).toBe(true)
+    for (const field of ['firstName', 'lastName', 'company', 'street', 'zip', 'city']) {
+      expect(addressSchema.safeParse({ ...validAddress, [field]: 'София 1000' }).success).toBe(
+        false,
+      )
+    }
+  })
+
+  it('requires 5-digit postcodes for Germany only', () => {
+    const zip = (country: string, zip: string) =>
+      addressSchema.safeParse({ ...validAddress, country, zip }).success
+    expect(zip('DE', '1000')).toBe(false)
+    expect(zip('DE', '1011A')).toBe(false)
+    expect(zip('DE', '10115')).toBe(true)
+    expect(zip('AT', '1010')).toBe(true)
+    expect(zip(' de ', '1010')).toBe(false)
+    const delivery = { firstName: 'A', lastName: 'B', street: 'S 1', city: 'X', country: 'de' }
+    expect(deliveryAddressSchema.safeParse({ ...delivery, zip: '1000' }).success).toBe(false)
   })
 })
 

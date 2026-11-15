@@ -14,6 +14,7 @@ export type EmailTemplateName =
   | 'order_confirmation'
   | 'payment_received'
   | 'payment_reminder'
+  | 'order_cancelled'
   | 'upload_received'
   | 'quote_available'
   | 'quote_accepted'
@@ -291,6 +292,132 @@ export function renderPaymentReceived(data: OrderEmailData, locale: Locale): Ren
       ),
   )
   return { subject, html, text: `${title}: ${n}` }
+}
+
+export interface OrderCancelledData {
+  orderNumber: string
+  firstName: string
+  orderUrl: string
+  /** cancelled = before shipping, refunded = after (e.g. returned goods). */
+  status: 'cancelled' | 'refunded'
+  /** Already sent back to the original payment method via Stripe. */
+  stripeRefundCents: number
+  /** Bank transfer / bitcoin: the shop pays it back by hand. */
+  manualRefundCents: number
+  /** Stornorechnung number when one is attached. */
+  cancellationNumber?: string
+}
+
+export function renderOrderCancelled(data: OrderCancelledData, locale: Locale): RenderedEmail {
+  const n = data.orderNumber
+  const cancelled = data.status === 'cancelled'
+  const subject = cancelled
+    ? pick(locale, {
+        de: `Bestellung ${n} storniert`,
+        en: `Order ${n} cancelled`,
+        pl: `Zamówienie ${n} anulowane`,
+        fr: `Commande ${n} annulée`,
+        nl: `Bestelling ${n} geannuleerd`,
+        cs: `Objednávka ${n} zrušena`,
+        it: `Ordine ${n} annullato`,
+      })
+    : pick(locale, {
+        de: `Erstattung zu Bestellung ${n}`,
+        en: `Refund for order ${n}`,
+        pl: `Zwrot za zamówienie ${n}`,
+        fr: `Remboursement de la commande ${n}`,
+        nl: `Terugbetaling voor bestelling ${n}`,
+        cs: `Vrácení peněz za objednávku ${n}`,
+        it: `Rimborso per l'ordine ${n}`,
+      })
+  const title = cancelled
+    ? pick(locale, {
+        de: 'Bestellung storniert',
+        en: 'Order cancelled',
+        pl: 'Zamówienie anulowane',
+        fr: 'Commande annulée',
+        nl: 'Bestelling geannuleerd',
+        cs: 'Objednávka zrušena',
+        it: 'Ordine annullato',
+      })
+    : pick(locale, {
+        de: 'Erstattung',
+        en: 'Refund',
+        pl: 'Zwrot pieniędzy',
+        fr: 'Remboursement',
+        nl: 'Terugbetaling',
+        cs: 'Vrácení peněz',
+        it: 'Rimborso',
+      })
+  const intro = cancelled
+    ? pick(locale, {
+        de: `Deine Bestellung <strong>${n}</strong> wurde storniert.`,
+        en: `Your order <strong>${n}</strong> has been cancelled.`,
+        pl: `Twoje zamówienie <strong>${n}</strong> zostało anulowane.`,
+        fr: `Votre commande <strong>${n}</strong> a été annulée.`,
+        nl: `Je bestelling <strong>${n}</strong> is geannuleerd.`,
+        cs: `Tvoje objednávka <strong>${n}</strong> byla zrušena.`,
+        it: `Il tuo ordine <strong>${n}</strong> è stato annullato.`,
+      })
+    : pick(locale, {
+        de: `Deine Bestellung <strong>${n}</strong> wird erstattet.`,
+        en: `Your order <strong>${n}</strong> is being refunded.`,
+        pl: `Zwracamy pieniądze za Twoje zamówienie <strong>${n}</strong>.`,
+        fr: `Votre commande <strong>${n}</strong> va être remboursée.`,
+        nl: `Je bestelling <strong>${n}</strong> wordt terugbetaald.`,
+        cs: `Peníze za tvoji objednávku <strong>${n}</strong> ti vracíme.`,
+        it: `Il tuo ordine <strong>${n}</strong> verrà rimborsato.`,
+      })
+  // Sentences shared by the HTML and the plain-text part.
+  const sentences = [intro]
+  if (data.stripeRefundCents > 0) {
+    const a = `<strong>${formatCents(data.stripeRefundCents, locale)}</strong>`
+    sentences.push(
+      pick(locale, {
+        de: `${a} gehen automatisch auf dein ursprüngliches Zahlungsmittel zurück. Je nach Bank dauert die Gutschrift 5–10 Werktage.`,
+        en: `${a} is being returned to your original payment method automatically. Depending on your bank, this takes 5–10 business days.`,
+        pl: `${a} wraca automatycznie na Twoją pierwotną metodę płatności. W zależności od banku trwa to 5–10 dni roboczych.`,
+        fr: `${a} vous sont automatiquement remboursés sur votre moyen de paiement d’origine. Selon votre banque, cela prend 5 à 10 jours ouvrés.`,
+        nl: `${a} gaat automatisch terug naar je oorspronkelijke betaalmethode. Afhankelijk van je bank duurt dat 5–10 werkdagen.`,
+        cs: `${a} se automaticky vrátí na tvůj původní platební prostředek. Podle banky to trvá 5–10 pracovních dnů.`,
+        it: `${a} tornano automaticamente sul tuo metodo di pagamento originale. A seconda della banca ci vogliono 5–10 giorni lavorativi.`,
+      }),
+    )
+  }
+  if (data.manualRefundCents > 0) {
+    const a = `<strong>${formatCents(data.manualRefundCents, locale)}</strong>`
+    sentences.push(
+      pick(locale, {
+        de: `${a} zahlen wir dir in den nächsten Tagen zurück. Falls wir dafür noch Angaben von dir brauchen, melden wir uns.`,
+        en: `We will pay ${a} back to you within the next few days. If we need any details from you for this, we will get in touch.`,
+        pl: `${a} zwrócimy Ci w ciągu najbliższych dni. Jeśli będziemy potrzebować od Ciebie danych, odezwiemy się.`,
+        fr: `Nous vous rembourserons ${a} dans les prochains jours. Si nous avons besoin d’informations de votre part, nous vous contacterons.`,
+        nl: `${a} betalen we je de komende dagen terug. Als we daarvoor nog gegevens van je nodig hebben, nemen we contact op.`,
+        cs: `${a} ti v příštích dnech vrátíme. Pokud k tomu budeme potřebovat nějaké údaje, ozveme se.`,
+        it: `Ti restituiremo ${a} nei prossimi giorni. Se ci servono dei dati da parte tua, ti contatteremo.`,
+      }),
+    )
+  }
+  if (data.cancellationNumber) {
+    const c = `<strong>${escapeHtml(data.cancellationNumber)}</strong>`
+    sentences.push(
+      pick(locale, {
+        de: `Im Anhang findest du die Stornorechnung ${c}.`,
+        en: `Please find attached cancellation invoice ${c}.`,
+        pl: `W załączniku znajdziesz fakturę korygującą ${c}.`,
+        fr: `Vous trouverez ci-joint la facture d’annulation ${c}.`,
+        nl: `In de bijlage vind je de creditfactuur ${c}.`,
+        cs: `V příloze najdeš opravný daňový doklad ${c}.`,
+        it: `In allegato trovi la fattura di storno ${c}.`,
+      }),
+    )
+  }
+  const html =
+    greeting(data.firstName, locale) +
+    sentences.map(paragraph).join('') +
+    button(data.orderUrl, pick(locale, viewOrder))
+  const text = [...sentences.map((x) => x.replace(/<[^>]+>/g, '')), data.orderUrl].join('\n\n')
+  return { subject, html: emailLayout(title, html), text }
 }
 
 /**

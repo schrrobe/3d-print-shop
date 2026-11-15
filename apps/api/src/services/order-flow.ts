@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import {
   renderInvoice,
+  renderOrderCancelled,
   renderOrderConfirmation,
   renderPaymentReceived,
   renderPaymentReminder,
@@ -13,8 +14,9 @@ import type { Invoice, Order, OrderItem } from '@prisma/client'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
 import { company } from './company.js'
-import { sendEmail } from './email.js'
-import { createInvoiceForOrder, generateInvoicePdf } from './invoice.js'
+import { sendEmail, type EmailAttachment } from './email.js'
+import { cancelInvoice, createInvoiceForOrder, generateInvoicePdf } from './invoice.js'
+import type { OrderForInvoice } from './invoice-pdf.js'
 import { computeAndPersistAttribution } from './tracking/attribution.js'
 import { recordPurchaseWithOutbox } from './tracking/outbox.js'
 
@@ -208,6 +210,67 @@ export async function issuePrepaymentInvoice(orderId: string): Promise<void> {
   })
   const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, order))
   await sendInvoiceEmail(order, invoice, pdfPath)
+}
+
+/**
+ * Stornorechnung of an ended order's invoice: numbers it if needed and renders the PDF
+ * once (an existing cancellationPdfPath is reused as is).
+ */
+export async function cancellationPdf(
+  invoice: Invoice,
+  order: OrderForInvoice,
+): Promise<{ invoice: Invoice; pdfPath: string }> {
+  const cancelled = await cancelInvoice(invoice)
+  const pdfPath =
+    cancelled.cancellationPdfPath ??
+    (await generateInvoicePdf(cancelled, order, { cancellation: true }))
+  return { invoice: cancelled, pdfPath }
+}
+
+/**
+ * After an admin cancel/refund: an issued invoice gets its Stornorechnung, then one mail
+ * tells the customer about the refund (Stornorechnung attached). Returns whether the mail
+ * was accepted; null when there is nothing to tell (never paid, no invoice).
+ */
+export async function notifyOrderEnded(
+  orderId: string,
+  status: 'cancelled' | 'refunded',
+  refunds: { stripeCents: number; manualCents: number },
+): Promise<boolean | null> {
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true, payments: true, invoice: true },
+  })
+  const cancellation = order.invoice && (await cancellationPdf(order.invoice, order))
+  const invoice = cancellation?.invoice
+  if (!invoice && refunds.stripeCents + refunds.manualCents === 0) return null
+
+  const attachments: EmailAttachment[] = []
+  if (cancellation) {
+    attachments.push({
+      filename: `${cancellation.invoice.cancellationNumber}.pdf`,
+      content: await readFile(cancellation.pdfPath),
+    })
+  }
+  return sendEmail(
+    order.email,
+    'order_cancelled',
+    renderOrderCancelled(
+      {
+        orderNumber: order.orderNumber,
+        firstName: order.firstName,
+        orderUrl: orderUrl(order),
+        status,
+        stripeRefundCents: refunds.stripeCents,
+        manualRefundCents: refunds.manualCents,
+        cancellationNumber: invoice?.cancellationNumber ?? undefined,
+      },
+      order.locale,
+    ),
+    attachments,
+    // Bookkeeping gets the Stornorechnung like every invoice.
+    { bcc: (invoice && company().invoiceBcc) || undefined },
+  )
 }
 
 export async function notifyProductionStarted(orderId: string): Promise<void> {

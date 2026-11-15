@@ -151,6 +151,41 @@ export async function deactivateStripePaymentLink(linkId: string): Promise<void>
 }
 
 /**
+ * Full refund of a completed checkout session (mock sessions are ignored).
+ * Safe to retry: one idempotency key per payment, and an already refunded charge counts
+ * as done. The payment id travels as metadata so a refund that fails later (webhook
+ * refund.failed / refund.updated) finds its payment again.
+ */
+export async function refundStripeSession(sessionId: string, paymentId: string): Promise<void> {
+  if (!stripe || sessionId.startsWith('mock_')) return
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const paymentIntent =
+    typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
+  if (!paymentIntent) throw new Error(`Stripe session ${sessionId} has no payment intent`)
+  let refund: Stripe.Refund
+  try {
+    refund = await stripe.refunds.create(
+      { payment_intent: paymentIntent, metadata: { paymentId } },
+      { idempotencyKey: `refund-${paymentId}` },
+    )
+  } catch (err) {
+    if ((err as Stripe.errors.StripeError).code === 'charge_already_refunded') return
+    throw err
+  }
+  // pending/requires_action settle later; the webhook reverts the payment if they fail.
+  if (refund.status === 'failed' || refund.status === 'canceled')
+    throw new Error(`Stripe refund ${refund.id} ${refund.status}`)
+}
+
+/** Payment id of a refund created by refundStripeSession, when it ended up failed. */
+export function failedRefundPaymentId(event: Stripe.Event): string | null {
+  if (event.type !== 'refund.failed' && event.type !== 'refund.updated') return null
+  const refund = event.data.object
+  if (refund.status !== 'failed' && refund.status !== 'canceled') return null
+  return refund.metadata?.paymentId ?? null
+}
+
+/**
  * Verifies and parses a Stripe webhook. With a configured webhook secret the
  * signature is enforced; in mock mode the raw JSON body is trusted (dev only).
  */

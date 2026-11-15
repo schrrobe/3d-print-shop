@@ -2,6 +2,7 @@ import { renderPaymentLink } from '@print-shop/emails'
 import { ORDER_STATUSES, PART_EDITABLE_STATUSES, PART_STATUSES } from '@print-shop/types'
 import {
   assertOrderTransition,
+  formatCents,
   hasPermission,
   REVENUE_ORDER_STATUSES,
   TERMS_PATH,
@@ -29,6 +30,7 @@ import {
   issuePrepaymentInvoice,
   legalCompany,
   markOrderPaid,
+  notifyOrderEnded,
   notifyProductionStarted,
   orderEmailData,
   resendInvoice,
@@ -40,6 +42,7 @@ import { itemParts } from '../../services/order-dto.js'
 import {
   createStripePaymentLink,
   deactivateStripePaymentLink,
+  refundStripeSession,
 } from '../../services/payments/stripe.js'
 import { cancelOpenAssignment, isHeldExternally } from '../../services/providers.js'
 import { sendReviewRequestEmail } from '../../services/reviews.js'
@@ -320,13 +323,66 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
         })
       }
     }
+    // An ended order keeps no customer money. Stripe goes back automatically, before the
+    // status write so a failed refund leaves the order retryable; bank transfer and
+    // bitcoin have to be paid back by hand.
+    const refunds = { stripeCents: 0, manualCents: 0 }
+    if (endsOrder) {
+      for (const p of order.payments) {
+        // `refunded` already: an earlier attempt refunded it, then the status write failed.
+        if (p.status === 'refunded' && p.method.startsWith('stripe'))
+          refunds.stripeCents += p.amountCents
+        if (p.status !== 'paid') continue
+        // Payment link: stripeSessionId is the link, the webhook stores the session in reference.
+        const sessionId =
+          p.method === 'stripe'
+            ? p.stripeSessionId
+            : p.method === 'stripe_payment_link'
+              ? p.reference
+              : null
+        if (!sessionId) {
+          refunds.manualCents += p.amountCents
+          continue
+        }
+        await refundStripeSession(sessionId, p.id)
+        await prisma.payment.updateMany({
+          where: { id: p.id, status: 'paid' },
+          data: { status: 'refunded' },
+        })
+        refunds.stripeCents += p.amountCents
+      }
+    }
+    const manualRefund = refunds.manualCents > 0
     // Conditional write: a webhook may have marked the order paid meanwhile.
     const write = (db: Prisma.TransactionClient) =>
       db.order.updateMany({ where: { id: order.id, status: order.status }, data: { status } })
-    const changed = endsOrder
-      ? await withoutActiveLabel(order.id, labelConflict, write)
-      : await write(prisma)
-    if (changed.count !== 1) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+    let changed: Prisma.BatchPayload
+    try {
+      changed = endsOrder
+        ? await withoutActiveLabel(order.id, labelConflict, write)
+        : await write(prisma)
+    } catch (err) {
+      // A DHL label appeared after the refund: same handling as a changed order below.
+      if (!(err instanceof ApiError) || refunds.stripeCents === 0) throw err
+      changed = { count: 0 }
+    }
+    if (changed.count !== 1) {
+      // The order changed in the seconds between reading it and writing the status, but the
+      // money is already back with the customer: say so loudly instead of a generic conflict.
+      // A retry skips the refunded payments and only sets the status.
+      if (refunds.stripeCents > 0) {
+        await audit(
+          req,
+          'order.refund_without_status',
+          { type: 'order', id: order.id },
+          { from: order.status, to: status, refunds },
+        )
+        throw conflict(
+          `${formatCents(refunds.stripeCents)} wurden bereits über Stripe erstattet, aber die Bestellung wurde zwischenzeitlich geändert. Bitte Bestellung prüfen und den Status erneut setzen – es wird nicht doppelt erstattet.`,
+        )
+      }
+      throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+    }
     const updated = await prisma.order.findUniqueOrThrow({
       where: { id: order.id },
       omit: ORDER_OMIT,
@@ -334,8 +390,18 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     if (status === 'in_production') await notifyProductionStarted(order.id)
     // An open external assignment stops with the order (provider gets a cancellation mail).
     let providerCancel: Awaited<ReturnType<typeof cancelOpenAssignment>> = null
-    if (status === 'cancelled' || status === 'refunded')
+    // Stornorechnung + refund mail to the customer; the order has ended either way, so a
+    // failure only warns (the Stornorechnung download in the admin catches up).
+    let customerEmailSent: boolean | null = null
+    if (status === 'cancelled' || status === 'refunded') {
       providerCancel = await cancelOpenAssignment(order.id)
+      try {
+        customerEmailSent = await notifyOrderEnded(order.id, status, refunds)
+      } catch (err) {
+        console.error(`[order] cancellation invoice/mail failed for ${order.orderNumber}:`, err)
+        customerEmailSent = false
+      }
+    }
     // Automatic review request on completion (EmailLog dedupe inside the service)
     if (status === 'completed') await sendReviewRequestEmail(order.id)
     // Conversion tracking — best-effort, must never break the status change.
@@ -356,6 +422,7 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
       {
         from: order.status,
         to: status,
+        ...(endsOrder ? { refunds, customerEmailSent } : {}),
         ...(providerCancel
           ? {
               cancelledAssignmentId: providerCancel.assignment.id,
@@ -364,7 +431,12 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
           : {}),
       },
     )
-    res.json({ order: updated, providerCancelEmailSent: providerCancel?.cancelEmailSent ?? null })
+    res.json({
+      order: updated,
+      providerCancelEmailSent: providerCancel?.cancelEmailSent ?? null,
+      manualRefund,
+      customerEmailSent,
+    })
   } catch (err) {
     next(err)
   }
