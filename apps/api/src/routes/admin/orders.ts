@@ -9,13 +9,15 @@ import {
 } from '@print-shop/utils'
 import {
   adminOrderCreateSchema,
+  adminOrderItemsSchema,
+  type AdminOrderItemsInput,
   dhlLabelSchema,
   markPaidSchema,
   orderUpdateSchema,
   shippingUpdateSchema,
 } from '@print-shop/validators'
 import path from 'node:path'
-import { Prisma } from '@prisma/client'
+import { Prisma, type Order, type OrderItem } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
 import { env } from '../../env.js'
@@ -173,6 +175,30 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
   }
 })
 
+async function assertProductsExist(items: AdminOrderItemsInput['items']) {
+  const productIds = [...new Set(items.flatMap((i) => (i.productId ? [i.productId] : [])))]
+  if (productIds.length === 0) return
+  const found = await prisma.product.count({ where: { id: { in: productIds } } })
+  if (found !== productIds.length) throw badRequest('Unknown product')
+}
+
+function mailPaymentLink(order: Order & { items: OrderItem[] }, paymentUrl: string) {
+  return sendEmail(
+    order.email,
+    'payment_link',
+    renderPaymentLink(
+      {
+        ...orderEmailData(order),
+        shippingCents: order.shippingCents,
+        paymentUrl,
+        termsUrl: `${env.WEB_URL}${TERMS_PATH}`,
+        legal: legalCompany(),
+      },
+      order.locale,
+    ),
+  )
+}
+
 /**
  * Admin paylink: order with free items (e.g. a caliber the shop does not list),
  * paid via a single-use Stripe payment link or Vorkasse. Payment, invoice and
@@ -182,11 +208,7 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
   try {
     const input = adminOrderCreateSchema.parse(req.body)
     assertCompanyComplete()
-    const productIds = [...new Set(input.items.flatMap((i) => (i.productId ? [i.productId] : [])))]
-    if (productIds.length > 0) {
-      const found = await prisma.product.count({ where: { id: { in: productIds } } })
-      if (found !== productIds.length) throw badRequest('Unknown product')
-    }
+    await assertProductsExist(input.items)
 
     const subtotalCents = input.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
     const totalCents = subtotalCents + input.shippingCents
@@ -249,20 +271,7 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
 
     let emailSent: boolean
     if (link) {
-      emailSent = await sendEmail(
-        order.email,
-        'payment_link',
-        renderPaymentLink(
-          {
-            ...orderEmailData(order),
-            shippingCents: order.shippingCents,
-            paymentUrl: link.url,
-            termsUrl: `${env.WEB_URL}${TERMS_PATH}`,
-            legal: legalCompany(),
-          },
-          order.locale,
-        ),
-      )
+      emailSent = await mailPaymentLink(order, link.url)
     } else {
       // The order stands even if the invoice fails; the admin sees emailSent=false and follows up.
       try {
@@ -285,6 +294,85 @@ adminOrdersRouter.post('/', requirePermission('orders:write'), async (req, res, 
       paymentUrl: link?.url ?? null,
       emailSent,
     })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * Edit an open Stripe paylink: replaces items and shipping. The link's amount is fixed,
+ * so the old link is switched off and a fresh one is mailed. A payment that still
+ * completes on the old link finds its Payment expired and goes to an admin for refund.
+ */
+adminOrdersRouter.put('/:id/items', requirePermission('orders:write'), async (req, res, next) => {
+  try {
+    const input = adminOrderItemsSchema.parse(req.body)
+    const order = await prisma.order.findUnique({
+      where: { id: String(req.params.id) },
+      include: { payments: true },
+    })
+    if (!order) throw notFound('Order not found')
+    const open = order.payments.find(
+      (p) => p.method === 'stripe_payment_link' && p.status === 'pending' && p.stripeSessionId,
+    )
+    if (order.source !== 'admin' || order.status !== 'awaiting_payment' || !open)
+      throw conflict('Nur offene Stripe-Paylinks sind änderbar')
+    await assertProductsExist(input.items)
+
+    const subtotalCents = input.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0)
+    const totalCents = subtotalCents + input.shippingCents
+    await deactivateStripePaymentLink(open.stripeSessionId!)
+    const link = await createStripePaymentLink({
+      orderNumber: order.orderNumber,
+      accessToken: order.accessToken,
+      amountCents: totalCents,
+      email: order.email,
+      locale: order.locale,
+      description: `Bestellung ${order.orderNumber}`,
+    })
+    const paid = conflict('Die Zahlung ist zwischenzeitlich eingegangen')
+    let updated
+    try {
+      updated = await prisma.$transaction(async (db) => {
+        // Conditional: the webhook may have claimed the old link in the meantime.
+        const expired = await db.payment.updateMany({
+          where: { id: open.id, status: 'pending', reference: null },
+          data: { status: 'expired' },
+        })
+        const moved = await db.order.updateMany({
+          where: { id: order.id, status: 'awaiting_payment' },
+          data: { subtotalCents, shippingCents: input.shippingCents, totalCents },
+        })
+        if (expired.count !== 1 || moved.count !== 1) throw paid
+        await db.orderItem.deleteMany({ where: { orderId: order.id } })
+        await db.orderItem.createMany({
+          data: input.items.map((i) => ({ ...i, orderId: order.id })),
+        })
+        await db.payment.create({
+          data: {
+            orderId: order.id,
+            method: 'stripe_payment_link',
+            status: 'pending',
+            amountCents: totalCents,
+            stripeSessionId: link.sessionId,
+            stripePaymentLinkUrl: link.url,
+          },
+        })
+        return db.order.findUniqueOrThrow({ where: { id: order.id }, include: { items: true } })
+      })
+    } catch (err) {
+      await deactivateStripePaymentLink(link.sessionId).catch(() => undefined)
+      throw err
+    }
+
+    const emailSent = await mailPaymentLink(updated, link.url)
+    await audit(
+      req,
+      'order.items_update',
+      { type: 'order', id: order.id },
+      { fromCents: order.totalCents, totalCents, items: input.items.length },
+    )
+    res.json({ paymentUrl: link.url, emailSent })
   } catch (err) {
     next(err)
   }

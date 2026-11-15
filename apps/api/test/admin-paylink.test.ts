@@ -12,7 +12,8 @@ vi.mock('../src/lib/prisma.js', () => {
       findUniqueOrThrow: vi.fn(),
       updateMany: vi.fn(),
     },
-    payment: { updateMany: vi.fn() },
+    payment: { updateMany: vi.fn(), create: vi.fn() },
+    orderItem: { deleteMany: vi.fn(), createMany: vi.fn() },
     providerAssignment: { findFirst: vi.fn().mockResolvedValue(null) },
     shipment: { findMany: vi.fn().mockResolvedValue([]) },
     $queryRaw: vi.fn().mockResolvedValue([{ locked: true }]),
@@ -87,9 +88,9 @@ beforeEach(() => {
   })) as never)
 })
 
-function post(path: string, body: unknown) {
+function post(path: string, body: unknown, method = 'POST') {
   return fetch(`${baseUrl}${path}`, {
-    method: 'POST',
+    method,
     headers: { 'content-type': 'application/json', cookie },
     body: JSON.stringify(body),
   })
@@ -180,6 +181,111 @@ describe('POST /api/admin/orders (paylink)', () => {
 
     expect(res.status).toBe(500)
     expect(vi.mocked(deactivateStripePaymentLink)).toHaveBeenCalledWith('plink_1')
+  })
+})
+
+describe('PUT /api/admin/orders/:id/items (edit paylink)', () => {
+  const openOrder = (over: Record<string, unknown> = {}) =>
+    vi.mocked(prisma.order.findUnique).mockResolvedValue({
+      id: 'order_1',
+      orderNumber: 'ORD-1',
+      accessToken: 'tok',
+      email: 'max@example.com',
+      locale: 'de',
+      source: 'admin',
+      status: 'awaiting_payment',
+      totalCents: 5699,
+      payments: [
+        {
+          id: 'pay_old',
+          method: 'stripe_payment_link',
+          status: 'pending',
+          stripeSessionId: 'plink_old',
+        },
+      ],
+      ...over,
+    } as never)
+  const edit = {
+    shippingCents: 699,
+    items: [
+      { name: '9mm Sonderbox', quantity: 2, unitPriceCents: 2500 },
+      { name: '.308 Box', quantity: 1, unitPriceCents: 3000 },
+    ],
+  }
+
+  it('swaps the link, replaces the items and mails the new link', async () => {
+    openOrder()
+    vi.mocked(prisma.payment.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.order.findUniqueOrThrow).mockResolvedValue({
+      id: 'order_1',
+      orderNumber: 'ORD-1',
+      accessToken: 'tok',
+      firstName: 'Max',
+      email: 'max@example.com',
+      locale: 'de',
+      shippingCents: 699,
+      totalCents: 8699,
+      items: edit.items,
+    } as never)
+
+    const res = await post('/api/admin/orders/order_1/items', edit, 'PUT')
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ paymentUrl: 'https://buy.stripe.com/x' })
+    expect(vi.mocked(deactivateStripePaymentLink)).toHaveBeenCalledWith('plink_old')
+    expect(vi.mocked(createStripePaymentLink)).toHaveBeenCalledWith(
+      expect.objectContaining({ amountCents: 8699 }),
+    )
+    expect(vi.mocked(prisma.payment.updateMany)).toHaveBeenCalledWith({
+      where: { id: 'pay_old', status: 'pending', reference: null },
+      data: { status: 'expired' },
+    })
+    expect(vi.mocked(prisma.order.updateMany)).toHaveBeenCalledWith({
+      where: { id: 'order_1', status: 'awaiting_payment' },
+      data: { subtotalCents: 8000, shippingCents: 699, totalCents: 8699 },
+    })
+    expect(vi.mocked(prisma.orderItem.deleteMany)).toHaveBeenCalledWith({
+      where: { orderId: 'order_1' },
+    })
+    expect(vi.mocked(prisma.payment.create)).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        amountCents: 8699,
+        stripeSessionId: 'plink_1',
+        status: 'pending',
+      }),
+    })
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledWith(
+      'max@example.com',
+      'payment_link',
+      expect.anything(),
+    )
+  })
+
+  it('refuses Vorkasse, shop and already paid orders', async () => {
+    for (const over of [
+      { payments: [{ id: 'p', method: 'bank_transfer', status: 'pending' }] },
+      { source: 'shop' },
+      { status: 'paid' },
+    ]) {
+      openOrder(over)
+      const res = await post('/api/admin/orders/order_1/items', edit, 'PUT')
+      expect(res.status).toBe(409)
+    }
+    expect(vi.mocked(createStripePaymentLink)).not.toHaveBeenCalled()
+  })
+
+  it('keeps the order when the old link was paid meanwhile', async () => {
+    openOrder()
+    vi.mocked(prisma.payment.updateMany).mockResolvedValue({ count: 0 })
+    vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 })
+
+    const res = await post('/api/admin/orders/order_1/items', edit, 'PUT')
+
+    expect(res.status).toBe(409)
+    expect(vi.mocked(prisma.orderItem.deleteMany)).not.toHaveBeenCalled()
+    expect(vi.mocked(deactivateStripePaymentLink)).toHaveBeenCalledWith('plink_1')
+    expect(vi.mocked(sendEmail)).not.toHaveBeenCalled()
   })
 })
 

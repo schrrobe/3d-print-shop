@@ -1,41 +1,13 @@
 <script setup lang="ts">
 import type { Locale } from '@print-shop/types'
-import {
-  PsButton,
-  PsCard,
-  PsCombobox,
-  PsInput,
-  PsPrice,
-  PsSelect,
-  PsTextarea,
-} from '@print-shop/ui'
+import { PsButton, PsCard, PsInput, PsPrice, PsSelect, PsTextarea } from '@print-shop/ui'
 import { calcShippingCents, eurosToCents } from '@print-shop/utils'
+import type { PaylinkLine } from '~/components/admin/AdminPaylinkLines.vue'
 
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const router = useRouter()
 const auth = useAdminAuthStore()
-
-interface AdminProduct {
-  id: string
-  slug: string
-  priceCents: number
-  translations: { locale: string; name: string }[]
-}
-
-interface Line {
-  productId?: string
-  name: string
-  quantity: string
-  /** Gross unit price in euros (converted to cents on submit). */
-  priceEuros: string
-}
-
-const { data: productData } = await useFetch<{ products: AdminProduct[] }>('/api/admin/products', {
-  credentials: 'include',
-  server: false,
-  immediate: auth.can('products:read'),
-})
 
 const form = reactive({
   firstName: '',
@@ -51,32 +23,7 @@ const form = reactive({
   paymentMethod: 'stripe_payment_link' as 'stripe_payment_link' | 'bank_transfer',
   note: '',
 })
-const lines = ref<Line[]>([{ name: '', quantity: '1', priceEuros: '' }])
-const pickedProduct = ref('')
-
-const productOptions = computed(() =>
-  (productData.value?.products ?? []).map((p) => ({ value: p.id, label: productName(p) })),
-)
-
-function productName(p: AdminProduct): string {
-  return (
-    p.translations.find((t) => t.locale === form.locale)?.name ??
-    p.translations.find((t) => t.locale === 'de')?.name ??
-    p.slug
-  )
-}
-
-watch(pickedProduct, (id) => {
-  const product = productData.value?.products.find((p) => p.id === id)
-  if (!product) return
-  lines.value.push({
-    productId: product.id,
-    name: productName(product),
-    quantity: '1',
-    priceEuros: (product.priceCents / 100).toFixed(2),
-  })
-  pickedProduct.value = ''
-})
+const lines = ref<PaylinkLine[]>([{ name: '', quantity: '1', priceEuros: '' }])
 
 const subtotalCents = computed(() =>
   lines.value.reduce(
@@ -183,52 +130,7 @@ async function create() {
 
       <PsCard>
         <h3 class="text-label-medium">Positionen (Bruttopreise)</h3>
-        <div
-          v-for="(line, i) in lines"
-          :key="i"
-          class="mt-md grid items-end gap-md sm:grid-cols-[1fr_5rem_8rem_auto]"
-          data-testid="paylink-line"
-        >
-          <PsInput
-            v-model="line.name"
-            label="Bezeichnung (inkl. Farben/Personalisierung)"
-            required
-          />
-          <PsInput v-model="line.quantity" label="Menge" type="number" min="1" required />
-          <PsInput
-            v-model="line.priceEuros"
-            label="Stückpreis (€)"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-          />
-          <PsButton
-            variant="ghost"
-            type="button"
-            :disabled="lines.length === 1"
-            @click="lines.splice(i, 1)"
-          >
-            Entfernen
-          </PsButton>
-        </div>
-        <div class="mt-md flex flex-wrap items-end gap-md">
-          <PsButton
-            variant="secondary"
-            type="button"
-            data-testid="paylink-add-line"
-            @click="lines.push({ name: '', quantity: '1', priceEuros: '' })"
-          >
-            Freie Position
-          </PsButton>
-          <PsCombobox
-            v-if="auth.can('products:read')"
-            v-model="pickedProduct"
-            label="Aus dem Shop"
-            placeholder="Shop-Produkt suchen …"
-            :options="productOptions"
-          />
-        </div>
+        <AdminPaylinkLines v-model="lines" :locale="form.locale" />
       </PsCard>
 
       <PsCard>

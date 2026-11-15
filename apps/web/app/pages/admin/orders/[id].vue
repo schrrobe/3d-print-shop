@@ -13,11 +13,13 @@ import {
 } from '@print-shop/ui'
 import {
   calcShippingCents,
+  eurosToCents,
   formatCents,
   ORDER_STATUS_TRANSITIONS,
   SHIPPING_COUNTRIES,
 } from '@print-shop/utils'
 import type { DeliveryAddress } from '@print-shop/validators'
+import type { PaylinkLine } from '~/components/admin/AdminPaylinkLines.vue'
 import {
   PART_EDITABLE_STATUSES,
   type OrderStatus,
@@ -38,6 +40,7 @@ interface AdminOrderDetail {
   orderNumber: string
   status: OrderStatus
   source: 'shop' | 'admin' | 'quote'
+  locale: string
   note: string | null
   email: string
   carrierEmailConsentAt: string | null
@@ -334,6 +337,63 @@ function markPaid() {
       }),
     { success: 'Als bezahlt markiert', error: 'Aktion fehlgeschlagen' },
   )
+}
+
+// ---------- Edit paylink items ----------
+const itemsEditable = computed(
+  () =>
+    auth.can('orders:write') &&
+    order.value?.source === 'admin' &&
+    order.value.status === 'awaiting_payment' &&
+    !!openPaymentLink.value,
+)
+const itemsOpen = ref(false)
+const editLines = ref<PaylinkLine[]>([])
+const editShippingEuros = ref('')
+const editTotalCents = computed(
+  () =>
+    editLines.value.reduce(
+      (sum, l) => sum + eurosToCents(Number(l.priceEuros) || 0) * (Number(l.quantity) || 0),
+      0,
+    ) + eurosToCents(Number(editShippingEuros.value) || 0),
+)
+
+function openItems() {
+  const o = order.value!
+  editLines.value = o.items.map((i) => ({
+    productId: i.productId ?? undefined,
+    name: i.name,
+    quantity: String(i.quantity),
+    priceEuros: (i.unitPriceCents / 100).toFixed(2),
+  }))
+  editShippingEuros.value = (o.shippingCents / 100).toFixed(2)
+  itemsOpen.value = true
+}
+
+async function saveItems() {
+  let emailSent = true
+  const ok = await run(
+    async () => {
+      ;({ emailSent } = await $fetch<{ emailSent: boolean }>(`/api/admin/orders/${orderId}/items`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: {
+          shippingCents: eurosToCents(Number(editShippingEuros.value)),
+          items: editLines.value.map((l) => ({
+            productId: l.productId,
+            name: l.name,
+            quantity: Number(l.quantity),
+            unitPriceCents: eurosToCents(Number(l.priceEuros)),
+          })),
+        },
+      }))
+    },
+    { success: 'Paylink geändert, neuer Link verschickt', error: 'Ändern fehlgeschlagen' },
+  )
+  if (!ok) return
+  itemsOpen.value = false
+  if (!emailSent)
+    toast.show('E-Mail mit neuem Link fehlgeschlagen – Link manuell senden', { variant: 'error' })
 }
 
 // ---------- Delivery address ----------
@@ -645,6 +705,16 @@ function ship() {
           Bestellbestätigung erneut senden
         </PsButton>
         <PsButton
+          v-if="itemsEditable"
+          class="mt-md ml-md"
+          variant="secondary"
+          :disabled="pending"
+          data-testid="edit-paylink-items"
+          @click="openItems"
+        >
+          Positionen bearbeiten
+        </PsButton>
+        <PsButton
           v-if="
             auth.can('orders:write') &&
             ['awaiting_payment', 'awaiting_bank_transfer'].includes(order.status)
@@ -786,6 +856,38 @@ function ship() {
         </PsButton>
       </div>
     </PsCard>
+
+    <PsDialog v-model:open="itemsOpen" title="Positionen bearbeiten">
+      <form
+        class="flex flex-col gap-md"
+        data-testid="paylink-items-form"
+        @submit.prevent="saveItems"
+      >
+        <p class="text-caption text-secondary">
+          Der bisherige Zahlungslink wird deaktiviert, der Kunde bekommt einen neuen Link per
+          E-Mail.
+        </p>
+        <AdminPaylinkLines v-model="editLines" :locale="order.locale" />
+        <PsInput
+          v-model="editShippingEuros"
+          label="Versand (€)"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+        />
+        <div class="flex justify-between border-t border-subtle pt-md text-label-medium">
+          <span>Gesamt</span>
+          <PsPrice :cents="editTotalCents" data-testid="paylink-edit-total" />
+        </div>
+        <div class="flex gap-md">
+          <PsButton type="submit" :disabled="pending" data-testid="paylink-items-save">
+            Speichern &amp; neuen Link senden
+          </PsButton>
+          <PsButton variant="ghost" type="button" @click="itemsOpen = false">Abbrechen</PsButton>
+        </div>
+      </form>
+    </PsDialog>
 
     <PsDialog v-model:open="deliveryOpen" title="Lieferadresse ändern">
       <form
