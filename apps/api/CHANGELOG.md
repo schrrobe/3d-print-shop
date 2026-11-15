@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.22.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.21.0...api-v0.22.0) (2026-11-15)
+
+
+### Features
+
+* **admin:** offene Stripe-Paylinks nachträglich bearbeiten ([#130](https://github.com/schrrobe/3d-print-shop/issues/130)) ([166b2d9](https://github.com/schrrobe/3d-print-shop/commit/166b2d9fa049ed26c3d0c800062f10aaf1f22879))
+
+
+### Bug Fixes
+
+* **admin:** Bestellungen in Produktion erstattbar ([#128](https://github.com/schrrobe/3d-print-shop/issues/128)) ([5097c8e](https://github.com/schrrobe/3d-print-shop/commit/5097c8e1c4b3f50380766e3857a112c373e2e592))
+* Review-Anmerkungen zur Paylink-Bearbeitung ([#131](https://github.com/schrrobe/3d-print-shop/issues/131)) ([f30bbb9](https://github.com/schrrobe/3d-print-shop/commit/f30bbb9705fa9eaaeb32f5e3bdc3b982db6728d0))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.4.3
+    * @print-shop/utils bumped to 0.10.2
+    * @print-shop/validators bumped to 0.13.0
+
 ## [0.21.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.20.0...api-v0.21.0) (2026-11-13)
 
 
