@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.10.1...utils-v0.10.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **admin:** Bestellungen in Produktion erstattbar ([#128](https://github.com/schrrobe/3d-print-shop/issues/128)) ([5097c8e](https://github.com/schrrobe/3d-print-shop/commit/5097c8e1c4b3f50380766e3857a112c373e2e592))
+
 ## [0.10.1](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.10.0...utils-v0.10.1) (2026-11-13)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.3](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.4.2...emails-v0.4.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **admin:** Bestellungen in Produktion erstattbar ([#128](https://github.com/schrrobe/3d-print-shop/issues/128)) ([5097c8e](https://github.com/schrrobe/3d-print-shop/commit/5097c8e1c4b3f50380766e3857a112c373e2e592))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.10.2
+
 ## [0.4.2](https://github.com/schrrobe/3d-print-shop/compare/emails-v0.4.1...emails-v0.4.2) (2026-11-13)
 
 

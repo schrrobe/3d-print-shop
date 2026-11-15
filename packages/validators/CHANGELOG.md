@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.12.1...validators-v0.13.0) (2026-11-15)
+
+
+### Features
+
+* **admin:** offene Stripe-Paylinks nachträglich bearbeiten ([#130](https://github.com/schrrobe/3d-print-shop/issues/130)) ([166b2d9](https://github.com/schrrobe/3d-print-shop/commit/166b2d9fa049ed26c3d0c800062f10aaf1f22879))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/utils bumped to 0.10.2
+
 ## [0.12.1](https://github.com/schrrobe/3d-print-shop/compare/validators-v0.12.0...validators-v0.12.1) (2026-11-13)
 
 
