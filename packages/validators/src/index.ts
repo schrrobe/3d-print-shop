@@ -275,34 +275,42 @@ export const quoteCreateSchema = z.object({
 /** Stripe rejects charges below 0,50 €. */
 export const MIN_PAYLINK_TOTAL_CENTS = 50
 
-/** Admin paylink order: free items (optionally linked to a shop product), gross prices. */
-export const adminOrderCreateSchema = z
-  .object({
+/** Free items (optionally linked to a shop product), gross prices. */
+const paylinkContent = z.object({
+  shippingCents: priceCentsSchema,
+  items: z
+    .array(
+      z.object({
+        productId: cuidSchema.optional(),
+        name: z.string().trim().min(1).max(200),
+        quantity: z.number().int().min(1).max(999),
+        unitPriceCents: priceCentsSchema,
+      }),
+    )
+    .min(1)
+    .max(50),
+})
+
+const meetsPaylinkMin = (o: z.infer<typeof paylinkContent>) =>
+  o.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0) + o.shippingCents >=
+  MIN_PAYLINK_TOTAL_CENTS
+const paylinkMinIssue = { message: 'Total must be at least 0,50 €', path: ['items'] }
+
+/** Admin paylink order. */
+export const adminOrderCreateSchema = paylinkContent
+  .extend({
     address: addressSchema,
     locale: localeSchema.default('de'),
     paymentMethod: z.enum(['stripe_payment_link', 'bank_transfer']),
-    shippingCents: priceCentsSchema,
     /** Internal only — never shown to the customer. */
     note: z.string().trim().max(2000).optional(),
-    items: z
-      .array(
-        z.object({
-          productId: cuidSchema.optional(),
-          name: z.string().trim().min(1).max(200),
-          quantity: z.number().int().min(1).max(999),
-          unitPriceCents: priceCentsSchema,
-        }),
-      )
-      .min(1)
-      .max(50),
   })
-  .refine(
-    (o) =>
-      o.items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0) + o.shippingCents >=
-      MIN_PAYLINK_TOTAL_CENTS,
-    { message: 'Total must be at least 0,50 €', path: ['items'] },
-  )
+  .refine(meetsPaylinkMin, paylinkMinIssue)
 export type AdminOrderCreateInput = z.infer<typeof adminOrderCreateSchema>
+
+/** Edit an open Stripe paylink: replaces all items and the shipping price. */
+export const adminOrderItemsSchema = paylinkContent.refine(meetsPaylinkMin, paylinkMinIssue)
+export type AdminOrderItemsInput = z.infer<typeof adminOrderItemsSchema>
 
 export const quoteDecisionSchema = z.object({
   token: z.string().min(16).max(128),
