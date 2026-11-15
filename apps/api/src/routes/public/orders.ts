@@ -17,7 +17,7 @@ async function orderByNumberAndToken(orderNumber: string, token: string) {
   const order = await prisma.order.findUnique({
     where: { orderNumber },
     include: {
-      items: true,
+      items: { orderBy: { id: 'asc' } }, // stable order; cuid ids follow insertion order
       payments: { include: { bitcoinPayment: true } },
       invoice: true,
     },

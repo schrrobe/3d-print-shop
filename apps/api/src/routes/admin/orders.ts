@@ -117,7 +117,7 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
       where: { id: String(req.params.id) },
       omit: ORDER_OMIT,
       include: {
-        items: true,
+        items: { orderBy: { id: 'asc' } }, // stable order; cuid ids follow insertion order
         payments: { include: { bitcoinPayment: true } },
         invoice: true,
         printerJobs: { include: { printer: true } },
