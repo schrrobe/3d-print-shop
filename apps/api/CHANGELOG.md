@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/schrrobe/3d-print-shop/compare/api-v0.22.0...api-v0.22.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **orders:** Positionen in Bestelldetails stabil sortieren ([#132](https://github.com/schrrobe/3d-print-shop/issues/132)) ([b0e8468](https://github.com/schrrobe/3d-print-shop/commit/b0e8468b92964bd0bb7608354c89920d3b583459))
+
 ## [0.22.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.21.0...api-v0.22.0) (2026-11-15)
 
 
