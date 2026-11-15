@@ -9,6 +9,7 @@ interface AdminInvoice {
   totalCents: number
   paymentMethod: string
   issuedAt: string
+  cancellationNumber: string | null
   order: { orderNumber: string; email: string }
 }
 
@@ -46,6 +47,14 @@ const columns = [
         data-testid="invoice-pdf"
         download
         >PDF</a
+      >
+      <a
+        v-if="(row as unknown as AdminInvoice).cancellationNumber"
+        :href="`/api/admin/invoices/${(row as unknown as AdminInvoice).id}/cancellation.pdf`"
+        class="ml-md text-caption text-brand hover:underline"
+        data-testid="cancellation-invoice-pdf"
+        download
+        >Storno {{ (row as unknown as AdminInvoice).cancellationNumber }}</a
       >
     </template>
   </PsAdminTable>

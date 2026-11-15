@@ -29,6 +29,7 @@ vi.mock('../src/services/company.js', async (importOriginal) => ({
 vi.mock('../src/services/order-flow.js', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   issuePrepaymentInvoice: vi.fn().mockResolvedValue(undefined),
+  notifyOrderEnded: vi.fn().mockResolvedValue(true),
 }))
 vi.mock('../src/services/payments/stripe.js', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -36,14 +37,15 @@ vi.mock('../src/services/payments/stripe.js', async (importOriginal) => ({
     .fn()
     .mockResolvedValue({ sessionId: 'plink_1', url: 'https://buy.stripe.com/x' }),
   deactivateStripePaymentLink: vi.fn().mockResolvedValue(undefined),
+  refundStripeSession: vi.fn().mockResolvedValue(undefined),
 }))
 
 const { createApp } = await import('../src/app.js')
 const { prisma } = await import('../src/lib/prisma.js')
 const { signSession, SESSION_COOKIE } = await import('../src/middleware/auth.js')
 const { sendEmail } = await import('../src/services/email.js')
-const { issuePrepaymentInvoice } = await import('../src/services/order-flow.js')
-const { createStripePaymentLink, deactivateStripePaymentLink } =
+const { issuePrepaymentInvoice, notifyOrderEnded } = await import('../src/services/order-flow.js')
+const { createStripePaymentLink, deactivateStripePaymentLink, refundStripeSession } =
   await import('../src/services/payments/stripe.js')
 
 const orderCreate = vi.mocked(prisma.order.create)
@@ -221,5 +223,78 @@ describe('POST /api/admin/orders/:id/status cancelled', () => {
     const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
 
     expect(res.status).toBe(409)
+  })
+})
+
+describe('POST /api/admin/orders/:id/status refunds paid money', () => {
+  const paidOrder = (payments: unknown[]) => {
+    vi.mocked(prisma.order.findUnique).mockResolvedValue({
+      id: 'order_1',
+      status: 'paid',
+      shipments: [],
+      payments,
+    } as never)
+    vi.mocked(prisma.order.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.order.findUniqueOrThrow).mockResolvedValue({ id: 'order_1' } as never)
+  }
+
+  it('refunds a paid stripe payment link via its checkout session', async () => {
+    paidOrder([
+      {
+        id: 'pay_1',
+        method: 'stripe_payment_link',
+        status: 'paid',
+        stripeSessionId: 'plink_1',
+        reference: 'cs_1',
+        amountCents: 5699,
+      },
+    ])
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'cancelled' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ manualRefund: false, customerEmailSent: true })
+    expect(vi.mocked(refundStripeSession)).toHaveBeenCalledWith('cs_1', 'refund-pay_1')
+    expect(vi.mocked(notifyOrderEnded)).toHaveBeenCalledWith('order_1', 'cancelled', {
+      stripeCents: 5699,
+      manualCents: 0,
+    })
+    expect(vi.mocked(prisma.payment.updateMany)).toHaveBeenCalledWith({
+      where: { id: 'pay_1', status: 'paid' },
+      data: { status: 'refunded' },
+    })
+  })
+
+  it('leaves the order unchanged when the stripe refund fails', async () => {
+    paidOrder([{ id: 'pay_1', method: 'stripe', status: 'paid', stripeSessionId: 'cs_1' }])
+    vi.mocked(refundStripeSession).mockRejectedValueOnce(new Error('stripe down'))
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'refunded' })
+
+    expect(res.status).toBe(500)
+    expect(vi.mocked(prisma.order.updateMany)).not.toHaveBeenCalled()
+    expect(vi.mocked(notifyOrderEnded)).not.toHaveBeenCalled()
+  })
+
+  it('flags a bank transfer for manual repayment', async () => {
+    paidOrder([
+      {
+        id: 'pay_1',
+        method: 'bank_transfer',
+        status: 'paid',
+        reference: 'RE-2026-1',
+        amountCents: 4900,
+      },
+    ])
+
+    const res = await post('/api/admin/orders/order_1/status', { status: 'refunded' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ manualRefund: true })
+    expect(vi.mocked(notifyOrderEnded)).toHaveBeenCalledWith('order_1', 'refunded', {
+      stripeCents: 0,
+      manualCents: 4900,
+    })
+    expect(vi.mocked(refundStripeSession)).not.toHaveBeenCalled()
   })
 })

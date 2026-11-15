@@ -151,6 +151,26 @@ export async function deactivateStripePaymentLink(linkId: string): Promise<void>
 }
 
 /**
+ * Full refund of a completed checkout session (mock sessions are ignored).
+ * Safe to retry: same idempotency key, and an already refunded charge counts as done.
+ */
+export async function refundStripeSession(
+  sessionId: string,
+  idempotencyKey: string,
+): Promise<void> {
+  if (!stripe || sessionId.startsWith('mock_')) return
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const paymentIntent =
+    typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
+  if (!paymentIntent) throw new Error(`Stripe session ${sessionId} has no payment intent`)
+  try {
+    await stripe.refunds.create({ payment_intent: paymentIntent }, { idempotencyKey })
+  } catch (err) {
+    if ((err as Stripe.errors.StripeError).code !== 'charge_already_refunded') throw err
+  }
+}
+
+/**
  * Verifies and parses a Stripe webhook. With a configured webhook secret the
  * signature is enforced; in mock mode the raw JSON body is trusted (dev only).
  */

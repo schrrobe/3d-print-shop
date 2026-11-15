@@ -21,6 +21,7 @@ vi.mock('../src/services/email.js', () => ({ sendEmail: vi.fn() }))
 vi.mock('../src/services/invoice.js', () => ({
   createInvoiceForOrder: vi.fn(),
   generateInvoicePdf: vi.fn().mockResolvedValue('/invoices/R-1.pdf'),
+  cancelInvoice: vi.fn(async (inv: object) => ({ ...inv, cancellationNumber: 'R-2' })),
 }))
 vi.mock('../src/services/company.js', () => ({ company: () => ({ invoiceBcc: '' }) }))
 vi.mock('../src/services/tracking/attribution.js', () => ({
@@ -30,9 +31,14 @@ vi.mock('../src/services/tracking/outbox.js', () => ({ recordPurchaseWithOutbox:
 
 const { prisma } = await import('../src/lib/prisma.js')
 const { sendEmail } = await import('../src/services/email.js')
-const { generateInvoicePdf } = await import('../src/services/invoice.js')
-const { markOrderPaid, resendInvoice, sendOrderConfirmation, sendPaymentReminder } =
-  await import('../src/services/order-flow.js')
+const { cancelInvoice, generateInvoicePdf } = await import('../src/services/invoice.js')
+const {
+  markOrderPaid,
+  notifyOrderEnded,
+  resendInvoice,
+  sendOrderConfirmation,
+  sendPaymentReminder,
+} = await import('../src/services/order-flow.js')
 
 const db = prisma as unknown as {
   tx: {
@@ -209,5 +215,36 @@ describe('sendOrderConfirmation', () => {
     vi.mocked(sendEmail).mockResolvedValueOnce(false)
     await expect(sendOrderConfirmation('o1')).resolves.toBe(false)
     expect(vi.mocked(sendEmail).mock.calls[0]?.[1]).toBe('order_confirmation')
+  })
+})
+
+describe('notifyOrderEnded', () => {
+  it('cancels the invoice and mails the refund with the Stornorechnung attached', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue(order('cancelled', {}))
+    vi.mocked(sendEmail).mockResolvedValueOnce(true)
+
+    await expect(
+      notifyOrderEnded('o1', 'cancelled', { stripeCents: 1000, manualCents: 0 }),
+    ).resolves.toBe(true)
+
+    expect(cancelInvoice).toHaveBeenCalledWith(expect.objectContaining({ number: 'R-1' }))
+    expect(generateInvoicePdf).toHaveBeenCalledWith(
+      expect.objectContaining({ cancellationNumber: 'R-2' }),
+      expect.anything(),
+      { cancellation: true },
+    )
+    const [to, template, rendered, attachments] = vi.mocked(sendEmail).mock.calls[0]!
+    expect([to, template]).toEqual(['kunde@example.com', 'order_cancelled'])
+    expect(rendered.html).toContain('10,00')
+    expect(attachments).toEqual([{ filename: 'R-2.pdf', content: expect.any(Buffer) }])
+  })
+
+  it('stays silent for a never-paid order without invoice', async () => {
+    db.order.findUniqueOrThrow.mockResolvedValue({ ...order('cancelled', {}), invoice: null })
+
+    await expect(
+      notifyOrderEnded('o1', 'cancelled', { stripeCents: 0, manualCents: 0 }),
+    ).resolves.toBeNull()
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 })

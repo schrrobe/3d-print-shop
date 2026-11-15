@@ -4,6 +4,7 @@ import {
   renderAdminNotification,
   renderComplaintUpdated,
   renderInvoice,
+  renderOrderCancelled,
   renderOrderConfirmation,
   renderPasswordReset,
   renderPaymentLink,
@@ -218,5 +219,42 @@ describe('email templates', () => {
     )
     expect(custom.text).toContain(terms)
     expect(custom.html).toContain('Allgemeine Geschäftsbedingungen')
+  })
+})
+
+describe('renderOrderCancelled', () => {
+  const base = {
+    orderNumber: 'PS-1',
+    firstName: 'Max',
+    orderUrl: 'https://shop.example/order/PS-1',
+    status: 'cancelled' as const,
+    stripeRefundCents: 0,
+    manualRefundCents: 0,
+  }
+
+  it('names the automatic refund, the manual one and the Stornorechnung', () => {
+    const mail = renderOrderCancelled(
+      {
+        ...base,
+        stripeRefundCents: 4998,
+        manualRefundCents: 1000,
+        cancellationNumber: 'RE-2026-X',
+      },
+      'de',
+    )
+    expect(mail.subject).toBe('Bestellung PS-1 storniert')
+    expect(mail.html).toContain('49,98')
+    expect(mail.html).toContain('ursprüngliches Zahlungsmittel')
+    expect(mail.html).toContain('10,00')
+    expect(mail.html).toContain('Stornorechnung <strong>RE-2026-X</strong>')
+  })
+
+  it('leaves out refund lines when nothing was paid, and covers every locale', () => {
+    expect(renderOrderCancelled(base, 'de').html).not.toContain('Zahlungsmittel')
+    expect(renderOrderCancelled({ ...base, status: 'refunded' }, 'en').subject).toBe(
+      'Refund for order PS-1',
+    )
+    for (const locale of LOCALES)
+      expect(renderOrderCancelled(base, locale).subject).toContain('PS-1')
   })
 })

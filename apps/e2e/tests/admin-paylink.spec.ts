@@ -91,6 +91,7 @@ test.describe('admin paylinks', () => {
     await expect(page.getByTestId('payment-link')).toBeVisible()
 
     await page.getByTestId('status-cancelled').click()
+    await page.getByTestId('confirm-end-order').click()
     await expect(page.getByTestId('admin-order-status')).toContainText('cancelled')
     await expect(page.getByTestId('payment-link')).toBeHidden()
 

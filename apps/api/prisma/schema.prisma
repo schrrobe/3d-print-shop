@@ -881,8 +881,16 @@ model Invoice {
   sentAt        DateTime?
   /// Lease of the request currently mailing the invoice (CAS claim); expires on crash.
   sendLockUntil DateTime?
+  /// Stornorechnung: numbered from the same range, the invoice itself stays as issued (GoBD).
+  cancellationNumber   String?   @unique
+  /// Counter position of the Stornorechnung: invoices + cancellations together are gapless.
+  cancellationYear     Int?
+  cancellationSequence Int?
+  cancelledAt          DateTime?
+  cancellationPdfPath  String?
 
   @@unique([year, sequence])
+  @@unique([cancellationYear, cancellationSequence])
 }
 
 /// Single-row-per-year counter for sequential invoice numbers (locked via transaction)

@@ -4,6 +4,7 @@ import QRCode from 'qrcode'
 import { describe, expect, it } from 'vitest'
 import {
   buildEpcQrPayload,
+  documentTitle,
   formatInvoiceDate,
   isInvoicePaid,
   recipientLines,
@@ -193,6 +194,8 @@ describe('recipientLines', () => {
 describe('payment state helpers', () => {
   it('isInvoicePaid handles paid, unpaid and missing payments', () => {
     expect(isInvoicePaid([{ status: 'paid' }])).toBe(true)
+    // Refunded later: the issued invoice still says it was paid.
+    expect(isInvoicePaid([{ status: 'refunded' }])).toBe(true)
     expect(isInvoicePaid([{ status: 'pending' }])).toBe(false)
     expect(isInvoicePaid([])).toBe(false)
     expect(isInvoicePaid(undefined)).toBe(false)
@@ -370,5 +373,33 @@ describe('renderInvoicePdf', () => {
     })
     expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
     expect(pageCount(pdf)).toBe(1)
+  })
+
+  it('renders the Stornorechnung: own number, reference, negated amounts, no GiroCode', async () => {
+    const pdf = await renderToBuffer(
+      {
+        invoice: makeInvoice({
+          cancellationNumber: 'RE-2026-00002',
+          cancelledAt: new Date('2026-07-10T10:00:00Z'),
+        } as Partial<Invoice>),
+        order: makeOrder({ payments: [{ id: 'p1', status: 'refunded' }] }),
+        company,
+        cancellation: true,
+      },
+      { compress: false },
+    )
+    const text = extractText(pdf)
+    expect(text).toContain('Stornorechnung RE-2026-00002')
+    expect(text).toContain('RE-2026-00001 vom 04.07.2026')
+    expect(text).toContain('10.07.2026')
+    expect(text).toMatch(/-54,90/)
+    expect(text).toContain('wird Ihnen erstattet')
+    expect(text).not.toContain('Verwendungszweck')
+  })
+
+  it('refuses a Stornorechnung for an invoice that was never cancelled', () => {
+    expect(() => documentTitle({ invoice: makeInvoice(), cancellation: true }, true)).toThrow(
+      /not cancelled/,
+    )
   })
 })

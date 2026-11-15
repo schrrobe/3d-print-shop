@@ -84,6 +84,8 @@ export interface InvoicePdfData {
   company: CompanyInfo
   /** Pre-rendered GiroCode PNG (QR generation is async, rendering is not). */
   qrPng?: Buffer
+  /** Render the Stornorechnung: own number and date, negated amounts, reference to the invoice. */
+  cancellation?: boolean
 }
 
 export const PAYMENT_METHOD_LABELS: Record<string, { de: string; en: string }> = {
@@ -95,8 +97,9 @@ export const PAYMENT_METHOD_LABELS: Record<string, { de: string; en: string }> =
 
 // ---------- pure helpers ----------
 
+/** A refunded payment was paid when the invoice was issued; re-rendering must not change that. */
 export function isInvoicePaid(payments: Pick<Payment, 'status'>[] | undefined): boolean {
-  return payments?.some((p) => p.status === 'paid') ?? false
+  return payments?.some((p) => p.status === 'paid' || p.status === 'refunded') ?? false
 }
 
 export function shouldShowGiroCode(
@@ -178,6 +181,17 @@ export function recipientLines(
     lines.push(countryName(order.country, de).toUpperCase())
   }
   return lines
+}
+
+/** "Rechnung RE-…" or "Stornorechnung RE-…" — title and footer of the document. */
+export function documentTitle(
+  data: Pick<InvoicePdfData, 'invoice' | 'cancellation'>,
+  de: boolean,
+): string {
+  const { invoice, cancellation } = data
+  if (!cancellation) return `${de ? 'Rechnung' : 'Invoice'} ${invoice.number}`
+  if (!invoice.cancellationNumber) throw new Error(`Invoice ${invoice.number} is not cancelled`)
+  return `${de ? 'Stornorechnung' : 'Cancellation invoice'} ${invoice.cancellationNumber}`
 }
 
 type Translate = (de: string, en: string) => string
@@ -294,14 +308,25 @@ function drawTitleAndMeta(
     .font(FONT_BOLD)
     .fontSize(SIZE.title)
     .fillColor(INK)
-    .text(`${t('Rechnung', 'Invoice')} ${invoice.number}`, LAYOUT.left, cur.y, {
+    .text(documentTitle(data, de), LAYOUT.left, cur.y, {
       width: LAYOUT.contentWidth,
       lineBreak: false,
     })
   cur.y += doc.currentLineHeight() + mm(8)
 
   const rows: Array<[string, string]> = [
-    [t('Rechnungsdatum:', 'Invoice date:'), formatInvoiceDate(invoice.issuedAt, de)],
+    [
+      t('Rechnungsdatum:', 'Invoice date:'),
+      formatInvoiceDate(data.cancellation ? invoice.cancelledAt! : invoice.issuedAt, de),
+    ],
+    ...(data.cancellation
+      ? [
+          [
+            t('Storno zu Rechnung:', 'Cancels invoice:'),
+            `${invoice.number} ${t('vom', 'of')} ${formatInvoiceDate(invoice.issuedAt, de)}`,
+          ] as [string, string],
+        ]
+      : []),
     [
       t('Liefer-/Leistungsdatum:', 'Delivery/service date:'),
       order.shippedAt
@@ -384,6 +409,7 @@ function drawItemsTable(
   cur: Cursor,
 ): void {
   const { invoice, order } = data
+  const sign = data.cancellation ? -1 : 1
   drawTableHeader(doc, t, cur)
 
   doc.font(FONT).fontSize(SIZE.body)
@@ -435,8 +461,8 @@ function drawItemsTable(
     const y = cur.y + LAYOUT.cellPadY
     cell(doc, COLS.desc, item.name, y, truncate ? { height: maxDescH, ellipsis: true } : {})
     cell(doc, COLS.qty, String(item.quantity), y)
-    cell(doc, COLS.unitPrice, formatCents(item.unitPriceCents, invoice.locale), y)
-    cell(doc, COLS.total, formatCents(item.totalCents, invoice.locale), y)
+    cell(doc, COLS.unitPrice, formatCents(sign * item.unitPriceCents, invoice.locale), y)
+    cell(doc, COLS.total, formatCents(sign * item.totalCents, invoice.locale), y)
 
     cur.y += rowH
     hRule(doc, cur.y)
@@ -472,10 +498,11 @@ function drawTotals(
   ensureSpace(doc, t, cur, (rows.length + 1) * rowH)
 
   const labelCol = { x: LAYOUT.left, w: COLS.total.x - LAYOUT.left, align: 'left' } as const
+  const sign = data.cancellation ? -1 : 1
   const row = (label: string, cents: number): void => {
     const y = cur.y + LAYOUT.cellPadY
     cell(doc, labelCol, label, y)
-    cell(doc, COLS.total, formatCents(cents, invoice.locale), y)
+    cell(doc, COLS.total, formatCents(sign * cents, invoice.locale), y)
     cur.y += rowH
   }
 
@@ -522,6 +549,22 @@ function drawPaymentBlock(
   cur: Cursor,
 ): void {
   const { invoice, order, company, qrPng } = data
+  if (data.cancellation) {
+    const amount = formatCents(invoice.totalCents, invoice.locale)
+    const received = isInvoicePaid(order.payments)
+    paragraph(
+      doc,
+      t,
+      cur,
+      t(
+        `Diese Stornorechnung hebt die Rechnung ${invoice.number} vollständig auf.` +
+          (received ? ` Der bereits gezahlte Betrag von ${amount} wird Ihnen erstattet.` : ''),
+        `This cancellation invoice fully cancels invoice ${invoice.number}.` +
+          (received ? ` The amount of ${amount} already paid will be refunded to you.` : ''),
+      ),
+    )
+    return
+  }
   const paid = isInvoicePaid(order.payments)
   const method = PAYMENT_METHOD_LABELS[invoice.paymentMethod] ?? {
     de: invoice.paymentMethod,
@@ -623,7 +666,7 @@ function stampFooters(doc: PDFKit.PDFDocument, data: InvoicePdfData, t: Translat
       range.count > 1
         ? [
             ...base,
-            `${t('Rechnung', 'Invoice')} ${data.invoice.number}`,
+            documentTitle(data, data.invoice.locale === 'de'),
             t(`Seite ${i + 1} von ${range.count}`, `Page ${i + 1} of ${range.count}`),
           ]
         : base
