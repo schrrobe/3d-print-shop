@@ -151,24 +151,7 @@ interface CheckoutResponse {
   orderNumber: string
   accessToken: string
   totals: { totalCents: number }
-  payment: { method: string; redirectUrl?: string; clientSecret?: string; publishableKey?: string }
-}
-
-const stripeOrder = ref<CheckoutResponse | null>(null)
-const { mountEl: stripeMount, mount: mountStripeCheckout } = useStripeEmbedded()
-
-async function mountStripe(response: CheckoutResponse) {
-  stripeOrder.value = response
-  // Same route, so the router doesn't scroll — the form is replaced by the payment step
-  // while the customer is still down at the submit button.
-  window.scrollTo({ top: 0 })
-  await mountStripeCheckout(
-    {
-      clientSecret: response.payment.clientSecret ?? '',
-      publishableKey: response.payment.publishableKey ?? '',
-    },
-    response,
-  )
+  payment: { method: string; redirectUrl?: string; clientSecret?: string }
 }
 
 async function submit() {
@@ -232,12 +215,10 @@ async function submit() {
     cart.clear()
     const orderPath = localePath(`/order/${response.orderNumber}?token=${response.accessToken}`)
     if (response.payment.method === 'stripe' && response.payment.clientSecret) {
-      // The order exists and the cart is gone — if Stripe.js won't start, the
-      // order page's "pay now" resumes the session (and survives reloads).
-      await mountStripe(response).catch((err) => {
-        console.error(err)
-        return router.push(orderPath)
-      })
+      // The cart is gone, so the payment step must live on a URL that survives a
+      // reload (mobile tabs reload after the banking app for 3-D Secure/PayPal).
+      // replace: "back" would only hit the empty checkout and bounce to /cart.
+      await router.replace(`${orderPath}&pay=1`)
     } else if (response.payment.method === 'stripe' && response.payment.redirectUrl) {
       // Mock mode redirects straight to the success page
       window.location.href = response.payment.redirectUrl
@@ -310,7 +291,6 @@ const summaryOpen = ref(false)
 
     <!-- Mobile: collapsible order summary above the form -->
     <details
-      v-if="!stripeOrder"
       class="mt-6 border-y border-ink lg:hidden"
       :open="summaryOpen"
       @toggle="summaryOpen = ($event.target as HTMLDetailsElement).open"
@@ -356,25 +336,7 @@ const summaryOpen = ref(false)
       </div>
     </details>
 
-    <section v-if="stripeOrder" class="mt-8 flex flex-col gap-6" data-testid="stripe-checkout">
-      <div class="flex flex-wrap items-baseline justify-between gap-3 border-b border-ink pb-3">
-        <h2 class="kb-heading text-[1.5rem]">{{ t('checkout.payment') }}</h2>
-        <span class="text-ink-2">
-          {{ t('success.orderNumber') }}
-          <span class="kb-num font-bold text-ink">{{ stripeOrder.orderNumber }}</span>
-          ·
-          <span class="kb-num font-bold text-ink">{{ money(stripeOrder.totals.totalCents) }}</span>
-        </span>
-      </div>
-      <p v-if="errorMessage" class="kb-error flex gap-2" role="alert">
-        <ShopIcon name="alert" :size="18" class="mt-0.5" />
-        {{ errorMessage }}
-      </p>
-      <div ref="stripeMount" class="min-h-96" />
-    </section>
-
     <form
-      v-else
       class="mt-8 grid gap-10 lg:grid-cols-[1fr_24rem] lg:gap-14"
       novalidate
       data-testid="checkout-form"

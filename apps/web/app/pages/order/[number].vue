@@ -110,12 +110,23 @@ async function payNow() {
     )
   } catch (err) {
     stripeOpen.value = false
-    stripeError.value = t('common.error')
     console.error(err)
+    // 409: paid or changed meanwhile (e.g. ?pay=1 reload after 3-D Secure) — show the fresh state
+    if ((err as { statusCode?: number }).statusCode === 409) await refresh()
+    if (stripePayment.value) stripeError.value = t('common.error')
   } finally {
     stripeLoading.value = false
   }
 }
+
+// Checkout lands here with ?pay=1 — opening the form on a real URL means a reload
+// (e.g. back from the banking app) brings the payment step back instead of losing it.
+onMounted(() => {
+  if (!route.query.pay || !stripePayment.value) return
+  // Scroll first so the loading payment box is visible while Stripe.js starts.
+  document.querySelector('[data-testid="stripe-pay"]')?.scrollIntoView({ block: 'start' })
+  void payNow()
+})
 </script>
 
 <template>
