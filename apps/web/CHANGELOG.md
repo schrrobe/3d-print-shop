@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/schrrobe/3d-print-shop/compare/web-v0.22.0...web-v0.22.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **shop:** Stripe-Zahlschritt übersteht Neuladen der Seite ([#136](https://github.com/schrrobe/3d-print-shop/issues/136)) ([69c29ad](https://github.com/schrrobe/3d-print-shop/commit/69c29adabd41260c6b233d77061245a832fdcbc2))
+
 ## [0.22.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.21.0...web-v0.22.0) (2026-11-15)
 
 
