@@ -62,6 +62,25 @@ test.describe('checkout with stripe (mock)', () => {
     await expect(page.getByTestId('stripe-pay')).toBeHidden()
   })
 
+  test('order page with ?pay=1 reopens the payment on its own', async ({ page }) => {
+    // Real Stripe checkout lands on /order/…&pay=1; a reload there (back from the
+    // banking app) must bring the payment back without a click.
+    const shop = new ShopPage(page)
+    await shop.addProductToCart('patronenbox-9mm-luger-50')
+    await gotoHydrated(page, '/checkout')
+    await shop.fillCheckoutAddress('stripe-pay-param-e2e@example.com')
+    await page.getByTestId('payment-stripe').click()
+    await page.getByTestId('submit-order').click()
+    await page.waitForURL(/\/checkout\/success/)
+    await page.waitForSelector('html[data-hydrated="true"]')
+    await page.getByTestId('view-order').click()
+    await page.waitForURL(/\/order\//)
+
+    await page.goto(`${page.url()}&pay=1`)
+    // Mock mode reopens the payment via the success page
+    await page.waitForURL(/\/checkout\/success.*mock=1/)
+  })
+
   test('validation: missing address blocks submit', async ({ page }) => {
     const shop = new ShopPage(page)
     await shop.addProductToCart('patronenbox-9mm-luger-50')

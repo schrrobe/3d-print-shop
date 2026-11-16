@@ -116,6 +116,14 @@ async function payNow() {
     stripeLoading.value = false
   }
 }
+
+// Checkout lands here with ?pay=1 — opening the form on a real URL means a reload
+// (e.g. back from the banking app) brings the payment step back instead of losing it.
+onMounted(async () => {
+  if (!route.query.pay || !stripePayment.value) return
+  await payNow()
+  document.querySelector('[data-testid="stripe-pay"]')?.scrollIntoView({ block: 'start' })
+})
 </script>
 
 <template>
