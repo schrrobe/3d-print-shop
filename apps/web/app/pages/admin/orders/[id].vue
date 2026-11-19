@@ -54,6 +54,7 @@ interface AdminOrderDetail {
   deliveryAddress: DeliveryAddress | null
   subtotalCents: number
   shippingCents: number
+  christmasDeliveryCents: number
   totalCents: number
   shippedAt: string | null
   carrier: string | null
@@ -689,6 +690,14 @@ function ship() {
             </table>
           </li>
         </ul>
+        <div
+          v-if="order.christmasDeliveryCents > 0"
+          class="mt-md flex justify-between text-label-medium text-brand"
+          data-testid="order-christmas-delivery"
+        >
+          <span>🎄 Lieferung vor Weihnachten</span>
+          <PsPrice :cents="order.christmasDeliveryCents" />
+        </div>
         <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">
           <span>Gesamt</span>
           <PsPrice :cents="order.totalCents" />

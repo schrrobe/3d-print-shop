@@ -51,6 +51,8 @@ const order = {
   subtotalCents: 10000,
   discountCents: 0,
   prepaymentDiscountCents: 500,
+  // ours alone: must not raise the provider payout
+  christmasDeliveryCents: 500,
   firstName: 'Erika',
   lastName: 'Muster',
   company: null,

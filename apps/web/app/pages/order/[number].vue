@@ -25,6 +25,7 @@ interface OrderView {
   shippingCents: number
   discountCents: number
   prepaymentDiscountCents: number
+  christmasDeliveryCents: number
   voucherCode: string | null
   totalCents: number
   carrier: string | null
@@ -176,6 +177,14 @@ onMounted(() => {
         <span class="text-brand"
           >−<PsPrice :cents="order.prepaymentDiscountCents" :locale="locale as Locale" size="sm"
         /></span>
+      </div>
+      <div
+        v-if="order.christmasDeliveryCents > 0"
+        class="mt-md flex justify-between text-body-regular"
+        data-testid="order-christmas-delivery"
+      >
+        <span class="text-secondary">{{ t('cart.christmasDelivery') }}</span>
+        <PsPrice :cents="order.christmasDeliveryCents" :locale="locale as Locale" size="sm" />
       </div>
       <div class="mt-md flex justify-between border-t border-subtle pt-md text-label-medium">
         <span>{{ t('cart.total') }}</span>

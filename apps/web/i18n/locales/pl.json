@@ -42,6 +42,7 @@
     "edit": "Edytuj",
     "voucherLabel": "Kupon ({code})",
     "prepaymentDiscount": "Rabat za przedpłatę ({percent} %)",
+    "christmasDelivery": "Dostawa przed Świętami",
     "voucherPlaceholder": "Kod kuponu",
     "voucherApply": "Zrealizuj",
     "voucherRemove": "Usuń",
@@ -533,7 +534,8 @@
         "latin": "Używaj tylko liter łacińskich (np. Sofia zamiast София).",
         "city": "Podaj miejscowość.",
         "colors": "Przy jednym z produktów w koszyku brakuje koloru lub kolor jest już niedostępny. Edytuj produkt w koszyku.",
-        "freeBoxColors": "Wybierz wszystkie kolory dla darmowego pudełka."
+        "freeBoxColors": "Wybierz wszystkie kolory dla darmowego pudełka.",
+        "christmasDelivery": "Dostawa przed Świętami nie jest już dostępna. Usunęliśmy tę opcję, sprawdź łączną kwotę."
       },
       "freeBox": {
         "title": "Twoje darmowe pudełko na 50",

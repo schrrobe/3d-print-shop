@@ -88,6 +88,15 @@ export function centsUntilFreeShipping(subtotalCents: number, country: string): 
   return Math.max(0, freeShippingThresholdCents(country) - subtotalCents)
 }
 
+/** Surcharge for guaranteed delivery before Christmas; ours alone, never part of the provider payout. */
+export const CHRISTMAS_DELIVERY_CENTS = 500
+
+/** Offered 1 Nov – 15 Dec (Berlin time), domestic only. */
+export function christmasDeliveryAvailable(country: string, now: Date = new Date()): boolean {
+  const monthDay = now.toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' }).slice(5)
+  return isDomestic(country) && monthDay >= '11-01' && monthDay <= '12-15'
+}
+
 export function qualifiesForFreeBox(subtotalCents: number): boolean {
   return subtotalCents >= FREE_BOX_THRESHOLD_CENTS
 }

@@ -495,6 +495,12 @@ function drawTotals(
     ])
   }
   rows.push([t('Versand', 'Shipping'), invoice.shippingCents])
+  if (order.christmasDeliveryCents > 0) {
+    rows.push([
+      t('Lieferung vor Weihnachten', 'Delivery before Christmas'),
+      order.christmasDeliveryCents,
+    ])
+  }
 
   doc.font(FONT).fontSize(SIZE.body)
   const rowH = doc.currentLineHeight() + 2 * LAYOUT.cellPadY

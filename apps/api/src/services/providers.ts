@@ -109,6 +109,9 @@ export async function renderProviderPdf(a: FullAssignment): Promise<Buffer> {
   doc.text(`Datum: ${a.createdAt.toLocaleDateString('de-DE')}`)
   doc.moveDown()
   for (const line of deliveryLines(a, order, c)) doc.text(line)
+  if (order.christmasDeliveryCents > 0) {
+    doc.moveDown().fontSize(12).text('Lieferung vor Weihnachten – bitte priorisieren').fontSize(10)
+  }
   doc.moveDown(2)
 
   doc.fontSize(11).text('Positionen', { underline: true })
