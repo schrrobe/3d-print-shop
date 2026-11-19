@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.23.0](https://github.com/schrrobe/3d-print-shop/compare/web-v0.22.1...web-v0.23.0) (2026-11-19)
+
+
+### Features
+
+* **shipping:** Versand innerhalb Deutschlands erst ab 100 € kostenlos ([#138](https://github.com/schrrobe/3d-print-shop/issues/138)) ([6e007f5](https://github.com/schrrobe/3d-print-shop/commit/6e007f59027b60570198a22530a5fb60645a462e))
+* **shop:** Option „Lieferung vor Weihnachten“ (+5 €) im Warenkorb ([#139](https://github.com/schrrobe/3d-print-shop/issues/139)) ([7f96824](https://github.com/schrrobe/3d-print-shop/commit/7f96824218eb572dd3faa02d1df532dbef0ecd6a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.4.4
+    * @print-shop/types bumped to 0.5.0
+    * @print-shop/ui bumped to 0.7.4
+    * @print-shop/utils bumped to 0.11.0
+    * @print-shop/validators bumped to 0.14.0
+
 ## [0.22.1](https://github.com/schrrobe/3d-print-shop/compare/web-v0.22.0...web-v0.22.1) (2026-11-16)
 
 

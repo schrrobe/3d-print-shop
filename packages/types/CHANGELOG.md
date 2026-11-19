@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.4.0...types-v0.5.0) (2026-11-19)
+
+
+### Features
+
+* **shop:** Option „Lieferung vor Weihnachten“ (+5 €) im Warenkorb ([#139](https://github.com/schrrobe/3d-print-shop/issues/139)) ([7f96824](https://github.com/schrrobe/3d-print-shop/commit/7f96824218eb572dd3faa02d1df532dbef0ecd6a))
+
 ## [0.4.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.3.0...types-v0.4.0) (2026-11-13)
 
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.23.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.22.1...api-v0.23.0) (2026-11-19)
+
+
+### Features
+
+* **shop:** Option „Lieferung vor Weihnachten“ (+5 €) im Warenkorb ([#139](https://github.com/schrrobe/3d-print-shop/issues/139)) ([7f96824](https://github.com/schrrobe/3d-print-shop/commit/7f96824218eb572dd3faa02d1df532dbef0ecd6a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/emails bumped to 0.4.4
+    * @print-shop/types bumped to 0.5.0
+    * @print-shop/utils bumped to 0.11.0
+    * @print-shop/validators bumped to 0.14.0
+
 ## [0.22.1](https://github.com/schrrobe/3d-print-shop/compare/api-v0.22.0...api-v0.22.1) (2026-11-15)
 
 
