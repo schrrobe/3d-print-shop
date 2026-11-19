@@ -34,10 +34,10 @@ describe('pricing', () => {
     })
   })
 
-  it('applies free shipping at 80 € within Germany', () => {
-    const totals = calcCartTotals([{ unitPriceCents: 8000, quantity: 1 }], 'DE')
+  it('applies free shipping at 100 € within Germany', () => {
+    const totals = calcCartTotals([{ unitPriceCents: 10000, quantity: 1 }], 'DE')
     expect(totals.shippingCents).toBe(0)
-    expect(totals.totalCents).toBe(8000)
+    expect(totals.totalCents).toBe(10000)
     expect(totals.freeShippingApplied).toBe(true)
   })
 
