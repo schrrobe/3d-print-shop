@@ -42,6 +42,7 @@
     "edit": "Modifica",
     "voucherLabel": "Buono ({code})",
     "prepaymentDiscount": "Sconto pagamento anticipato ({percent}%)",
+    "christmasDelivery": "Consegna prima di Natale",
     "voucherPlaceholder": "Codice buono",
     "voucherApply": "Applica",
     "voucherRemove": "Rimuovi",
@@ -533,7 +534,8 @@
         "latin": "Usa solo lettere latine (ad es. Sofia invece di София).",
         "city": "Inserisci la tua città.",
         "colors": "A un articolo nel carrello manca un colore, oppure il colore non è più disponibile. Modifica l'articolo nel carrello.",
-        "freeBoxColors": "Scegli tutti i colori della scatola in omaggio."
+        "freeBoxColors": "Scegli tutti i colori della scatola in omaggio.",
+        "christmasDelivery": "La consegna prima di Natale non è più disponibile. Abbiamo rimosso l’opzione, controlla il totale."
       },
       "freeBox": {
         "title": "La tua scatola da 50 in omaggio",

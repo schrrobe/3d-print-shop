@@ -21,6 +21,7 @@ export interface CartLine {
 
 const STORAGE_KEY = 'print-shop-cart'
 const VOUCHER_STORAGE_KEY = 'print-shop-voucher'
+const CHRISTMAS_STORAGE_KEY = 'print-shop-christmas-delivery'
 
 export type ApplyVoucherResult =
   | { valid: true; voucher: VoucherDto; discountCents: number }
@@ -40,6 +41,8 @@ export const useCartStore = defineStore('cart', () => {
   const voucher = ref<VoucherDto | null>(null)
   /** Delivery country for shipping; the cart page has no address yet, so DE until checkout sets it. */
   const country = ref('DE')
+  /** "Lieferung vor Weihnachten" ticked; totals drop it when no longer offered for the country. */
+  const christmasDelivery = ref(false)
   const hydrated = ref(false)
 
   function hydrate() {
@@ -55,6 +58,11 @@ export const useCartStore = defineStore('cart', () => {
       if (rawVoucher) voucher.value = JSON.parse(rawVoucher) as VoucherDto
     } catch {
       voucher.value = null
+    }
+    try {
+      christmasDelivery.value = localStorage.getItem(CHRISTMAS_STORAGE_KEY) === '1'
+    } catch {
+      christmasDelivery.value = false
     }
     hydrated.value = true
   }
@@ -72,11 +80,16 @@ export const useCartStore = defineStore('cart', () => {
       if (value) localStorage.setItem(VOUCHER_STORAGE_KEY, JSON.stringify(value))
       else localStorage.removeItem(VOUCHER_STORAGE_KEY)
     })
+    watch(christmasDelivery, (value) => {
+      if (!hydrated.value) return
+      if (value) localStorage.setItem(CHRISTMAS_STORAGE_KEY, '1')
+      else localStorage.removeItem(CHRISTMAS_STORAGE_KEY)
+    })
   }
 
   const count = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
   const totals = computed(() =>
-    calcCartTotalsWithVoucher(items.value, voucher.value, country.value),
+    calcCartTotalsWithVoucher(items.value, voucher.value, country.value, christmasDelivery.value),
   )
 
   function add(line: Omit<CartLine, 'key'>) {
@@ -114,6 +127,7 @@ export const useCartStore = defineStore('cart', () => {
   function clear() {
     items.value = []
     voucher.value = null
+    christmasDelivery.value = false
   }
 
   /** Server-side validation via /api/vouchers/validate; stores the voucher on success. */
@@ -150,6 +164,7 @@ export const useCartStore = defineStore('cart', () => {
     items,
     voucher,
     country,
+    christmasDelivery,
     count,
     totals,
     hydrate,

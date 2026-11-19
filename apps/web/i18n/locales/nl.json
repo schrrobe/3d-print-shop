@@ -42,6 +42,7 @@
     "edit": "Bewerken",
     "voucherLabel": "Kortingscode ({code})",
     "prepaymentDiscount": "Korting vooruitbetaling ({percent} %)",
+    "christmasDelivery": "Levering vóór Kerstmis",
     "voucherPlaceholder": "Kortingscode",
     "voucherApply": "Inwisselen",
     "voucherRemove": "Verwijderen",
@@ -533,7 +534,8 @@
         "latin": "Gebruik alleen Latijnse letters (bijv. Sofia in plaats van София).",
         "city": "Vul je woonplaats in.",
         "colors": "Bij een artikel in je winkelwagen ontbreekt een kleur of de kleur is niet meer beschikbaar. Pas het artikel aan in je winkelwagen.",
-        "freeBoxColors": "Kies alle kleuren voor de gratis box."
+        "freeBoxColors": "Kies alle kleuren voor de gratis box.",
+        "christmasDelivery": "Levering vóór Kerstmis is niet meer beschikbaar. We hebben de optie verwijderd, controleer het totaalbedrag."
       },
       "freeBox": {
         "title": "Je gratis 50-doos",

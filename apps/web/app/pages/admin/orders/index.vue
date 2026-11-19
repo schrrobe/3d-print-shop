@@ -11,6 +11,7 @@ interface AdminOrder {
   source: 'shop' | 'admin' | 'quote'
   email: string
   totalCents: number
+  christmasDeliveryCents: number
   createdAt: string
   invoice: { number: string } | null
   items: { personalization: string | null }[]
@@ -127,6 +128,12 @@ const columns = [
           <PsOrderStatusBadge :status="(row as unknown as AdminOrder).status" />
           <PsBadge v-if="(row as unknown as AdminOrder).source === 'admin'" variant="info"
             >Paylink</PsBadge
+          >
+          <PsBadge
+            v-if="(row as unknown as AdminOrder).christmasDeliveryCents > 0"
+            variant="warning"
+            data-testid="order-christmas"
+            >🎄 Vor Weihnachten</PsBadge
           >
           <PsBadge v-if="externalProvider(row)" variant="external" data-testid="order-external">
             Extern: {{ externalProvider(row) }}

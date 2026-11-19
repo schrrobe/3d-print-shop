@@ -529,6 +529,8 @@ model Order {
   discountCents           Int         @default(0)
   /// Vorkasse (bank_transfer) discount on goods after voucher; shipping excluded.
   prepaymentDiscountCents Int         @default(0)
+  /// "Lieferung vor Weihnachten" surcharge; not part of goods value, so never in provider payout.
+  christmasDeliveryCents  Int         @default(0)
   totalCents              Int
   /// Snapshot of the redeemed voucher code (kept even if the voucher is deleted)
   voucherCode             String?

@@ -42,6 +42,7 @@
     "edit": "Bearbeiten",
     "voucherLabel": "Gutschein ({code})",
     "prepaymentDiscount": "Vorkasse-Rabatt ({percent} %)",
+    "christmasDelivery": "Lieferung vor Weihnachten",
     "voucherPlaceholder": "Gutscheincode",
     "voucherApply": "Einlösen",
     "voucherRemove": "Entfernen",
@@ -533,7 +534,8 @@
         "latin": "Bitte nur lateinische Buchstaben verwenden (z. B. Sofia statt София).",
         "city": "Bitte gib deinen Ort ein.",
         "colors": "Bei einem Artikel im Warenkorb fehlt eine Farbe oder sie ist nicht mehr verfügbar. Bitte bearbeite den Artikel im Warenkorb.",
-        "freeBoxColors": "Bitte wähle alle Farben für die Gratis-Box."
+        "freeBoxColors": "Bitte wähle alle Farben für die Gratis-Box.",
+        "christmasDelivery": "Lieferung vor Weihnachten ist nicht mehr verfügbar. Wir haben die Option entfernt, bitte prüfe den Gesamtbetrag."
       },
       "freeBox": {
         "title": "Deine Gratis-50er-Box",

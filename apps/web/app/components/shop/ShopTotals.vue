@@ -2,6 +2,8 @@
 import {
   calcPrepaymentDiscountCents,
   centsUntilFreeShipping,
+  CHRISTMAS_DELIVERY_CENTS,
+  christmasDeliveryAvailable,
   FREE_BOX_THRESHOLD_CENTS,
   formatCents,
   freeShippingThresholdCents,
@@ -31,6 +33,9 @@ const missingForFreeBox = computed(() =>
 const voucherActive = computed(() => !!cart.voucher && cart.totals.discountCents > 0)
 const prepaymentCents = computed(() =>
   props.prepayment ? calcPrepaymentDiscountCents(cart.totals) : 0,
+)
+const christmasOffered = computed(
+  () => cart.totals.subtotalCents > 0 && christmasDeliveryAvailable(cart.country),
 )
 </script>
 
@@ -83,6 +88,24 @@ const prepaymentCents = computed(() =>
           }}</span>
           <template v-else>{{ money(cart.totals.shippingCents) }}</template>
         </dd>
+      </div>
+      <div
+        v-if="christmasOffered"
+        class="flex justify-between gap-4 py-2"
+        :data-testid="`${props.prefix}-christmas-delivery`"
+      >
+        <dt>
+          <label class="flex cursor-pointer items-start gap-3 text-ink-2">
+            <input
+              v-model="cart.christmasDelivery"
+              type="checkbox"
+              name="christmasDelivery"
+              class="mt-0.5 size-5 shrink-0"
+            />
+            <span>{{ t('cart.christmasDelivery') }}</span>
+          </label>
+        </dt>
+        <dd>{{ money(CHRISTMAS_DELIVERY_CENTS) }}</dd>
       </div>
       <div class="mt-2 flex items-baseline justify-between gap-4 border-t-2 border-ink pt-3">
         <dt class="font-bold">{{ t('cart.total') }}</dt>
