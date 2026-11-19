@@ -26,7 +26,7 @@ test.describe('cart', () => {
     await expect(page.getByTestId('cart-empty')).toBeVisible()
   })
 
-  test('shipping is 6,99 € below 80 € and free above (DE)', async ({ page }) => {
+  test('shipping is 6,99 € below 100 € and free above (DE)', async ({ page }) => {
     const shop = new ShopPage(page)
     await shop.addProductToCart('patronenbox-308-win-100') // 27,90
     await gotoHydrated(page, '/cart')
@@ -34,11 +34,17 @@ test.describe('cart', () => {
     await expect(page.getByTestId('free-shipping-hint')).toBeVisible()
     await expect(page.getByTestId('free-box-hint')).toBeVisible()
 
-    // 3 × 27,90 = 83,70 → free shipping within Germany, free box still missing
+    // 3 × 27,90 = 83,70 → still below 100 €, shipping charged
     await page.getByTestId('cart-quantity').fill('3')
     await page.getByTestId('cart-quantity').dispatchEvent('change')
+    await expect(page.getByTestId('cart-shipping')).toContainText('6,99')
+    await expect(page.getByTestId('free-shipping-hint')).toBeVisible()
+
+    // 4 × 27,90 = 111,60 → free shipping within Germany, free box still missing
+    await page.getByTestId('cart-quantity').fill('4')
+    await page.getByTestId('cart-quantity').dispatchEvent('change')
     await expect(page.getByTestId('cart-shipping')).not.toContainText('6,99')
-    await expect(page.getByTestId('cart-total')).toContainText('83,70')
+    await expect(page.getByTestId('cart-total')).toContainText('111,60')
     await expect(page.getByTestId('free-shipping-hint')).toBeHidden()
     await expect(page.getByTestId('free-box-hint')).toBeVisible()
 

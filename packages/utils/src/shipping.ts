@@ -1,9 +1,9 @@
 /** Domestic delivery country. */
 export const DOMESTIC_COUNTRY = 'DE'
 
-/** Germany: 6,99 €, free from 80 € */
+/** Germany: 6,99 €, free from 100 € */
 export const DOMESTIC_SHIPPING_CENTS = 699
-export const DOMESTIC_FREE_SHIPPING_CENTS = 8000
+export const DOMESTIC_FREE_SHIPPING_CENTS = 10000
 
 /**
  * Abroad: DHL Paket International up to 5 kg, online price (DHL list 07/2025).

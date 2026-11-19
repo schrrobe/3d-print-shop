@@ -9,14 +9,14 @@ import {
 } from '../src/shipping.js'
 
 describe('shipping', () => {
-  it('charges 6,99 € within Germany below 80 €', () => {
+  it('charges 6,99 € within Germany below 100 €', () => {
     expect(calcShippingCents(1, 'DE')).toBe(699)
-    expect(calcShippingCents(7999, 'DE')).toBe(699)
-    expect(calcShippingCents(7999, 'de')).toBe(699)
+    expect(calcShippingCents(9999, 'DE')).toBe(699)
+    expect(calcShippingCents(9999, 'de')).toBe(699)
   })
 
-  it('is free within Germany from exactly 80 €', () => {
-    expect(calcShippingCents(8000, 'DE')).toBe(0)
+  it('is free within Germany from exactly 100 €', () => {
+    expect(calcShippingCents(10000, 'DE')).toBe(0)
     expect(calcShippingCents(999999, 'DE')).toBe(0)
   })
 
@@ -49,16 +49,16 @@ describe('shipping', () => {
   })
 
   it('reports free-shipping state per country', () => {
-    expect(isFreeShipping(7999, 'DE')).toBe(false)
-    expect(isFreeShipping(8000, 'DE')).toBe(true)
+    expect(isFreeShipping(9999, 'DE')).toBe(false)
+    expect(isFreeShipping(10000, 'DE')).toBe(true)
     expect(isFreeShipping(8000, 'NL')).toBe(false)
     expect(isFreeShipping(10000, 'NL')).toBe(false)
     expect(isFreeShipping(20000, 'NL')).toBe(true)
   })
 
   it('computes cents until free shipping per country', () => {
-    expect(centsUntilFreeShipping(7000, 'DE')).toBe(1000)
-    expect(centsUntilFreeShipping(8000, 'DE')).toBe(0)
+    expect(centsUntilFreeShipping(9000, 'DE')).toBe(1000)
+    expect(centsUntilFreeShipping(10000, 'DE')).toBe(0)
     expect(centsUntilFreeShipping(8000, 'PL')).toBe(12000)
     expect(centsUntilFreeShipping(20000, 'PL')).toBe(0)
   })
