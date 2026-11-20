@@ -396,8 +396,6 @@ export interface CartTotalsDto {
 /** Totals including a redeemed voucher (discount 0 when none applies). */
 export interface CartTotalsWithVoucherDto extends CartTotalsDto {
   discountCents: number
-  /** "Lieferung vor Weihnachten" surcharge, 0 when not chosen or not offered. */
-  christmasDeliveryCents: number
 }
 
 /** Public shape of a redeemable voucher (validate response / cart storage). */

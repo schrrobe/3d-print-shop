@@ -196,7 +196,6 @@ async function submit() {
         paymentMethod: paymentMethod.value,
         locale: locale.value,
         voucherCode: cart.voucher?.code,
-        christmasDelivery: cart.totals.christmasDeliveryCents > 0,
         freeBox: freeBoxProduct.value
           ? { productId: freeBoxProduct.value.id, colorSelection: freeBoxColors.value }
           : undefined,
@@ -234,10 +233,6 @@ async function submit() {
     if (rejection && cart.voucher) {
       cart.removeVoucher()
       errorMessage.value = t(`cart.voucherReason.${rejection}`, { amount: '' })
-    } else if ((details as { christmasDelivery?: string } | undefined)?.christmasDelivery) {
-      // Cutoff passed while the tab was open (totals don't re-check the clock).
-      cart.christmasDelivery = false
-      errorMessage.value = t('shop.checkout.errors.christmasDelivery')
     } else if (Array.isArray(details) && details.some((d) => String(d?.type).endsWith('_color'))) {
       // Cart line saved without (or with a since-disabled) colour — fixable via "edit" in the cart.
       errorMessage.value = t('shop.checkout.errors.colors')

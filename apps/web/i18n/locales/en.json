@@ -42,7 +42,6 @@
     "edit": "Edit",
     "voucherLabel": "Voucher ({code})",
     "prepaymentDiscount": "Prepayment discount ({percent} %)",
-    "christmasDelivery": "Delivery before Christmas",
     "voucherPlaceholder": "Voucher code",
     "voucherApply": "Redeem",
     "voucherRemove": "Remove",
@@ -534,8 +533,7 @@
         "latin": "Please use Latin letters only (e.g. Sofia instead of София).",
         "city": "Please enter your city.",
         "colors": "An item in your cart is missing a colour or the colour is no longer available. Please edit the item in your cart.",
-        "freeBoxColors": "Please choose all colours for the free box.",
-        "christmasDelivery": "Delivery before Christmas is no longer available. We removed the option, please check the total."
+        "freeBoxColors": "Please choose all colours for the free box."
       },
       "freeBox": {
         "title": "Your free 50 box",

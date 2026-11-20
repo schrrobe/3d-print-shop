@@ -1,11 +1,6 @@
 import type { CartTotalsWithVoucherDto, VoucherRejection, VoucherType } from '@print-shop/types'
 import { calcSubtotalCents, type PricedItem } from './pricing.js'
-import {
-  calcShippingCents,
-  CHRISTMAS_DELIVERY_CENTS,
-  christmasDeliveryAvailable,
-  isFreeShipping,
-} from './shipping.js'
+import { calcShippingCents, isFreeShipping } from './shipping.js'
 
 /** Fields needed to decide whether a voucher is redeemable. */
 export interface RedeemableVoucher {
@@ -70,7 +65,6 @@ export function calcCartTotalsWithVoucher(
   items: PricedItem[],
   voucher: { type: VoucherType; value: number; minOrderCents?: number } | null,
   country: string,
-  christmasDelivery = false,
 ): CartTotalsWithVoucherDto {
   const subtotalCents = calcSubtotalCents(items)
   const shippingCents = calcShippingCents(subtotalCents, country)
@@ -78,16 +72,11 @@ export function calcCartTotalsWithVoucher(
     voucher && subtotalCents >= (voucher.minOrderCents ?? 0)
       ? calcVoucherDiscountCents(voucher, subtotalCents)
       : 0
-  const christmasDeliveryCents =
-    christmasDelivery && subtotalCents > 0 && christmasDeliveryAvailable(country)
-      ? CHRISTMAS_DELIVERY_CENTS
-      : 0
   return {
     subtotalCents,
     shippingCents,
     discountCents,
-    christmasDeliveryCents,
-    totalCents: subtotalCents - discountCents + shippingCents + christmasDeliveryCents,
+    totalCents: subtotalCents - discountCents + shippingCents,
     freeShippingApplied: subtotalCents > 0 && isFreeShipping(subtotalCents, country),
   }
 }

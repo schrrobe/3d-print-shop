@@ -136,7 +136,6 @@ async function checkoutResponse(order: CheckoutOrder, stripeClientSecret?: strin
       shippingCents: order.shippingCents,
       discountCents: order.discountCents,
       prepaymentDiscountCents: order.prepaymentDiscountCents,
-      christmasDeliveryCents: order.christmasDeliveryCents,
       totalCents: order.totalCents,
       freeShippingApplied: isFreeShipping(order.subtotalCents, order.country),
     },
@@ -251,19 +250,7 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
       }
     }
 
-    const voucherTotals = calcCartTotalsWithVoucher(
-      orderItems,
-      voucher,
-      input.address.country,
-      input.christmasDelivery,
-    )
-    // Checked on the computed totals: a separate availability check could pass
-    // just before the 15 Dec cutoff while the totals already drop the surcharge.
-    if (input.christmasDelivery && voucherTotals.christmasDeliveryCents === 0) {
-      throw badRequest('Lieferung vor Weihnachten ist nicht verfügbar', {
-        christmasDelivery: 'unavailable',
-      })
-    }
+    const voucherTotals = calcCartTotalsWithVoucher(orderItems, voucher, input.address.country)
     const prepaymentDiscountCents =
       input.paymentMethod === 'bank_transfer' ? calcPrepaymentDiscountCents(voucherTotals) : 0
     const totals = {
@@ -368,7 +355,6 @@ checkoutRouter.post('/', sensitiveLimiter, async (req, res, next) => {
             shippingCents: totals.shippingCents,
             discountCents: totals.discountCents,
             prepaymentDiscountCents,
-            christmasDeliveryCents: totals.christmasDeliveryCents,
             totalCents: totals.totalCents,
             voucherId: voucher?.id,
             voucherCode: voucher?.code,
