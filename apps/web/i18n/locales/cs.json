@@ -42,7 +42,6 @@
     "edit": "Upravit",
     "voucherLabel": "Slevový kód ({code})",
     "prepaymentDiscount": "Sleva za platbu předem ({percent} %)",
-    "christmasDelivery": "Doručení před Vánoci",
     "voucherPlaceholder": "Slevový kód",
     "voucherApply": "Uplatnit",
     "voucherRemove": "Odebrat",
@@ -534,8 +533,7 @@
         "latin": "Používejte pouze latinková písmena (např. Sofia místo София).",
         "city": "Zadej město.",
         "colors": "U položky v košíku chybí barva nebo už není dostupná. Uprav prosím položku v košíku.",
-        "freeBoxColors": "Vyber všechny barvy pro krabičku zdarma.",
-        "christmasDelivery": "Doručení před Vánoci už není dostupné. Možnost jsme odebrali, zkontroluj prosím celkovou částku."
+        "freeBoxColors": "Vyber všechny barvy pro krabičku zdarma."
       },
       "freeBox": {
         "title": "Tvoje krabička na 50 zdarma",

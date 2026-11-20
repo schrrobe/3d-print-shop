@@ -23,7 +23,6 @@ export function publicOrderDto(order: OrderForDto) {
     shippingCents: order.shippingCents,
     discountCents: order.discountCents,
     prepaymentDiscountCents: order.prepaymentDiscountCents,
-    christmasDeliveryCents: order.christmasDeliveryCents,
     voucherCode: order.voucherCode,
     totalCents: order.totalCents,
     carrier: order.carrier,

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   calcShippingCents,
   centsUntilFreeShipping,
-  christmasDeliveryAvailable,
   isFreeShipping,
   isShippingCountry,
   qualifiesForFreeBox,
@@ -67,15 +66,5 @@ describe('shipping', () => {
   it('grants the free 50 box from exactly 150 €', () => {
     expect(qualifiesForFreeBox(14999)).toBe(false)
     expect(qualifiesForFreeBox(15000)).toBe(true)
-  })
-})
-
-describe('christmasDeliveryAvailable', () => {
-  it('is offered 1 Nov – 15 Dec in Germany only, by Berlin date', () => {
-    expect(christmasDeliveryAvailable('DE', new Date('2026-10-31T23:30:00Z'))).toBe(true)
-    expect(christmasDeliveryAvailable('de', new Date('2026-12-15T22:59:00Z'))).toBe(true)
-    expect(christmasDeliveryAvailable('DE', new Date('2026-12-15T23:00:00Z'))).toBe(false)
-    expect(christmasDeliveryAvailable('DE', new Date('2026-10-31T12:00:00Z'))).toBe(false)
-    expect(christmasDeliveryAvailable('AT', new Date('2026-12-01T12:00:00Z'))).toBe(false)
   })
 })

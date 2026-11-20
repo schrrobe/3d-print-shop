@@ -117,8 +117,6 @@ export const checkoutSchema = z.object({
   voucherCode: voucherCodeInputSchema.optional(),
   /** Free 50-round box picked by the customer; the API checks the order-value threshold. */
   freeBox: z.object({ productId: cuidSchema, colorSelection: colorSelectionSchema }).optional(),
-  /** "Lieferung vor Weihnachten" surcharge; the API checks it is still offered. */
-  christmasDelivery: z.boolean().optional(),
   /**
    * Cookie-consent snapshot at order time, persisted onto the order's server
    * events (drives the marketing outbox fan-out). Optional so older clients

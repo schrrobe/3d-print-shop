@@ -183,43 +183,6 @@ describe('POST /api/checkout', () => {
     expect(body.message).toContain('Product not available')
   })
 
-  it('rejects christmas delivery outside Germany', async () => {
-    mockedOrderFindUnique.mockResolvedValue(null)
-    mockedColorFindMany.mockResolvedValue([])
-    mockedProductFindMany.mockResolvedValue([
-      {
-        id: 'clzz00000000000000000001',
-        priceCents: 4999,
-        capacity: 100,
-        translations: [{ locale: 'de', name: 'Box' }],
-        colorSlots: [],
-      },
-    ] as never)
-
-    const res = await postJson(
-      '/api/checkout',
-      {
-        items: [{ productId: 'clzz00000000000000000001', quantity: 1, colorSelection: {} }],
-        christmasDelivery: true,
-        address: {
-          firstName: 'Max',
-          lastName: 'Mustermann',
-          street: 'Musterstraße 1',
-          zip: '1010',
-          city: 'Wien',
-          country: 'AT',
-          email: 'max@example.com',
-        },
-        paymentMethod: 'bank_transfer',
-      },
-      { 'idempotency-key': 'test-checkout-christmas-key-1' },
-    )
-    expect(res.status).toBe(400)
-    const body = (await res.json()) as { message: string; details: unknown }
-    expect(body.message).toContain('Weihnachten')
-    expect(body.details).toEqual({ christmasDelivery: 'unavailable' })
-  })
-
   describe('free 50 box', () => {
     const paidId = 'clzz00000000000000000001'
     const boxId = 'clzz00000000000000000002'

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   calcCartTotalsWithVoucher,
   calcPrepaymentDiscountCents,
@@ -107,30 +107,8 @@ describe('calcCartTotalsWithVoucher', () => {
       subtotalCents: 2999,
       shippingCents: 699,
       discountCents: 0,
-      christmasDeliveryCents: 0,
       totalCents: 3698,
       freeShippingApplied: false,
-    })
-  })
-
-  describe('christmas delivery', () => {
-    afterEach(() => vi.useRealTimers())
-    const items = [{ unitPriceCents: 2999, quantity: 1 }]
-
-    it('adds the surcharge to the total but not to the prepayment base', () => {
-      vi.setSystemTime(new Date('2026-12-01T12:00:00Z'))
-      const totals = calcCartTotalsWithVoucher(items, null, 'DE', true)
-      expect(totals.christmasDeliveryCents).toBe(500)
-      expect(totals.totalCents).toBe(2999 + 699 + 500)
-      expect(calcPrepaymentDiscountCents(totals)).toBe(150)
-    })
-
-    it('drops the surcharge abroad and after the cutoff', () => {
-      vi.setSystemTime(new Date('2026-12-01T12:00:00Z'))
-      expect(calcCartTotalsWithVoucher(items, null, 'AT', true).christmasDeliveryCents).toBe(0)
-      // 16 Dec, 00:30 in Berlin
-      vi.setSystemTime(new Date('2026-12-15T23:30:00Z'))
-      expect(calcCartTotalsWithVoucher(items, null, 'DE', true).christmasDeliveryCents).toBe(0)
     })
   })
 

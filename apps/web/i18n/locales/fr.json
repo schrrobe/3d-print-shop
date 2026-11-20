@@ -42,7 +42,6 @@
     "edit": "Modifier",
     "voucherLabel": "Bon de réduction ({code})",
     "prepaymentDiscount": "Remise paiement anticipé ({percent} %)",
-    "christmasDelivery": "Livraison avant Noël",
     "voucherPlaceholder": "Code de réduction",
     "voucherApply": "Utiliser",
     "voucherRemove": "Retirer",
@@ -534,8 +533,7 @@
         "latin": "Veuillez utiliser uniquement des lettres latines (p. ex. Sofia au lieu de София).",
         "city": "Veuillez saisir votre ville.",
         "colors": "Un article du panier n'a pas de couleur ou sa couleur n'est plus disponible. Veuillez modifier l'article dans le panier.",
-        "freeBoxColors": "Veuillez choisir toutes les couleurs de la boîte offerte.",
-        "christmasDelivery": "La livraison avant Noël n’est plus disponible. Nous avons retiré l’option, veuillez vérifier le total."
+        "freeBoxColors": "Veuillez choisir toutes les couleurs de la boîte offerte."
       },
       "freeBox": {
         "title": "Votre boîte de 50 offerte",
