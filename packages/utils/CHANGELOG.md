@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.1](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.11.0...utils-v0.11.1) (2026-11-20)
+
+
+### Reverts
+
+* **shop:** Option „Lieferung vor Weihnachten“ wieder ausgebaut ([#141](https://github.com/schrrobe/3d-print-shop/issues/141)) ([18bf518](https://github.com/schrrobe/3d-print-shop/commit/18bf51838f271bebc2ace05cb4db06535034d862))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @print-shop/types bumped to 0.5.1
+
 ## [0.11.0](https://github.com/schrrobe/3d-print-shop/compare/utils-v0.10.2...utils-v0.11.0) (2026-11-19)
 
 

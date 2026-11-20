@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/schrrobe/3d-print-shop/compare/types-v0.5.0...types-v0.5.1) (2026-11-20)
+
+
+### Reverts
+
+* **shop:** Option „Lieferung vor Weihnachten“ wieder ausgebaut ([#141](https://github.com/schrrobe/3d-print-shop/issues/141)) ([18bf518](https://github.com/schrrobe/3d-print-shop/commit/18bf51838f271bebc2ace05cb4db06535034d862))
+
 ## [0.5.0](https://github.com/schrrobe/3d-print-shop/compare/types-v0.4.0...types-v0.5.0) (2026-11-19)
 
 
