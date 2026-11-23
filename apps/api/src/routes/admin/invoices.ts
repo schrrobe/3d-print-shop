@@ -8,14 +8,30 @@ import { cancellationPdf } from '../../services/order-flow.js'
 
 export const adminInvoicesRouter = Router()
 
+const withOrder = { include: { items: true, payments: true } }
+const orderSummary = { select: { orderNumber: true, email: true } }
+
+/**
+ * A replaced invoice (order reactivated after the cancel) hangs off replacedOrder instead.
+ * It was never paid (reactivate requires that), so a re-render must not see the payment
+ * that later settled the order's new invoice ("paid" text, no bank details / GiroCode).
+ */
+const orderOf = <T extends object>(invoice: { order: T | null; replacedOrder: T | null }) =>
+  invoice.order ?? { ...invoice.replacedOrder!, payments: [] }
+
 adminInvoicesRouter.get('/', requirePermission('invoices:read'), async (_req, res, next) => {
   try {
     const invoices = await prisma.invoice.findMany({
-      include: { order: { select: { orderNumber: true, email: true } } },
+      include: { order: orderSummary, replacedOrder: orderSummary },
       orderBy: { issuedAt: 'desc' },
       take: 200,
     })
-    res.json({ invoices })
+    res.json({
+      invoices: invoices.map(({ replacedOrder, ...inv }) => ({
+        ...inv,
+        order: inv.order ?? replacedOrder,
+      })),
+    })
   } catch (err) {
     next(err)
   }
@@ -26,10 +42,10 @@ adminInvoicesRouter.get('/:id/pdf', requirePermission('invoices:read'), async (r
   try {
     const invoice = await prisma.invoice.findUnique({
       where: { id: String(req.params.id) },
-      include: { order: { include: { items: true, payments: true } } },
+      include: { order: withOrder, replacedOrder: withOrder },
     })
     if (!invoice) throw notFound('Invoice not found')
-    const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, invoice.order))
+    const pdfPath = invoice.pdfPath ?? (await generateInvoicePdf(invoice, orderOf(invoice)))
     res.download(pdfPath, `${invoice.number}.pdf`)
   } catch (err) {
     next(err)
@@ -48,15 +64,16 @@ adminInvoicesRouter.get(
     try {
       const found = await prisma.invoice.findUnique({
         where: { id: String(req.params.id) },
-        include: { order: { include: { items: true, payments: true } } },
+        include: { order: withOrder, replacedOrder: withOrder },
       })
       if (!found) throw notFound('Invoice not found')
+      const order = orderOf(found)
       if (!found.cancellationNumber) {
-        if (!['cancelled', 'refunded'].includes(found.order.status))
+        if (!['cancelled', 'refunded'].includes(order.status))
           throw conflict('Bestellung ist nicht storniert')
         if (!hasPermission(req.user!.role, 'orders:write')) throw forbidden()
       }
-      const { invoice, pdfPath } = await cancellationPdf(found, found.order)
+      const { invoice, pdfPath } = await cancellationPdf(found, order)
       res.download(pdfPath, `${invoice.cancellationNumber}.pdf`)
     } catch (err) {
       next(err)

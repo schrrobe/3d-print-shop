@@ -89,6 +89,8 @@ interface AdminOrderDetail {
     sentAt: string | null
     cancellationNumber: string | null
   } | null
+  /** Cancelled invoices of an order reactivated after the cancel */
+  replacedInvoices: { id: string; number: string; cancellationNumber: string | null }[]
   tickets: { id: string; ticketNumber: string; status: string; subject: string }[]
   providerAssignments: ProviderAssignment[]
 }
@@ -338,6 +340,25 @@ async function setPart(
   )
   // The bound :checked did not change, so Vue would leave the box toggled.
   if (!ok) box.checked = !checked
+}
+
+// Storno aufheben: only a never paid order with an open payment (transfer came in late).
+const reactivatable = computed(
+  () =>
+    order.value?.status === 'cancelled' &&
+    !order.value.payments.some((p) => p.status === 'paid' || p.status === 'refunded') &&
+    order.value.payments.some((p) => p.status === 'pending'),
+)
+
+function reactivate() {
+  return run(
+    () =>
+      $fetch(`/api/admin/orders/${orderId}/reactivate`, {
+        method: 'POST',
+        credentials: 'include',
+      }),
+    { success: 'Storno aufgehoben', error: 'Reaktivieren fehlgeschlagen' },
+  )
 }
 
 function markPaid() {
@@ -730,6 +751,29 @@ function ship() {
             Stornorechnung {{ order.invoice.cancellationNumber ?? '' }} (PDF)
           </a>
         </div>
+        <p
+          v-for="inv in order.replacedInvoices"
+          :key="inv.id"
+          class="mt-sm text-caption text-secondary"
+          data-testid="replaced-invoice"
+        >
+          Storniert: Rechnung
+          <a
+            :href="`/api/admin/invoices/${inv.id}/pdf`"
+            class="text-brand hover:underline"
+            download
+          >
+            {{ inv.number }}
+          </a>
+          —
+          <a
+            :href="`/api/admin/invoices/${inv.id}/cancellation.pdf`"
+            class="text-brand hover:underline"
+            download
+          >
+            Stornorechnung {{ inv.cancellationNumber }}
+          </a>
+        </p>
         <PsButton
           v-if="auth.can('orders:write')"
           class="mt-md"
@@ -1217,6 +1261,15 @@ function ship() {
             >Zahlung erhalten (Überweisung)</PsButton
           >
         </template>
+        <PsButton
+          v-if="auth.can('orders:write') && reactivatable"
+          variant="secondary"
+          :disabled="pending"
+          data-testid="reactivate"
+          @click="reactivate"
+        >
+          Storno aufheben
+        </PsButton>
         <template v-if="auth.can('orders:write')">
           <PsButton
             v-for="status in nextStatuses.filter((s) => s !== 'shipped')"
