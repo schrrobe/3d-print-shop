@@ -1,6 +1,6 @@
 {
-  "apps/api": "0.23.1",
-  "apps/web": "0.23.1",
+  "apps/api": "0.24.0",
+  "apps/web": "0.24.0",
   "packages/config": "0.0.1",
   "packages/emails": "0.4.5",
   "packages/types": "0.5.1",
