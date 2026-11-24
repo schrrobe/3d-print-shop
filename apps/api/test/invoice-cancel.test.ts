@@ -5,6 +5,7 @@ vi.mock('../src/lib/prisma.js', () => {
   const prisma = {
     invoiceCounter: { upsert: vi.fn() },
     invoice: { updateMany: vi.fn(), findUniqueOrThrow: vi.fn() },
+    $queryRaw: vi.fn(),
     $transaction: vi.fn(),
   }
   prisma.$transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn(prisma))
@@ -14,7 +15,12 @@ vi.mock('../src/lib/prisma.js', () => {
 const { prisma } = await import('../src/lib/prisma.js')
 const { cancelInvoice } = await import('../src/services/invoice.js')
 
-const invoice = { id: 'inv1', number: 'RE-2026-AAAAAA', cancellationNumber: null } as Invoice
+const invoice = {
+  id: 'inv1',
+  number: 'RE-2026-AAAAAA',
+  orderId: 'order_1',
+  cancellationNumber: null,
+} as Invoice
 
 // nextSequentialNumber takes the year from the clock; the assertions expect 2026.
 beforeAll(() => {
@@ -27,6 +33,7 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(prisma.$queryRaw).mockResolvedValue([{ status: 'cancelled' }])
   vi.mocked(prisma.invoiceCounter.upsert).mockResolvedValue({ year: 2026, lastSequence: 7 })
   vi.mocked(prisma.invoice.findUniqueOrThrow).mockResolvedValue({
     ...invoice,
@@ -59,6 +66,14 @@ describe('cancelInvoice', () => {
       cancellationNumber: 'RE-2026-BBBBBB',
     })
     await expect(vi.mocked(prisma.$transaction).mock.results[0]!.value).rejects.toThrow()
+  })
+
+  it('refuses an order reactivated meanwhile: no number taken, invoice stays valid', async () => {
+    vi.mocked(prisma.$queryRaw).mockResolvedValue([{ status: 'awaiting_bank_transfer' }])
+
+    await expect(cancelInvoice(invoice)).rejects.toMatchObject({ status: 409 })
+    expect(vi.mocked(prisma.invoiceCounter.upsert)).not.toHaveBeenCalled()
+    expect(vi.mocked(prisma.invoice.updateMany)).not.toHaveBeenCalled()
   })
 
   it('does nothing for an invoice that already has its Stornorechnung', async () => {

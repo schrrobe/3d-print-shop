@@ -7,6 +7,7 @@ import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
 import { env } from '../env.js'
 import { prisma } from '../lib/prisma.js'
+import { conflict } from '../middleware/error.js'
 import { nextSequentialNumber } from '../lib/sequential-number.js'
 import { company } from './company.js'
 import {
@@ -70,6 +71,13 @@ export async function cancelInvoice(invoice: Invoice): Promise<Invoice> {
   if (invoice.cancellationNumber) return invoice
   try {
     await prisma.$transaction(async (tx) => {
+      // Row lock + recheck: an order reactivated meanwhile keeps its invoice valid. The
+      // reactivate status UPDATE takes the same row lock, so the two run one after the other.
+      // An uncancelled invoice is always the order's current one (only cancelled ones move).
+      const [order] = await tx.$queryRaw<{ status: string }[]>`
+        SELECT status::text FROM "Order" WHERE id = ${invoice.orderId} FOR UPDATE`
+      if (order?.status !== 'cancelled' && order?.status !== 'refunded')
+        throw conflict('Bestellung ist nicht storniert')
       const { number, year, sequence } = await nextSequentialNumber(
         tx.invoiceCounter,
         env.INVOICE_PREFIX,
