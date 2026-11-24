@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/schrrobe/3d-print-shop/compare/api-v0.23.1...api-v0.24.0) (2026-11-24)
+
+
+### Features
+
+* **admin:** Storno einer unbezahlten Bestellung aufheben ([#143](https://github.com/schrrobe/3d-print-shop/issues/143)) ([0cc2f75](https://github.com/schrrobe/3d-print-shop/commit/0cc2f7589deeafd7a2f8503759c3f7b50f757f0d))
+
 ## [0.23.1](https://github.com/schrrobe/3d-print-shop/compare/api-v0.23.0...api-v0.23.1) (2026-11-20)
 
 
