@@ -554,7 +554,9 @@ model Order {
 
   items       OrderItem[]
   payments    Payment[]
-  invoice     Invoice?
+  invoice     Invoice?    @relation("OrderInvoice")
+  /// Cancelled invoices of an order that was reactivated after the cancel.
+  replacedInvoices Invoice[] @relation("ReplacedInvoices")
   printerJobs PrinterJob[]
   quotes      Quote[]
   tickets     Ticket[]
@@ -867,8 +869,12 @@ model Invoice {
   number        String        @unique
   year          Int
   sequence      Int
-  orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id])
+  /// Current invoice of the order; null once a reactivated order got a new one (see replacedOrderId).
+  orderId       String?       @unique
+  order         Order?        @relation("OrderInvoice", fields: [orderId], references: [id], onDelete: Restrict)
+  /// Cancelled invoice superseded after the order was reactivated; it stays as issued (GoBD).
+  replacedOrderId String?
+  replacedOrder   Order?      @relation("ReplacedInvoices", fields: [replacedOrderId], references: [id], onDelete: Restrict)
   locale        Locale        @default(de)
   subtotalCents Int
   shippingCents Int
@@ -891,6 +897,7 @@ model Invoice {
 
   @@unique([year, sequence])
   @@unique([cancellationYear, cancellationSequence])
+  @@index([replacedOrderId])
 }
 
 /// Single-row-per-year counter for sequential invoice numbers (locked via transaction)

@@ -120,6 +120,10 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
         items: { orderBy: { id: 'asc' } }, // stable order; cuid ids follow insertion order
         payments: { include: { bitcoinPayment: true } },
         invoice: true,
+        replacedInvoices: {
+          select: { id: true, number: true, cancellationNumber: true },
+          orderBy: { issuedAt: 'asc' },
+        },
         printerJobs: { include: { printer: true } },
         tickets: { select: { id: true, ticketNumber: true, status: true, subject: true } },
         providerAssignments: {
@@ -540,6 +544,52 @@ adminOrdersRouter.post('/:id/status', requirePermission('orders:write'), async (
     next(err)
   }
 })
+
+/**
+ * Storno aufheben: a cancelled, never paid order goes back to awaiting its open payment,
+ * e.g. when the bank transfer arrived after the cancel. A cancelled invoice stays as issued
+ * (GoBD) and is detached, so marking the order paid issues a new one. An invoice without a
+ * Stornorechnung was never cancelled and stays the order's invoice.
+ */
+adminOrdersRouter.post(
+  '/:id/reactivate',
+  requirePermission('orders:write'),
+  async (req, res, next) => {
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: String(req.params.id) },
+        include: { payments: true },
+      })
+      if (!order) throw notFound('Order not found')
+      if (order.status !== 'cancelled') throw conflict('Bestellung ist nicht storniert')
+      if (order.payments.some((p) => p.status === 'paid' || p.status === 'refunded'))
+        throw conflict(
+          'Bestellung war bezahlt – nur unbezahlte Bestellungen lassen sich reaktivieren',
+        )
+      const payment = order.payments.find((p) => p.status === 'pending')
+      if (!payment) throw conflict('Keine offene Zahlung an der Bestellung')
+      const status =
+        payment.method === 'bank_transfer' ? 'awaiting_bank_transfer' : 'awaiting_payment'
+      const changed = await prisma.$transaction(async (tx) => {
+        const { count } = await tx.order.updateMany({
+          where: { id: order.id, status: 'cancelled' },
+          data: { status },
+        })
+        if (count !== 1) return false
+        await tx.invoice.updateMany({
+          where: { orderId: order.id, cancellationNumber: { not: null } },
+          data: { orderId: null, replacedOrderId: order.id },
+        })
+        return true
+      })
+      if (!changed) throw conflict('Die Bestellung wurde zwischenzeitlich geändert')
+      await audit(req, 'order.reactivate', { type: 'order', id: order.id }, { to: status })
+      res.json({ ok: true })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
 
 /**
  * Order detail edits: staff-only note (orders:write) and tracking link
