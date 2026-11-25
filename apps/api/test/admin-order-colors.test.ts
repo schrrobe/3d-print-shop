@@ -89,12 +89,17 @@ type WithColors = { colors: unknown[] }
 it('order detail: resolves colors per item', async () => {
   vi.mocked(prisma.order.findUnique).mockResolvedValue({
     id: 'order_1',
+    orderNumber: 'PS-1',
+    accessToken: 'tok_1',
     payments: [],
     providerAssignments: [],
     shipments: [],
     items: [coloredItem, plainItem],
   } as never)
-  const { order } = await getJson<{ order: { items: WithColors[] } }>('/api/admin/orders/order_1')
+  const { order } = await getJson<{ order: { items: WithColors[]; orderUrl: string } }>(
+    '/api/admin/orders/order_1',
+  )
+  expect(order.orderUrl).toMatch(/\/order\/PS-1\?token=tok_1$/)
   expect(order.items[0]?.colors).toEqual(expectedColors)
   expect(order.items[1]?.colors).toEqual([])
 })

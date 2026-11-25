@@ -38,7 +38,8 @@ type ItemColor = { slot: string; label: string; name: string; hex: string | null
 interface AdminOrderDetail {
   id: string
   orderNumber: string
-  accessToken: string
+  /** Customer status page link, as in the order mails */
+  orderUrl: string
   status: OrderStatus
   source: 'shop' | 'admin' | 'quote'
   locale: string
@@ -626,7 +627,7 @@ function ship() {
         Extern: {{ liveAssignment.provider.name }}
       </PsBadge>
       <a
-        :href="`/order/${order.orderNumber}?token=${order.accessToken}`"
+        :href="order.orderUrl"
         target="_blank"
         rel="noopener"
         class="ml-auto text-caption text-brand hover:underline"

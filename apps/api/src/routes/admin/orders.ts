@@ -35,6 +35,7 @@ import {
   notifyOrderEnded,
   notifyProductionStarted,
   orderEmailData,
+  orderUrl,
   resendInvoice,
   sendOrderConfirmation,
   sendPaymentReminder,
@@ -148,6 +149,8 @@ adminOrdersRouter.get('/:id', requirePermission('orders:read'), async (req, res,
     res.json({
       order: {
         ...orderFields,
+        // Same customer status link the order mails carry
+        orderUrl: orderUrl(order),
         // Latest DHL label (server path stays server-side); active = cancellable.
         dhlLabel: labelled
           ? { trackingNumber: labelled.trackingNumber, active: hasActiveLabel(labelled) }
