@@ -38,6 +38,8 @@ type ItemColor = { slot: string; label: string; name: string; hex: string | null
 interface AdminOrderDetail {
   id: string
   orderNumber: string
+  /** Customer status page link, as in the order mails */
+  orderUrl: string
   status: OrderStatus
   source: 'shop' | 'admin' | 'quote'
   locale: string
@@ -644,6 +646,14 @@ function ship() {
       <PsBadge v-if="liveAssignment" variant="external" data-testid="order-external">
         Extern: {{ liveAssignment.provider.name }}
       </PsBadge>
+      <a
+        :href="order.orderUrl"
+        target="_blank"
+        rel="noopener"
+        class="ml-auto text-caption text-brand hover:underline"
+        data-testid="customer-order-link"
+        >Kundenansicht öffnen</a
+      >
     </div>
 
     <div class="grid gap-lg lg:grid-cols-2">
