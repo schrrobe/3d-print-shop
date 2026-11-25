@@ -121,6 +121,12 @@ test.describe('admin orders', () => {
     await part('lid-done').check()
     await expect(part('lid-in_progress')).toBeChecked()
 
+    // Admin can open the customer's status page from the order detail
+    await expect(page.getByTestId('customer-order-link')).toHaveAttribute(
+      'href',
+      `/order/${orderNumber}?token=${accessToken}`,
+    )
+
     await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)
     const parts = page.getByTestId('order-item-parts')
     await expect(parts.locator('[data-status="in_progress"]')).toContainText('Gehäuse')
