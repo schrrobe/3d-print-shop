@@ -121,20 +121,24 @@ test.describe('admin orders', () => {
     await part('lid-done').check()
     await expect(part('lid-in_progress')).toBeChecked()
 
-    // Admin can open the customer's status page from the order detail
-    await expect(page.getByTestId('customer-order-link')).toHaveAttribute(
-      'href',
-      `/order/${orderNumber}?token=${accessToken}`,
-    )
+    // Admin opens the customer's status page (new tab) straight from the order detail
+    const [customer] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByTestId('customer-order-link').click(),
+    ])
+    await customer.waitForSelector('html[data-hydrated="true"]', { timeout: 30_000 })
+    expect(new URL(customer.url()).pathname).toBe(`/order/${orderNumber}`)
+    expect(new URL(customer.url()).searchParams.get('token')).toBe(accessToken)
+    await expect(customer.getByTestId('order-page')).toContainText(orderNumber)
 
-    await gotoHydrated(page, `/order/${orderNumber}?token=${accessToken}`)
-    const parts = page.getByTestId('order-item-parts')
+    const parts = customer.getByTestId('order-item-parts')
     await expect(parts.locator('[data-status="in_progress"]')).toContainText('Gehäuse')
     await expect(parts.locator('[data-status="done"]')).toContainText('Deckel & Verschluss')
     await expect(parts.locator('[data-status="open"]')).toContainText('Einsatz')
     // 1 of 3 parts done
-    await expect(page.getByTestId('parts-progress')).toHaveAttribute('data-percent', '33')
-    await expect(page.getByTestId('parts-progress')).toContainText('33 % fertig')
+    await expect(customer.getByTestId('parts-progress')).toHaveAttribute('data-percent', '33')
+    await expect(customer.getByTestId('parts-progress')).toContainText('33 % fertig')
+    await customer.close()
   })
 
   test('delivery address can be redirected until the order ships', async ({ page }) => {
